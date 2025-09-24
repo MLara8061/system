@@ -1,0 +1,72 @@
+<?php
+include 'db_connect.php';
+$qry = $conn->query("SELECT * FROM equipments where id = ".$_GET['id'])->fetch_array();
+foreach($qry as $k => $v){
+	$$k = $v;
+}
+
+$qry = $conn->query("SELECT * FROM equipment_reception where equipment_id = ".$_GET['id'])->fetch_array();
+foreach($qry as $k => $v){
+	$$k = $v;
+}
+
+$qry = $conn->query("SELECT d.*,p.name as responsible_position_name,l.name as location_name from equipment_delivery d inner join `equipment_responsible_positions` p on d.`responsible_position`=p.`id` inner join equipment_locations l on d.`location_id`=l.id  where equipment_id = ".$_GET['id'])->fetch_array();
+foreach($qry as $k => $v){
+	$$k = $v;
+}
+
+$qry = $conn->query("SELECT * FROM equipment_safeguard where equipment_id = ".$_GET['id'])->fetch_array();
+foreach($qry as $k => $v){
+	$$k = $v;
+}
+
+$qry = $conn->query("SELECT * FROM equipment_control_documents where equipment_id = ".$_GET['id'])->fetch_array();
+foreach($qry as $k => $v){
+	$$k = $v;
+}
+ $mesesN = array(1 => "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
+
+//Seteamos el id de nuevo por toda las consultas anteriores;
+$id=$_GET['id'];
+
+?>
+<style type="text/css" media="print">
+    @media print {
+     @page {
+        margin-left: 0.5in;
+        margin-right: 0.5in;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+
+}
+
+</style>
+
+<p style="margin-top: -60px;margin-left: 120px">
+				FECHA <?php echo date('d') ?> de <?php echo $mesesN[date('m')] ?> de <?php echo date('Y') ?></p>
+				<br></p>
+				<div style="margin-left: 40px">
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;text-align:center;'><strong>RESPONSIVA DE EQUIPO DE C&Oacute;MPUTO</strong></p>
+
+						
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'><span style="text-decoration:none;">&nbsp;</span></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'><strong>DATOS DE RESPONSABLE DE EQUIPO</strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;text-align:center;'><strong>&nbsp;</strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>NOMBRE: <?php echo strtoupper($responsible_name) ?></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>&Aacute;REA: <?php echo strtoupper($location_name) ?></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>PUESTO:&nbsp; <?php echo strtoupper($responsible_position_name) ?></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>EXT. OFICINA: </p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'><strong>&nbsp;</strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'><strong>DATOS DEL EQUIPO</strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;text-align:center;'><strong>&nbsp;</strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>MARCA: <?php echo strtoupper($brand) ?></</p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>MODELO: <?php echo $model ?></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>No DE SERIE: <?php echo $serie ?></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'>INVENTARIO: <?php echo $number_inventory ?>;</p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;'><strong><em>&nbsp;</em></strong></p>
+<p style='margin:0cm;font-size:16px;font-family:"Times New Roman",serif;border:none;line-height:115%;'><span style='font-family:"Arial",sans-serif;'>El equipo de c&oacute;mputo forma parte de tu herramienta de trabajo para el desarrollo de tus funciones que desempe&ntilde;as, por lo cual se te ha asignado y configurado de acuerdo a las necesidades del puesto.</span></p>
+<p style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;margin-left:36.0pt;font-size:11.0pt;font-family:"Helvetica Neue";text-align:justify;'><strong>&nbsp;</strong></p>
+<p style='margin-top:0cm;margin-right:0cm;margin-bottom:0cm;margin-left:36.0pt;font-size:11.0pt;font-family:"Helvetica Neue";text-align:center;'>
+	<br/>
