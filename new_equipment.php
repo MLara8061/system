@@ -83,7 +83,8 @@ $next_id = $row['Auto_increment'];
     <label class="control-label">Tipo de Adquisición</label>
     <select name="acquisition_type" class="custom-select custom-select-sm select2">
         <?php
-        $options = ['Compra', 'Renta', 'Comodato'];
+        //$options = ['Compra', 'Renta', 'Comodato'];
+        $options = ['1', '2', '3'];
         foreach($options as $opt):
         ?>
         <option value="<?php echo $opt ?>" 
@@ -184,3 +185,72 @@ $next_id = $row['Auto_increment'];
         </div>
     </div>
 </div>
+<script>
+    $('[name="password"],[name="cpass"]').keyup(function() {
+        var pass = $('[name="password"]').val()
+        var cpass = $('[name="cpass"]').val()
+        if (cpass == '' || pass == '') {
+            $('#pass_match').attr('data-status', '')
+        } else {
+            if (cpass == pass) {
+                $('#pass_match').attr('data-status', '1').html('<i class="text-success">Las contraseñas coinciden</i>')
+            } else {
+                $('#pass_match').attr('data-status', '2').html('<i class="text-danger">Las contraseñas no coinciden</i>')
+            }
+        }
+    })
+
+
+    $('.solonumeros').on('input', function () { 
+            this.value = this.value.replace(/[^0-9]/g,'');
+    });
+    
+    $('.alfanumerico').on('input',function(e){
+        var alfanumerico = /^[a-zA-Z0-9]+$/;
+        this.value = this.value.replace(/[^a-zA-Z0-9]/g,'');
+
+    })
+
+    function displayImg(input, _this) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#cimg').attr('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    $('#manage_customer').submit(function(e) {
+        e.preventDefault();
+        start_load();
+
+        var postData=new FormData($(this)[0]);
+
+        $.ajax({
+            //url: 'ajax.php?action=save_equipment',
+            url: 'ajax.php?action=save_equipment',
+            data: postData,
+            cache: false,
+            dataType: 'text',
+            contentType: false,
+            processData: false,
+            enctype: 'multipart/form-data',
+            method: 'POST',
+            type: 'POST',
+            success: function(resp) {
+                if (resp == 1) {
+                    end_load();
+                    alert_toast('Datos guardados correctamente', "success");
+                    setTimeout(function() {
+                        location.replace('index.php?page=equipment_list')
+                    }, 750)
+                } else if (resp == 2) {
+                    $('#msg').html("<div class='alert alert-danger'>Error al tratar de guardar el equipo.</div>");
+                    $('[name="email"]').addClass("border-danger")
+                    end_load()
+                }
+            }
+        })
+    })
+</script>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
+
 Class Action {
 	private $db;
 
@@ -277,6 +277,9 @@ Class Action {
 
 	function save_equipment(){
 
+
+
+
 		extract($_POST);
 		$data = "";
 		$revision=false;
@@ -295,7 +298,7 @@ Class Action {
 				}
 			}
 		}
-		$sql_inventory="select id from equipments where number_inventory = $number_inventory";
+		$sql_inventory="SELECT id from equipments where number_inventory = '$number_inventory'";
 
 		$existe_inventario=$this->db->query($sql_inventory);
 		
@@ -357,6 +360,14 @@ Class Action {
 			}
 
 		}
+
+		if(!$save){
+    echo "Error SQL: " . $this->db->error;
+    exit;
+}
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 		
 		if($save_equipment_receipt){
