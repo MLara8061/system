@@ -107,7 +107,7 @@ include 'header.php'
 
     <!-- Main Footer -->
     <footer class="main-footer">
-      <strong>Copyright © 2026 All rights reserved. <a href="#">Amerimed</a></strong>
+      <strong>Copyright © 2026 All rights reserved <a href="#">Amerimed</a></strong>
       <div class="float-right d-none d-sm-inline-block">
         <b>Powered by Arla</b>
       </div>

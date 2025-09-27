@@ -55,15 +55,13 @@
     }
   })
 </script>
-<footer class="main-footer text-sm">
-        <strong><?php echo date('d-m-Y') ?> 
-        <!-- <a href=""></a> -->
-        </strong>
-        <div class="float-right d-none d-sm-inline-block">
-          <b><?php echo $_settings->info('short_name') ?> Para más desarrollos ingresa en: <a href="https://www.configuroweb.com/" target="blank">ConfiguroWeb</a></b>
-        </div>
-      </footer>
-    </div>
+<footer class="main-footer">
+      <strong>Copyright © 2026 All rights reserved <a href="#">Amerimed</a></strong>
+      <div class="float-right d-none d-sm-inline-block">
+        <b>Powered by Arla</b>
+      </div>
+    </footer>
+  </div>
     <!-- ./wrapper -->
    
     <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->

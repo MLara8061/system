@@ -60,7 +60,7 @@
         <!-- <a href=""></a> -->
         </strong>
         <div class="float-right d-none d-sm-inline-block">
-        <b><?php echo $_settings->info('short_name') ?> Para más desarrollos ingresa en: <a href="https://www.configuroweb.com/" target="blank">ConfiguroWeb</a></b>
+        <b><?php echo $_settings->info('short_name') ?> Copyright © 2026 All rights reserved <a href=# target="blank">CAmerimed</a></b>
         </div>
       </footer>
     </div>
