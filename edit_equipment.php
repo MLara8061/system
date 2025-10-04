@@ -79,7 +79,7 @@ $id = $_GET['id'];
 							<label for="" class="control-label">Tipo De Adquisición</label>
 							<select name="acquisition_type" class="custom-select custom-select-sm select2">
 								<?php
-								$options = ['Compra', 'Renta', 'Comodato'];
+								$options = ['1', '2', '3'];
 								foreach ($options as $opt):
 								?>
 									<option value="<?php echo $opt ?>" <?php echo (isset($acquisition_type) && $acquisition_type == $opt) ? 'selected' : ''; ?>>
