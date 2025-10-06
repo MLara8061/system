@@ -1,6 +1,54 @@
 <?php include 'db_connect.php' ?>
+
+<?php
+// Datos para las tarjetas
+$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments")->fetch_assoc()['total'];
+$costo_total = $conn->query("SELECT SUM(amount) as total FROM equipments")->fetch_assoc()['total'];
+$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period = 1")->fetch_assoc()['total'];
+$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period = 2")->fetch_assoc()['total'];
+?>
+
+<!-- Tarjetas de resumen -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body">
+                <h5>Total de Equipos</h5>
+                <h3><?php echo $total_equipos; ?></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow">
+            <div class="card-body">
+                <h5>Costo Total</h5>
+                <h3>$<?php echo number_format($costo_total, 2); ?></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow">
+            <div class="card-body">
+                <h5>Mantenimientos Preventivos</h5>
+                <h3><?php echo $preventivos; ?></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow">
+            <div class="card-body">
+                <h5>Mantenimientos Correctivos</h5>
+                <h3><?php echo $correctivos; ?></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de equipos -->
 <div class="col-lg-12">
-    <!-- Card principal con nuevo estilo -->
     <div class="card">
         <div class="card-header border-0">
             <h3 class="card-title">Inventario de Equipos</h3>
@@ -16,7 +64,7 @@
                 </a>
             </div>
         </div>
-        
+
         <div class="card-body table-responsive p-0">
             <table class="table table-striped table-valign-middle" id="list">
                 <thead>
@@ -31,14 +79,14 @@
                 <tbody>
                     <?php
                     $i = 1;
-                    $qry = $conn->query("SELECT * FROM equipments order by id desc");
+                    // Solo mostrar los 5 equipos más recientes
+                    $qry = $conn->query("SELECT * FROM equipments ORDER BY id DESC LIMIT 5");
                     while ($row = $qry->fetch_assoc()) :
                     ?>
                         <tr>
                             <td class="text-center">
                                 <strong class="text-primary"><?php echo $i++ ?></strong>
                             </td>
-                            
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="mr-3">
@@ -54,7 +102,6 @@
                                     </div>
                                 </div>
                             </td>
-                            
                             <td>
                                 <div>
                                     <strong>Inv: <?php echo $row['number_inventory'] ?></strong>
@@ -64,7 +111,6 @@
                                     </small>
                                 </div>
                             </td>
-                            
                             <td>
                                 <div>
                                     <?php if($row['revision'] == 1): ?>
@@ -85,7 +131,6 @@
                                     </small>
                                 </div>
                             </td>
-                            
                             <td class="text-center">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -102,7 +147,6 @@
                                             <i class="fas fa-tools mr-2 text-success"></i>
                                             Nueva Revisión
                                         </a>
-                                        
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Reportes</h6>
                                         <a class="dropdown-item" href="./index.php?page=equipment_report_responsible&id=<?php echo $row['id'] ?>">
@@ -113,7 +157,6 @@
                                             <i class="fas fa-chart-bar mr-2 text-warning"></i>
                                             Reporte de Sistemas
                                         </a>
-                                        
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Zona Peligrosa</h6>
                                         <a class="dropdown-item" href="./index.php?page=equipment_unsubscribe&id=<?php echo $row['id'] ?>">
@@ -132,25 +175,21 @@
                 </tbody>
             </table>
         </div>
-        
-        <!-- Card Footer con información adicional -->
+
+        <!-- Card Footer -->
         <div class="card-footer">
             <div class="row">
                 <div class="col-sm-6">
                     <small class="text-muted">
-                        Total de equipos: <strong><?php echo $conn->query("SELECT * FROM equipments")->num_rows; ?></strong>
+                        Total de equipos: <strong><?php echo $total_equipos; ?></strong>
                     </small>
                 </div>
                 <div class="col-sm-6 text-right">
                     <small class="text-muted">
                         Con revisión: 
-                        <span class="badge badge-success">
-                            <?php echo $conn->query("SELECT * FROM equipments WHERE revision = 1")->num_rows; ?>
-                        </span>
+                        <span class="badge badge-success"><?php echo $conn->query("SELECT * FROM equipments WHERE revision = 1")->num_rows; ?></span>
                         Sin revisión: 
-                        <span class="badge badge-warning">
-                            <?php echo $conn->query("SELECT * FROM equipments WHERE revision = 0")->num_rows; ?>
-                        </span>
+                        <span class="badge badge-warning"><?php echo $conn->query("SELECT * FROM equipments WHERE revision = 0")->num_rows; ?></span>
                     </small>
                 </div>
             </div>
@@ -171,27 +210,25 @@ $(document).ready(function() {
     $('.delete').click(function(e) {
         e.preventDefault();
         _conf("¿Deseas eliminar este equipo?", "delete_equipment", [$(this).attr('data-id')])
-    })
+    });
     
-    // Tooltip para botones
     $('[title]').tooltip();
-})
+});
 
 function delete_equipment($id) {
-    start_load()
+    start_load();
     $.ajax({
         url: 'ajax.php?action=delete_equipment',
         method: 'POST',
-        data: {
-            id: $id
-        },
+        data: { id: $id },
         success: function(resp) {
             if (resp == 1) {
-                alert_toast("Datos eliminados correctamente", 'success')
+                alert_toast("Datos eliminados correctamente", 'success');
                 setTimeout(function() {
-                    location.reload()
-                }, 1500)
+                    location.reload();
+                }, 1500);
             }
         }
-    })
-}</script>
+    });
+}
+</script>

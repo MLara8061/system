@@ -14,7 +14,7 @@ $host = $_SERVER['HTTP_HOST'];
 //     mysqli_query($conn, "SET SESSION sql_mode = ''");
 // }
 
-$conn = new mysqli('localhost', 'root', '', 'mario1');
+$conn = new mysqli('localhost', 'root', '', 'system');
 
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
