@@ -79,13 +79,15 @@ $id = $_GET['id'];
 							<label for="" class="control-label">Tipo De Adquisición</label>
 							<select name="acquisition_type" class="custom-select custom-select-sm select2">
 								<?php
-								$options = ['1', '2', '3'];
-								foreach ($options as $opt):
-								?>
-									<option value="<?php echo $opt ?>" <?php echo (isset($acquisition_type) && $acquisition_type == $opt) ? 'selected' : ''; ?>>
-										<?php echo $opt; ?>
-									</option>
-								<?php endforeach; ?>
+        $options1 = ['Compra', 'Renta', 'Comodato'];
+        $options = ['1', '2', '3'];
+         foreach($options as $key => $value):
+        ?>
+        <option value="<?php echo $value; ?>"
+            <?php echo (isset($acquisition_type) && $acquisition_type == $value) ? 'selected' : ''; ?>>
+            <?php echo $options1[$key]; ?>
+        </option>
+        <?php endforeach; ?>
 							</select>
 						</div>
 
@@ -93,8 +95,9 @@ $id = $_GET['id'];
 						<div class="form-group col-md-3 float-left">
 							<label class="control-label">Periodo De Manto</label>
 							<select name="mandate_period" class="custom-select custom-select-sm select2">
-								<option value="1">1</option>
-								<option value="2">2</option>
+								<option value="1">semanal</option>
+								<option value="2">catorcenal</option>
+								<option value="3">mensual</option>>
 							</select>
 
 						</div>

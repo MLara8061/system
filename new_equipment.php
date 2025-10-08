@@ -83,15 +83,18 @@ $next_id = $row['Auto_increment'];
     <label class="control-label">Tipo de Adquisición</label>
     <select name="acquisition_type" class="custom-select custom-select-sm select2">
         <?php
-        //$options = ['Compra', 'Renta', 'Comodato'];
+        $options1 = ['Compra', 'Renta', 'Comodato'];
         $options = ['1', '2', '3'];
-        foreach($options as $opt):
+         foreach($options as $key => $value):
         ?>
-        <option value="<?php echo $opt ?>" 
-            <?php echo (isset($acquisition_type) && $acquisition_type == $opt) ? 'selected' : ''; ?>>
-            <?php echo $opt; ?>
+        <option value="<?php echo $value; ?>"
+            <?php echo (isset($acquisition_type) && $acquisition_type == $value) ? 'selected' : ''; ?>>
+            <?php echo $options1[$key]; ?>
         </option>
         <?php endforeach; ?>
+
+
+
     </select>
 </div>
 
@@ -100,8 +103,9 @@ $next_id = $row['Auto_increment'];
                         <div class="form-group col-md-3 float-left">
                             <label class="control-label">Periodo de Manto</label>
                             <select name="mandate_period" class="custom-select custom-select-sm select2">
-                                <option value="1" <?php echo (isset($mandate_period) && $mandate_period==1) ? 'selected' : ''; ?>>1</option>
-                                <option value="2" <?php echo (isset($mandate_period) && $mandate_period==2) ? 'selected' : ''; ?>>2</option>
+                                <option value="1" <?php echo (isset($mandate_period) && $mandate_period==1) ? 'selected' : ''; ?>>semanal</option>
+                                <option value="2" <?php echo (isset($mandate_period) && $mandate_period==2) ? 'selected' : ''; ?>>catorcenal</option>
+                                <option value="3" <?php echo (isset($mandate_period) && $mandate_period==2) ? 'selected' : ''; ?>>mensual</option>
                             </select>
                         </div>
 
