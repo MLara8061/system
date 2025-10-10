@@ -110,5 +110,33 @@ if($action == "save_equipment_revision"){
 	}
 }
 
+if($action == "save_supplier"){
+	$save = $crud->save_supplier();
+	if($save){
+		echo $save;
+	}
+}
+
+if($action == "delete_supplier"){
+	$delete = $crud->delete_supplier();
+	if($delete){
+		echo $delete;
+	}
+}
+
+if($action == "toggle_supplier_status"){
+    $id = $_POST['id'];
+    $status = $_POST['status'];
+    $update = $crud->toggle_supplier_status($id, $status);
+    if($update){
+        echo 1;
+    } else {
+        echo 0;
+    }
+}
+
+
+
+
 ob_end_flush();
 ?>

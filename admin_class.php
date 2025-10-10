@@ -569,6 +569,63 @@ Class Action {
 		}
 	}
 
+	//FUNCTION PARA GUARDAR PROVEEDORES
+	function save_supplier(){
+	extract($_POST);
+	include 'db_connect.php';
+
+	$data = " empresa = '$empresa' ";
+	$data .= ", rfc = '$rfc' ";
+	$data .= ", representante = '$representante' ";
+	$data .= ", telefono = '$telefono' ";
+	$data .= ", correo = '$correo' ";
+	$data .= ", sitio_web = '$sitio_web' ";
+	$data .= ", sector = '$sector' ";
+	$data .= ", notas = '$notas' ";
+	$data .= ", estado = '$estado' ";
+
+	if(isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != ''){
+		$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['imagen']['name'];
+		$move = move_uploaded_file($_FILES['imagen']['tmp_name'],'assets/uploads/'.$fname);
+		if($move)
+			$data .= ", imagen = '$fname' ";
+	}
+
+	if(empty($id)){
+		$save = $conn->query("INSERT INTO suppliers SET ".$data);
+	}else{
+		$save = $conn->query("UPDATE suppliers SET ".$data." WHERE id = $id");
+	}
+	if($save)
+		return 1;
+}
+
+function delete_supplier(){
+	include 'db_connect.php';
+	$delete = $conn->query("DELETE FROM suppliers WHERE id = ".$_POST['id']);
+	if($delete)
+		return 1;
+}
+
+public function toggle_supplier_status($id, $status){
+	include 'db_connect.php';
+    $id = intval($id);
+    $status = intval($status);
+    if($id > 0){
+        $sql = "UPDATE suppliers SET estado = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $status, $id);
+        if($stmt->execute()){
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+
+
 
 
 

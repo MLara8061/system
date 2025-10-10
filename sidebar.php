@@ -46,6 +46,27 @@
             </li>
           </ul>
         </li>
+         <!--Proveedores-->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-client">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Proveedores <i class="right fas fa-angle-left"></i></p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="./index.php?page=new_supplier" class="nav-link nav-customer_add tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Agregar</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="./index.php?page=suppliers" class="nav-link nav-customer_list tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos los proveedores</p>
+              </a>
+            </li>
+          </ul>
+        </li>
 
         <!-- Staff -->
         <li class="nav-item">
@@ -177,7 +198,7 @@
             <li class="nav-item">
               <a href="index.php?page=equipment_list" class="nav-link nav-equipment_list tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Listar Equipos</p>
+                <p>Todos Los Equipos</p>
               </a>
             </li>
             <li class="nav-item">
