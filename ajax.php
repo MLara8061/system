@@ -135,7 +135,21 @@ if($action == "toggle_supplier_status"){
     }
 }
 
+// GUARDAR HERRAMIENTA
+if($action == "save_tool"){
+    $save = $crud->save_tool();
+    if($save){
+        echo $save;
+    }
+}
 
+// ELIMINAR HERRAMIENTA
+if($action == "delete_tool"){
+    $delete = $crud->delete_tool();
+    if($delete){
+        echo $delete; // 1 = éxito
+    }
+}
 
 
 ob_end_flush();

@@ -24,29 +24,7 @@
             <p>Dashboard</p>
           </a>
         </li>
-
-        <!-- Cliente -->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-client">
-            <i class="nav-icon fas fa-users"></i>
-            <p>Cliente <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="./index.php?page=new_customer" class="nav-link nav-customer_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Agregar</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="./index.php?page=customer_list" class="nav-link nav-customer_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Clientes</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-         <!--Proveedores-->
+        <!--Proveedores-->
         <li class="nav-item">
           <a href="#" class="nav-link nav-client">
             <i class="nav-icon fas fa-users"></i>
@@ -72,7 +50,7 @@
         <li class="nav-item">
           <a href="#" class="nav-link nav-staff">
             <i class="nav-icon fas fa-user"></i>
-            <p>Staff <i class="right fas fa-angle-left"></i></p>
+            <p>Usuarios <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
@@ -96,6 +74,63 @@
             <i class="nav-icon fas fa-building"></i>
             <p>Departamentos</p>
           </a>
+        </li>
+        <!-- Equipos -->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-equipment">
+            <i class="nav-icon fas fa-laptop"></i>
+            <p>Equipos <i class="right fas fa-angle-left"></i></p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="index.php?page=new_equipment" class="nav-link nav-equipment_add tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Ingresar Equipo</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?page=equipment_list" class="nav-link nav-equipment_list tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos Los Equipos</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?page=equipment_report_sistem_list" class="nav-link nav-equipment_system tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Reporte de Sistemas</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_month tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Informe Revisiones Mensual</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <!-- Herramientas -->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-tools">
+            <i class="nav-icon fas fa-tools"></i>
+            <p>
+              Herramientas
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="index.php?page=new_tool" class="nav-link nav-tools_add tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Ingresar Herramienta</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?page=tools_list" class="nav-link nav-tools_list tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Todas las Herramientas</p>
+              </a>
+            </li>
+          </ul>
         </li>
 
         <!-- Tickets -->
@@ -181,79 +216,41 @@
             </li>
           </ul>
         </li>
-
-        <!-- Equipos -->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-equipment">
-            <i class="nav-icon fas fa-laptop"></i>
-            <p>Equipos <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?page=new_equipment" class="nav-link nav-equipment_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Ingresar Equipo</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_list" class="nav-link nav-equipment_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Todos Los Equipos</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_report" class="nav-link nav-equipment_report tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Informe Equipos</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_report_sistem_list" class="nav-link nav-equipment_system tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Reporte de Sistemas</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_month tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Informe Revisiones Mensual</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
       </ul>
     </nav>
   </div>
 </aside>
 
 <style>
-/* Sobrescribir azul predeterminado de AdminLTE */
-.sidebar-dark-primary .nav-sidebar .nav-link.active {
-    background-color: #495057 !important; /* gris oscuro minimalista */
+  /* Sobrescribir azul predeterminado de AdminLTE */
+  .sidebar-dark-primary .nav-sidebar .nav-link.active {
+    background-color: #495057 !important;
+    /* gris oscuro minimalista */
     color: #fff !important;
-}
-.sidebar-dark-primary .nav-sidebar .nav-item.menu-open > .nav-link {
-    background-color: #343a40 !important; /* gris aún más oscuro para padres */
+  }
+
+  .sidebar-dark-primary .nav-sidebar .nav-item.menu-open>.nav-link {
+    background-color: #343a40 !important;
+    /* gris aún más oscuro para padres */
     color: #fff !important;
-}
+  }
 </style>
 
 <script>
-$(document).ready(function() {
-  var page = '<?php echo isset($_GET['page']) ? $_GET['page'] : 'home' ?>';
-  var link = $('.nav-link.nav-' + page);
+  $(document).ready(function() {
+    var page = '<?php echo isset($_GET['page']) ? $_GET['page'] : 'home' ?>';
+    var link = $('.nav-link.nav-' + page);
 
-  if(link.length > 0) {
-    link.addClass('active');
-    if(link.hasClass('tree-item')) {
-      link.closest('.nav-treeview').siblings('a').addClass('active');
-      link.closest('.nav-treeview').parent().addClass('menu-open');
+    if (link.length > 0) {
+      link.addClass('active');
+      if (link.hasClass('tree-item')) {
+        link.closest('.nav-treeview').siblings('a').addClass('active');
+        link.closest('.nav-treeview').parent().addClass('menu-open');
+      }
     }
-  }
 
-  $('.manage_account').click(function() {
-    uni_modal('Gestionar Cuenta', 'manage_user.php?id=' + $(this).attr('data-id'));
+    $('.manage_account').click(function() {
+      uni_modal('Gestionar Cuenta', 'manage_user.php?id=' + $(this).attr('data-id'));
+    });
   });
-});
 </script>

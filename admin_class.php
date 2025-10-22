@@ -14,6 +14,10 @@ Class Action {
 	    $this->db->close();
 	    ob_end_flush();
 	}
+	function getDb() {
+    return $this->db;
+}
+
 
 	function login(){
 		extract($_POST);
@@ -568,61 +572,78 @@ Class Action {
 			echo 2;
 		}
 	}
+/*---------------- HERRAMIENTAS ----------------*/
+function save_tool(){
+    extract($_POST);
+    $data = "";
 
-	//FUNCTION PARA GUARDAR PROVEEDORES
-	function save_supplier(){
-	extract($_POST);
-	include 'db_connect.php';
-
-	$data = " empresa = '$empresa' ";
-	$data .= ", rfc = '$rfc' ";
-	$data .= ", representante = '$representante' ";
-	$data .= ", telefono = '$telefono' ";
-	$data .= ", correo = '$correo' ";
-	$data .= ", sitio_web = '$sitio_web' ";
-	$data .= ", sector = '$sector' ";
-	$data .= ", notas = '$notas' ";
-	$data .= ", estado = '$estado' ";
-
-	if(isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != ''){
-		$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['imagen']['name'];
-		$move = move_uploaded_file($_FILES['imagen']['tmp_name'],'assets/uploads/'.$fname);
-		if($move)
-			$data .= ", imagen = '$fname' ";
-	}
-
-	if(empty($id)){
-		$save = $conn->query("INSERT INTO suppliers SET ".$data);
-	}else{
-		$save = $conn->query("UPDATE suppliers SET ".$data." WHERE id = $id");
-	}
-	if($save)
-		return 1;
-}
-
-function delete_supplier(){
-	include 'db_connect.php';
-	$delete = $conn->query("DELETE FROM suppliers WHERE id = ".$_POST['id']);
-	if($delete)
-		return 1;
-}
-
-public function toggle_supplier_status($id, $status){
-	include 'db_connect.php';
-    $id = intval($id);
-    $status = intval($status);
-    if($id > 0){
-        $sql = "UPDATE suppliers SET estado = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $status, $id);
-        if($stmt->execute()){
-            return 1;
-        } else {
-            return 0;
+    // Recorremos los campos POST y preparamos la cadena SQL
+    foreach($_POST as $k => $v){
+        if(!in_array($k, array('id','keep_image')) && !is_array($v)){
+            if(!empty($data)) $data .= ", ";
+            $data .= " {$k} = '".addslashes($v)."' ";
         }
     }
-    return 0;
+
+    // Manejar eliminación de imagen existente
+    if(isset($_POST['keep_image']) && $_POST['keep_image'] == '0'){
+        // Obtener imagen actual
+        $qry = $this->db->query("SELECT imagen FROM tools WHERE id = $id");
+        if($qry && $qry->num_rows > 0){
+            $img = $qry->fetch_assoc()['imagen'];
+            if(!empty($img) && file_exists('uploads/'.$img)){
+                unlink('uploads/'.$img);
+            }
+        }
+        $data .= ", imagen = '' ";
+    }
+
+    // Subida de nueva imagen
+    if(isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != ''){
+        $fname = time().'_'.$_FILES['imagen']['name'];
+        move_uploaded_file($_FILES['imagen']['tmp_name'], 'uploads/'.$fname);
+        $data .= ", imagen = '$fname' ";
+    }
+
+    // Insertar o actualizar
+    if(empty($id)){
+        $sql = "INSERT INTO tools SET $data";
+    }else{
+        $sql = "UPDATE tools SET $data WHERE id = $id";
+    }
+
+    if($this->db->query($sql)){
+        return 1;
+    } else {
+        error_log("Error SQL en save_tool: " . $this->db->error);
+        echo "Error SQL: " . $this->db->error;
+        return 0;
+    }
 }
+
+function delete_tool(){
+    extract($_POST);
+    
+    // Obtener la imagen para eliminarla
+    $qry = $this->db->query("SELECT imagen FROM tools WHERE id = $id");
+    $img = $qry && $qry->num_rows > 0 ? $qry->fetch_assoc()['imagen'] : '';
+
+    // Eliminar imagen del servidor si existe
+    if(!empty($img) && file_exists('uploads/'.$img)){
+        unlink('uploads/'.$img);
+    }
+
+    // Eliminar registro de la BD
+    $delete = $this->db->query("DELETE FROM tools WHERE id = $id");
+    if($delete){
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+	
+
 
 
 
