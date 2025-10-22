@@ -150,6 +150,13 @@ if($action == "delete_tool"){
         echo $delete; // 1 = éxito
     }
 }
+//Epp
+if($_GET['action'] == 'save_epp'){
+    echo $crud->save_epp();
+}
+if($_GET['action'] == 'delete_epp'){
+    echo $crud->delete_epp();
+}
 
 
 ob_end_flush();

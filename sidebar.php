@@ -132,6 +132,30 @@
             </li>
           </ul>
         </li>
+        <!-- Equipos EPP -->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-epp">
+            <i class="nav-icon fas fa-hard-hat"></i>
+            <p>
+              Equipos EPP
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="index.php?page=new_epp" class="nav-link nav-epp_add tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Ingresar Equipo EPP</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?page=epp_list" class="nav-link nav-epp_list tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos los Equipos EPP</p>
+              </a>
+            </li>
+          </ul>
+        </li>
 
         <!-- Tickets -->
         <li class="nav-item">

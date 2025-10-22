@@ -1,357 +1,457 @@
-<?php include('db_connect.php') ?>
-<!-- Info boxes -->
-<?php if ($_SESSION['login_type'] == 1) : ?>
+<!doctype html>
+<html lang="en">
+<!--begin::Head-->
 
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>AdminLTE | Dashboard </title>
-    <!--begin::Accessibility Meta Tags-->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
-    <!--end::Accessibility Meta Tags-->
-    <!--begin::Primary Meta Tags-->
-    <meta name="title" content="AdminLTE | Dashboard v3" />
-    <meta name="author" content="ColorlibHQ" />
-    <meta
-      name="description"
-      content="AdminLTE is a Free Bootstrap 5 Admin Dashboard, 30 example pages using Vanilla JS. Fully accessible with WCAG 2.1 AA compliance." />
-    <meta
-      name="keywords"
-      content="bootstrap 5, bootstrap, bootstrap 5 admin dashboard, bootstrap 5 dashboard, bootstrap 5 charts, bootstrap 5 calendar, bootstrap 5 datepicker, bootstrap 5 tables, bootstrap 5 datatable, vanilla js datatable, colorlibhq, colorlibhq dashboard, colorlibhq admin dashboard, accessible admin panel, WCAG compliant" />
-    <!--end::Primary Meta Tags-->
-    <!--begin::Accessibility Features-->
-    <!-- Skip links will be dynamically added by accessibility.js -->
-    <meta name="supported-color-schemes" content="light dark" />
-    <link rel="preload" href="./css/adminlte.css" as="style" />
-    <!--end::Accessibility Features-->
-    <!--begin::Fonts-->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
-      integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
-      crossorigin="anonymous"
-      media="print"
-      onload="this.media='all'" />
-    <!--end::Fonts-->
-    <!--begin::Third Party Plugin(OverlayScrollbars)-->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
-      crossorigin="anonymous" />
-    <!--end::Third Party Plugin(OverlayScrollbars)-->
-    <!--begin::Third Party Plugin(Bootstrap Icons)-->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
-      crossorigin="anonymous" />
-    <!--end::Third Party Plugin(Bootstrap Icons)-->
-    <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="./css/adminlte.css" />
-    <!--end::Required Plugin(AdminLTE)-->
-    <!-- apexcharts -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
-      integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0="
-      crossorigin="anonymous" />
-  </head>
+<head>
 
-  <!--begin::Sidebar-->
+  <!--begin::Accessibility Meta Tags-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+  <!--end::Accessibility Meta Tags-->
+  <!--begin::Primary Meta Tags-->
+  <meta name="title" content="AdminLTE | Dashboard v2" />
+  <meta name="author" content="ColorlibHQ" />
+  <meta
+    name="description"
+    content="AdminLTE is a Free Bootstrap 5 Admin Dashboard, 30 example pages using Vanilla JS. Fully accessible with WCAG 2.1 AA compliance." />
+  <meta
+    name="keywords"
+    content="bootstrap 5, bootstrap, bootstrap 5 admin dashboard, bootstrap 5 dashboard, bootstrap 5 charts, bootstrap 5 calendar, bootstrap 5 datepicker, bootstrap 5 tables, bootstrap 5 datatable, vanilla js datatable, colorlibhq, colorlibhq dashboard, colorlibhq admin dashboard, accessible admin panel, WCAG compliant" />
+  <!--end::Primary Meta Tags-->
+  <!--begin::Accessibility Features-->
+  <!-- Skip links will be dynamically added by accessibility.js -->
+  <meta name="supported-color-schemes" content="light dark" />
+  <link rel="preload" href="./css/adminlte.css" as="style" />
+  <!--end::Accessibility Features-->
+  <!--begin::Fonts-->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+    integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
+    crossorigin="anonymous"
+    media="print"
+    onload="this.media='all'" />
+  <!--end::Fonts-->
+  <!--begin::Third Party Plugin(OverlayScrollbars)-->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
+    crossorigin="anonymous" />
+  <!--end::Third Party Plugin(OverlayScrollbars)-->
+  <!--begin::Third Party Plugin(Bootstrap Icons)-->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    crossorigin="anonymous" />
+  <!--end::Third Party Plugin(Bootstrap Icons)-->
+  <!--begin::Required Plugin(AdminLTE)-->
+  <link rel="stylesheet" href="./css/adminlte.css" />
+  <!--end::Required Plugin(AdminLTE)-->
+  <!-- apexcharts -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
+    integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0="
+    crossorigin="anonymous" />
+  
 
-  <!--end::Sidebar-->
-  <!--begin::App Main-->
-  <main class="app-main">
-    <!--begin::App Content Header-->
+</head>
 
-    <!--end::Container-->
-    </div>
-    <div class="app-content">
-      <!--begin::Container-->
-      <!-- Info Boxes -->
-<section class="row mb-4">
-  <!-- Número de Activos -->
-  <div class="col-lg-4 col-md-6 mb-3">
-    <div class="card card-outline card-primary h-100">
-      <div class="card-body d-flex align-items-center justify-content-between">
-        <div>
-          <h5 class="mb-1">Número de Activos</h5>
-          <h2 class="mb-0">120</h2>
+<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
+  <!--begin::App Wrapper-->
+  <div class="app-wrapper">
+    <!--begin::Header-->
+
+    <!--end::Header-->
+    <!--begin::Sidebar-->
+    <!--end::Sidebar-->
+    <!--begin::App Main-->
+    <main class="app-main">
+      <!--begin::App Content Header-->
+      <div class="app-content-header">
+        <!--begin::Container-->
+        <div class="container-fluid">
+          <!--begin::Row-->
+
+          <!--end::Row-->
         </div>
-        <div>
-          <i class="fas fa-box fa-2x text-primary"></i>
-        </div>
+        <!--end::Container-->
       </div>
-    </div>
-  </div>
-
-  <!-- Valor Total de Activos -->
-  <div class="col-lg-4 col-md-6 mb-3">
-    <div class="card card-outline card-success h-100">
-      <div class="card-body d-flex align-items-center justify-content-between">
-        <div>
-          <h5 class="mb-1">Valor Total de Activos</h5>
-          <h2 class="mb-0">$450,000</h2>
-        </div>
-        <div>
-          <i class="fas fa-dollar-sign fa-2x text-success"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pie Chart -->
-  <div class="col-lg-4 col-md-12 mb-3">
-    <div class="card card-outline card-info h-100">
-      <div class="card-body text-center">
-        <h5 class="mb-3">Valor de Activos por Categoría</h5>
-        <canvas id="pieChart" style="max-height: 180px; max-width: 180px; margin: auto;"></canvas>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- JS Pie Chart -->
- <script>
- const ctx = document.getElementById('pieChart').getContext('2d');
-const pieChart = new Chart(ctx, {
-  type: 'pie',
-  data: {
-    labels: ['Laptops', 'Smartphones', 'Tablets', 'Impresoras', 'Proyectores'],
-    datasets: [{
-      label: 'Valor de Activos',
-      data: [150000, 90000, 50000, 70000, 80000],
-      backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8']
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' }
-    }
-  }
-});
-</script>
-
-      <div class="container-fluid">
-        <!--begin::Row-->
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="card mb-4">
-              <div class="card-header border-0">
-                <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Mantenimientos realizados</h3>
-                  <a
-                    href="javascript:void(0);"
-                    class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">View Report</a>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="d-flex">
-                  <p class="d-flex flex-column">
-                    <span class="fw-bold fs-5">820</span> <span>Totales </span>
-                  </p>
-                  <p class="ms-auto d-flex flex-column text-end">
-                    <span class="text-success"> <i class="bi bi-arrow-up"></i> 12.5% </span>
-                    <span class="text-secondary"> Since last week</span>
-                  </p>
-                </div>
-                <!-- /.d-flex -->
-                <div class="position-relative mb-4">
-                  <div id="visitors-chart"></div>
-                </div>
-                <div class="d-flex flex-row justify-content-end">
-                  <span class="me-2">
-                    <i class="bi bi-square-fill text-primary"></i> This Week
+      <div class="app-content">
+        <!--begin::Container-->
+        <div class="container-fluid">
+          <!-- Info boxes -->
+          <div class="row">
+            <div class="col-12 col-sm-6 col-md-3">
+              <div class="info-box">
+                <span class="info-box-icon text-bg-primary shadow-sm">
+                  <i class="bi bi-gear-fill"></i>
+                </span>
+                <div class="info-box-content">
+                  <span class="info-box-text">CPU Traffic</span>
+                  <span class="info-box-number">
+                    10
+                    <small>%</small>
                   </span>
-                  <span> <i class="bi bi-square-fill text-secondary"></i> Last Week </span>
                 </div>
+                <!-- /.info-box-content -->
               </div>
+              <!-- /.info-box -->
             </div>
-            <!-- /.card -->
-            <div class="card">
-              <div class="card-header border-0">
-                <h3 class="card-title">Equipos</h3>
-                <div class="card-tools">
-                  <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm">
-                    <i class="fas fa-plus"></i>
-                  </a>
-                  <a href="./index.php?page=equipment_list" class="btn btn-tool btn-sm">
-                    <i class="fas fa-list"></i>
-                  </a>
+            <!-- /.col -->
+            <div class="col-12 col-sm-6 col-md-3">
+              <div class="info-box">
+                <span class="info-box-icon text-bg-danger shadow-sm">
+                  <i class="bi bi-hand-thumbs-up-fill"></i>
+                </span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Likes</span>
+                  <span class="info-box-number">41,410</span>
                 </div>
+                <!-- /.info-box-content -->
               </div>
-              <div class="card-body table-responsive p-0">
-                <table class="table table-striped table-valign-middle">
-                  <thead>
-                    <tr>
-                      <th>Equipo</th>
-                      <th>Inventario</th>
-                      <th>Estado</th>
-                      <th>Ver</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <?php
-                    $qry = $conn->query("SELECT * FROM equipments ORDER BY id DESC LIMIT 5");
-                    while ($row = $qry->fetch_assoc()) :
-                    ?>
-                      <tr>
-                        <td>
-                          <i class="fas fa-laptop text-primary mr-2"></i>
-                          <?php echo $row['name'] ?>
-                        </td>
-                        <td># <?php echo $row['number_inventory'] ?></td>
-                        <td>
-                          <?php if ($row['revision'] == 1): ?>
-                            <small class="text-success mr-1">
-                              <i class="fas fa-arrow-up"></i>
-                              100%
-                            </small>
-                            Con Revisión
-                          <?php else: ?>
-                            <small class="text-warning mr-1">
-                              <i class="fas fa-exclamation-triangle"></i>
-                              0%
-                            </small>
-                            Sin Revisión
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <a href="./index.php?page=edit_equipment&id=<?php echo $row['id'] ?>" class="text-muted">
-                            <i class="fas fa-search"></i>
-                          </a>
-                        </td>
-                      </tr>
-                    <?php endwhile; ?>
-                  </tbody>
-                </table>
-              </div>
+              <!-- /.info-box -->
             </div>
-            <!-- /.card -->
+            <!-- /.col -->
+            <!-- fix for small devices only -->
+            <!-- <div class="clearfix hidden-md-up"></div> -->
+            <div class="col-12 col-sm-6 col-md-3">
+              <div class="info-box">
+                <span class="info-box-icon text-bg-success shadow-sm">
+                  <i class="bi bi-cart-fill"></i>
+                </span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Sales</span>
+                  <span class="info-box-number">760</span>
+                </div>
+                <!-- /.info-box-content -->
+              </div>
+              <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-12 col-sm-6 col-md-3">
+              <div class="info-box">
+                <span class="info-box-icon text-bg-warning shadow-sm">
+                  <i class="bi bi-people-fill"></i>
+                </span>
+                <div class="info-box-content">
+                  <span class="info-box-text">New Members</span>
+                  <span class="info-box-number">2,000</span>
+                </div>
+                <!-- /.info-box-content -->
+              </div>
+              <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
           </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-6">
-            <div class="card mb-4">
-              <div class="card-header border-0">
-                <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Tickets Atendidos</h3>
-                  <a
-                    href="javascript:void(0);"
-                    class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">View Report</a>
+          <!-- /.row -->
+          <!--begin::Row-->
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="card-title">Monthly Recap Report</h5>
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                      <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                      <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                    </button>
+                    <div class="btn-group">
+                      <button
+                        type="button"
+                        class="btn btn-tool dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-wrench"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-end" role="menu">
+                        <a href="#" class="dropdown-item">Action</a>
+                        <a href="#" class="dropdown-item">Another action</a>
+                        <a href="#" class="dropdown-item"> Something else here </a>
+                        <a class="dropdown-divider"></a>
+                        <a href="#" class="dropdown-item">Separated link</a>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div class="card-body">
-                <div class="d-flex">
-                  <p class="d-flex flex-column">
-                    <span class="fw-bold fs-5">90 </span> <span>Totales </span>
-                  </p>
-                  <p class="ms-auto d-flex flex-column text-end">
-                    <span class="text-success"> <i class="bi bi-arrow-up"></i> 33.1% </span>
-                    <span class="text-secondary">Since Past Year</span>
-                  </p>
+                <!-- /.card-header -->
+                <div class="card-body">
+                  <!--begin::Row-->
+                  <div class="row">
+                    <div class="col-md-8">
+                      <p class="text-center">
+                        <strong>Sales: 1 Jan, 2023 - 30 Jul, 2023</strong>
+                      </p>
+                      <div id="sales-chart"></div>
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-md-4">
+                      <p class="text-center"><strong>Goal Completion</strong></p>
+                      <div class="progress-group">
+                        Add Products to Cart
+                        <span class="float-end"><b>160</b>/200</span>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar text-bg-primary" style="width: 80%"></div>
+                        </div>
+                      </div>
+                      <!-- /.progress-group -->
+                      <div class="progress-group">
+                        Complete Purchase
+                        <span class="float-end"><b>310</b>/400</span>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar text-bg-danger" style="width: 75%"></div>
+                        </div>
+                      </div>
+                      <!-- /.progress-group -->
+                      <div class="progress-group">
+                        <span class="progress-text">Visit Premium Page</span>
+                        <span class="float-end"><b>480</b>/800</span>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar text-bg-success" style="width: 60%"></div>
+                        </div>
+                      </div>
+                      <!-- /.progress-group -->
+                      <div class="progress-group">
+                        Send Inquiries
+                        <span class="float-end"><b>250</b>/500</span>
+                        <div class="progress progress-sm">
+                          <div class="progress-bar text-bg-warning" style="width: 50%"></div>
+                        </div>
+                      </div>
+                      <!-- /.progress-group -->
+                    </div>
+                    <!-- /.col -->
+                  </div>
+                  <!--end::Row-->
                 </div>
-                <!-- /.d-flex -->
-                <div class="position-relative mb-4">
-                  <div id="sales-chart"></div>
-                </div>
-                <div class="d-flex flex-row justify-content-end">
-                  <span class="me-2">
-                    <i class="bi bi-square-fill text-primary"></i> This year
-                  </span>
-                  <span> <i class="bi bi-square-fill text-secondary"></i> Last year </span>
-                </div>
-              </div>
-            </div>
-            <!-- /.card -->
-            <div class="card">
-              <div class="card-header border-0">
-                <h3 class="card-title">Incidencias por Departamento</h3>
-                <div class="card-tools">
-                  <a href="#" class="btn btn-tool btn-sm" title="Agregar">
-                    <i class="fas fa-plus"></i>
-                  </a>
-                  <a href="#" class="btn btn-tool btn-sm" title="Ver Lista">
-                    <i class="fas fa-list"></i>
-                  </a>
-                </div>
-              </div>
+                <!-- ./card-body -->
 
-              <div class="card-body table-responsive p-0">
-                <table class="table table-striped table-valign-middle">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Departamento</th>
-                      <th>Tendencia</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="text-success fs-5">
-                        <i class="bi bi-bar-chart-line-fill"></i>
-                      </td>
-                      <td>Biomédica</td>
-                      <td>
-                        <small class="text-success mr-1">
-                          <i class="bi bi-graph-up-arrow"></i> +15%
-                        </small>
-                        Aumento de incidencias
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="text-info fs-5">
-                        <i class="bi bi-bar-chart-fill"></i>
-                      </td>
-                      <td>Enfermería</td>
-                      <td>
-                        <small class="text-info mr-1">
-                          <i class="bi bi-graph-up-arrow"></i> +5%
-                        </small>
-                        Ligero aumento
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="text-warning fs-5">
-                        <i class="bi bi-pie-chart-fill"></i>
-                      </td>
-                      <td>Pediatría</td>
-                      <td>
-                        <small class="text-warning mr-1">
-                          <i class="bi bi-graph-down-arrow"></i> -8%
-                        </small>
-                        Disminución leve
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="text-danger fs-5">
-                        <i class="bi bi-bar-chart-line-fill"></i>
-                      </td>
-                      <td>IT</td>
-                      <td>
-                        <small class="text-danger mr-1">
-                          <i class="bi bi-graph-up-arrow"></i> +20%
-                        </small>
-                        Alto incremento
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <!-- /.card-footer -->
               </div>
+              <!-- /.card -->
             </div>
-            <!-- /.card -->
+            <!-- /.col -->
           </div>
-          <!-- /.col-md-6 -->
+          <!--end::Row-->
+          <!--begin::Row-->
+          <div class="row">
+            <!-- Start col -->
+            <div class="col-md-8">
+              <!--begin::Row-->
+              <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                </div>
+              </div>
+              <!--end::Row-->
+              <!--begin::Latest Order Widget-->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Latest Orders</h3>
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                      <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                      <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table m-0">
+                      <thead>
+                        <tr>
+                          <th>Order ID</th>
+                          <th>Item</th>
+                          <th>Status</th>
+                          <th>Popularity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR9842</a>
+                          </td>
+                          <td>Call of Duty IV</td>
+                          <td><span class="badge text-bg-success"> Shipped </span></td>
+                          <td>
+                            <div id="table-sparkline-1"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR1848</a>
+                          </td>
+                          <td>Samsung Smart TV</td>
+                          <td><span class="badge text-bg-warning">Pending</span></td>
+                          <td>
+                            <div id="table-sparkline-2"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
+                          </td>
+                          <td>iPhone 6 Plus</td>
+                          <td><span class="badge text-bg-danger"> Delivered </span></td>
+                          <td>
+                            <div id="table-sparkline-3"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
+                          </td>
+                          <td>Samsung Smart TV</td>
+                          <td><span class="badge text-bg-info">Processing</span></td>
+                          <td>
+                            <div id="table-sparkline-4"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR1848</a>
+                          </td>
+                          <td>Samsung Smart TV</td>
+                          <td><span class="badge text-bg-warning">Pending</span></td>
+                          <td>
+                            <div id="table-sparkline-5"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
+                          </td>
+                          <td>iPhone 6 Plus</td>
+                          <td><span class="badge text-bg-danger"> Delivered </span></td>
+                          <td>
+                            <div id="table-sparkline-6"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="pages/examples/invoice.html"
+                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR9842</a>
+                          </td>
+                          <td>Call of Duty IV</td>
+                          <td><span class="badge text-bg-success">Shipped</span></td>
+                          <td>
+                            <div id="table-sparkline-7"></div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <!-- /.table-responsive -->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer clearfix">
+                  <a href="javascript:void(0)" class="btn btn-sm btn-primary float-start">
+                    Place New Order
+                  </a>
+                  <a href="javascript:void(0)" class="btn btn-sm btn-secondary float-end">
+                    View All Orders
+                  </a>
+                </div>
+                <!-- /.card-footer -->
+              </div>
+              <!-- /.card -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-4">
+              <!-- /.info-box -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h3 class="card-title">Browser Usage</h3>
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                      <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                      <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                  <!--begin::Row-->
+                  <div class="row">
+                    <div class="col-12">
+                      <div id="pie-chart"></div>
+                    </div>
+                    <!-- /.col -->
+                  </div>
+                  <!--end::Row-->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer p-0">
+                  <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        United States of America
+                        <span class="float-end text-danger">
+                          <i class="bi bi-arrow-down fs-7"></i>
+                          12%
+                        </span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        India
+                        <span class="float-end text-success">
+                          <i class="bi bi-arrow-up fs-7"></i> 4%
+                        </span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link">
+                        China
+                        <span class="float-end text-info">
+                          <i class="bi bi-arrow-left fs-7"></i> 0%
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <!-- /.footer -->
+              </div>
+              
+
+            </div>
+            <!-- /.col -->
+          </div>
+          <!--end::Row-->
         </div>
-        <!-- /.row -->
+        <!--end::Container-->
       </div>
-      <!-- /.container-fluid -->
-    </div>
-    <!-- /.app-content -->
-  </main>
-  <!--end::App Main-->
-  <!--begin::Footer-->
+      <!--end::App Content-->
+    </main>
+    <!--end::App Main-->
+    <!--begin::Footer-->
+
+    <!--end::Footer-->
+  </div>
+  <!--end::App Wrapper-->
   <!--begin::Script-->
   <!--begin::Third Party Plugin(OverlayScrollbars)-->
   <script
@@ -400,99 +500,57 @@ const pieChart = new Chart(ctx, {
     // IT'S ALL JUST JUNK FOR DEMO
     // ++++++++++++++++++++++++++++++++++++++++++
 
-    const visitors_chart_options = {
+    /* apexcharts
+     * -------
+     * Here we will create a few charts using apexcharts
+     */
+
+    //-----------------------
+    // - MONTHLY SALES CHART -
+    //-----------------------
+
+    const sales_chart_options = {
       series: [{
-          name: 'High - 2023',
-          data: [100, 120, 170, 167, 180, 177, 160],
+          name: 'Digital Goods',
+          data: [28, 48, 40, 19, 86, 27, 90],
         },
         {
-          name: 'Low - 2023',
-          data: [60, 80, 70, 67, 80, 77, 100],
+          name: 'Electronics',
+          data: [65, 59, 80, 81, 56, 55, 40],
         },
       ],
       chart: {
-        height: 200,
-        type: 'line',
+        height: 180,
+        type: 'area',
         toolbar: {
           show: false,
         },
       },
-      colors: ['#0d6efd', '#adb5bd'],
-      stroke: {
-        curve: 'smooth',
-      },
-      grid: {
-        borderColor: '#e7e7e7',
-        row: {
-          colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-          opacity: 0.5,
-        },
-      },
       legend: {
         show: false,
       },
-      markers: {
-        size: 1,
-      },
-      xaxis: {
-        categories: ['22th', '23th', '24th', '25th', '26th', '27th', '28th'],
-      },
-    };
-
-    const visitors_chart = new ApexCharts(
-      document.querySelector('#visitors-chart'),
-      visitors_chart_options,
-    );
-    visitors_chart.render();
-
-    const sales_chart_options = {
-      series: [{
-          name: 'Net Profit',
-          data: [44, 55, 57, 56, 61, 58, 63, 60, 66],
-        },
-        {
-          name: 'Revenue',
-          data: [76, 85, 101, 98, 87, 105, 91, 114, 94],
-        },
-        {
-          name: 'Free Cash Flow',
-          data: [35, 41, 36, 26, 45, 48, 52, 53, 41],
-        },
-      ],
-      chart: {
-        type: 'bar',
-        height: 200,
-      },
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: '55%',
-          endingShape: 'rounded',
-        },
-      },
-      legend: {
-        show: false,
-      },
-      colors: ['#0d6efd', '#20c997', '#ffc107'],
+      colors: ['#0d6efd', '#20c997'],
       dataLabels: {
         enabled: false,
       },
       stroke: {
-        show: true,
-        width: 2,
-        colors: ['transparent'],
+        curve: 'smooth',
       },
       xaxis: {
-        categories: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
-      },
-      fill: {
-        opacity: 1,
+        type: 'datetime',
+        categories: [
+          '2023-01-01',
+          '2023-02-01',
+          '2023-03-01',
+          '2023-04-01',
+          '2023-05-01',
+          '2023-06-01',
+          '2023-07-01',
+        ],
       },
       tooltip: {
-        y: {
-          formatter: function(val) {
-            return '$ ' + val + ' thousands';
-          },
+        x: {
+          format: 'MMMM yyyy',
         },
       },
     };
@@ -502,16 +560,95 @@ const pieChart = new Chart(ctx, {
       sales_chart_options,
     );
     sales_chart.render();
+
+    //---------------------------
+    // - END MONTHLY SALES CHART -
+    //---------------------------
+
+    function createSparklineChart(selector, data) {
+      const options = {
+        series: [{
+          data
+        }],
+        chart: {
+          type: 'line',
+          width: 150,
+          height: 30,
+          sparkline: {
+            enabled: true,
+          },
+        },
+        colors: ['var(--bs-primary)'],
+        stroke: {
+          width: 2,
+        },
+        tooltip: {
+          fixed: {
+            enabled: false,
+          },
+          x: {
+            show: false,
+          },
+          y: {
+            title: {
+              formatter() {
+                return '';
+              },
+            },
+          },
+          marker: {
+            show: false,
+          },
+        },
+      };
+
+      const chart = new ApexCharts(document.querySelector(selector), options);
+      chart.render();
+    }
+
+    const table_sparkline_1_data = [25, 66, 41, 89, 63, 25, 44, 12, 36, 9, 54];
+    const table_sparkline_2_data = [12, 56, 21, 39, 73, 45, 64, 52, 36, 59, 44];
+    const table_sparkline_3_data = [15, 46, 21, 59, 33, 15, 34, 42, 56, 19, 64];
+    const table_sparkline_4_data = [30, 56, 31, 69, 43, 35, 24, 32, 46, 29, 64];
+    const table_sparkline_5_data = [20, 76, 51, 79, 53, 35, 54, 22, 36, 49, 64];
+    const table_sparkline_6_data = [5, 36, 11, 69, 23, 15, 14, 42, 26, 19, 44];
+    const table_sparkline_7_data = [12, 56, 21, 39, 73, 45, 64, 52, 36, 59, 74];
+
+    createSparklineChart('#table-sparkline-1', table_sparkline_1_data);
+    createSparklineChart('#table-sparkline-2', table_sparkline_2_data);
+    createSparklineChart('#table-sparkline-3', table_sparkline_3_data);
+    createSparklineChart('#table-sparkline-4', table_sparkline_4_data);
+    createSparklineChart('#table-sparkline-5', table_sparkline_5_data);
+    createSparklineChart('#table-sparkline-6', table_sparkline_6_data);
+    createSparklineChart('#table-sparkline-7', table_sparkline_7_data);
+
+    //-------------
+    // - PIE CHART -
+    //-------------
+
+    const pie_chart_options = {
+      series: [700, 500, 400, 600, 300, 100],
+      chart: {
+        type: 'donut',
+      },
+      labels: ['Chrome', 'Edge', 'FireFox', 'Safari', 'Opera', 'IE'],
+      dataLabels: {
+        enabled: false,
+      },
+      colors: ['#0d6efd', '#20c997', '#ffc107', '#d63384', '#6f42c1', '#adb5bd'],
+    };
+
+    const pie_chart = new ApexCharts(document.querySelector('#pie-chart'), pie_chart_options);
+    pie_chart.render();
+
+    //-----------------
+    // - END PIE CHART -
+    //-----------------
   </script>
   <!--end::Script-->
-  </body>
-  <!--end::Body-->
-<?php else : ?>
-  <div class="col-12">
-    <div class="card">
-      <div class="card-body">
-        Welcome <?php echo $_SESSION['login_name'] ?>!
-      </div>
-    </div>
-  </div>
-<?php endif; ?>
+  
+
+</body>
+<!--end::Body-->
+
+</html>

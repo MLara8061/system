@@ -642,6 +642,92 @@ function delete_tool(){
     }
 }
 
+//Guardar datos de Epp
+function save_epp(){
+    extract($_POST);
+    $data = "";
+
+    // Validar que el número de inventario no esté duplicado (excepto si es actualización)
+    if(empty($id)){
+        $check = $this->db->query("SELECT id FROM equipment_epp WHERE numero_inventario = '$numero_inventario'");
+        if($check && $check->num_rows > 0){
+            echo "Número de inventario duplicado";
+            return 0;
+        }
+    } else {
+        $check = $this->db->query("SELECT id FROM equipment_epp WHERE numero_inventario = '$numero_inventario' AND id != $id");
+        if($check && $check->num_rows > 0){
+            echo "Número de inventario duplicado";
+            return 0;
+        }
+    }
+
+    // Construir cadena de datos
+    foreach($_POST as $k => $v){
+        if(!in_array($k, array('id','keep_image')) && !is_array($v)){
+            if(!empty($data)) $data .= ", ";
+            $data .= " {$k} = '".addslashes($v)."' ";
+        }
+    }
+
+    // Manejar eliminación de imagen existente
+    if(isset($_POST['keep_image']) && $_POST['keep_image'] == '0'){
+        $qry = $this->db->query("SELECT imagen FROM equipment_epp WHERE id = $id");
+        if($qry && $qry->num_rows > 0){
+            $img = $qry->fetch_assoc()['imagen'];
+            if(!empty($img) && file_exists('uploads/'.$img)){
+                unlink('uploads/'.$img);
+            }
+        }
+        $data .= ", imagen = '' ";
+    }
+
+    // Subida de nueva imagen
+    if(isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != ''){
+        $fname = time().'_'.$_FILES['imagen']['name'];
+        move_uploaded_file($_FILES['imagen']['tmp_name'], 'uploads/'.$fname);
+        $data .= ", imagen = '$fname' ";
+    }
+
+    // Insertar o actualizar
+    if(empty($id)){
+        $sql = "INSERT INTO equipment_epp SET $data";
+    } else {
+        $sql = "UPDATE equipment_epp SET $data WHERE id = $id";
+    }
+
+    if($this->db->query($sql)){
+        return 1;
+    } else {
+        error_log("Error SQL en save_epp: " . $this->db->error);
+        echo "Error SQL: " . $this->db->error;
+        return 0;
+    }
+}
+
+//ELiminar Epp
+function delete_epp(){
+    extract($_POST);
+
+    // Obtener la imagen para eliminarla
+    $qry = $this->db->query("SELECT imagen FROM equipment_epp WHERE id = $id");
+    $img = $qry && $qry->num_rows > 0 ? $qry->fetch_assoc()['imagen'] : '';
+
+    // Eliminar imagen del servidor si existe
+    if(!empty($img) && file_exists('uploads/'.$img)){
+        unlink('uploads/'.$img);
+    }
+
+    // Eliminar registro de la BD
+    $delete = $this->db->query("DELETE FROM equipment_epp WHERE id = $id");
+    if($delete){
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+
 	
 
 
