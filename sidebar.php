@@ -24,57 +24,7 @@
             <p>Dashboard</p>
           </a>
         </li>
-        <!--Proveedores-->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-client">
-            <i class="nav-icon fas fa-users"></i>
-            <p>Proveedores <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="./index.php?page=new_supplier" class="nav-link nav-customer_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Agregar</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="./index.php?page=suppliers" class="nav-link nav-customer_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Todos los proveedores</p>
-              </a>
-            </li>
-          </ul>
-        </li>
 
-        <!-- Staff -->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-staff">
-            <i class="nav-icon fas fa-user"></i>
-            <p>Usuarios <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="./index.php?page=new_staff" class="nav-link nav-staff_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Agregar</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="./index.php?page=staff_list" class="nav-link nav-staff_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Empleados</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <!-- Departamentos -->
-        <li class="nav-item">
-          <a href="./index.php?page=department_list" class="nav-link nav-department_list">
-            <i class="nav-icon fas fa-building"></i>
-            <p>Departamentos</p>
-          </a>
-        </li>
         <!-- Equipos -->
         <li class="nav-item">
           <a href="#" class="nav-link nav-equipment">
@@ -82,165 +32,167 @@
             <p>Equipos <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?page=new_equipment" class="nav-link nav-equipment_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_equipment" class="nav-link nav-new_equipment tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Ingresar Equipo</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_list" class="nav-link nav-equipment_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=equipment_list" class="nav-link nav-equipment_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos Los Equipos</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_report_sistem_list" class="nav-link nav-equipment_system tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=equipment_report_sistem_list" class="nav-link nav-equipment_report_sistem_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Reporte de Sistemas</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_month tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_report_revision_month tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Informe Revisiones Mensual</p>
-              </a>
-            </li>
+              </a></li>
           </ul>
         </li>
+
+        <!-- Proveedores -->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-client">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Proveedores <i class="right fas fa-angle-left"></i></p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item"><a href="./index.php?page=new_supplier" class="nav-link nav-new_supplier tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Agregar</p>
+              </a></li>
+            <li class="nav-item"><a href="./index.php?page=suppliers" class="nav-link nav-suppliers tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos los proveedores</p>
+              </a></li>
+          </ul>
+        </li>
+
         <!-- Herramientas -->
         <li class="nav-item">
           <a href="#" class="nav-link nav-tools">
             <i class="nav-icon fas fa-tools"></i>
-            <p>
-              Herramientas
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Herramientas <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?page=new_tool" class="nav-link nav-tools_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_tool" class="nav-link nav-new_tool tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Ingresar Herramienta</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=tools_list" class="nav-link nav-tools_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=tools_list" class="nav-link nav-tools_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todas las Herramientas</p>
-              </a>
-            </li>
+              </a></li>
           </ul>
         </li>
+
         <!-- Equipos EPP -->
         <li class="nav-item">
           <a href="#" class="nav-link nav-epp">
             <i class="nav-icon fas fa-hard-hat"></i>
-            <p>
-              Equipos EPP
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Equipos EPP <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?page=new_epp" class="nav-link nav-epp_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_epp" class="nav-link nav-new_epp tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Ingresar Equipo EPP</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=epp_list" class="nav-link nav-epp_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=epp_list" class="nav-link nav-epp_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos los Equipos EPP</p>
-              </a>
-            </li>
+              </a></li>
           </ul>
         </li>
 
-        <!-- Tickets -->
+        <!-- Configuración -->
         <li class="nav-item">
-          <a href="#" class="nav-link nav-ticket">
-            <i class="nav-icon fas fa-ticket-alt"></i>
-            <p>Ticket <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="./index.php?page=new_ticket" class="nav-link nav-ticket_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Agregar</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="./index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Listar Tickets</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <!-- Servicios -->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-service">
+          <a href="#" class="nav-link">
             <i class="nav-icon fas fa-cogs"></i>
-            <p>Servicios <i class="right fas fa-angle-left"></i></p>
+            <p>Configuración <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?page=manage_category" class="nav-link nav-category_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Nueva Categoría</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=category" class="nav-link nav-category_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Lista Categorías</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=manage_services" class="nav-link nav-service_add tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Crear Servicios</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?page=service_list" class="nav-link nav-service_list tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Lista Servicios</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="tickets/admin/?page=quote" class="nav-link nav-quote tree-item">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Requerimientos</p>
-              </a>
-            </li>
-          </ul>
-        </li>
 
-        <!-- Maintenance -->
-        <li class="nav-item">
-          <a href="#" class="nav-link nav-maintenance">
-            <i class="nav-icon fas fa-tools"></i>
-            <p>Maintenance <i class="right fas fa-angle-left"></i></p>
-          </a>
-          <ul class="nav nav-treeview">
+            <!-- Departamentos -->
             <li class="nav-item">
-              <a href="index.php?page=create_user" class="nav-link nav-maintenance_add tree-item">
+              <a href="./index.php?page=department_list" class="nav-link nav-department_list tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Crear Usuario</p>
+                <p>Departamentos</p>
               </a>
             </li>
+
+            <!-- Servicios -->
             <li class="nav-item">
-              <a href="index.php?page=user_list" class="nav-link nav-maintenance_list tree-item">
+              <a href="#" class="nav-link nav-service">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Lista de Usuarios</p>
+                <p>Servicios <i class="right fas fa-angle-left"></i></p>
               </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item"><a href="index.php?page=manage_category" class="nav-link nav-manage_category tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Nueva Categoría</p>
+                  </a></li>
+                <li class="nav-item"><a href="index.php?page=category" class="nav-link nav-category tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Lista Categorías</p>
+                  </a></li>
+                <li class="nav-item"><a href="index.php?page=manage_services" class="nav-link nav-manage_services tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Crear Servicios</p>
+                  </a></li>
+                <li class="nav-item"><a href="index.php?page=service_list" class="nav-link nav-service_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Lista Servicios</p>
+                  </a></li>
+                <li class="nav-item"><a href="tickets/admin/?page=quote" class="nav-link nav-quote tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Requerimientos</p>
+                  </a></li>
+              </ul>
             </li>
-          </ul>
-        </li>
-      </ul>
+
+            <!-- Mantenimientos -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-maintenance">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Mantenimientos <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item"><a href="index.php?page=create_user" class="nav-link nav-create_user tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Crear Usuario</p>
+                  </a></li>
+                <li class="nav-item"><a href="index.php?page=user_list" class="nav-link nav-user_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                    <p>Lista de Usuarios</p>
+                  </a></li>
+              </ul>
+            </li>
+            <!-- Usuarios -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-staff">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Usuarios <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="./index.php?page=new_staff" class="nav-link nav-new_staff tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Agregar</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./index.php?page=staff_list" class="nav-link nav-staff_list tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Todos los usuarios</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <!-- Tickets -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-ticket">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Tickets <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="./index.php?page=new_ticket" class="nav-link nav-new_ticket tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Nuevo Ticket</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Todos los tickets</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
     </nav>
   </div>
 </aside>
