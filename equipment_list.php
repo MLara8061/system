@@ -8,40 +8,52 @@ $preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period = 2")->fetch_assoc()['total'];
 ?>
 
-<!-- Tarjetas de resumen -->
+<!-- Tarjetas de resumen de Equipos -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card bg-info text-white shadow">
-            <div class="card-body">
-                <h5>Total de Equipos</h5>
-                <h3><?php echo $total_equipos; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-desktop fa-2x text-primary mr-3"></i>
+                <div>
+                    <h6>Total de Equipos</h6>
+                    <h4><?php echo $total_equipos; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-success text-white shadow">
-            <div class="card-body">
-                <h5>Costo Total</h5>
-                <h3>$<?php echo number_format($costo_total, 2); ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-dollar-sign fa-2x text-success mr-3"></i>
+                <div>
+                    <h6>Costo Total</h6>
+                    <h4>$<?php echo number_format($costo_total, 2); ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-warning text-dark shadow">
-            <div class="card-body">
-                <h5>Mantenimientos Preventivos</h5>
-                <h3><?php echo $preventivos; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-tools fa-2x text-warning mr-3"></i>
+                <div>
+                    <h6>Mantenimientos Preventivos</h6>
+                    <h4><?php echo $preventivos; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-danger text-white shadow">
-            <div class="card-body">
-                <h5>Mantenimientos Correctivos</h5>
-                <h3><?php echo $correctivos; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
+                <div>
+                    <h6>Mantenimientos Correctivos</h6>
+                    <h4><?php echo $correctivos; ?></h4>
+                </div>
             </div>
         </div>
     </div>
@@ -56,7 +68,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm" title="Agregar Equipo">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="#" class="btn btn-tool btn-sm" title="Exportar">
+                <a href="export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
                 <a href="#" class="btn btn-tool btn-sm" title="Vista">
@@ -72,6 +84,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                         <th>#</th>
                         <th>Equipo</th>
                         <th>Detalles</th>
+                        <th>Proveedor</th> <!-- NUEVA COLUMNA -->
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -79,9 +92,16 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 <tbody>
                     <?php
                     $i = 1;
-                    // Solo mostrar los 5 equipos más recientes
-                    $qry = $conn->query("SELECT * FROM equipments ORDER BY id DESC LIMIT 5");
+                    // JOIN con suppliers para obtener el nombre del proveedor
+                    $qry = $conn->query("
+                        SELECT e.*, s.empresa as supplier_name 
+                        FROM equipments e 
+                        LEFT JOIN suppliers s ON e.supplier_id = s.id 
+                        ORDER BY e.id DESC 
+                        LIMIT 5
+                    ");
                     while ($row = $qry->fetch_assoc()) :
+                        $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                     ?>
                         <tr>
                             <td class="text-center">
@@ -109,6 +129,12 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     <small class="text-muted">
                                         <?php echo $row['brand'] ?> - <?php echo $row['model'] ?>
                                     </small>
+                                </div>
+                            </td>
+                            <!-- NUEVA COLUMNA: PROVEEDOR -->
+                            <td>
+                                <div>
+                                    <strong><?php echo ucwords($supplier_name); ?></strong>
                                 </div>
                             </td>
                             <td>
@@ -205,6 +231,9 @@ $(document).ready(function() {
         },
         "responsive": true,
         "autoWidth": false,
+        "columnDefs": [
+            { "orderable": false, "targets": [4,5] } // Desactiva orden en Estado y Acciones
+        ]
     });
     
     $('.delete').click(function(e) {

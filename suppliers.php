@@ -8,44 +8,57 @@ $inactivos = $conn->query("SELECT COUNT(*) as total FROM suppliers WHERE estado 
 $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers")->fetch_assoc()['total'];
 ?>
 
-<!-- Tarjetas de resumen -->
+<!-- Tarjetas de resumen de Proveedores -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card bg-primary text-white shadow">
-            <div class="card-body">
-                <h5>Total de Proveedores</h5>
-                <h3 id="total_proveedores"><?php echo $total_proveedores; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-building fa-2x text-primary mr-3"></i>
+                <div>
+                    <h6>Total de Proveedores</h6>
+                    <h4 id="total_proveedores"><?php echo $total_proveedores; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-success text-white shadow">
-            <div class="card-body">
-                <h5>Activos</h5>
-                <h3 id="total_activos"><?php echo $activos; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+                <div>
+                    <h6>Activos</h6>
+                    <h4 id="total_activos"><?php echo $activos; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-danger text-white shadow">
-            <div class="card-body">
-                <h5>Inactivos</h5>
-                <h3 id="total_inactivos"><?php echo $inactivos; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-times-circle fa-2x text-secondary mr-3"></i>
+                <div>
+                    <h6>Inactivos</h6>
+                    <h4 id="total_inactivos"><?php echo $inactivos; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card bg-warning text-dark shadow">
-            <div class="card-body">
-                <h5>Sectores</h5>
-                <h3 id="total_sectores"><?php echo $sectores; ?></h3>
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-layer-group fa-2x text-info mr-3"></i>
+                <div>
+                    <h6>Sectores</h6>
+                    <h4 id="total_sectores"><?php echo $sectores; ?></h4>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Tabla de proveedores -->
 <div class="col-lg-12">
@@ -56,7 +69,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                 <a href="./index.php?page=new_supplier" class="btn btn-tool btn-sm" title="Agregar Proveedor">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="#" class="btn btn-tool btn-sm" title="Exportar">
+                <a href="export_suppliers.php" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
             </div>
@@ -115,13 +128,10 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                             </td>
                             <td><?php echo $row['sector'] ?></td>
                             <td>
-                                <!-- Botón interactivo de estado -->
-                                <button class="btn btn-sm btn-toggle-status <?php echo ($row['estado'] == 1) ? 'btn-success' : 'btn-secondary'; ?>"
-                                    data-id="<?php echo $row['id'] ?>" data-status="<?php echo $row['estado'] ?>">
+                                <span class="btn btn-sm <?php echo ($row['estado'] == 1) ? 'btn-success' : 'btn-secondary'; ?>">
                                     <?php echo ($row['estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
-                                </button>
+                                </span>
                             </td>
-
                             <td class="text-center">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -152,84 +162,105 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
 
 <script>
 $(document).ready(function() {
-    $('#list').dataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+    // Inicializar DataTable
+    var table = $('#list').DataTable({
+        language: {
+            url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
         },
-        "responsive": true,
-        "autoWidth": false,
+        responsive: true,
+        autoWidth: false
     });
 
-    // Eliminar proveedor
-    $('.delete').click(function(e) {
+    // === EXPORTAR A EXCEL (FORZADO Y SEGURO) ===
+    $(document).on('click', 'a[title="Exportar"]', function(e) {
         e.preventDefault();
-        _conf("¿Deseas eliminar este proveedor?", "delete_supplier", [$(this).attr('data-id')])
-    });
 
-    // Cambiar estado desde el botón interactivo
-    $(document).on('click', '.btn-toggle-status', function(){
-        var btn = $(this);
-        var id = btn.data('id');
-        var status = btn.data('status');
-        var newStatus = (status == 1) ? 0 : 1;
+        var rows = [];
 
-        start_load();
-        $.ajax({
-            url: 'ajax.php?action=toggle_supplier_status',
-            method: 'POST',
-            data: { id: id, status: newStatus },
-            success: function(resp){
-                end_load();
-                if(resp == 1){
-                    // Actualizar botón
-                    btn.data('status', newStatus);
-                    if(newStatus == 1){
-                        btn.removeClass('btn-secondary').addClass('btn-success').text('Activo');
-                    } else {
-                        btn.removeClass('btn-success').addClass('btn-secondary').text('Inactivo');
-                    }
-
-                    // Actualizar contadores en tiempo real
-                    var activos = parseInt($('#total_activos').text());
-                    var inactivos = parseInt($('#total_inactivos').text());
-                    if(newStatus == 1){
-                        $('#total_activos').text(activos + 1);
-                        $('#total_inactivos').text(inactivos - 1);
-                    } else {
-                        $('#total_activos').text(activos - 1);
-                        $('#total_inactivos').text(inactivos + 1);
-                    }
-
-                    alert_toast("Estado actualizado correctamente", 'success');
-                } else {
-                    alert_toast("Error al actualizar estado", 'danger');
-                }
-            },
-            error: function(){
-                end_load();
-                alert_toast("Error de conexión", 'danger');
+        // Encabezados
+        var headers = [];
+        $('#list thead th').each(function() {
+            var text = $(this).text().trim();
+            if (text !== 'Acciones') {
+                headers.push(text);
             }
         });
+        rows.push(headers);
+
+        // Filas visibles
+        $('#list tbody tr:visible').each(function() {
+            var rowData = [];
+            $(this).find('td').each(function(index) {
+                if (index < 6) { // Excluir "Acciones"
+                    var cell = $(this);
+                    var text = '';
+
+                    if (cell.find('img').length > 0) {
+                        text = 'Sí';
+                    } else if (cell.find('span').length > 0) {  // span para estado
+                        text = cell.find('span').text().trim();
+                    } else {
+                        text = cell.text().trim().replace(/\s+/g, ' ').replace(/Web/g, '').trim();
+                    }
+
+                    rowData.push(text);
+                }
+            });
+            if (rowData.length > 0) {
+                rows.push(rowData);
+            }
+        });
+
+        if (rows.length <= 1) {
+            alert("No hay datos para exportar.");
+            return;
+        }
+
+        // === GENERAR HTML ===
+        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        html += '<head><meta charset="UTF-8">[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+        html += '<x:Name>Proveedores</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>';
+        html += '<body><table border="1" style="border-collapse:collapse;">';
+
+        rows.forEach(function(row, i) {
+            html += '<tr>';
+            row.forEach(function(cell) {
+                var style = i === 0 ? 'font-weight:bold;background:#f0f0f0;' : '';
+                html += '<td style="' + style + 'padding:8px;">' + cell + '</td>';
+            });
+            html += '</tr>';
+        });
+
+        html += '</table></body></html>';
+
+        // === FORZAR DESCARGA ===
+        var blob = new Blob(['\ufeff' + html], {
+            type: 'application/vnd.ms-excel'
+        });
+        var filename = 'proveedores_' + new Date().toISOString().slice(0, 10) + '.xls';
+
+        if (navigator.msSaveBlob) {
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(function() {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }, 100);
+        }
+    });
+
+    // === ELIMINAR PROVEEDOR ===
+    $('.delete').click(function(e) {
+        e.preventDefault();
+        _conf("¿Deseas eliminar este proveedor?", "delete_supplier", [$(this).attr('data-id')]);
     });
 
     $('[title]').tooltip();
 });
-
-// Función eliminar proveedor
-function delete_supplier(id) {
-    start_load();
-    $.ajax({
-        url: 'ajax.php?action=delete_supplier',
-        method: 'POST',
-        data: { id: id },
-        success: function(resp) {
-            if (resp == 1) {
-                alert_toast("Proveedor eliminado correctamente", 'success');
-                setTimeout(function() {
-                    location.reload();
-                }, 1500);
-            }
-        }
-    });
-}
 </script>

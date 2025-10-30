@@ -1,6 +1,64 @@
 <!doctype html>
 <html lang="en">
-<!--begin::Head-->
+
+<?php
+include 'db_connect.php';
+
+// Total de Equipos
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipments");
+$total_equipos = 0;
+if ($result) {
+    $row = $result->fetch_assoc();
+    $total_equipos = $row ? $row['total'] : 0;
+}
+
+// Total de Equipos EPP
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipment_epp");
+$total_epp = 0;
+if ($result) {
+    $row = $result->fetch_assoc();
+    $total_epp = $row ? $row['total'] : 0;
+}
+
+// Total de Herramientas
+$result = $conn->query("SELECT COUNT(*) AS total FROM tools");
+$total_herramientas = 0;
+if ($result) {
+    $row = $result->fetch_assoc();
+    $total_herramientas = $row ? $row['total'] : 0;
+}
+
+// Valor Total de Equipos
+$valor_total_equipos = 0;
+$result = $conn->query("SELECT SUM(amount) AS total FROM equipments");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $valor_total_equipos = $row && $row['total'] ? $row['total'] : 0;
+}
+
+// Valor Total de Equipos EPP
+$valor_total_epp = 0;
+$result = $conn->query("SELECT SUM(costo) AS total FROM equipment_epp");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $valor_total_epp = $row && $row['total'] ? $row['total'] : 0;
+}
+
+// Valor Total de Herramientas
+$valor_total_herramientas = 0;
+$result = $conn->query("SELECT SUM(costo) AS total FROM tools");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $valor_total_herramientas = $row && $row['total'] ? $row['total'] : 0;
+}
+
+// Valor Total de Activos
+$total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_herramientas;
+?>
+
+
+
+
 
 <head>
 
@@ -80,73 +138,62 @@
         <!--end::Container-->
       </div>
       <div class="app-content">
-        <!--begin::Container-->
-        <div class="container-fluid">
-          <!-- Info boxes -->
-          <div class="row">
-            <div class="col-12 col-sm-6 col-md-3">
-              <div class="info-box">
-                <span class="info-box-icon text-bg-primary shadow-sm">
-                  <i class="bi bi-gear-fill"></i>
-                </span>
-                <div class="info-box-content">
-                  <span class="info-box-text">CPU Traffic</span>
-                  <span class="info-box-number">
-                    10
-                    <small>%</small>
-                  </span>
+       <!--begin::Container-->
+<!-- Tarjetas de resumen -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-desktop fa-2x text-primary mr-3"></i>
+                <div>
+                    <h6>Total de Equipos</h6>
+                    <h4><?php echo $total_equipos; ?></h4>
                 </div>
-                <!-- /.info-box-content -->
-              </div>
-              <!-- /.info-box -->
             </div>
-            <!-- /.col -->
-            <div class="col-12 col-sm-6 col-md-3">
-              <div class="info-box">
-                <span class="info-box-icon text-bg-danger shadow-sm">
-                  <i class="bi bi-hand-thumbs-up-fill"></i>
-                </span>
-                <div class="info-box-content">
-                  <span class="info-box-text">Likes</span>
-                  <span class="info-box-number">41,410</span>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-hard-hat fa-2x text-success mr-3"></i>
+                <div>
+                    <h6>Total de Equipos EPP</h6>
+                    <h4><?php echo $total_epp; ?></h4>
                 </div>
-                <!-- /.info-box-content -->
-              </div>
-              <!-- /.info-box -->
             </div>
-            <!-- /.col -->
-            <!-- fix for small devices only -->
-            <!-- <div class="clearfix hidden-md-up"></div> -->
-            <div class="col-12 col-sm-6 col-md-3">
-              <div class="info-box">
-                <span class="info-box-icon text-bg-success shadow-sm">
-                  <i class="bi bi-cart-fill"></i>
-                </span>
-                <div class="info-box-content">
-                  <span class="info-box-text">Sales</span>
-                  <span class="info-box-number">760</span>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-tools fa-2x text-warning mr-3"></i>
+                <div>
+                    <h6>Total de Herramientas</h6>
+                    <h4><?php echo $total_herramientas; ?></h4>
                 </div>
-                <!-- /.info-box-content -->
-              </div>
-              <!-- /.info-box -->
             </div>
-            <!-- /.col -->
-            <div class="col-12 col-sm-6 col-md-3">
-              <div class="info-box">
-                <span class="info-box-icon text-bg-warning shadow-sm">
-                  <i class="bi bi-people-fill"></i>
-                </span>
-                <div class="info-box-content">
-                  <span class="info-box-text">New Members</span>
-                  <span class="info-box-number">2,000</span>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm" style="background:#fff;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-dollar-sign fa-2x text-info mr-3"></i>
+                <div>
+                    <h6>Valor Total de Activos</h6>
+                    <h4>$<?php echo number_format($total_valor_activos, 2); ?></h4>
                 </div>
-                <!-- /.info-box-content -->
-              </div>
-              <!-- /.info-box -->
             </div>
-            <!-- /.col -->
-          </div>
-          <!-- /.row -->
+        </div>
+    </div>
+</div>
+    
+    <!-- /.row -->
+</div>
+<!-- /.container-fluid -->
+
           <!--begin::Row-->
           <div class="row">
             <div class="col-md-12">

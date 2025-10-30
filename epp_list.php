@@ -136,13 +136,100 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
 
 <script>
 $(document).ready(function() {
-    $('#list').DataTable({
+    // Inicializar DataTable
+    var table = $('#list').DataTable({
         language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
         responsive: true,
         autoWidth: false
     });
 
-    // Eliminar EPP
+    // === EXPORTAR A EXCEL (LEE DIRECTO DEL DOM) ===
+    $(document).on('click', 'a[title="Exportar"]', function(e) {
+        e.preventDefault();
+
+        var rows = [];
+
+        // === ENCABEZADOS ===
+        var headerCells = [];
+        $('#list thead th').each(function() {
+            var text = $(this).text().trim();
+            if (text !== 'Acciones') {
+                headerCells.push(text);
+            }
+        });
+        rows.push(headerCells);
+
+        // === FILAS VISIBLES (directo del DOM) ===
+        $('#list tbody tr:visible').each(function() {
+            var rowData = [];
+            $(this).find('td').each(function(index) {
+                // Excluir última columna "Acciones"
+                if (index < $(this).parent().find('td').length - 1) {
+                    var cell = $(this);
+                    var text = '';
+
+                    // Si hay imagen → "Sí"
+                    if (cell.find('img').length > 0) {
+                        text = 'Sí';
+                    }
+                    // Si hay badge → texto del badge
+                    else if (cell.find('.badge').length > 0) {
+                        text = cell.find('.badge').text().trim();
+                    }
+                    // Texto normal
+                    else {
+                        text = cell.text().trim();
+                    }
+
+                    // Limpiar formato de dinero
+                    if (text.includes('$') || text.includes(',')) {
+                        text = text.replace(/[$,]/g, '');
+                    }
+
+                    rowData.push(text);
+                }
+            });
+            if (rowData.length > 0) {
+                rows.push(rowData);
+            }
+        });
+
+        // Si no hay filas visibles
+        if (rows.length <= 1) {
+            alert("No hay datos visibles para exportar.");
+            return;
+        }
+
+        // === GENERAR HTML ===
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
+        html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
+        
+        rows.forEach(function(row, i) {
+            html += '<tr>';
+            row.forEach(function(cell) {
+                var style = i === 0 ? 'font-weight: bold; background-color: #f2f2f2;' : '';
+                html += '<td style="' + style + ' padding: 8px;">' + cell + '</td>';
+            });
+            html += '</tr>';
+        });
+        
+        html += '</table></body></html>';
+
+        // === DESCARGAR ===
+        var blob = new Blob(['\ufeff' + html], { 
+            type: 'application/vnd.ms-excel' 
+        });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'epp_' + new Date().toISOString().slice(0, 10) + '.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+
+    // === ELIMINAR Y EDITAR (sin cambios) ===
     $(document).on('click', '.delete-epp', function() {
         var id = $(this).data('id');
         if (confirm("¿Deseas eliminar este equipo EPP?")) {
@@ -162,7 +249,6 @@ $(document).ready(function() {
         }
     });
 
-    // Editar EPP
     $(document).on('click', '.edit-epp', function() {
         var id = $(this).data('id');
         window.location.href = 'index.php?page=edit_epp&id=' + id;

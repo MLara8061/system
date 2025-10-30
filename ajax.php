@@ -124,17 +124,6 @@ if($action == "delete_supplier"){
 	}
 }
 
-if($action == "toggle_supplier_status"){
-    $id = $_POST['id'];
-    $status = $_POST['status'];
-    $update = $crud->toggle_supplier_status($id, $status);
-    if($update){
-        echo 1;
-    } else {
-        echo 0;
-    }
-}
-
 // GUARDAR HERRAMIENTA
 if($action == "save_tool"){
     $save = $crud->save_tool();
