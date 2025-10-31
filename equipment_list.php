@@ -225,39 +225,47 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 
 <script>
 $(document).ready(function() {
-    $('#list').dataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+    // DataTable con idioma desde CDN (funciona si usas HTTPS)
+    var table = $('#list').DataTable({
+        language: { 
+            url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"  // ← HTTPS!
         },
-        "responsive": true,
-        "autoWidth": false,
-        "columnDefs": [
-            { "orderable": false, "targets": [4,5] } // Desactiva orden en Estado y Acciones
+        responsive: true,
+        autoWidth: false,
+        columnDefs: [
+            { orderable: false, targets: [4,5] }
         ]
     });
-    
-    $('.delete').click(function(e) {
-        e.preventDefault();
-        _conf("¿Deseas eliminar este equipo?", "delete_equipment", [$(this).attr('data-id')])
-    });
-    
-    $('[title]').tooltip();
-});
 
-function delete_equipment($id) {
-    start_load();
-    $.ajax({
-        url: 'ajax.php?action=delete_equipment',
-        method: 'POST',
-        data: { id: $id },
-        success: function(resp) {
-            if (resp == 1) {
-                alert_toast("Datos eliminados correctamente", 'success');
-                setTimeout(function() {
-                    location.reload();
-                }, 1500);
-            }
+    // === ELIMINAR ===
+    $(document).on('click', '.delete', function() {
+        var id = $(this).data('id');
+        if (confirm("¿Deseas eliminar este equipo?")) {
+            $.ajax({
+                url: 'ajax.php?action=delete_equipment',
+                method: 'POST',
+                data: { id: id },
+                success: function(resp) {
+                    if (resp == 1) {
+                        alert("Equipo eliminado correctamente");
+                        location.reload();
+                    } else {
+                        alert("Error al eliminar");
+                    }
+                },
+                error: function() {
+                    alert("Error de conexión");
+                }
+            });
         }
     });
-}
+
+    // === EDITAR (opcional) ===
+    $(document).on('click', '.edit', function() {
+        var id = $(this).data('id');
+        window.location.href = 'index.php?page=edit_equipment&id=' + id;
+    });
+
+    $('[title]').tooltip();
+});
 </script>

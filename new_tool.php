@@ -79,7 +79,7 @@
                 <hr>
                 <div class="text-right">
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Guardar Herramienta</button>
-                    <a href="index.php?page=tool_list" class="btn btn-secondary">Cancelar</a>
+                    <a href="index.php?page=tools_list" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>

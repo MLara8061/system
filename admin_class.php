@@ -278,170 +278,67 @@ Class Action {
 			return 1;
 		}
 	}
-
-	function save_equipment(){
-		// DEPURACIÓN: VER QUÉ LLEGA
-    error_log("=== SAVE_EQUIPMENT DEBUG ===");
-    error_log("POST: " . print_r($_POST, true));
-    error_log("FILES: " . print_r($_FILES, true));
+function save_equipment(){
     extract($_POST);
     $data = "";
-    $revision_value = 0;
+    $revision = false;
     $new = false;
 
-    // === CAMPOS PERMITIDOS EN LA TABLA equipments ===
+    // === CAMPOS DE equipments (INCLUYE supplier_id) ===
     $array_cols_equipment = array(
         'number_inventory','serie','amount','date_created','name','brand','model',
         'acquisition_type','mandate_period','revision','characteristics','discipline',
-        'supplier_id'  // AÑADIDO: ahora se guarda
+        'supplier_id'  // AÑADIDO
     );
 
-    // === CONSTRUIR $data CON TODOS LOS CAMPOS ===
+    // === CONSTRUIR $data PARA equipments ===
     foreach($_POST as $k => $v){
         if(!in_array($k, array('id')) && !is_numeric($k)){
             if(in_array($k, $array_cols_equipment)){
-                if(empty($data)){
-                    $data .= " $k='$v' ";
-                } else {
-                    $data .= ", $k='$v' ";
-                }
+                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
             }
         }
     }
 
-    // === DETERMINAR SI ES NUEVO O EDICIÓN ===
-    if (empty($id)) {
-        // NUEVO EQUIPO
-        $new = true;
-        $revision_value = 0;
+    // === VERIFICAR SI ES NUEVO ===
+    $sql_inventory = "SELECT id FROM equipments WHERE number_inventory = '$number_inventory'";
+    $existe_inventario = $this->db->query($sql_inventory);
+    $new = ($existe_inventario->num_rows == 0);
 
-        // Verificar si ya existe un equipo con ese número de inventario
-        $check_inventory = $this->db->query("SELECT id FROM equipments WHERE number_inventory = '$number_inventory'");
-        if ($check_inventory->num_rows > 0) {
-            echo 2; // Error: número de inventario duplicado
-            return;
-        }
-    } else {
-        // EDICIÓN
-        $new = false;
-
-        // Verificar si este número de inventario ya existe en otro equipo
-        $check_inventory = $this->db->query("SELECT id FROM equipments WHERE number_inventory = '$number_inventory' AND id != $id");
-        if ($check_inventory->num_rows > 0) {
-            echo 2; // Error: número de inventario duplicado
-            return;
-        }
-
-        // Mantener el valor actual de revision, o forzar a 1 si es el primer registro
-        $current = $this->db->query("SELECT revision FROM equipments WHERE id = $id")->fetch_array();
-        $revision_value = $current['revision'];
-
-        // Si es el primer registro con este número de inventario → revision = 1
-        $first_time = $this->db->query("SELECT id FROM equipments WHERE number_inventory = '$number_inventory' AND id = $id")->num_rows;
-        if ($first_time == 1 && $revision_value == 0) {
-            $revision_value = 1;
-        }
-    }
-
-    // === REEMPLAZAR O AGREGAR revision EN $data ===
-    $data = preg_replace("/revision='[^']*'/", "revision='$revision_value'", $data);
-    if (!preg_match("/revision=/", $data)) {
-        $data .= ", revision='$revision_value'";
+    // === REVISIÓN: solo si es edición y es el primer registro con ese inventario ===
+    if (!$new && empty($id)) {
+        $data .= ", revision=1";
+        $revision = true;
+    } elseif ($new) {
+        $data .= ", revision=0";
     }
 
     // === GUARDAR EN equipments ===
-    if ($new) {
+    if (empty($id)) {
         $save = $this->db->query("INSERT INTO equipments SET $data");
     } else {
         $save = $this->db->query("UPDATE equipments SET $data WHERE id = $id");
     }
 
-    if (!$save) {
-        error_log("Error SQL equipments: " . $this->db->error);
-        echo 2;
-        return;
-    }
+    if (!$save) return 2;
 
-    // === OBTENER ID DEL EQUIPO ===
-    $equipment_id = $new ? $this->db->insert_id : $id;
-    $_POST['equipment_id'] = $equipment_id;
+    $id = empty($id) ? $this->db->insert_id : $id;
+    $_POST['equipment_id'] = $id;
 
     // === RECEPTION ===
-    $data = "";
-    $array_reception = array('state','comments','equipment_id');
-    foreach($_POST as $k => $v){
-        if(in_array($k, $array_reception) && !is_numeric($k)){
-            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-        }
-    }
-
-    if ($new) {
-        $save_receipt = $this->db->query("INSERT INTO equipment_reception SET $data");
-    } else {
-        $exists = $this->db->query("SELECT id FROM equipment_reception WHERE equipment_id = $equipment_id")->num_rows;
-        if ($exists > 0) {
-            $save_receipt = $this->db->query("UPDATE equipment_reception SET $data WHERE equipment_id = $equipment_id");
-        } else {
-            $save_receipt = $this->db->query("INSERT INTO equipment_reception SET $data");
-        }
-    }
-
-    if (!$save_receipt) { echo 2; return; }
+    $data = $this->build_data($_POST, array('state','comments','equipment_id'));
+    $this->save_or_update('equipment_reception', $data, $id, $new, $revision);
 
     // === DELIVERY ===
-    $data = "";
-    $array_delivery = array('department_id','location_id','responsible_name','responsible_position','date_training','date','equipment_id');
-    foreach($_POST as $k => $v){
-        if(in_array($k, $array_delivery) && !is_numeric($k)){
-            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-        }
-    }
-
-    if ($new) {
-        $save_delivery = $this->db->query("INSERT INTO equipment_delivery SET $data");
-    } else {
-        $exists = $this->db->query("SELECT id FROM equipment_delivery WHERE equipment_id = $equipment_id")->num_rows;
-        if ($exists > 0) {
-            $save_delivery = $this->db->query("UPDATE equipment_delivery SET $data WHERE equipment_id = $equipment_id");
-        } else {
-            $save_delivery = $this->db->query("INSERT INTO equipment_delivery SET $data");
-        }
-    }
-
-    if (!$save_delivery) { echo 2; return; }
+    $data = $this->build_data($_POST, array('department_id','location_id','responsible_name','responsible_position','date_training','date','equipment_id'));
+    $this->save_or_update('equipment_delivery', $data, $id, $new, $revision);
 
     // === SAFEGUARD ===
-    $data = "";
-    $array_safeguard = array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id');
-    foreach($_POST as $k => $v){
-        if(in_array($k, $array_safeguard) && !is_numeric($k)){
-            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-        }
-    }
-
-    if ($new) {
-        $save_safeguard = $this->db->query("INSERT INTO equipment_safeguard SET $data");
-    } else {
-        $exists = $this->db->query("SELECT id FROM equipment_safeguard WHERE equipment_id = $equipment_id")->num_rows;
-        if ($exists > 0) {
-            $save_safeguard = $this->db->query("UPDATE equipment_safeguard SET $data WHERE equipment_id = $equipment_id");
-        } else {
-            $save_safeguard = $this->db->query("INSERT INTO equipment_safeguard SET $data");
-        }
-    }
-
-    if (!$save_safeguard) { echo 2; return; }
+    $data = $this->build_data($_POST, array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id'));
+    $this->save_or_update('equipment_safeguard', $data, $id, $new, $revision);
 
     // === DOCUMENTOS ===
-    $data = "";
-    $array_docs = array('invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file','equipment_id');
-    foreach($_POST as $k => $v){
-        if(in_array($k, $array_docs) && !is_numeric($k)){
-            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-        }
-    }
-
-    // Subir archivos
+    $data = $this->build_data($_POST, array('invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file','equipment_id'));
     foreach ($_FILES as $k => $file) {
         if (!empty($file['tmp_name'])) {
             $dest = 'uploads/' . $file['name'];
@@ -450,51 +347,162 @@ Class Action {
             }
         }
     }
+    $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id = $id")->num_rows;
+    $new_doc = ($exists == 0);
+    $this->save_or_update('equipment_control_documents', $data, $id, $new_doc, false);
 
-    $exists_docs = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id = $equipment_id")->num_rows;
-    if ($new || $exists_docs == 0) {
-        $save_docs = $this->db->query("INSERT INTO equipment_control_documents SET $data");
-    } else {
-        $save_docs = $this->db->query("UPDATE equipment_control_documents SET $data WHERE equipment_id = $equipment_id");
-    }
-
-    if ($save_docs) {
-        echo 1; // ÉXITO
-    } else {
-        error_log("Error documentos: " . $this->db->error);
-        echo 2;
-    }
+    return 1;
 }
 
-function toggle_supplier_status(){
+// ===================================
+// 2. SAVE EQUIPMENT REVISION
+// ===================================
+function save_equipment_revision(){
     extract($_POST);
+    $data = $this->build_data($_POST, array("equipment_id","date_revision","frecuencia"));
     
-    // Validar que id exista
-    if (!isset($id) || !is_numeric($id)) {
-        echo 2;
-        return;
+    if (empty($id)) return 2;
+    
+    $sql = "SELECT id FROM equipments WHERE id = $id";
+    if ($this->db->query($sql)->num_rows == 0) return 2;
+
+    $save = $this->db->query("INSERT INTO equipment_revision SET $data");
+    return $save ? 1 : 2;
+}
+
+// ===================================
+// 3. DELETE EQUIPMENT (en cascada)
+// ===================================
+function delete_equipment(){
+    extract($_POST);
+    if (empty($id) || !is_numeric($id)) return 2;
+
+    $tables = [
+        'equipment_control_documents',
+        'equipment_reception',
+        'equipment_delivery',
+        'equipment_safeguard',
+        'equipment_revision',
+        'equipment_unsubscribe'
+    ];
+
+    foreach ($tables as $table) {
+        $this->db->query("DELETE FROM $table WHERE equipment_id = $id");
     }
 
-    // Obtener estado actual
-    $qry = $this->db->query("SELECT estado FROM suppliers WHERE id = $id");
-    if ($qry->num_rows == 0) {
-        echo 2;
-        return;
-    }
-    
-    $current = $qry->fetch_array();
-    $new_status = ($current['estado'] == 1) ? 0 : 1;
+    $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
+    return $delete ? 1 : 2;
+}
 
-    // Actualizar estado
-    $update = $this->db->query("UPDATE suppliers SET estado = $new_status WHERE id = $id");
-    
-    if ($update) {
-        echo 1;
+// ===================================
+// 4. SAVE EQUIPMENT UNSUBSCRIBE
+// ===================================
+function save_equipment_unsubscribe(){
+    extract($_POST);
+    $data = "";
+    $array_cols = array('date','equipment_id','withdrawal_reason','description','comments','opinion','destination','responsible');
+    $_POST['equipment_id'] = $id;
+
+    foreach($_POST as $k => $v){
+        if(!in_array($k, array('id')) && !is_numeric($k)){
+            if ($k == 'withdrawal_reason') {
+                $reasons = json_encode($_POST['withdrawal_reason']);
+                $data .= empty($data) ? " $k='$reasons' " : ", $k='$reasons' ";
+            } elseif (in_array($k, $array_cols)) {
+                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+            }
+        }
+    }
+
+    $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows;
+    $new = ($exists == 0);
+
+    $save = $new 
+        ? $this->db->query("INSERT INTO equipment_unsubscribe SET $data")
+        : $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id");
+
+    return $save ? 1 : 2;
+}
+
+// ===================================
+// FUNCIONES AUXILIARES
+// ===================================
+private function build_data($post, $allowed){
+    $data = "";
+    foreach($post as $k => $v){
+        if(!in_array($k, array('id')) && !is_numeric($k) && in_array($k, $allowed)){
+            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+        }
+    }
+    return $data;
+}
+
+private function save_or_update($table, $data, $id, $is_new, $force_insert = false){
+    if ($is_new || $force_insert) {
+        $this->db->query("INSERT INTO $table SET $data");
     } else {
-        error_log("Error toggle_supplier_status: " . $this->db->error);
-        echo 2;
+        $exists = $this->db->query("SELECT id FROM $table WHERE equipment_id = $id")->num_rows;
+        if ($exists > 0) {
+            $this->db->query("UPDATE $table SET $data WHERE equipment_id = $id");
+        } else {
+            $this->db->query("INSERT INTO $table SET $data");
+        }
     }
 }
+
+// === SAVE SUPPLIER ===
+	function save_supplier(){
+		extract($_POST);
+		$data = "";
+		foreach($_POST as $k => $v){
+			if(!in_array($k, array('id')) && !is_numeric($k)){
+				if(empty($data)){
+					$data .= " $k='$v' ";
+				}else{
+					$data .= ", $k='$v' ";
+				}
+			}
+		}
+		$check = $this->db->query("SELECT * FROM suppliers where rfc ='$rfc' ".(!empty($id) ? " and id != {$id} " : ''))->num_rows;
+		if($check > 0){
+			return 2;
+			exit;
+		}
+		if(empty($id)){
+			$save = $this->db->query("INSERT INTO suppliers set $data");
+		}else{
+			$save = $this->db->query("UPDATE suppliers set $data where id = $id");
+		}
+		if($save)
+			return 1;
+	}
+
+	// === DELETE SUPPLIER ===
+	function delete_supplier(){
+		extract($_POST);
+		// Opcional: verificar si hay equipos
+		$check = $this->db->query("SELECT id FROM equipments WHERE supplier_id = $id LIMIT 1");
+		if($check->num_rows > 0){
+			return 3; // No se puede eliminar: hay equipos
+		}
+		$delete = $this->db->query("DELETE FROM suppliers where id = ".$id);
+		if($delete)
+			return 1;
+	}
+
+	// === TOGGLE STATUS (si no lo tenías) ===
+	function toggle_supplier_status(){
+		extract($_POST);
+		if(empty($id)) return 2;
+		$qry = $this->db->query("SELECT estado FROM suppliers WHERE id = $id");
+		if($qry->num_rows == 0) return 2;
+		$current = $qry->fetch_array();
+		$new_status = ($current['estado'] == 1) ? 0 : 1;
+		$update = $this->db->query("UPDATE suppliers SET estado = $new_status WHERE id = $id");
+		return $update ? 1 : 2;
+	}
+
+	
 /*---------------- HERRAMIENTAS ----------------*/
 function save_tool(){
     extract($_POST);

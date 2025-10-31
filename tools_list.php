@@ -131,20 +131,37 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
 
 <script>
 $(document).ready(function() {
-    // Inicializar DataTable
-    var table = $('#list').DataTable({
-        language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
-        responsive: true,
-        autoWidth: false
+    // === DATA TABLES CON IDIOMA LOCAL (SIN CORS) ===
+    $('#list').DataTable({
+        "language": {
+            "sProcessing": "Procesando...",
+            "sLengthMenu": "Mostrar _MENU_ registros",
+            "sZeroRecords": "No se encontraron resultados",
+            "sEmptyTable": "Ningún dato disponible en esta tabla",
+            "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando 0 a 0 de 0 registros",
+            "sInfoFiltered": "(filtrado de _MAX_ registros)",
+            "sSearch": "Buscar:",
+            "sLoadingRecords": "Cargando...",
+            "oPaginate": {
+                "sFirst": "Primero",
+                "sLast": "Último",
+                "sNext": "Siguiente",
+                "sPrevious": "Anterior"
+            }
+        },
+        "responsive": true,
+        "autoWidth": false,
+        "columnDefs": [
+            { "orderable": false, "targets": [1,8] } // Imagen y Acciones
+        ]
     });
 
-    // === EXPORTAR A EXCEL (LEE DIRECTO DEL DOM) ===
+    // === EXPORTAR A EXCEL (CORREGIDO: nombre archivo) ===
     $(document).on('click', 'a[title="Exportar"]', function(e) {
         e.preventDefault();
 
         var rows = [];
-
-        // === ENCABEZADOS ===
         var headerCells = [];
         $('#list thead th').each(function() {
             var text = $(this).text().trim();
@@ -154,29 +171,21 @@ $(document).ready(function() {
         });
         rows.push(headerCells);
 
-        // === FILAS VISIBLES (directo del DOM) ===
         $('#list tbody tr:visible').each(function() {
             var rowData = [];
             $(this).find('td').each(function(index) {
-                // Excluir última columna "Acciones"
                 if (index < $(this).parent().find('td').length - 1) {
                     var cell = $(this);
                     var text = '';
 
-                    // Si hay imagen → "Sí"
                     if (cell.find('img').length > 0) {
                         text = 'Sí';
-                    }
-                    // Si hay badge → texto del badge
-                    else if (cell.find('.badge').length > 0) {
+                    } else if (cell.find('.badge').length > 0) {
                         text = cell.find('.badge').text().trim();
-                    }
-                    // Texto normal
-                    else {
+                    } else {
                         text = cell.text().trim();
                     }
 
-                    // Limpiar formato de dinero
                     if (text.includes('$') || text.includes(',')) {
                         text = text.replace(/[$,]/g, '');
                     }
@@ -184,18 +193,14 @@ $(document).ready(function() {
                     rowData.push(text);
                 }
             });
-            if (rowData.length > 0) {
-                rows.push(rowData);
-            }
+            if (rowData.length > 0) rows.push(rowData);
         });
 
-        // Si no hay filas visibles
         if (rows.length <= 1) {
             alert("No hay datos visibles para exportar.");
             return;
         }
 
-        // === GENERAR HTML ===
         var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
         html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
         
@@ -210,43 +215,44 @@ $(document).ready(function() {
         
         html += '</table></body></html>';
 
-        // === DESCARGAR ===
-        var blob = new Blob(['\ufeff' + html], { 
-            type: 'application/vnd.ms-excel' 
-        });
+        var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
         var url = URL.createObjectURL(blob);
         var link = document.createElement('a');
         link.href = url;
-        link.download = 'epp_' + new Date().toISOString().slice(0, 10) + '.xls';
+        link.download = 'herramientas_' + new Date().toISOString().slice(0, 10) + '.xls'; // ← CORREGIDO
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     });
 
-    // === ELIMINAR Y EDITAR (sin cambios) ===
-    $(document).on('click', '.delete-epp', function() {
+    // === EDITAR HERRAMIENTA ===
+    $(document).on('click', '.edit-tool', function() {
         var id = $(this).data('id');
-        if (confirm("¿Deseas eliminar este equipo EPP?")) {
+        window.location.href = 'index.php?page=new_tool&id=' + id;
+    });
+
+    // === ELIMINAR HERRAMIENTA (AJAX) ===
+    $(document).on('click', '.delete-tool', function() {
+        var id = $(this).data('id');
+        if (confirm("¿Eliminar esta herramienta?")) {
             $.ajax({
-                url: 'ajax.php?action=delete_epp',
+                url: 'ajax.php?action=delete_tool',
                 method: 'POST',
                 data: { id: id },
                 success: function(resp) {
                     if (resp == 1) {
-                        alert("Equipo EPP eliminado correctamente");
-                        location.reload();
+                        alert("Herramienta eliminada correctamente");
+                        setTimeout(function() { location.reload(); }, 800);
                     } else {
                         alert("Error al eliminar");
                     }
+                },
+                error: function() {
+                    alert("Error de conexión");
                 }
             });
         }
-    });
-
-    $(document).on('click', '.edit-epp', function() {
-        var id = $(this).data('id');
-        window.location.href = 'index.php?page=edit_epp&id=' + id;
     });
 });
 </script>
