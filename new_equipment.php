@@ -266,7 +266,8 @@ $next_id = $row['Auto_increment'];
                 <hr>
                 <div class="col-lg-12 text-right justify-content-center d-flex">
                     <button class="btn btn-primary mr-2">Guardar</button>
-                    <button class="btn btn-secondary" type="reset">Resetear</button>
+                    
+                    <a href="index.php?page=equipment_list" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
