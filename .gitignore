@@ -1,1 +1,32 @@
+# === BASE DE DATOS ===
 db_connect.php
+config.php
+*.config
+
+# === VARIABLES DE ENTORNO ===
+.env
+.env.local
+
+# === CREDENCIALES ===
+*.key
+*.pem
+*.crt
+
+# === ARCHIVOS SENSIBLES ===
+/uploads/*
+!/uploads/.gitkeep
+
+# === ARCHIVOS DE SISTEMA ===
+.DS_Store
+Thumbs.db
+*.log
+
+# === CARPETAS TEMPORALES ===
+/temp/
+/cache/
+/logs/
+
+# === IDE ===
+.idea/
+.vscode/
+*.sublime-*
