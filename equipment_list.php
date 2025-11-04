@@ -81,18 +81,17 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
             <table class="table table-striped table-valign-middle" id="list">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th style="width: 60px;">Img</th>
                         <th>Equipo</th>
                         <th>Detalles</th>
                         <th>Proveedor</th>
                         <th>Estado</th>
-                        <th>QR</th> <!-- NUEVA COLUMNA QR -->
-                        <th>Acciones</th>
+                        <th style="width: 60px;">QR</th>
+                        <th style="width: 80px;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $i = 1;
                     $qry = $conn->query("
                         SELECT e.*, s.empresa as supplier_name 
                         FROM equipments e 
@@ -103,14 +102,23 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                     ?>
                         <tr>
+
+                            <!-- IMAGEN EN LA TABLA -->
                             <td class="text-center">
-                                <strong class="text-primary"><?php echo $i++ ?></strong>
+                                <?php if (!empty($row['image'])): ?>
+                                    <img src="<?php echo $row['image']; ?>"
+                                        class="rounded shadow-sm"
+                                        style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;">
+                                <?php else: ?>
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                        style="width: 45px; height: 45px; border: 1px dashed #ccc;">
+                                        <i class="fas fa-camera text-muted"></i>
+                                    </div>
+                                <?php endif; ?>
                             </td>
+                            <!-- EQUIPO -->
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="mr-3">
-                                        <i class="fas fa-laptop text-info" style="font-size: 24px;"></i>
-                                    </div>
                                     <div>
                                         <strong><?php echo $row['name'] ?></strong>
                                         <br>
@@ -121,6 +129,8 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     </div>
                                 </div>
                             </td>
+
+                            <!-- DETALLES -->
                             <td>
                                 <div>
                                     <strong>Inv: <?php echo $row['number_inventory'] ?></strong>
@@ -130,22 +140,24 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     </small>
                                 </div>
                             </td>
+
+                            <!-- PROVEEDOR -->
                             <td>
                                 <div>
                                     <strong><?php echo ucwords($supplier_name); ?></strong>
                                 </div>
                             </td>
+
+                            <!-- ESTADO -->
                             <td>
                                 <div>
                                     <?php if ($row['revision'] == 1): ?>
                                         <span class="badge badge-success">
-                                            <i class="fas fa-check mr-1"></i>
-                                            Con Revisión
+                                            <i class="fas fa-check mr-1"></i> Con Revisión
                                         </span>
                                     <?php else: ?>
                                         <span class="badge badge-warning">
-                                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                                            Sin Revisión
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin Revisión
                                         </span>
                                     <?php endif ?>
                                     <br>
@@ -155,16 +167,19 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     </small>
                                 </div>
                             </td>
-                            <!-- NUEVA COLUMNA: QR -->
+
+                            <!-- QR -->
                             <td class="text-center">
                                 <button type="button" class="btn btn-info btn-sm view-qr" data-id="<?php echo $row['id']; ?>" title="Ver QR">
                                     <i class="fas fa-qrcode"></i>
                                 </button>
                             </td>
+
+                            <!-- ACCIONES -->
                             <td class="text-center">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown">
-                                        <i class="fas fa-cogs mr-1"></i> Opciones
+                                        <i class="fas fa-cogs"></i>
                                     </button>
                                     <div class="dropdown-menu">
                                         <h6 class="dropdown-header">Acciones</h6>
@@ -220,7 +235,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
     </div>
 </div>
 
-<!-- === MODAL QR (SIN ADVERTENCIA DE ACCESIBILIDAD) === -->
+<!-- === MODAL QR === -->
 <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -233,13 +248,10 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 </button>
             </div>
             <div class="modal-body text-center">
-                <!-- Loading -->
                 <div id="qrLoading">
                     <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
                     <p class="text-muted">Generando código QR...</p>
                 </div>
-
-                <!-- Contenido -->
                 <div id="qrContent" class="d-none">
                     <img id="qrImage" src="" alt="Código QR" class="img-fluid rounded shadow-sm" style="max-width: 240px;">
                     <div class="mt-3 p-3 bg-light rounded">
@@ -262,60 +274,65 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 </div>
 
 <script>
-$(document).ready(function() {
-    // DataTable
-    $('#list').DataTable({
-        language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
-        responsive: true,
-        autoWidth: false,
-        columnDefs: [ { orderable: false, targets: [4,5,6] } ]
+    $(document).ready(function() {
+        // DataTable
+        $('#list').DataTable({
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            },
+            responsive: true,
+            autoWidth: false,
+            columnDefs: [{
+                orderable: false,
+                targets: [0, 4, 5, 6]
+            }]
+        });
+
+        // === MOSTRAR QR ===
+        $(document).on('click', '.view-qr', function() {
+            var id = $(this).data('id');
+            var $row = $(this).closest('tr');
+            var name = $row.find('td:eq(1) strong').text().trim();
+            var inventory = $row.find('td:eq(2) strong').text().replace('Inv: ', '').trim();
+            var serie = $row.find('td:eq(2) small').text().split(' - ')[1]?.trim() || 'N/A';
+
+            $('#qrLoading').show();
+            $('#qrContent').hide();
+            $('#qrName').text(name);
+            $('#qrInventory').text(inventory);
+            $('#qrSerie').text(serie);
+            $('#printLabelBtn').attr('href', 'print_label.php?id=' + id);
+
+            var qrUrl = 'generate_qr.php?id=' + id + '&_=' + new Date().getTime();
+            $('#qrImage').attr('src', qrUrl)
+                .off('load error')
+                .on('load', function() {
+                    $('#qrLoading').hide();
+                    $('#qrContent').removeClass('d-none').show();
+                })
+                .on('error', function() {
+                    $('#qrLoading').html('<p class="text-danger">Error al cargar QR</p>');
+                });
+
+            $('#qrModal').modal('show');
+        });
+
+        // === ELIMINAR ===
+        $(document).on('click', '.delete', function() {
+            if (confirm("¿Eliminar equipo permanentemente?")) {
+                $.post('ajax.php?action=delete_equipment', {
+                    id: $(this).data('id')
+                }, function(r) {
+                    if (r == 1) {
+                        alert("Equipo eliminado");
+                        location.reload();
+                    } else {
+                        alert("Error al eliminar");
+                    }
+                });
+            }
+        });
+
+        $('[title]').tooltip();
     });
-
-    // === MOSTRAR QR ===
-    $(document).on('click', '.view-qr', function() {
-        var id = $(this).data('id');
-        var $row = $(this).closest('tr');
-        var name = $row.find('td:eq(1) strong').text().trim();
-        var inventory = $row.find('td:eq(2) strong').text().replace('Inv: ', '').trim();
-        var serie = $row.find('td:eq(2) small').text().split(' - ')[1]?.trim() || 'N/A';
-
-        $('#qrLoading').show();
-        $('#qrContent').hide();
-        $('#qrName').text(name);
-        $('#qrInventory').text(inventory);
-        $('#qrSerie').text(serie);
-        $('#printLabelBtn').attr('href', 'print_label.php?id=' + id);
-
-        var qrUrl = 'generate_qr.php?id=' + id + '&_=' + new Date().getTime();
-        console.log('Cargando QR:', qrUrl);
-
-        $('#qrImage').attr('src', qrUrl)
-            .off('load error')
-            .on('load', function() {
-                $('#qrLoading').hide();
-                $('#qrContent').removeClass('d-none').show();
-            })
-            .on('error', function() {
-                $('#qrLoading').html('<p class="text-danger">Error al cargar QR</p>');
-            });
-
-        $('#qrModal').modal('show');
-    });
-
-    // === ELIMINAR ===
-    $(document).on('click', '.delete', function() {
-        if (confirm("¿Eliminar equipo permanentemente?")) {
-            $.post('ajax.php?action=delete_equipment', { id: $(this).data('id') }, function(r) {
-                if (r == 1) {
-                    alert("Equipo eliminado");
-                    location.reload();
-                } else {
-                    alert("Error al eliminar");
-                }
-            });
-        }
-    });
-
-    $('[title]').tooltip();
-});
 </script>

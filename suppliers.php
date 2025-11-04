@@ -1,14 +1,14 @@
 <?php include 'db_connect.php' ?>
 
 <?php
-// Datos para las tarjetas de resumen
+// === RESUMEN DE TARJETAS ===
 $total_proveedores = $conn->query("SELECT COUNT(*) as total FROM suppliers")->fetch_assoc()['total'];
 $activos = $conn->query("SELECT COUNT(*) as total FROM suppliers WHERE estado = 1")->fetch_assoc()['total'];
 $inactivos = $conn->query("SELECT COUNT(*) as total FROM suppliers WHERE estado = 0")->fetch_assoc()['total'];
 $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers")->fetch_assoc()['total'];
 ?>
 
-<!-- Tarjetas de resumen de Proveedores -->
+<!-- TARJETAS DE RESUMEN -->
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm" style="background:#fff;">
@@ -21,7 +21,6 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
@@ -33,7 +32,6 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
@@ -45,7 +43,6 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             </div>
         </div>
     </div>
-
     <div class="col-md-3">
         <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
@@ -59,27 +56,26 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
     </div>
 </div>
 
-
-<!-- Tabla de proveedores -->
+<!-- TABLA DE PROVEEDORES -->
 <div class="col-lg-12">
     <div class="card">
         <div class="card-header border-0">
             <h3 class="card-title">Listado de Proveedores</h3>
             <div class="card-tools">
+                <!-- BOTÓN + (ORIGINAL) -->
                 <a href="./index.php?page=new_supplier" class="btn btn-tool btn-sm" title="Agregar Proveedor">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="export_suppliers.php" class="btn btn-tool btn-sm" title="Exportar">
+                <!-- BOTÓN DESCARGAR (ORIGINAL) -->
+                <a href="javascript:void(0)" id="export_excel" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
             </div>
         </div>
-
         <div class="card-body table-responsive p-0">
             <table class="table table-striped table-valign-middle" id="list">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Empresa</th>
                         <th>Representante</th>
                         <th>Contacto</th>
@@ -90,58 +86,75 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                 </thead>
                 <tbody>
                     <?php
-                    $i = 1;
-                    $qry = $conn->query("SELECT * FROM suppliers ORDER BY id DESC");
+                    $qry = $conn->query("SELECT * FROM suppliers ORDER BY empresa ASC");
                     while ($row = $qry->fetch_assoc()) :
                     ?>
                         <tr>
-                            <td class="text-center"><strong class="text-primary"><?php echo $i++ ?></strong></td>
+                            <!-- EMPRESA + RFC -->
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="mr-3">
-                                        <?php if (!empty($row['imagen'])): ?>
-                                            <img src="assets/uploads/<?php echo $row['imagen'] ?>" alt="logo" width="40" height="40" class="rounded-circle">
-                                        <?php else: ?>
-                                            <i class="fas fa-building text-primary" style="font-size: 24px;"></i>
-                                        <?php endif; ?>
+                                        <i class="fas fa-building text-primary" style="font-size: 24px;"></i>
                                     </div>
                                     <div>
-                                        <strong><?php echo $row['empresa'] ?></strong>
-                                        <br>
-                                        <small class="text-muted"><?php echo $row['rfc'] ?></small>
+                                        <strong><?php echo htmlspecialchars($row['empresa']) ?></strong>
+                                        <?php if (!empty($row['rfc'])): ?>
+                                            <br>
+                                            <small class="text-muted"><?php echo strtoupper(htmlspecialchars($row['rfc'])) ?></small>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </td>
+
+                            <!-- REPRESENTANTE + CORREO -->
                             <td>
-                                <strong><?php echo $row['representante'] ?></strong>
-                                <br>
-                                <small class="text-muted"><?php echo $row['correo'] ?></small>
+                                <strong><?php echo htmlspecialchars($row['representante']) ?></strong>
+                                <?php if (!empty($row['correo'])): ?>
+                                    <br>
+                                    <small class="text-muted"><?php echo htmlspecialchars($row['correo']) ?></small>
+                                <?php endif; ?>
                             </td>
+
+                            <!-- TELÉFONO + SITIO WEB (CORREGIDO) -->
                             <td>
                                 <small>
-                                    <i class="fas fa-phone mr-1"></i> <?php echo $row['telefono'] ?><br>
-                                    <?php if ($row['sitio_web']): ?>
+                                    <?php if (!empty($row['telefono'])): ?>
+                                        <i class="fas fa-phone mr-1"></i> <?php echo htmlspecialchars($row['telefono']) ?><br>
+                                    <?php endif; ?>
+                                    <?php if (!empty($row['sitio_web'])): ?>
                                         <i class="fas fa-globe mr-1"></i>
-                                        <a href="<?php echo $row['sitio_web'] ?>" target="_blank">Web</a>
+                                        <a href="https://<?php echo htmlspecialchars($row['sitio_web']) ?>"
+                                            target="_blank"
+                                            class="text-primary">
+                                            <?php echo htmlspecialchars($row['sitio_web']) ?>
+                                        </a>
                                     <?php endif; ?>
                                 </small>
                             </td>
-                            <td><?php echo $row['sector'] ?></td>
+
+                            <!-- SECTOR -->
+                            <td><?php echo htmlspecialchars($row['sector']) ?></td>
+
+                            <!-- ESTADO -->
                             <td>
-                                <span class="btn btn-sm <?php echo ($row['estado'] == 1) ? 'btn-success' : 'btn-secondary'; ?>">
-                                    <?php echo ($row['estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
+                                <span class="badge <?php echo $row['estado'] == 1 ? 'badge-success' : 'badge-secondary' ?>">
+                                    <?php echo $row['estado'] == 1 ? 'Activo' : 'Inactivo' ?>
                                 </span>
                             </td>
+
+                            <!-- ACCIONES -->
                             <td class="text-center">
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                        data-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-cogs mr-1"></i> Opciones
                                     </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="./index.php?page=edit_supplier&id=<?php echo $row['id'] ?>">
                                             <i class="fas fa-edit mr-2 text-primary"></i> Editar
                                         </a>
-                                        <a class="dropdown-item text-danger delete" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
+                                        <a class="dropdown-item text-danger delete" href="javascript:void(0)"
+                                            data-id="<?php echo $row['id'] ?>">
                                             <i class="fas fa-trash mr-2"></i> Eliminar
                                         </a>
                                     </div>
@@ -153,114 +166,153 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             </table>
         </div>
 
-        <!-- Card Footer -->
         <div class="card-footer">
-            <small class="text-muted">Total de proveedores: <strong id="total_proveedores_footer"><?php echo $total_proveedores; ?></strong></small>
+            <small class="text-muted">
+                Total de proveedores: <strong id="total_proveedores_footer"><?php echo $total_proveedores; ?></strong>
+            </small>
         </div>
     </div>
 </div>
 
 <script>
-$(document).ready(function() {
-    // Inicializar DataTable
-    var table = $('#list').DataTable({
-        language: {
-            url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-        },
-        responsive: true,
-        autoWidth: false
-    });
-
-    // === EXPORTAR A EXCEL (FORZADO Y SEGURO) ===
-    $(document).on('click', 'a[title="Exportar"]', function(e) {
-        e.preventDefault();
-
-        var rows = [];
-
-        // Encabezados
-        var headers = [];
-        $('#list thead th').each(function() {
-            var text = $(this).text().trim();
-            if (text !== 'Acciones') {
-                headers.push(text);
-            }
-        });
-        rows.push(headers);
-
-        // Filas visibles
-        $('#list tbody tr:visible').each(function() {
-            var rowData = [];
-            $(this).find('td').each(function(index) {
-                if (index < 6) { // Excluir "Acciones"
-                    var cell = $(this);
-                    var text = '';
-
-                    if (cell.find('img').length > 0) {
-                        text = 'Sí';
-                    } else if (cell.find('span').length > 0) {  // span para estado
-                        text = cell.find('span').text().trim();
-                    } else {
-                        text = cell.text().trim().replace(/\s+/g, ' ').replace(/Web/g, '').trim();
+    $(document).ready(function() {
+        // === DATATABLES CON RENDER CORRECTO PARA CONTACTO ===
+        $('#list').DataTable({
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible",
+                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_",
+                "sInfoEmpty": "Mostrando 0 a 0 de 0",
+                "sInfoFiltered": "(filtrado de _MAX_ total)",
+                "sSearch": "Buscar:",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                }
+            },
+            responsive: true,
+            autoWidth: false,
+            pageLength: 10,
+            order: [
+                [0, 'asc']
+            ],
+            columnDefs: [{
+                targets: 2, // Columna Contacto
+                render: function(data, type, row, meta) {
+                    if (type === 'display') {
+                        return data; // Ya está bien formateado en PHP
                     }
+                    // Para filtro/búsqueda: extraer texto limpio
+                    let text = '';
+                    if (row.telefono) text += row.telefono + ' ';
+                    if (row.sitio_web) text += row.sitio_web;
+                    return text.trim();
+                }
+            }]
+        });
 
-                    rowData.push(text);
+        // === EXPORTAR A CSV 100% FUNCIONAL Y DINÁMICO ===
+        $('#export_excel').click(function(e) {
+            e.preventDefault();
+            let table = $('#list').DataTable();
+            let rows = [];
+
+            // === ENCABEZADOS ===
+            let headers = [];
+            $('#list thead th').each(function() {
+                let th = $(this).text().trim();
+                if (th && th !== 'Acciones') {
+                    headers.push(th);
                 }
             });
-            if (rowData.length > 0) {
-                rows.push(rowData);
-            }
-        });
+            rows.push(headers);
 
-        if (rows.length <= 1) {
-            alert("No hay datos para exportar.");
-            return;
-        }
+            // === FILAS VISIBLES ===
+            table.rows({
+                search: 'applied',
+                page: 'current'
+            }).every(function() {
+                let data = this.data();
+                let row = [];
 
-        // === GENERAR HTML ===
-        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
-        html += '<head><meta charset="UTF-8">[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
-        html += '<x:Name>Proveedores</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>';
-        html += '<body><table border="1" style="border-collapse:collapse;">';
+                // Empresa + RFC
+                let empresa = $(data[0]).find('strong').text().trim();
+                let rfc = $(data[0]).find('small').text().trim();
+                row.push(rfc ? `${empresa} (${rfc})` : empresa);
 
-        rows.forEach(function(row, i) {
-            html += '<tr>';
-            row.forEach(function(cell) {
-                var style = i === 0 ? 'font-weight:bold;background:#f0f0f0;' : '';
-                html += '<td style="' + style + 'padding:8px;">' + cell + '</td>';
+                // Representante + Correo
+                let rep = $(data[1]).find('strong').text().trim();
+                let correo = $(data[1]).find('small').text().trim();
+                row.push(correo ? `${rep} (${correo})` : rep);
+
+                // Contacto: Teléfono + Web
+                let contacto = '';
+                let telMatch = data[2].match(/fa-phone[^>]*>([^<]+)/);
+                let webMatch = data[2].match(/href="[^"]*">([^<]+)</);
+                if (telMatch) contacto += telMatch[1].trim();
+                if (webMatch) contacto += (contacto ? ', ' : '') + webMatch[1].trim();
+                row.push(contacto || '-');
+
+                // Sector
+                row.push($(data[3]).text().trim());
+
+                // Estado
+                row.push($(data[4]).text().trim());
+
+                rows.push(row);
             });
-            html += '</tr>';
-        });
 
-        html += '</table></body></html>';
-
-        // === FORZAR DESCARGA ===
-        var blob = new Blob(['\ufeff' + html], {
-            type: 'application/vnd.ms-excel'
-        });
-        var filename = 'proveedores_' + new Date().toISOString().slice(0, 10) + '.xls';
-
-        if (navigator.msSaveBlob) {
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            var link = document.createElement('a');
+            // === GENERAR Y DESCARGAR CSV ===
+            let csv = rows.map(r => '"' + r.join('","') + '"').join('\n');
+            let blob = new Blob(['\ufeff' + csv], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            let link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.style.display = 'none';
+            link.download = 'proveedores_' + new Date().toISOString().slice(0, 10) + '.csv';
             document.body.appendChild(link);
             link.click();
-            setTimeout(function() {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-            }, 100);
-        }
-    });
+            document.body.removeChild(link);
+        });
 
-    // === ELIMINAR PROVEEDOR ===
-    $('.delete').click(function(e) {
-        e.preventDefault();
-        _conf("¿Deseas eliminar este proveedor?", "delete_supplier", [$(this).attr('data-id')]);
-    });
+        // === ELIMINAR PROVEEDOR ===
+        $(document).on('click', '.delete', function(e) {
+            e.preventDefault();
+            let id = $(this).data('id');
+            _conf("¿Estás seguro de eliminar este proveedor?", "delete_supplier", [id]);
+        });
 
-    $('[title]').tooltip();
-});
+        // Tooltip
+        $('[title]').tooltip();
+
+    }); // ← CIERRE CORRECTO
+
+    // === FUNCIÓN GLOBAL DE ELIMINAR ===
+    function delete_supplier(id) {
+        start_load();
+        $.ajax({
+            url: 'ajax.php?action=delete_supplier',
+            method: 'POST',
+            data: {
+                id: id
+            },
+            success: function(resp) {
+                end_load();
+                if (resp == 1) {
+                    alert_toast('Proveedor eliminado correctamente', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert_toast('Error al eliminar: ' + resp, 'error');
+                }
+            },
+            error: function() {
+                end_load();
+                alert_toast('Error de conexión', 'error');
+            }
+        });
+    }
 </script>

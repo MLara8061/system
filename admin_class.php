@@ -337,16 +337,57 @@ function save_equipment(){
     $data = $this->build_data($_POST, array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id'));
     $this->save_or_update('equipment_safeguard', $data, $id, $new, $revision);
 
-    // === DOCUMENTOS ===
+        // === DOCUMENTOS ===
     $data = $this->build_data($_POST, array('invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file','equipment_id'));
+    
+    // === SUBIR ARCHIVOS DE DOCUMENTOS ===
     foreach ($_FILES as $k => $file) {
-        if (!empty($file['tmp_name'])) {
+        if (!empty($file['tmp_name']) && in_array($k, ['invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'])) {
             $dest = 'uploads/' . $file['name'];
             if (move_uploaded_file($file['tmp_name'], $dest)) {
                 $data .= ", $k='$dest' ";
             }
         }
     }
+
+    // === SUBIR IMAGEN DEL EQUIPO ===
+if (!empty($_FILES['equipment_image']['tmp_name'])) {
+    $upload_dir = "uploads/equipment/";
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true);
+    }
+
+    $file = $_FILES['equipment_image'];
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $valid_ext = ['jpg', 'jpeg', 'png', 'gif'];
+
+    if (!in_array($ext, $valid_ext)) {
+        return json_encode(['status' => 'error', 'message' => 'Formato de imagen no permitido']);
+    }
+
+    if ($file['size'] > 5 * 1024 * 1024) {
+        return json_encode(['status' => 'error', 'message' => 'Imagen muy grande (máx 5MB)']);
+    }
+
+    // Eliminar imagen anterior
+    $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
+    $old_img = $old_img_qry->fetch_array()['image'] ?? '';
+    if ($old_img && file_exists($old_img)) {
+        unlink($old_img);
+    }
+
+    $filename = $id . '_' . time() . '.' . $ext;
+    $destination = $upload_dir . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $destination)) {
+        // === GUARDAR RUTA EN LA BASE DE DATOS ===
+        $this->db->query("UPDATE equipments SET image = '$destination' WHERE id = $id");
+    } else {
+        return json_encode(['status' => 'error', 'message' => 'Error al subir la imagen']);
+    }
+}
+
+    // === GUARDAR DOCUMENTOS ===
     $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id = $id")->num_rows;
     $new_doc = ($exists == 0);
     $this->save_or_update('equipment_control_documents', $data, $id, $new_doc, false);
@@ -368,6 +409,20 @@ function save_equipment_revision(){
 
     $save = $this->db->query("INSERT INTO equipment_revision SET $data");
     return $save ? 1 : 2;
+}
+
+// ===================================
+// 3. DELETE IMAGE EQUIPMENT
+// ===================================
+function delete_equipment_image() {
+    $id = $_POST['id'];
+    $qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
+    $img = $qry->fetch_array()['image'] ?? '';
+    if ($img && file_exists($img)) {
+        unlink($img);
+    }
+    $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
+    return 1;
 }
 
 // ===================================
@@ -450,57 +505,73 @@ private function save_or_update($table, $data, $id, $is_new, $force_insert = fal
     }
 }
 
-// === SAVE SUPPLIER ===
-	function save_supplier(){
-		extract($_POST);
-		$data = "";
-		foreach($_POST as $k => $v){
-			if(!in_array($k, array('id')) && !is_numeric($k)){
-				if(empty($data)){
-					$data .= " $k='$v' ";
-				}else{
-					$data .= ", $k='$v' ";
-				}
-			}
-		}
-		$check = $this->db->query("SELECT * FROM suppliers where rfc ='$rfc' ".(!empty($id) ? " and id != {$id} " : ''))->num_rows;
-		if($check > 0){
-			return 2;
-			exit;
-		}
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO suppliers set $data");
-		}else{
-			$save = $this->db->query("UPDATE suppliers set $data where id = $id");
-		}
-		if($save)
-			return 1;
-	}
+// === GUARDAR / EDITAR PROVEEDOR ===
+function save_supplier(){
+    extract($_POST);
 
-	// === DELETE SUPPLIER ===
-	function delete_supplier(){
-		extract($_POST);
-		// Opcional: verificar si hay equipos
-		$check = $this->db->query("SELECT id FROM equipments WHERE supplier_id = $id LIMIT 1");
-		if($check->num_rows > 0){
-			return 3; // No se puede eliminar: hay equipos
-		}
-		$delete = $this->db->query("DELETE FROM suppliers where id = ".$id);
-		if($delete)
-			return 1;
-	}
+    // === 1. Validar empresa obligatoria ===
+    if (empty(trim($empresa ?? ''))) {
+        return 2; // Empresa vacía
+    }
 
-	// === TOGGLE STATUS (si no lo tenías) ===
-	function toggle_supplier_status(){
-		extract($_POST);
-		if(empty($id)) return 2;
-		$qry = $this->db->query("SELECT estado FROM suppliers WHERE id = $id");
-		if($qry->num_rows == 0) return 2;
-		$current = $qry->fetch_array();
-		$new_status = ($current['estado'] == 1) ? 0 : 1;
-		$update = $this->db->query("UPDATE suppliers SET estado = $new_status WHERE id = $id");
-		return $update ? 1 : 2;
-	}
+    // === 2. Tomar sitio_web  ===
+    $sitio_web = $sitio_web ?? '';
+
+    // === 3. Validar RFC duplicado (si se proporciona) ===
+    if (!empty(trim($rfc ?? ''))) {
+        $rfc_clean = $this->db->real_escape_string(trim($rfc));
+        $check_sql = "SELECT id FROM suppliers WHERE UPPER(rfc) = UPPER('$rfc_clean')";
+        if (!empty($id)) {
+            $check_sql .= " AND id != " . (int)$id;
+        }
+        if ($this->db->query($check_sql)->num_rows > 0) {
+            return 5; // RFC duplicado
+        }
+    }
+
+    // === 4. Construir consulta segura ===
+    $data = [
+        'empresa'       => $this->db->real_escape_string(trim($empresa)),
+        'rfc'           => $this->db->real_escape_string(trim($rfc ?? '')),
+        'representante' => $this->db->real_escape_string(trim($representante ?? '')),
+        'telefono'      => $this->db->real_escape_string(trim($telefono ?? '')),
+        'correo'        => $this->db->real_escape_string(trim($correo ?? '')),
+        'sector'        => $this->db->real_escape_string(trim($sector ?? '')),
+        'estado'        => (int)($estado ?? 1),
+        'sitio_web'     => $this->db->real_escape_string(trim($sitio_web)), // ← TAL CUAL
+        'notas'         => $this->db->real_escape_string(trim($notas ?? ''))
+    ];
+
+    $set = [];
+    foreach ($data as $key => $value) {
+        $set[] = "$key = '$value'";
+    }
+    $set_clause = implode(', ', $set);
+
+    // === 5. INSERTAR O ACTUALIZAR ===
+    if (empty($id)) {
+        $save = $this->db->query("INSERT INTO suppliers SET $set_clause");
+    } else {
+        $save = $this->db->query("UPDATE suppliers SET $set_clause WHERE id = " . (int)$id);
+    }
+
+    return $save ? 1 : 0; // 1 = éxito, 0 = error
+}
+
+// === ELIMINAR PROVEEDOR  ===
+function delete_supplier(){
+    extract($_POST);
+    $id = (int)$id;
+
+    if (empty($id)) {
+        return 0;
+    }
+
+    // === ELIMINAR DIRECTAMENTE  ===
+    $delete = $this->db->query("DELETE FROM suppliers WHERE id = $id");
+
+    return $delete ? 1 : 0;
+}
 
 	
 /*---------------- HERRAMIENTAS ----------------*/

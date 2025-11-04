@@ -89,6 +89,12 @@ if($action == "save_equipment"){
 	if($save){
 		echo $save;
 	}
+
+	if ($action == "delete_equipment_image") {
+		$delete = $crud->delete_equipment_image();
+		if ($delete) echo $delete;
+	}
+
 }
 if($action == "delete_equipment"){
 	$delete = $crud->delete_equipment();

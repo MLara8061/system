@@ -12,22 +12,22 @@ $next_id = $row['Auto_increment'];
         <div class="card-body">
             <form action="" id="manage_customer" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
-                
+
                 <div class="row">
                     <div class="col-md-12 border-right">
 
                         <!-- Nro Inventario -->
                         <div class="form-group col-md-3 float-left">
                             <label class="control-label">Nro Inventario</label>
-                            <input type="text" name="number_inventory" class="form-control form-control-sm" 
-                                   readonly value="<?php echo $next_id; ?>">
+                            <input type="text" name="number_inventory" class="form-control form-control-sm"
+                                readonly value="<?php echo $next_id; ?>">
                         </div>
 
                         <!-- Fecha Ingreso -->
                         <div class="form-group col-md-3 float-left">
                             <label class="control-label">Fecha Ingreso</label>
-                            <input type="date" name="date_created" class="form-control form-control-sm" required 
-                                   value="<?php echo date('Y-m-d'); ?>">
+                            <input type="date" name="date_created" class="form-control form-control-sm" required
+                                value="<?php echo date('Y-m-d'); ?>">
                         </div>
 
                         <!-- Serie -->
@@ -42,14 +42,15 @@ $next_id = $row['Auto_increment'];
                             <input type="text" name="name" class="form-control form-control-sm" required>
                         </div>
 
+                        <div class="row">
                         <!-- Marca -->
-                        <div class="form-group col-md-3 float-left">
+                        <div class="form-group col-md-3">
                             <label class="control-label">Marca</label>
                             <input type="text" name="brand" class="form-control form-control-sm">
                         </div>
 
                         <!-- Modelo -->
-                        <div class="form-group col-md-3 float-left">
+                        <div class="form-group col-md-3">
                             <label class="control-label">Modelo</label>
                             <input type="text" name="model" class="form-control form-control-sm" required>
                         </div>
@@ -59,7 +60,21 @@ $next_id = $row['Auto_increment'];
                             <label class="control-label">Características</label>
                             <textarea name="characteristics" class="form-control" style="height: 80px;"></textarea>
                         </div>
-
+                    </div>
+                        <!-- Imagen del equipo -->
+                        <div class="form-group col-md-6">
+                            <label class="control-label">Imagen del Equipo</label>
+                            <input type="file" name="equipment_image" class="form-control form-control-sm" accept="image/*">
+                            <?php if (!empty($equipment['image'])): ?>
+                                <div class="mt-2">
+                                    <img src="<?php echo $equipment['image']; ?>" class="img-thumbnail" style="max-height: 120px;">
+                                    <br>
+                                    <a href="javascript:void(0)" class="text-danger delete-image" data-id="<?php echo $equipment['id']; ?>">
+                                        <i class="fas fa-trash"></i> Eliminar imagen
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                         <!-- Valor del Equipo -->
                         <div class="form-group col-md-3 float-left">
                             <label class="control-label">Valor del Equipo</label>
@@ -99,7 +114,7 @@ $next_id = $row['Auto_increment'];
                                 <option value="">Seleccionar Proveedor</option>
                                 <?php
                                 $suppliers = $conn->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC");
-                                while($row = $suppliers->fetch_assoc()):
+                                while ($row = $suppliers->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>">
                                         <?php echo ucwords($row['empresa']); ?>
@@ -115,7 +130,7 @@ $next_id = $row['Auto_increment'];
                                 <option value="">Seleccionar</option>
                                 <?php
                                 $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
-                                while($row = $departments->fetch_assoc()):
+                                while ($row = $departments->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>"><?php echo ucwords($row['name']); ?></option>
                                 <?php endwhile; ?>
@@ -129,7 +144,7 @@ $next_id = $row['Auto_increment'];
                                 <option value="">Seleccionar</option>
                                 <?php
                                 $locations = $conn->query("SELECT * FROM equipment_locations ORDER BY name ASC");
-                                while($row = $locations->fetch_assoc()):
+                                while ($row = $locations->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>"><?php echo ucwords($row['name']); ?></option>
                                 <?php endwhile; ?>
@@ -143,7 +158,7 @@ $next_id = $row['Auto_increment'];
                                 <option value="">Seleccionar</option>
                                 <?php
                                 $positions = $conn->query("SELECT * FROM equipment_responsible_positions ORDER BY name ASC");
-                                while($row = $positions->fetch_assoc()):
+                                while ($row = $positions->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>"><?php echo ucwords($row['name']); ?></option>
                                 <?php endwhile; ?>
@@ -231,42 +246,30 @@ $next_id = $row['Auto_increment'];
                 <hr>
                 <div class="row">
                     <div class="col-md-12 border-left">
-                        <b class="text-muted">Responsable Resguardo Equipo</b>
+                        <b class="text-muted">Resguardo Equipo</b>
                         <br><br>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Razón Social</label>
-                            <input type="text" name="business_name" class="form-control form-control-sm" required>
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Teléfono</label>
-                            <input type="text" name="phone" class="form-control form-control-sm" required>
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Email</label>
-                            <input type="text" name="email" class="form-control form-control-sm" required>
-                        </div>
-                        <div class="form-group col-md-4 float-left">
                             <label class="control-label">Tiempo de Garantía</label>
-                            <input type="number" name="warranty_time" class="form-control form-control-sm" required>
+                            <input
+                                type="number"
+                                name="warranty_time"
+                                class="form-control form-control-sm"
+                                min="1"
+                                placeholder="años"
+                                required
+                                oninput="validity.valid||(value='');"
+                                title="Ingresa un número mayor a 0 (ej: 1, 2, 3 años)">
                         </div>
                         <div class="form-group col-md-4 float-left">
                             <label class="control-label">Fecha de Adquisición</label>
                             <input type="date" name="date_adquisition" class="form-control form-control-sm" required value="<?php echo date('Y-m-d'); ?>">
                         </div>
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">RFC</label>
-                            <select name="rfc_id" class="custom-select custom-select-sm select2">
-                                <option value="1">RFC 1</option>
-                                <option value="2">RFC 2</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
-
                 <hr>
                 <div class="col-lg-12 text-right justify-content-center d-flex">
                     <button class="btn btn-primary mr-2">Guardar</button>
-                    
+
                     <a href="index.php?page=equipment_list" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
@@ -275,12 +278,12 @@ $next_id = $row['Auto_increment'];
 </div>
 
 <script>
-    $('.solonumeros').on('input', function () { 
-        this.value = this.value.replace(/[^0-9]/g,'');
+    $('.solonumeros').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
     });
-    
-    $('.alfanumerico').on('input', function(e){
-        this.value = this.value.replace(/[^a-zA-Z0-9]/g,'');
+
+    $('.alfanumerico').on('input', function(e) {
+        this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
     });
 
     $('#manage_customer').submit(function(e) {
