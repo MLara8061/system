@@ -177,16 +177,16 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                         <!-- Ubicación -->
                         <div class="form-group col-md-4 float-left">
                             <label class="control-label">Ubicación</label>
-                            <select name="location_id" class="custom-select custom-select-sm select2" required>
+                            <select name="location_id" id="location_id" class="form-control select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $locations = $conn->query("SELECT * FROM equipment_locations ORDER BY name ASC");
+                                $locations = $conn->query("SELECT id, name FROM equipment_locations ORDER BY name ASC");
                                 while ($row = $locations->fetch_assoc()):
                                 ?>
-                                    <option value="<?php echo $row['id']; ?>"
-                                        <?php echo (isset($delivery['location_id']) && $delivery['location_id'] == $row['id']) ? 'selected' : ''; ?> <?php echo ucwords($row['name']); ?>
-                                        </option>
-                                    <?php endwhile; ?>
+                                    <option value="<?php echo $row['id']; ?>">
+                                        <?php echo ucwords($row['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
                             </select>
                         </div>
 

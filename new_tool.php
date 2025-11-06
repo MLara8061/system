@@ -2,9 +2,10 @@
 
 <div class="col-lg-12">
     <div class="card shadow-sm">
-        
         <div class="card-body">
             <form id="manage-tool" enctype="multipart/form-data">
+                <input type="hidden" name="keep_image" value="1">
+              
 
                 <div class="row">
                     <!-- COLUMNA 1 -->
@@ -17,11 +18,6 @@
                         <div class="form-group">
                             <label for="marca">Marca</label>
                             <input type="text" id="marca" name="marca" class="form-control">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" name="cantidad" class="form-control" min="1" required>
                         </div>
 
                         <div class="form-group">
@@ -78,7 +74,9 @@
 
                 <hr>
                 <div class="text-right">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Guardar Herramienta</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Guardar Herramienta
+                    </button>
                     <a href="index.php?page=tools_list" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
@@ -87,43 +85,41 @@
 </div>
 
 <script>
-    // Vista previa de imagen
-    function displayImg(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#preview-img').attr('src', e.target.result).show();
-            }
-            reader.readAsDataURL(input.files[0]);
+function displayImg(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('#preview-img').attr('src', e.target.result).show();
         }
+        reader.readAsDataURL(input.files[0]);
     }
+}
 
-    // Enviar formulario con AJAX
-    $('#manage-tool').submit(function(e){
-        e.preventDefault();
-        start_load();
-        $.ajax({
-            url: 'ajax.php?action=save_tool',
-            data: new FormData($(this)[0]),
-            cache: false,
-            contentType: false,
-            processData: false,
-            method: 'POST',
-            success: function(resp){
-                end_load();
-                if(resp == 1){
-                    alert_toast('Herramienta guardada correctamente','success');
-                    setTimeout(function(){
-                        location.replace('index.php?page=tools_list');
-                    }, 1000);
-                } else {
-                    alert_toast('Error al guardar herramienta','error');
-                }
-            },
-            error: function(){
-                end_load();
-                alert_toast('Error de conexión','error');
+$('#manage-tool').submit(function(e){
+    e.preventDefault();
+    start_load();
+    $.ajax({
+        url: 'ajax.php?action=save_tool',
+        data: new FormData($(this)[0]),
+        cache: false,
+        contentType: false,
+        processData: false,
+        method: 'POST',
+        success: function(resp){
+            end_load();
+            console.log("RESPUESTA:", resp);
+            alert("RESPUESTA DEL SERVIDOR: " + resp);
+            if(resp == 1){
+                alert_toast('Guardado','success');
+                setTimeout(() => location.replace('index.php?page=tools_list'), 1000);
+            } else {
+                alert_toast('Error: ' + resp,'error');
             }
-        });
+        },
+        error: function(){
+            end_load();
+            alert_toast('Error de conexión','error');
+        }
     });
+});
 </script>

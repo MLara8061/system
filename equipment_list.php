@@ -63,7 +63,6 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 <div class="col-lg-12">
     <div class="card">
         <div class="card-header border-0">
-            <h3 class="card-title">Inventario de Equipos</h3>
             <div class="card-tools">
                 <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm" title="Agregar Equipo">
                     <i class="fas fa-plus"></i>

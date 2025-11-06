@@ -574,74 +574,59 @@ function delete_supplier(){
 }
 
 	
-/*---------------- HERRAMIENTAS ----------------*/
 function save_tool(){
     extract($_POST);
     $data = "";
 
-    // Recorremos los campos POST y preparamos la cadena SQL
-    foreach($_POST as $k => $v){
-        if(!in_array($k, array('id','keep_image')) && !is_array($v)){
-            if(!empty($data)) $data .= ", ";
-            $data .= " {$k} = '".addslashes($v)."' ";
+    $allowed = ['nombre', 'marca', 'costo', 'supplier_id', 'estatus', 'fecha_adquisicion', 'fecha_baja', 'caracteristicas'];
+    foreach ($allowed as $k) {
+        if (isset($_POST[$k])) {
+            if (!empty($data)) $data .= ", ";
+            $data .= " `$k` = '".addslashes($_POST[$k])."' ";
         }
     }
 
-    // Manejar eliminación de imagen existente
-    if(isset($_POST['keep_image']) && $_POST['keep_image'] == '0'){
-        // Obtener imagen actual
-        $qry = $this->db->query("SELECT imagen FROM tools WHERE id = $id");
-        if($qry && $qry->num_rows > 0){
-            $img = $qry->fetch_assoc()['imagen'];
-            if(!empty($img) && file_exists('uploads/'.$img)){
-                unlink('uploads/'.$img);
-            }
-        }
-        $data .= ", imagen = '' ";
-    }
-
-    // Subida de nueva imagen
-    if(isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != ''){
+    // === IMAGEN ===
+    if (isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != '') {
         $fname = time().'_'.$_FILES['imagen']['name'];
         move_uploaded_file($_FILES['imagen']['tmp_name'], 'uploads/'.$fname);
-        $data .= ", imagen = '$fname' ";
+        if (!empty($data)) $data .= ", ";
+        $data .= " `imagen` = '$fname' ";
     }
 
-    // Insertar o actualizar
-    if(empty($id)){
+    // === GUARDAR ===
+    if (empty($id)) {
         $sql = "INSERT INTO tools SET $data";
-    }else{
+    } else {
         $sql = "UPDATE tools SET $data WHERE id = $id";
     }
 
-    if($this->db->query($sql)){
+    $result = $this->db->query($sql);
+    if ($result) {
         return 1;
     } else {
-        error_log("Error SQL en save_tool: " . $this->db->error);
-        echo "Error SQL: " . $this->db->error;
+        error_log("Error SQL: " . $this->db->error);
+        echo "ERROR SQL: " . $this->db->error;
         return 0;
     }
 }
 
 function delete_tool(){
     extract($_POST);
-    
-    // Obtener la imagen para eliminarla
+    $id = (int)$id;
+
+    // Obtener imagen
     $qry = $this->db->query("SELECT imagen FROM tools WHERE id = $id");
-    $img = $qry && $qry->num_rows > 0 ? $qry->fetch_assoc()['imagen'] : '';
-
-    // Eliminar imagen del servidor si existe
-    if(!empty($img) && file_exists('uploads/'.$img)){
-        unlink('uploads/'.$img);
+    if ($qry && $qry->num_rows > 0) {
+        $img = $qry->fetch_assoc()['imagen'];
+        if (!empty($img) && file_exists('uploads/' . $img)) {
+            unlink('uploads/' . $img);
+        }
     }
 
-    // Eliminar registro de la BD
+    // Eliminar registro
     $delete = $this->db->query("DELETE FROM tools WHERE id = $id");
-    if($delete){
-        return 1;
-    } else {
-        return 0;
-    }
+    return $delete ? 1 : 0;
 }
 
 //Guardar datos de Epp
@@ -729,7 +714,58 @@ function delete_epp(){
     }
 }
 
+//Mantenimientos
+function get_mantenimientos(){
+    $events = [];
+    $sql = "SELECT m.id, m.fecha_programada, m.descripcion, m.estatus, e.name 
+            FROM mantenimientos m 
+            JOIN equipments e ON m.equipo_id = e.id 
+            ORDER BY m.fecha_programada";
+    
+    $qry = $this->db->query($sql);
+    
+    if (!$qry) {
+        error_log("Error SQL en get_mantenimientos: " . $this->db->error);
+        return json_encode([]);
+    }
+    
+    while($row = $qry->fetch_assoc()){
+        $title = $row['name'];
+        if (!empty($row['descripcion'])) {
+            $title .= ' - ' . substr($row['descripcion'], 0, 25);
+        }
+        $color = $row['estatus'] == 'completado' ? '#28a745' : '#dc3545';
+        
+        $events[] = [
+            'id' => $row['id'],
+            'title' => $title,
+            'start' => $row['fecha_programada'],
+            'color' => $color
+        ];
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode($events);
+    exit;
+}
 
+function save_maintenance(){
+    extract($_POST);
+    $data = "equipo_id='$equipo_id', fecha_programada='$fecha_programada'";
+    if(!empty($descripcion)) $data .= ", descripcion='".addslashes($descripcion)."'";
+    
+    if(empty($id)){
+        $sql = "INSERT INTO mantenimientos SET $data";
+    } else {
+        $sql = "UPDATE mantenimientos SET $data WHERE id=$id";
+    }
+    return $this->db->query($sql) ? 1 : 0;
+}
+
+function complete_maintenance(){
+    $id = $_POST['id'];
+    return $this->db->query("UPDATE mantenimientos SET estatus='completado' WHERE id=$id") ? 1 : 0;
+}
 	
 
 

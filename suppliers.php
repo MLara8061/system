@@ -60,7 +60,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
 <div class="col-lg-12">
     <div class="card">
         <div class="card-header border-0">
-            <h3 class="card-title">Listado de Proveedores</h3>
+           
             <div class="card-tools">
                 <!-- BOTÓN + (ORIGINAL) -->
                 <a href="./index.php?page=new_supplier" class="btn btn-tool btn-sm" title="Agregar Proveedor">

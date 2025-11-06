@@ -43,24 +43,24 @@ $next_id = $row['Auto_increment'];
                         </div>
 
                         <div class="row">
-                        <!-- Marca -->
-                        <div class="form-group col-md-3">
-                            <label class="control-label">Marca</label>
-                            <input type="text" name="brand" class="form-control form-control-sm">
-                        </div>
+                            <!-- Marca -->
+                            <div class="form-group col-md-3">
+                                <label class="control-label">Marca</label>
+                                <input type="text" name="brand" class="form-control form-control-sm">
+                            </div>
 
-                        <!-- Modelo -->
-                        <div class="form-group col-md-3">
-                            <label class="control-label">Modelo</label>
-                            <input type="text" name="model" class="form-control form-control-sm" required>
-                        </div>
+                            <!-- Modelo -->
+                            <div class="form-group col-md-3">
+                                <label class="control-label">Modelo</label>
+                                <input type="text" name="model" class="form-control form-control-sm" required>
+                            </div>
 
-                        <!-- Características -->
-                        <div class="form-group col-md-6 float-left">
-                            <label class="control-label">Características</label>
-                            <textarea name="characteristics" class="form-control" style="height: 80px;"></textarea>
+                            <!-- Características -->
+                            <div class="form-group col-md-6 float-left">
+                                <label class="control-label">Características</label>
+                                <textarea name="characteristics" class="form-control" style="height: 80px;"></textarea>
+                            </div>
                         </div>
-                    </div>
                         <!-- Imagen del equipo -->
                         <div class="form-group col-md-6">
                             <label class="control-label">Imagen del Equipo</label>
@@ -140,17 +140,18 @@ $next_id = $row['Auto_increment'];
                         <!-- Ubicación -->
                         <div class="form-group col-md-4 float-left">
                             <label class="control-label">Ubicación</label>
-                            <select name="location_id" class="custom-select custom-select-sm select2" required>
+                            <select name="location_id" id="location_id" class="form-control select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $locations = $conn->query("SELECT * FROM equipment_locations ORDER BY name ASC");
+                                $locations = $conn->query("SELECT id, name FROM equipment_locations ORDER BY name ASC");
                                 while ($row = $locations->fetch_assoc()):
                                 ?>
-                                    <option value="<?php echo $row['id']; ?>"><?php echo ucwords($row['name']); ?></option>
+                                    <option value="<?php echo $row['id']; ?>">
+                                        <?php echo ucwords($row['name']); ?>
+                                    </option>
                                 <?php endwhile; ?>
                             </select>
                         </div>
-
                         <!-- Cargo Responsable -->
                         <div class="form-group col-md-4 float-left">
                             <label class="control-label">Cargo Responsable</label>

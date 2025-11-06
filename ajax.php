@@ -132,10 +132,10 @@ if($action == "delete_supplier"){
 
 // GUARDAR HERRAMIENTA
 if($action == "save_tool"){
+    error_log("AJAX save_tool llamado");
     $save = $crud->save_tool();
-    if($save){
-        echo $save;
-    }
+    error_log("Respuesta save_tool: $save");
+    echo $save;
 }
 
 // ELIMINAR HERRAMIENTA
@@ -153,6 +153,21 @@ if($_GET['action'] == 'delete_epp'){
     echo $crud->delete_epp();
 }
 
+//  MANTENIMIENTOS
+if($action == "get_mantenimientos"){
+    echo $crud->get_mantenimientos();
+    exit;
+}
+
+if($action == "save_maintenance"){
+    echo $crud->save_maintenance();
+    exit;
+}
+
+if($action == "complete_maintenance"){
+    echo $crud->complete_maintenance();
+    exit;
+}
 
 ob_end_flush();
 ?>

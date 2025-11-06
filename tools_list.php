@@ -1,15 +1,16 @@
 <?php include 'db_connect.php' ?>
 
 <?php
-$total_herramientas = $conn->query("SELECT SUM(cantidad) as total FROM tools")->fetch_assoc()['total'];
-$activos = $conn->query("SELECT SUM(cantidad) as total FROM tools WHERE estatus = 'Activa'")->fetch_assoc()['total'];
-$inactivos = $conn->query("SELECT SUM(cantidad) as total FROM tools WHERE estatus = 'Inactiva'")->fetch_assoc()['total'];
-$total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")->fetch_assoc()['total'];
+// === NUEVOS CÁLCULOS SIN CANTIDAD ===
+$total_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools")->fetch_assoc()['total'];
+$activos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Activa'")->fetch_assoc()['total'];
+$inactivos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Inactiva'")->fetch_assoc()['total'];
+$total_valor = $conn->query("SELECT SUM(costo) as total FROM tools")->fetch_assoc()['total'];
 ?>
 
 <!-- Tarjetas de resumen -->
 <div class="row mb-4">
-     <div class="col-md-3">
+    <div class="col-md-3">
         <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-boxes fa-2x text-primary mr-3"></i>
@@ -56,14 +57,12 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- Tabla de herramientas -->
 <div class="col-lg-12">
     <div class="card">
         <div class="card-header border-0">
-            <h3 class="card-title">Listado de Herramientas</h3>
             <div class="card-tools">
                 <a href="./index.php?page=new_tool" class="btn btn-tool btn-sm" title="Agregar Herramienta">
                     <i class="fas fa-plus"></i>
@@ -78,7 +77,6 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
             <table class="table table-striped table-valign-middle" id="list">
                 <thead>
                     <tr>
-                        <th>Cantidad</th>
                         <th>Imagen</th>
                         <th>Nombre</th>
                         <th>Marca</th>
@@ -95,7 +93,6 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
                     while ($row = $qry->fetch_assoc()) :
                     ?>
                         <tr>
-                            <td class="text-center"><?php echo $row['cantidad']; ?></td>
                             <td class="text-center">
                                 <?php if (!empty($row['imagen'])) : ?>
                                     <img src="uploads/<?php echo $row['imagen']; ?>" alt="Imagen" style="max-width:50px; border-radius:4px;">
@@ -114,8 +111,19 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
                             </td>
                             <td><?php echo $row['fecha_adquisicion']; ?></td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-primary edit-tool" data-id="<?php echo $row['id']; ?>">Editar</button>
-                                <button class="btn btn-sm btn-danger delete-tool" data-id="<?php echo $row['id']; ?>">Eliminar</button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fas fa-cogs mr-1"></i> Opciones
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item edit-tool" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">
+                                            <i class="fas fa-edit mr-2 text-primary"></i> Editar
+                                        </a>
+                                        <a class="dropdown-item delete-tool text-danger" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">
+                                            <i class="fas fa-trash mr-2"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -131,7 +139,6 @@ $total_valor = $conn->query("SELECT SUM(costo * cantidad) as total FROM tools")-
 
 <script>
 $(document).ready(function() {
-    // === DATA TABLES CON IDIOMA LOCAL (SIN CORS) ===
     $('#list').DataTable({
         "language": {
             "sProcessing": "Procesando...",
@@ -153,21 +160,18 @@ $(document).ready(function() {
         "responsive": true,
         "autoWidth": false,
         "columnDefs": [
-            { "orderable": false, "targets": [1,8] } // Imagen y Acciones
+            { "orderable": false, "targets": [0, 7] } // Imagen y Acciones
         ]
     });
 
-    // === EXPORTAR A EXCEL (CORREGIDO: nombre archivo) ===
+    // === EXPORTAR (SIN CANTIDAD) ===
     $(document).on('click', 'a[title="Exportar"]', function(e) {
         e.preventDefault();
-
         var rows = [];
         var headerCells = [];
         $('#list thead th').each(function() {
             var text = $(this).text().trim();
-            if (text !== 'Acciones') {
-                headerCells.push(text);
-            }
+            if (text !== 'Acciones') headerCells.push(text);
         });
         rows.push(headerCells);
 
@@ -176,34 +180,19 @@ $(document).ready(function() {
             $(this).find('td').each(function(index) {
                 if (index < $(this).parent().find('td').length - 1) {
                     var cell = $(this);
-                    var text = '';
-
-                    if (cell.find('img').length > 0) {
-                        text = 'Sí';
-                    } else if (cell.find('.badge').length > 0) {
-                        text = cell.find('.badge').text().trim();
-                    } else {
-                        text = cell.text().trim();
-                    }
-
-                    if (text.includes('$') || text.includes(',')) {
-                        text = text.replace(/[$,]/g, '');
-                    }
-
+                    var text = cell.find('img').length > 0 ? 'Sí' :
+                              cell.find('.badge').length > 0 ? cell.find('.badge').text().trim() :
+                              cell.text().trim();
+                    text = text.replace(/[$,]/g, '');
                     rowData.push(text);
                 }
             });
             if (rowData.length > 0) rows.push(rowData);
         });
 
-        if (rows.length <= 1) {
-            alert("No hay datos visibles para exportar.");
-            return;
-        }
+        if (rows.length <= 1) { alert("No hay datos"); return; }
 
-        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
-        html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
-        
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><table border="1" style="border-collapse: collapse; width: 100%;">';
         rows.forEach(function(row, i) {
             html += '<tr>';
             row.forEach(function(cell) {
@@ -212,44 +201,35 @@ $(document).ready(function() {
             });
             html += '</tr>';
         });
-        
         html += '</table></body></html>';
 
         var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
-        var url = URL.createObjectURL(blob);
+        var url = URL.createObjectObject(blob);
         var link = document.createElement('a');
         link.href = url;
-        link.download = 'herramientas_' + new Date().toISOString().slice(0, 10) + '.xls'; // ← CORREGIDO
+        link.download = 'herramientas_' + new Date().toISOString().slice(0, 10) + '.xls';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     });
 
-    // === EDITAR HERRAMIENTA ===
+    // === EDITAR / ELIMINAR ===
     $(document).on('click', '.edit-tool', function() {
-        var id = $(this).data('id');
-        window.location.href = 'index.php?page=new_tool&id=' + id;
+        window.location.href = 'index.php?page=edit_tool&id=' + $(this).data('id');
     });
 
-    // === ELIMINAR HERRAMIENTA (AJAX) ===
     $(document).on('click', '.delete-tool', function() {
-        var id = $(this).data('id');
         if (confirm("¿Eliminar esta herramienta?")) {
             $.ajax({
                 url: 'ajax.php?action=delete_tool',
                 method: 'POST',
-                data: { id: id },
+                data: { id: $(this).data('id') },
                 success: function(resp) {
                     if (resp == 1) {
-                        alert("Herramienta eliminada correctamente");
-                        setTimeout(function() { location.reload(); }, 800);
-                    } else {
-                        alert("Error al eliminar");
-                    }
-                },
-                error: function() {
-                    alert("Error de conexión");
+                        alert("Eliminada");
+                        setTimeout(() => location.reload(), 800);
+                    } else alert("Error");
                 }
             });
         }

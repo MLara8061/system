@@ -95,6 +95,14 @@
           </ul>
         </li>
 
+        <!-- Calendario de Mantenimientos -->
+        <li class="nav-item">
+          <a href="index.php?page=calendar" class="nav-link">
+            <i class="fas fa-calendar-alt nav-icon"></i>
+            <p>Mantenimientos</p>
+          </a>
+        </li>
+
         <!-- Configuración -->
         <li class="nav-item">
           <a href="#" class="nav-link">

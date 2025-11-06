@@ -11,7 +11,7 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
 <!-- Tarjetas de resumen -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-hard-hat fa-2x text-primary mr-3"></i>
                 <div>
@@ -22,7 +22,7 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
                 <div>
@@ -33,7 +33,7 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-times-circle fa-2x text-secondary mr-3"></i>
                 <div>
@@ -44,7 +44,7 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm" style="background:#fff;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-dollar-sign fa-2x text-info mr-3"></i>
                 <div>
@@ -60,7 +60,6 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
 <div class="col-lg-12">
     <div class="card">
         <div class="card-header border-0">
-            <h3 class="card-title">Listado de Equipos EPP</h3>
             <div class="card-tools">
                 <a href="./index.php?page=new_epp" class="btn btn-tool btn-sm" title="Agregar EPP">
                     <i class="fas fa-plus"></i>
@@ -118,9 +117,22 @@ $total_valor_epp = $conn->query("SELECT SUM(costo) as total FROM equipment_epp")
                                 </span>
                             </td>
                             <td><?php echo $row['observaciones']; ?></td>
+
+                            <!-- BOTÓN DE ACCIONES (ESTILO PROVEEDORES) -->
                             <td class="text-center">
-                                <button class="btn btn-sm btn-primary edit-epp" data-id="<?php echo $row['id']; ?>">Editar</button>
-                                <button class="btn btn-sm btn-danger delete-epp" data-id="<?php echo $row['id']; ?>">Eliminar</button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-cogs mr-1"></i> Opciones
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item edit-epp" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">
+                                            <i class="fas fa-edit mr-2 text-primary"></i> Editar
+                                        </a>
+                                        <a class="dropdown-item delete-epp text-danger" href="javascript:void(0)" data-id="<?php echo $row['id']; ?>">
+                                            <i class="fas fa-trash mr-2"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -140,16 +152,17 @@ $(document).ready(function() {
     var table = $('#list').DataTable({
         language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
         responsive: true,
-        autoWidth: false
+        autoWidth: false,
+        columnDefs: [
+            { orderable: false, targets: [0, 12] } // Imagen y Acciones
+        ]
     });
 
-    // === EXPORTAR A EXCEL (LEE DIRECTO DEL DOM) ===
+    // === EXPORTAR A EXCEL ===
     $(document).on('click', 'a[title="Exportar"]', function(e) {
         e.preventDefault();
 
         var rows = [];
-
-        // === ENCABEZADOS ===
         var headerCells = [];
         $('#list thead th').each(function() {
             var text = $(this).text().trim();
@@ -159,29 +172,21 @@ $(document).ready(function() {
         });
         rows.push(headerCells);
 
-        // === FILAS VISIBLES (directo del DOM) ===
         $('#list tbody tr:visible').each(function() {
             var rowData = [];
             $(this).find('td').each(function(index) {
-                // Excluir última columna "Acciones"
                 if (index < $(this).parent().find('td').length - 1) {
                     var cell = $(this);
                     var text = '';
 
-                    // Si hay imagen → "Sí"
                     if (cell.find('img').length > 0) {
                         text = 'Sí';
-                    }
-                    // Si hay badge → texto del badge
-                    else if (cell.find('.badge').length > 0) {
+                    } else if (cell.find('.badge').length > 0) {
                         text = cell.find('.badge').text().trim();
-                    }
-                    // Texto normal
-                    else {
+                    } else {
                         text = cell.text().trim();
                     }
 
-                    // Limpiar formato de dinero
                     if (text.includes('$') || text.includes(',')) {
                         text = text.replace(/[$,]/g, '');
                     }
@@ -194,13 +199,11 @@ $(document).ready(function() {
             }
         });
 
-        // Si no hay filas visibles
         if (rows.length <= 1) {
             alert("No hay datos visibles para exportar.");
             return;
         }
 
-        // === GENERAR HTML ===
         var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
         html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
         
@@ -215,10 +218,7 @@ $(document).ready(function() {
         
         html += '</table></body></html>';
 
-        // === DESCARGAR ===
-        var blob = new Blob(['\ufeff' + html], { 
-            type: 'application/vnd.ms-excel' 
-        });
+        var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
         var url = URL.createObjectURL(blob);
         var link = document.createElement('a');
         link.href = url;
@@ -229,7 +229,13 @@ $(document).ready(function() {
         URL.revokeObjectURL(url);
     });
 
-    // === ELIMINAR Y EDITAR (sin cambios) ===
+    // === EDITAR EPP ===
+    $(document).on('click', '.edit-epp', function() {
+        var id = $(this).data('id');
+        window.location.href = 'index.php?page=edit_epp&id=' + id;
+    });
+
+    // === ELIMINAR EPP (AJAX) ===
     $(document).on('click', '.delete-epp', function() {
         var id = $(this).data('id');
         if (confirm("¿Deseas eliminar este equipo EPP?")) {
@@ -240,18 +246,16 @@ $(document).ready(function() {
                 success: function(resp) {
                     if (resp == 1) {
                         alert("Equipo EPP eliminado correctamente");
-                        location.reload();
+                        setTimeout(function() { location.reload(); }, 800);
                     } else {
                         alert("Error al eliminar");
                     }
+                },
+                error: function() {
+                    alert("Error de conexión");
                 }
             });
         }
-    });
-
-    $(document).on('click', '.edit-epp', function() {
-        var id = $(this).data('id');
-        window.location.href = 'index.php?page=edit_epp&id=' + id;
     });
 });
 </script>
