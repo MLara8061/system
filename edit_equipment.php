@@ -185,11 +185,12 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                                 while ($row = $locations->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>"
-                                        <?php echo ($eq['location_id'] == $row['id']) ? 'selected' : ''; ?>>
+                                        <?php echo (isset($delivery['location_id']) && $delivery['location_id'] == $row['id']) ? 'selected' : ''; ?>>
                                         <?php echo ucwords($row['name']); ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
+
                         </div>
 
                         <!-- Cargo Responsable -->
@@ -350,7 +351,7 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
     });
 
     // === INICIALIZAR SELECT2 Y CARGAR VALORES ===
-    $(function(){
+    $(function() {
         $('.select2').select2({
             width: '100%',
             placeholder: "Seleccionar",

@@ -8,236 +8,354 @@ if (isset($_SESSION['login_id']))
 ?>
 <head>
     <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Acceder | Sistema de Administración de Activos</title>
-
-    <?php include('./header.php'); ?>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceder | Sistema de Activos</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
     <style>
-        /* === Reset y fondo general === */
+        :root {
+            --primary: #4361ee;
+            --primary-light: #eef1ff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --radius: 16px;
+            --shadow: 0 10px 25px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body, html {
             height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
             overflow: hidden;
         }
 
-        /* === Contenedor principal dividido === */
-        #login-container {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-
-        /* === Lado izquierdo con título === */
-        #login-left {
-            flex: 1;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: #fff;
+        /* === MOBILE FIRST === */
+        .login-wrapper {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #5d7bff 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
             position: relative;
+            overflow: hidden;
         }
 
-        #login-left h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        #login-left h2 {
-            font-size: 1.2rem;
-            font-weight: 400;
-            opacity: 0.8;
-        }
-
-        /* Decoración suave */
-        #login-left::after {
-            content: "";
+        .login-header::before {
+            content: '';
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50% 50% 0 0;
+            height: 60px;
+            background: var(--bg);
+            border-radius: 50% 50% 0 0 / 30px 30px 0 0;
+            transform: scaleX(1.5);
         }
 
-        /* === Lado derecho con formulario === */
-        #login-right {
-            flex: 1;
-            background: #f9f9f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
+        .login-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
             position: relative;
+            z-index: 1;
+        }
+
+        .login-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
 
         .login-card {
-            background: #fff;
-            border-radius: 12px;
+            flex: 1;
+            padding: 2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-inner {
+            background: var(--card);
+            border-radius: var(--radius);
             padding: 2rem;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeInUp 0.6s forwards 0.3s;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
 
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-card h4 {
+        .card-title {
             text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
             margin-bottom: 1.5rem;
-            color: #333;
+            color: var(--text);
         }
 
-        .btn-custom {
-            background: #4facfe;
-            color: #fff;
-            border: none;
-            width: 100%;
-            padding: 0.6rem;
-            border-radius: 6px;
-            transition: all 0.3s ease;
+        .form-group {
+            margin-bottom: 1.2rem;
         }
 
-        .btn-custom:hover {
-            background: #00f2fe;
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text);
         }
 
-        /* Inputs minimalistas */
         .form-control {
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            padding: 0.5rem;
-            transition: border-color 0.3s;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
         }
 
         .form-control:focus {
-            border-color: #4facfe;
-            box-shadow: 0 0 5px rgba(79,172,254,0.3);
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
-        /* Responsive */
-        @media(max-width: 768px) {
-            #login-container {
+        .btn-primary {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: #3b56d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper select {
+            appearance: none;
+            padding-right: 2.5rem;
+        }
+
+        .select-wrapper::after {
+            content: '\f107';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        /* === TABLET & DESKTOP === */
+        @media (min-width: 768px) {
+            .login-wrapper {
+                flex-direction: row;
+            }
+
+            .login-header {
+                flex: 1;
+                padding: 3rem;
+                display: flex;
                 flex-direction: column;
+                justify-content: center;
+                border-radius: 0 var(--radius) var(--radius) 0;
             }
-            #login-left, #login-right {
-                flex: none;
-                width: 100%;
-                height: 50vh;
+
+            .login-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .login-header p {
+                font-size: 1.1rem;
+            }
+
+            .login-card {
+                flex: 1;
+                padding: 3rem;
+            }
+
+            .card-inner {
+                padding: 2.5rem;
             }
         }
 
-        /* === Pantalla de carga === */
+        /* Loader */
         #loader {
             position: fixed;
-            top:0;
-            left:0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
+            inset: 0;
+            background: white;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             z-index: 9999;
+            transition: opacity 0.3s ease;
         }
 
-        #loader .spinner {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4facfe;
-            border-radius: 50%;
+        .spinner {
             width: 50px;
             height: 50px;
-            animation: spin 1s linear infinite;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg);}
-            100% { transform: rotate(360deg);}
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-
 <body>
     <!-- Loader -->
     <div id="loader">
         <div class="spinner"></div>
     </div>
 
-    <!-- Contenedor principal -->
-    <div id="login-container">
-        <div id="login-left">
+    <div class="login-wrapper">
+        <!-- Header / Hero -->
+        <header class="login-header">
             <h1>Sistema de Administración de Activos</h1>
-            <h2>V2</h2>
-        </div>
+            <p>Gestión eficiente y moderna de tu inventario</p>
+        </header>
 
-        <div id="login-right">
-            <div class="login-card">
-                <h4>Acceso al Sistema</h4>
+        <!-- Login Form -->
+        <section class="login-card">
+            <div class="card-inner">
+                <h2 class="card-title">Iniciar Sesión</h2>
                 <form id="login-form">
                     <div class="form-group">
                         <label for="username">Usuario</label>
-                        <input type="text" id="username" name="username" class="form-control">
+                        <input type="text" id="username" name="username" class="form-control" required autofocus>
                     </div>
+                    
                     <div class="form-group">
                         <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" class="form-control">
+                        <input type="password" id="password" name="password" class="form-control" required>
                     </div>
+                    
                     <div class="form-group">
                         <label for="type">Tipo de Usuario</label>
-                        <select class="custom-select" name="type">
-                            <option value="3">Cliente</option>
-                            <option value="2">Staff</option>
-                            <option value="1">Admin</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="type" name="type" class="form-control" required>
+                                <option value="2">Staff</option>
+                                <option value="1">Administrador</option>
+                            </select>
+                        </div>
                     </div>
-                    <button class="btn btn-custom mt-3">Acceder</button>
+
+                    <button type="submit" class="btn-primary">
+                        <span class="btn-text">Acceder</span>
+                    </button>
                 </form>
             </div>
-        </div>
+        </section>
     </div>
 
     <script>
-        // Loader fade out
-        window.addEventListener("load", function(){
-            document.getElementById("loader").style.display = "none";
+        // Ocultar loader
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 300);
         });
 
-        // Login AJAX
-        $('#login-form').submit(function(e) {
-            e.preventDefault()
-            $('#login-form button').attr('disabled', true).html('Ingresando...');
-            if ($(this).find('.alert-danger').length > 0)
-                $(this).find('.alert-danger').remove();
-            $.ajax({
-                url: 'ajax.php?action=login',
+        // Login con AJAX
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = this.querySelector('.btn-primary');
+            const btnText = btn.querySelector('.btn-text');
+            const originalText = btnText.textContent;
+            
+            btn.disabled = true;
+            btnText.textContent = 'Validando...';
+
+            // Limpiar errores previos
+            const existingAlert = this.querySelector('.alert');
+            if (existingAlert) existingAlert.remove();
+
+            fetch('ajax.php?action=login', {
                 method: 'POST',
-                data: $(this).serialize(),
-                error: err => {
-                    console.log(err)
-                    $('#login-form button').removeAttr('disabled').html('Acceder');
-                },
-                success: function(resp) {
-                    if (resp == 1) {
-                        location.href = 'index.php?page=home';
-                    } else {
-                        $('#login-form').prepend('<div class="alert alert-danger">Usuario o Contraseña Incorrecta</div>')
-                        $('#login-form button').removeAttr('disabled').html('Acceder');
-                    }
+                body: new FormData(this)
+            })
+            .then(response => response.text())
+            .then(resp => {
+                if (resp.trim() === '1') {
+                    location.href = 'index.php?page=home';
+                } else {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-danger';
+                    alert.textContent = 'Usuario o contraseña incorrectos';
+                    this.insertBefore(alert, this.firstChild);
                 }
             })
-        })
+            .catch(() => {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                alert.textContent = 'Error de conexión';
+                this.insertBefore(alert, this.firstChild);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btnText.textContent = originalText;
+            });
+        });
     </script>
 </body>
 </html>

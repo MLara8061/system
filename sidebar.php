@@ -144,6 +144,28 @@
               </ul>
             </li>
 
+            <!-- Ubicaciones -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-equipment_location">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Ubicaciones <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="index.php?page=manage_equipment_location" class="nav-link nav-manage_equipment_location tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Agregar Ubicación</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="index.php?page=equipment_locations" class="nav-link nav-equipment_locations tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Lista de Ubicaciones</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
             <!-- Mantenimientos -->
             <li class="nav-item">
               <a href="#" class="nav-link nav-maintenance">
@@ -157,48 +179,6 @@
                 <li class="nav-item"><a href="index.php?page=user_list" class="nav-link nav-user_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                     <p>Lista de Usuarios</p>
                   </a></li>
-              </ul>
-            </li>
-            <!-- Usuarios -->
-            <li class="nav-item">
-              <a href="#" class="nav-link nav-staff">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Usuarios <i class="right fas fa-angle-left"></i></p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="./index.php?page=new_staff" class="nav-link nav-new_staff tree-item">
-                    <i class="fas fa-angle-right nav-icon"></i>
-                    <p>Agregar</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="./index.php?page=staff_list" class="nav-link nav-staff_list tree-item">
-                    <i class="fas fa-angle-right nav-icon"></i>
-                    <p>Todos los usuarios</p>
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <!-- Tickets -->
-            <li class="nav-item">
-              <a href="#" class="nav-link nav-ticket">
-                <i class="fas fa-angle-right nav-icon"></i>
-                <p>Tickets <i class="right fas fa-angle-left"></i></p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="./index.php?page=new_ticket" class="nav-link nav-new_ticket tree-item">
-                    <i class="fas fa-angle-right nav-icon"></i>
-                    <p>Nuevo Ticket</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="./index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item">
-                    <i class="fas fa-angle-right nav-icon"></i>
-                    <p>Todos los tickets</p>
-                  </a>
-                </li>
               </ul>
             </li>
     </nav>

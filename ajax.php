@@ -169,5 +169,15 @@ if($action == "complete_maintenance"){
     exit;
 }
 
+// GUARDAR / EDITAR UBICACIÓN
+if($action == "save_equipment_location"){
+    echo $crud->save_equipment_location();
+  }
+
+  if($action == "delete_equipment_location"){
+    echo $crud->delete_equipment_location();
+  }
+
+
 ob_end_flush();
 ?>

@@ -284,12 +284,23 @@ function save_equipment(){
     $revision = false;
     $new = false;
 
-    // === CAMPOS DE equipments (INCLUYE supplier_id) ===
-    $array_cols_equipment = array(
-        'number_inventory','serie','amount','date_created','name','brand','model',
-        'acquisition_type','mandate_period','revision','characteristics','discipline',
-        'supplier_id'
-    );
+        // === CAMPOS DE equipments (INCLUYE supplier_id) ===
+        $array_cols_equipment = array(
+            'number_inventory',
+            'serie',
+            'amount',
+            'date_created',
+            'name',
+            'brand',
+            'model',
+            'acquisition_type',
+            'mandate_period',
+            'revision',
+            'characteristics',
+            'discipline',
+            'supplier_id',
+            'image'
+        );
 
     // === CONSTRUIR $data PARA equipments ===
     foreach($_POST as $k => $v){
@@ -329,9 +340,18 @@ function save_equipment(){
     $data = $this->build_data($_POST, array('state','comments','equipment_id'));
     $this->save_or_update('equipment_reception', $data, $id, $new, $revision);
 
-    // === DELIVERY ===
-    $data = $this->build_data($_POST, array('department_id','location_id','responsible_name','responsible_position','date_training','date','equipment_id'));
-    $this->save_or_update('equipment_delivery', $data, $id, $new, $revision);
+        // === DELIVERY ===
+        $data = $this->build_data($_POST, array(
+            'department_id',
+            'location_id',
+            'responsible_name',
+            'responsible_position',
+            'date_training',
+            'date',
+            'equipment_id'
+        ));
+        $this->save_or_update('equipment_delivery', $data, $id, $new, $revision);
+
 
     // === SAFEGUARD ===
     $data = $this->build_data($_POST, array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id'));
@@ -775,6 +795,33 @@ function complete_maintenance(){
     return $this->db->query("UPDATE mantenimientos SET estatus='completado' WHERE id=$id") ? 1 : 0;
 }
 	
+//Añadir nuevas ubicaciones para los equipos
+public function save_equipment_location(){
+  extract($_POST);
+  $data = "";
+  foreach($_POST as $k => $v){
+    if($k != 'id'){
+      if(!empty($data)) $data .= ", ";
+      $data .= " $k = '$v' ";
+    }
+  }
+
+  if(empty($id)){
+    $save = $this->db->query("INSERT INTO equipment_locations set $data");
+  }else{
+    $save = $this->db->query("UPDATE equipment_locations set $data where id = $id");
+  }
+
+  if($save)
+    return (empty($id)) ? 1 : 2;
+}
+
+public function delete_equipment_location(){
+  extract($_POST);
+  $delete = $this->db->query("DELETE FROM equipment_locations where id = ".$id);
+  if($delete)
+    return 1;
+}
 
 
 
