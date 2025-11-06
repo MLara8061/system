@@ -33,10 +33,11 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
 ?>
 
 <div class="col-lg-12">
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
             <form action="" id="manage_equipment" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?php echo $equipment_id; ?>">
+                <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
 
                 <div class="row">
                     <div class="col-md-12 border-right">
@@ -96,10 +97,10 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                             <label class="control-label">Imagen del Equipo</label>
                             <input type="file" name="equipment_image" class="form-control form-control-sm" accept="image/*">
                             <?php if (!empty($eq['image'])): ?>
-                                <div class="mt-2">
+                                <div class="mt-2" id="current-image">
                                     <img src="<?php echo $eq['image']; ?>" class="img-thumbnail" style="max-height: 120px;">
                                     <br>
-                                    <a href="javascript:void(0)" class="text-danger delete-image" data-id="<?php echo $eq['id']; ?>">
+                                    <a href="javascript:void(0)" class="text-danger delete-image">
                                         <i class="fas fa-trash"></i> Eliminar imagen
                                     </a>
                                 </div>
@@ -150,7 +151,7 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                                 while ($row = $suppliers->fetch_assoc()):
                                 ?>
                                     <option value="<?php echo $row['id']; ?>"
-                                        <?php echo (isset($safeguard['supplier_id']) && $safeguard['supplier_id'] == $row['id']) ? 'selected' : ''; ?>>
+                                        <?php echo ($eq['supplier_id'] == $row['id']) ? 'selected' : ''; ?>>
                                         <?php echo ucwords($row['empresa']); ?>
                                     </option>
                                 <?php endwhile; ?>
@@ -174,7 +175,7 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                             </select>
                         </div>
 
-                        <!-- Ubicación -->
+                        <!-- UBICACIÓN -->
                         <div class="form-group col-md-4 float-left">
                             <label class="control-label">Ubicación</label>
                             <select name="location_id" id="location_id" class="form-control select2" required>
@@ -183,7 +184,8 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                                 $locations = $conn->query("SELECT id, name FROM equipment_locations ORDER BY name ASC");
                                 while ($row = $locations->fetch_assoc()):
                                 ?>
-                                    <option value="<?php echo $row['id']; ?>">
+                                    <option value="<?php echo $row['id']; ?>"
+                                        <?php echo ($eq['location_id'] == $row['id']) ? 'selected' : ''; ?>>
                                         <?php echo ucwords($row['name']); ?>
                                     </option>
                                 <?php endwhile; ?>
@@ -237,48 +239,48 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
                     <div class="col-md-12">
                         <b class="text-muted">Documentos Control</b>
                         <div class="form-group col-md-12 float-left">
-                            <label class="control-label">Factura Nro</label>
+                            Factura Nro
                             <input type="text" class="form-control form-control-sm alfanumerico" name="invoice" required
                                 value="<?php echo $documents['invoice'] ?? ''; ?>">
                             <small id="msg"></small>
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Comodato</label>
+                            Comodato
                             <?php if (!empty($documents['bailment_file'])): ?>
                                 <a href="<?php echo $documents['bailment_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
                             <input type="file" class="file form-control form-control-sm" name="bailment_file">
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Contrato M</label>
+                            Contrato M
                             <?php if (!empty($documents['contract_file'])): ?>
                                 <a href="<?php echo $documents['contract_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
                             <input type="file" class="file form-control form-control-sm" name="contract_file">
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Manual Usuario</label>
+                            Manual Usuario
                             <?php if (!empty($documents['usermanual_file'])): ?>
                                 <a href="<?php echo $documents['usermanual_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
                             <input type="file" class="file form-control form-control-sm" name="usermanual_file">
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Guía Rápida</label>
+                            Guía Rápida
                             <?php if (!empty($documents['fast_guide_file'])): ?>
                                 <a href="<?php echo $documents['fast_guide_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
                             <input type="file" class="file form-control form-control-sm" name="fast_guide_file">
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Ficha Técnica</label>
+                            Ficha Técnica
                             <?php if (!empty($documents['datasheet_file'])): ?>
                                 <a href="<?php echo $documents['datasheet_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
                             <input type="file" class="file form-control form-control-sm" name="datasheet_file">
                         </div>
                         <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Man. Servicios</label>
+                            Man. Servicios
                             <?php if (!empty($documents['servicemanual_file'])): ?>
                                 <a href="<?php echo $documents['servicemanual_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
                             <?php endif ?>
@@ -338,52 +340,73 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
 </div>
 
 <script>
+    // === VALIDAR CAMPOS ===
     $('.solonumeros').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 
-    $('.alfanumerico').on('input', function(e) {
+    $('.alfanumerico').on('input', function() {
         this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
     });
 
+    // === INICIALIZAR SELECT2 Y CARGAR VALORES ===
+    $(function(){
+        $('.select2').select2({
+            width: '100%',
+            placeholder: "Seleccionar",
+            allowClear: true
+        });
+
+        // Forzar ubicación
+        var loc_id = '<?php echo $eq["location_id"] ?? ""; ?>';
+        if (loc_id) {
+            $('#location_id').val(loc_id).trigger('change.select2');
+        }
+
+        // Forzar proveedor
+        var sup_id = '<?php echo $eq["supplier_id"] ?? ""; ?>';
+        if (sup_id) {
+            $('select[name="supplier_id"]').val(sup_id).trigger('change.select2');
+        }
+    });
+
+    // === ELIMINAR IMAGEN ===
+    $(document).on('click', '.delete-image', function(e) {
+        e.preventDefault();
+        if (confirm('¿Eliminar imagen del equipo?')) {
+            $('#current-image').remove();
+            $('#delete_image_flag').val('1');
+        }
+    });
+
+    // === GUARDAR FORMULARIO ===
     $('#manage_equipment').submit(function(e) {
         e.preventDefault();
         start_load();
 
-        var postData = new FormData(this);
+        var formData = new FormData(this);
 
         $.ajax({
             url: 'ajax.php?action=save_equipment',
-            data: postData,
+            data: formData,
             cache: false,
             contentType: false,
             processData: false,
             method: 'POST',
             success: function(resp) {
-                if (resp == 1) {
-                    alert_toast('Equipo actualizado correctamente', 'success');
+                end_load();
+                resp = resp.trim();
+                if (resp === '1') {
+                    alert_toast('Equipo actualizado', 'success');
                     setTimeout(() => location.href = 'index.php?page=equipment_list', 1000);
                 } else {
-                    alert_toast('Error al guardar', 'danger');
-                    end_load();
+                    alert_toast('Error: ' + resp, 'danger');
                 }
+            },
+            error: function() {
+                end_load();
+                alert_toast('Error de conexión', 'danger');
             }
         });
-    });
-
-    // === ELIMINAR IMAGEN ===
-    $(document).on('click', '.delete-image', function() {
-        if (confirm('¿Eliminar imagen del equipo?')) {
-            var id = $(this).data('id');
-            $.post('ajax.php?action=delete_equipment_image', {
-                id: id
-            }, function(r) {
-                if (r == 1) {
-                    location.reload();
-                } else {
-                    alert('Error al eliminar imagen');
-                }
-            });
-        }
     });
 </script>

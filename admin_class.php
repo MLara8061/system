@@ -288,7 +288,7 @@ function save_equipment(){
     $array_cols_equipment = array(
         'number_inventory','serie','amount','date_created','name','brand','model',
         'acquisition_type','mandate_period','revision','characteristics','discipline',
-        'supplier_id'  // AÑADIDO
+        'supplier_id'
     );
 
     // === CONSTRUIR $data PARA equipments ===
@@ -337,12 +337,12 @@ function save_equipment(){
     $data = $this->build_data($_POST, array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id'));
     $this->save_or_update('equipment_safeguard', $data, $id, $new, $revision);
 
-        // === DOCUMENTOS ===
+    // === DOCUMENTOS ===
     $data = $this->build_data($_POST, array('invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file','equipment_id'));
     
     // === SUBIR ARCHIVOS DE DOCUMENTOS ===
     foreach ($_FILES as $k => $file) {
-        if (!empty($file['tmp_name']) && in_array($k, ['invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'])) {
+        if (!empty($file['tmp_name']) && in_array($k, ['bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'])) {
             $dest = 'uploads/' . $file['name'];
             if (move_uploaded_file($file['tmp_name'], $dest)) {
                 $data .= ", $k='$dest' ";
@@ -350,42 +350,50 @@ function save_equipment(){
         }
     }
 
-    // === SUBIR IMAGEN DEL EQUIPO ===
-if (!empty($_FILES['equipment_image']['tmp_name'])) {
+    // === GESTIÓN DE IMAGEN DEL EQUIPO ===
     $upload_dir = "uploads/equipment/";
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
 
-    $file = $_FILES['equipment_image'];
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $valid_ext = ['jpg', 'jpeg', 'png', 'gif'];
+    // 1. SI HAY NUEVA IMAGEN → SUBIR
+    if (!empty($_FILES['equipment_image']['tmp_name'])) {
+        $file = $_FILES['equipment_image'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $valid_ext = ['jpg', 'jpeg', 'png', 'gif'];
 
-    if (!in_array($ext, $valid_ext)) {
-        return json_encode(['status' => 'error', 'message' => 'Formato de imagen no permitido']);
+        if (!in_array($ext, $valid_ext)) {
+            return 3; // Formato inválido
+        }
+
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return 4; // Muy grande
+        }
+
+        // Eliminar imagen anterior
+        $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
+        $old_img = $old_img_qry->fetch_array()['image'] ?? '';
+        if ($old_img && file_exists($old_img)) {
+            unlink($old_img);
+        }
+
+        $filename = $id . '_' . time() . '.' . $ext;
+        $destination = $upload_dir . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            $this->db->query("UPDATE equipments SET image = '$destination' WHERE id = $id");
+        }
     }
 
-    if ($file['size'] > 5 * 1024 * 1024) {
-        return json_encode(['status' => 'error', 'message' => 'Imagen muy grande (máx 5MB)']);
+    // 2. SI SE MARCA delete_image = 1 → ELIMINAR IMAGEN
+    if (!empty($_POST['delete_image']) && $_POST['delete_image'] == '1') {
+        $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
+        $old_img = $old_img_qry->fetch_array()['image'] ?? '';
+        if ($old_img && file_exists($old_img)) {
+            unlink($old_img);
+        }
+        $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
     }
-
-    // Eliminar imagen anterior
-    $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
-    $old_img = $old_img_qry->fetch_array()['image'] ?? '';
-    if ($old_img && file_exists($old_img)) {
-        unlink($old_img);
-    }
-
-    $filename = $id . '_' . time() . '.' . $ext;
-    $destination = $upload_dir . $filename;
-
-    if (move_uploaded_file($file['tmp_name'], $destination)) {
-        // === GUARDAR RUTA EN LA BASE DE DATOS ===
-        $this->db->query("UPDATE equipments SET image = '$destination' WHERE id = $id");
-    } else {
-        return json_encode(['status' => 'error', 'message' => 'Error al subir la imagen']);
-    }
-}
 
     // === GUARDAR DOCUMENTOS ===
     $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id = $id")->num_rows;
