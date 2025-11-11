@@ -1,39 +1,37 @@
 <?php
-// generate_qr.php - VERSIÓN 100% FUNCIONAL
+require_once __DIR__ . '/lib/phpqrcode/qrlib.php';
 
-// === LIMPIAR TODO BUFFER (ESPACIOS, ERRORES, WARNINGS) ===
-ob_clean();
-
-// === VALIDAR ID ===
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    http_response_code(400);
-    exit;
-}
-$id = (int)$_GET['id'];
-
-// === RUTA DE LA LIBRERÍA ===
-$qrLib = __DIR__ . '/lib/phpqrcode/qrlib.php';
-if (!file_exists($qrLib)) {
-    http_response_code(500);
-    exit;
+// Aseguramos que recibimos el parámetro "id"
+if (!isset($_GET['id'])) {
+    die("Falta el parámetro 'id'");
 }
 
-// === CARGAR LIBRERÍA ===
-require_once $qrLib;
+$id = intval($_GET['id']);
+if ($id <= 0) {
+    die("ID inválido");
+}
 
-// === CONSTRUIR URL ===
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? "https://" : "http://";
-$host = $_SERVER['HTTP_HOST'];
-$path = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-$path = $path === '/' ? '' : $path;
-$url = $protocol . $host . $path . '/view_equipment.php?id=' . $id;
+// Ruta donde se guardarán los códigos QR
+$dir = __DIR__ . '/uploads/qrcodes/';
+if (!file_exists($dir)) {
+    mkdir($dir, 0777, true);
+}
 
-// === ENVIAR HEADER ===
+// URL que se codificará dentro del QR
+// Cambia esta URL según tu entorno (localhost, dominio, etc.)
+$base_url = "http://localhost/system/view_equipment.php?id=";
+$url = $base_url . $id;
+
+// Nombre del archivo QR
+$filename = $dir . 'equipment_' . $id . '.png';
+
+// Generamos el QR si no existe o si se quiere regenerar
+if (!file_exists($filename)) {
+    QRcode::png($url, $filename, QR_ECLEVEL_L, 5);
+}
+
+// Mostramos la imagen directamente en el navegador
 header('Content-Type: image/png');
-header('Cache-Control: no-cache, no-store, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
-
-// === GENERAR QR ===
-QRcode::png($url, null, QR_ECLEVEL_L, 6, 2);
+readfile($filename);
 exit;
+?>

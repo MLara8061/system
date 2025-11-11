@@ -177,6 +177,16 @@ if($action == "save_equipment_location"){
   if($action == "delete_equipment_location"){
     echo $crud->delete_equipment_location();
   }
+  
+// GUARDAR / EDITAR PUESTO DE TRABAJO
+if($action == "save_job_position"){
+    echo $crud->save_job_position();
+}
+
+// ELIMINAR PUESTO DE TRABAJO
+if($action == "delete_job_position"){
+    echo $crud->delete_job_position();
+}
 
 
 ob_end_flush();

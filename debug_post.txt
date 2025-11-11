@@ -1,0 +1,35 @@
+Array
+(
+    [id] => 48
+    [delete_image] => 0
+    [name] => Desintegrador
+    [brand] => Stollen
+    [model] => RTX1000
+    [serie] => R4S2927208
+    [date_created] => 2025-11-11
+    [amount] => 30000.00
+    [discipline] => MEDICINA
+    [voltage] => 110.00
+    [amperage] => 80.00
+    [frequency_hz] => 110.00
+    [supplier_id] => 3
+    [acquisition_type] => 5
+    [mandate_period_id] => 3
+    [department_id] => 2
+    [location_id] => 1
+    [responsible_position] => 1
+    [responsible_name] => JENNIFER
+    [date_training] => 2025-11-19
+    [characteristics] => probando v3
+    [invoice] => 2025
+    [delete_bailment_file] => 0
+    [delete_contract_file] => 0
+    [delete_usermanual_file] => 0
+    [delete_fast_guide_file] => 0
+    [delete_datasheet_file] => 0
+    [delete_servicemanual_file] => 0
+    [state] => 1
+    [comments] => PROBANDO V4
+    [warranty_time] => 3
+    [date_adquisition] => 2025-11-11
+)

@@ -10,7 +10,6 @@ $siguiente_inventario = $ultimo ? $ultimo + 1 : 1001;
     <div class="card shadow-sm">
         <div class="card-body">
             <form id="manage-epp" enctype="multipart/form-data">
-
                 <div class="row">
                     <!-- COLUMNA 1 -->
                     <div class="col-md-6">
@@ -43,16 +42,38 @@ $siguiente_inventario = $ultimo ? $ultimo + 1 : 1001;
                             <label for="fecha_adquisicion">Fecha de Adquisición</label>
                             <input type="date" id="fecha_adquisicion" name="fecha_adquisicion" class="form-control" required>
                         </div>
+
+                        <div class="form-group">
+                            <label for="accessory_type">Tipo de Accesorio</label>
+                            <select id="accessory_type" name="accessory_type" class="custom-select custom-select-sm select2" required>
+                                <option value="">Seleccionar tipo de accesorio</option>
+                                <?php
+                                $types = $conn->query("SELECT id, name FROM equipment_accessory_types ORDER BY name ASC");
+                                while ($row = $types->fetch_assoc()):
+                                ?>
+                                    <option value="<?php echo $row['id']; ?>">
+                                        <?php echo ucwords($row['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- COLUMNA 2 -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="propiedad">Propiedad</label>
-                            <select id="propiedad" name="propiedad" class="form-control" required>
-                                <option value="Adquisición">Adquisición</option>
-                                <option value="Renta">Renta</option>
-                                <option value="Comodato">Comodato</option>
+                            <select name="acquisition_type" class="custom-select custom-select-sm select2" required>
+                                <option value="">Seleccionar</option>
+                                <?php
+                                $types = $conn->query("SELECT id, name FROM equipment_acquisition_type ORDER BY name ASC");
+                                while ($row = $types->fetch_assoc()):
+                                ?>
+                                    <option value="<?php echo $row['id']; ?>"
+                                        <?php echo (isset($eq['acquisition_type']) && $eq['acquisition_type'] == $row['id']) ? 'selected' : ''; ?>>
+                                        <?php echo ucwords($row['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
                             </select>
                         </div>
 
@@ -106,7 +127,6 @@ $siguiente_inventario = $ultimo ? $ultimo + 1 : 1001;
 </div>
 
 <script>
-    // Vista previa de imagen
     function displayImg(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -117,8 +137,7 @@ $siguiente_inventario = $ultimo ? $ultimo + 1 : 1001;
         }
     }
 
-    // Enviar formulario con AJAX
-    $('#manage-epp').submit(function(e){
+    $('#manage-epp').submit(function(e) {
         e.preventDefault();
         start_load();
         $.ajax({
@@ -128,20 +147,20 @@ $siguiente_inventario = $ultimo ? $ultimo + 1 : 1001;
             contentType: false,
             processData: false,
             method: 'POST',
-            success: function(resp){
+            success: function(resp) {
                 end_load();
-                if(resp == 1){
-                    alert_toast('Equipo EPP guardado correctamente','success');
-                    setTimeout(function(){
+                if (resp == 1) {
+                    alert_toast('Equipo EPP guardado correctamente', 'success');
+                    setTimeout(function() {
                         location.replace('index.php?page=epp_list');
                     }, 1000);
                 } else {
-                    alert_toast('Error al guardar equipo','error');
+                    alert_toast('Error al guardar equipo', 'error');
                 }
             },
-            error: function(){
+            error: function() {
                 end_load();
-                alert_toast('Error de conexión','error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

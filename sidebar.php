@@ -79,18 +79,18 @@
           </ul>
         </li>
 
-        <!-- Equipos EPP -->
+        <!-- Accesorios -->
         <li class="nav-item">
           <a href="#" class="nav-link nav-epp">
             <i class="nav-icon fas fa-hard-hat"></i>
-            <p>Equipos EPP <i class="right fas fa-angle-left"></i></p>
+            <p>Accesorios <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item"><a href="index.php?page=new_epp" class="nav-link nav-new_epp tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                <p>Ingresar Equipo EPP</p>
+                <p>Ingresar </p>
               </a></li>
             <li class="nav-item"><a href="index.php?page=epp_list" class="nav-link nav-epp_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                <p>Todos los Equipos EPP</p>
+                <p>Todos los Accesorios</p>
               </a></li>
           </ul>
         </li>
@@ -152,15 +152,30 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
-                  <a href="index.php?page=manage_equipment_location" class="nav-link nav-manage_equipment_location tree-item">
-                    <i class="fas fa-angle-right nav-icon"></i>
-                    <p>Agregar Ubicación</p>
-                  </a>
+                 
                 </li>
                 <li class="nav-item">
                   <a href="index.php?page=equipment_locations" class="nav-link nav-equipment_locations tree-item">
                     <i class="fas fa-angle-right nav-icon"></i>
                     <p>Lista de Ubicaciones</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Puestos de Trabajo -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-job_position">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Puestos <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                </li>
+                <li class="nav-item">
+                  <a href="index.php?page=job_positions" class="nav-link nav-equipment_locations tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Lista de Puestos</p>
                   </a>
                 </li>
               </ul>

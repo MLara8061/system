@@ -278,195 +278,257 @@ Class Action {
 			return 1;
 		}
 	}
+// ===================================
+// 1. SAVE EQUIPMENT (PRINCIPAL)
+// ===================================
 function save_equipment(){
     extract($_POST);
     $data = "";
-    $revision = false;
-    $new = false;
+    $new = empty($id);
 
-        // === CAMPOS DE equipments (INCLUYE supplier_id) ===
-        $array_cols_equipment = array(
-            'number_inventory',
-            'serie',
-            'amount',
-            'date_created',
-            'name',
-            'brand',
-            'model',
-            'acquisition_type',
-            'mandate_period',
-            'revision',
-            'characteristics',
-            'discipline',
-            'supplier_id',
-            'image'
-        );
+    // === CAMPOS DE equipments ===
+    $array_cols_equipment = [
+        'serie', 'amount', 'date_created', 'name', 'brand', 'model',
+        'acquisition_type', 'mandate_period_id', 'characteristics',
+        'discipline', 'supplier_id'
+    ];
 
-    // === CONSTRUIR $data PARA equipments ===
     foreach($_POST as $k => $v){
-        if(!in_array($k, array('id')) && !is_numeric($k)){
+        if(!in_array($k, ['id', 'number_inventory']) && !is_numeric($k)){
             if(in_array($k, $array_cols_equipment)){
                 $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
             }
         }
     }
 
-    // === VERIFICAR SI ES NUEVO ===
-    $sql_inventory = "SELECT id FROM equipments WHERE number_inventory = '$number_inventory'";
-    $existe_inventario = $this->db->query($sql_inventory);
-    $new = ($existe_inventario->num_rows == 0);
-
-    // === REVISIÓN: solo si es edición y es el primer registro con ese inventario ===
-    if (!$new && empty($id)) {
-        $data .= ", revision=1";
-        $revision = true;
-    } elseif ($new) {
-        $data .= ", revision=0";
-    }
-
-    // === GUARDAR EN equipments ===
-    if (empty($id)) {
+    // === GUARDAR equipments ===
+    if ($new) {
         $save = $this->db->query("INSERT INTO equipments SET $data");
     } else {
         $save = $this->db->query("UPDATE equipments SET $data WHERE id = $id");
     }
-
     if (!$save) return 2;
 
-    $id = empty($id) ? $this->db->insert_id : $id;
+    $id = $new ? $this->db->insert_id : $id;
     $_POST['equipment_id'] = $id;
 
-    // === RECEPTION ===
-    $data = $this->build_data($_POST, array('state','comments','equipment_id'));
-    $this->save_or_update('equipment_reception', $data, $id, $new, $revision);
+        // === RECEPTION ===
+        $data = $this->build_data($_POST, ['state', 'comments']);
+        $this->save_or_update('equipment_reception', $data, $id, $new);
 
         // === DELIVERY ===
-        $data = $this->build_data($_POST, array(
+        $data = $this->build_data($_POST, [
             'department_id',
             'location_id',
             'responsible_name',
             'responsible_position',
-            'date_training',
-            'date',
-            'equipment_id'
-        ));
-        $this->save_or_update('equipment_delivery', $data, $id, $new, $revision);
+            'date_training'
+        ]);
+        $this->save_or_update('equipment_delivery', $data, $id, $new);
 
+        // === SAFEGUARD ===
+        $data = $this->build_data($_POST, ['warranty_time', 'date_adquisition']);
+        $this->save_or_update('equipment_safeguard', $data, $id, $new);
 
-    // === SAFEGUARD ===
-    $data = $this->build_data($_POST, array('rfc_id','business_name','phone','email','warranty_time','date_adquisition','equipment_id'));
-    $this->save_or_update('equipment_safeguard', $data, $id, $new, $revision);
-
-    // === DOCUMENTOS ===
-    $data = $this->build_data($_POST, array('invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file','equipment_id'));
-    
-    // === SUBIR ARCHIVOS DE DOCUMENTOS ===
-    foreach ($_FILES as $k => $file) {
-        if (!empty($file['tmp_name']) && in_array($k, ['bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'])) {
-            $dest = 'uploads/' . $file['name'];
-            if (move_uploaded_file($file['tmp_name'], $dest)) {
-                $data .= ", $k='$dest' ";
+        // === DOCUMENTOS ===
+        $doc_fields = [
+            'invoice',
+            'bailment_file',
+            'contract_file',
+            'usermanual_file',
+            'fast_guide_file',
+            'datasheet_file',
+            'servicemanual_file'
+        ];
+        $data = $this->build_data($_POST, $doc_fields);
+        foreach ($_FILES as $k => $file) {
+            if (!empty($file['tmp_name']) && in_array($k, $doc_fields)) {
+                $dest = 'uploads/' . $file['name'];
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    $data .= ", $k='$dest' ";
+                }
             }
+        }
+        $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id=$id")->num_rows > 0;
+        $this->save_or_update('equipment_control_documents', $data, $id, !$exists);
+
+
+    // === ELIMINAR DOCUMENTOS ===
+    foreach($doc_fields as $field){
+        if(!empty($_POST["delete_$field"]) && $_POST["delete_$field"] == '1'){
+            $qry = $this->db->query("SELECT $field FROM equipment_control_documents WHERE equipment_id = $id");
+            $old = $qry->fetch_array()[$field] ?? '';
+            if($old && file_exists($old)) unlink($old);
+            $this->db->query("UPDATE equipment_control_documents SET $field = NULL WHERE equipment_id = $id");
         }
     }
 
-    // === GESTIÓN DE IMAGEN DEL EQUIPO ===
+    // === IMAGEN DEL EQUIPO ===
     $upload_dir = "uploads/equipment/";
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
-    }
+    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
-    // 1. SI HAY NUEVA IMAGEN → SUBIR
     if (!empty($_FILES['equipment_image']['tmp_name'])) {
         $file = $_FILES['equipment_image'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $valid_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $valid_ext = ['jpg','jpeg','png','gif'];
+        if (!in_array($ext, $valid_ext)) return 3;
+        if ($file['size'] > 5*1024*1024) return 4;
 
-        if (!in_array($ext, $valid_ext)) {
-            return 3; // Formato inválido
-        }
+        $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
+        if($old_img && file_exists($old_img)) unlink($old_img);
 
-        if ($file['size'] > 5 * 1024 * 1024) {
-            return 4; // Muy grande
-        }
-
-        // Eliminar imagen anterior
-        $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
-        $old_img = $old_img_qry->fetch_array()['image'] ?? '';
-        if ($old_img && file_exists($old_img)) {
-            unlink($old_img);
-        }
-
-        $filename = $id . '_' . time() . '.' . $ext;
-        $destination = $upload_dir . $filename;
-
-        if (move_uploaded_file($file['tmp_name'], $destination)) {
-            $this->db->query("UPDATE equipments SET image = '$destination' WHERE id = $id");
+        $filename = $id.'_'.time().'.'.$ext;
+        $dest = $upload_dir.$filename;
+        if(move_uploaded_file($file['tmp_name'], $dest)){
+            $this->db->query("UPDATE equipments SET image='$dest' WHERE id=$id");
         }
     }
 
-    // 2. SI SE MARCA delete_image = 1 → ELIMINAR IMAGEN
-    if (!empty($_POST['delete_image']) && $_POST['delete_image'] == '1') {
-        $old_img_qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
-        $old_img = $old_img_qry->fetch_array()['image'] ?? '';
-        if ($old_img && file_exists($old_img)) {
-            unlink($old_img);
-        }
-        $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
+    if(!empty($_POST['delete_image']) && $_POST['delete_image']=='1'){
+        $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
+        if($old_img && file_exists($old_img)) unlink($old_img);
+        $this->db->query("UPDATE equipments SET image=NULL WHERE id=$id");
     }
 
-    // === GUARDAR DOCUMENTOS ===
-    $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id = $id")->num_rows;
-    $new_doc = ($exists == 0);
-    $this->save_or_update('equipment_control_documents', $data, $id, $new_doc, false);
+    // === CONSUMO ELÉCTRICO ===
+    if (!empty($voltage) && !empty($amperage)) {
+        $voltage = floatval($voltage);
+        $amperage = floatval($amperage);
+        $frequency_hz = !empty($frequency_hz) ? floatval($frequency_hz) : 60.00;
+        $power_w = round($voltage * $amperage, 2);
+        $notes = $new ? 'Registro inicial' : 'Actualización';
+
+        $exists = $this->db->query("SELECT id FROM equipment_power_specs WHERE equipment_id = $id")->num_rows > 0;
+        if ($exists) {
+            $this->db->query("UPDATE equipment_power_specs SET 
+                voltage=$voltage, amperage=$amperage, frequency_hz=$frequency_hz, 
+                power_w=$power_w, notes='$notes' WHERE equipment_id=$id");
+        } else {
+            $this->db->query("INSERT INTO equipment_power_specs 
+                (equipment_id, voltage, amperage, frequency_hz, power_w, notes) 
+                VALUES ($id, $voltage, $amperage, $frequency_hz, $power_w, '$notes')");
+        }
+    }
+
+    // === MANTENIMIENTO AUTOMÁTICO (solo nuevo) ===
+    if (!empty($mandate_period_id)) {
+    $update_maintenance = false;
+
+    if ($new) {
+        $update_maintenance = true; // Equipo nuevo siempre genera mantenimiento
+    } else {
+        // Revisar si la fecha de ingreso o el periodo de mantenimiento cambiaron
+        $old = $this->db->query("SELECT date_created, mandate_period_id FROM equipments WHERE id = $id")->fetch_assoc();
+        if ($old['date_created'] != $date_created || $old['mandate_period_id'] != $mandate_period_id) {
+            $update_maintenance = true;
+        }
+    }
+
+    if ($update_maintenance) {
+        // is_new = false para borrar los mantenimientos antiguos
+        $this->generate_automatic_maintenance($id, $date_created, $mandate_period_id, false);
+    }
+}
 
     return 1;
 }
 
 // ===================================
-// 2. SAVE EQUIPMENT REVISION
+// 2. BUILD DATA (AUXILIAR)
+// ===================================
+private function build_data($post, $allowed){
+    $data = "";
+    foreach($post as $k => $v){
+        if(!in_array($k, ['id', 'equipment_id']) && !is_numeric($k) && in_array($k, $allowed)){
+            $v = $this->db->real_escape_string($v);
+            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+        }
+    }
+    return $data;
+}
+
+// ===================================
+// 3. SAVE OR UPDATE (AUXILIAR)
+// ===================================
+private function save_or_update($table, $data, $equipment_id, $is_new = false){
+    // Eliminar equipment_id si está en $data
+    $data = preg_replace("/,? *equipment_id *= *['\"][^'\"]+['\"] */i", "", $data);
+    $data = trim($data, " ,");
+
+    $exists = $this->db->query("SELECT id FROM $table WHERE equipment_id = $equipment_id LIMIT 1")->num_rows > 0;
+
+    if ($exists) {
+        $sql = "UPDATE $table SET $data WHERE equipment_id = $equipment_id";
+    } else {
+        $sql = "INSERT INTO $table SET $data, equipment_id = $equipment_id";
+    }
+
+    $result = $this->db->query($sql);
+    if (!$result) {
+        error_log("ERROR en $table: " . $this->db->error . " | SQL: $sql");
+        return false;
+    }
+    return true;
+}
+
+// ===================================
+// 4. MANTENIMIENTO AUTOMÁTICO
+// ===================================
+private function generate_automatic_maintenance($equipment_id, $start_date, $period_id, $is_new = true){
+    $qry = $this->db->query("SELECT days_interval FROM maintenance_periods WHERE id = $period_id");
+    if($qry->num_rows == 0) return false;
+
+    $interval = $qry->fetch_array()['days_interval'];
+
+    // Si el equipo NO es nuevo, eliminamos los mantenimientos automáticos antiguos
+    if(!$is_new){
+        $this->db->query("DELETE FROM mantenimientos WHERE equipo_id = $equipment_id AND descripcion = 'Mantenimiento automático'");
+    }
+
+    // Generar el primer mantenimiento automático
+    $fecha = date('Y-m-d', strtotime("+$interval days", strtotime($start_date)));
+    $this->db->query("INSERT INTO mantenimientos 
+        (equipo_id, fecha_programada, descripcion, estatus, created_at) 
+        VALUES ('$equipment_id', '$fecha', 'Mantenimiento automático', 'pendiente', NOW())");
+}
+
+
+// ===================================
+// 5. SAVE EQUIPMENT REVISION
 // ===================================
 function save_equipment_revision(){
     extract($_POST);
-    $data = $this->build_data($_POST, array("equipment_id","date_revision","frecuencia"));
+    $data = $this->build_data($_POST, ["equipment_id","date_revision","frecuencia"]);
     
     if (empty($id)) return 2;
-    
-    $sql = "SELECT id FROM equipments WHERE id = $id";
-    if ($this->db->query($sql)->num_rows == 0) return 2;
+    if ($this->db->query("SELECT id FROM equipments WHERE id = $id")->num_rows == 0) return 2;
 
     $save = $this->db->query("INSERT INTO equipment_revision SET $data");
     return $save ? 1 : 2;
 }
 
 // ===================================
-// 3. DELETE IMAGE EQUIPMENT
+// 6. DELETE IMAGE
 // ===================================
 function delete_equipment_image() {
     $id = $_POST['id'];
     $qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
     $img = $qry->fetch_array()['image'] ?? '';
-    if ($img && file_exists($img)) {
-        unlink($img);
-    }
+    if ($img && file_exists($img)) unlink($img);
     $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
     return 1;
 }
 
 // ===================================
-// 3. DELETE EQUIPMENT (en cascada)
+// 7. DELETE EQUIPMENT (CASCADA)
 // ===================================
 function delete_equipment(){
     extract($_POST);
     if (empty($id) || !is_numeric($id)) return 2;
 
     $tables = [
-        'equipment_control_documents',
-        'equipment_reception',
-        'equipment_delivery',
-        'equipment_safeguard',
-        'equipment_revision',
-        'equipment_unsubscribe'
+        'equipment_control_documents','equipment_reception','equipment_delivery',
+        'equipment_safeguard','equipment_revision','equipment_unsubscribe'
     ];
 
     foreach ($tables as $table) {
@@ -478,16 +540,16 @@ function delete_equipment(){
 }
 
 // ===================================
-// 4. SAVE EQUIPMENT UNSUBSCRIBE
+// 8. UNSUBSCRIBE
 // ===================================
 function save_equipment_unsubscribe(){
     extract($_POST);
     $data = "";
-    $array_cols = array('date','equipment_id','withdrawal_reason','description','comments','opinion','destination','responsible');
+    $array_cols = ['date','equipment_id','withdrawal_reason','description','comments','opinion','destination','responsible'];
     $_POST['equipment_id'] = $id;
 
     foreach($_POST as $k => $v){
-        if(!in_array($k, array('id')) && !is_numeric($k)){
+        if(!in_array($k, ['id']) && !is_numeric($k)){
             if ($k == 'withdrawal_reason') {
                 $reasons = json_encode($_POST['withdrawal_reason']);
                 $data .= empty($data) ? " $k='$reasons' " : ", $k='$reasons' ";
@@ -497,40 +559,12 @@ function save_equipment_unsubscribe(){
         }
     }
 
-    $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows;
-    $new = ($exists == 0);
-
-    $save = $new 
-        ? $this->db->query("INSERT INTO equipment_unsubscribe SET $data")
-        : $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id");
+    $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows > 0;
+    $save = $exists 
+        ? $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id")
+        : $this->db->query("INSERT INTO equipment_unsubscribe SET $data");
 
     return $save ? 1 : 2;
-}
-
-// ===================================
-// FUNCIONES AUXILIARES
-// ===================================
-private function build_data($post, $allowed){
-    $data = "";
-    foreach($post as $k => $v){
-        if(!in_array($k, array('id')) && !is_numeric($k) && in_array($k, $allowed)){
-            $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-        }
-    }
-    return $data;
-}
-
-private function save_or_update($table, $data, $id, $is_new, $force_insert = false){
-    if ($is_new || $force_insert) {
-        $this->db->query("INSERT INTO $table SET $data");
-    } else {
-        $exists = $this->db->query("SELECT id FROM $table WHERE equipment_id = $id")->num_rows;
-        if ($exists > 0) {
-            $this->db->query("UPDATE $table SET $data WHERE equipment_id = $id");
-        } else {
-            $this->db->query("INSERT INTO $table SET $data");
-        }
-    }
 }
 
 // === GUARDAR / EDITAR PROVEEDOR ===
@@ -823,6 +857,50 @@ public function delete_equipment_location(){
     return 1;
 }
 
+// ===================================
+// GUARDAR / EDITAR JOB POSITION
+// ===================================
+function save_job_position(){
+    extract($_POST);
+    $data = "name='$name'";
+    
+    if(empty($id)){
+        // Insertar nuevo puesto
+        $save = $this->db->query("INSERT INTO job_positions SET $data");
+        $id = $this->db->insert_id;
+
+        // Insertar relación con ubicación
+        $this->db->query("INSERT INTO equipment_location_positions SET job_position_id=$id, location_id=$location_id");
+        return 1;
+    } else {
+        // Actualizar puesto
+        $save = $this->db->query("UPDATE job_positions SET $data WHERE id=$id");
+
+        // Actualizar relación con ubicación
+        $exists = $this->db->query("SELECT id FROM equipment_location_positions WHERE job_position_id=$id")->num_rows;
+        if($exists > 0){
+            $this->db->query("UPDATE equipment_location_positions SET location_id=$location_id WHERE job_position_id=$id");
+        } else {
+            $this->db->query("INSERT INTO equipment_location_positions SET job_position_id=$id, location_id=$location_id");
+        }
+        return 2;
+    }
+}
+
+// ===================================
+// ELIMINAR JOB POSITION
+// ===================================
+function delete_job_position(){
+    extract($_POST);
+    if(empty($id) || !is_numeric($id)) return 2;
+
+    // Eliminar relación con ubicación
+    $this->db->query("DELETE FROM equipment_location_positions WHERE job_position_id=$id");
+
+    // Eliminar puesto
+    $delete = $this->db->query("DELETE FROM job_positions WHERE id=$id");
+    return $delete ? 1 : 2;
+}
 
 
 

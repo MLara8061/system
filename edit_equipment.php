@@ -1,14 +1,12 @@
 <?php
 include 'db_connect.php';
 
-// === VALIDAR ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<script>alert('ID inválido'); window.location='index.php?page=equipment_list';</script>";
     exit;
 }
 $equipment_id = $_GET['id'];
 
-// === CARGAR DATOS DEL EQUIPO ===
 $qry = $conn->query("SELECT * FROM equipments WHERE id = $equipment_id");
 if ($qry->num_rows == 0) {
     echo "<script>alert('Equipo no encontrado'); window.location='index.php?page=equipment_list';</script>";
@@ -16,9 +14,8 @@ if ($qry->num_rows == 0) {
 }
 $eq = $qry->fetch_assoc();
 
-// === CARGAR TABLAS RELACIONADAS ===
-$reception = $delivery = $safeguard = $documents = [];
-
+// Cargar relaciones
+$reception = $delivery = $safeguard = $documents = $power_spec = [];
 $qry = $conn->query("SELECT * FROM equipment_reception WHERE equipment_id = $equipment_id");
 if ($qry->num_rows > 0) $reception = $qry->fetch_assoc();
 
@@ -30,383 +27,404 @@ if ($qry->num_rows > 0) $safeguard = $qry->fetch_assoc();
 
 $qry = $conn->query("SELECT * FROM equipment_control_documents WHERE equipment_id = $equipment_id");
 if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
+
+$qry = $conn->query("SELECT * FROM equipment_power_specs WHERE equipment_id = $equipment_id ORDER BY id DESC LIMIT 1");
+if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
 ?>
 
-<div class="col-lg-12">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form action="" id="manage_equipment" enctype="multipart/form-data">
-                <input type="hidden" name="id" value="<?php echo $equipment_id; ?>">
-                <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
+<div class="container-fluid">
+    <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+        <div class="card-body p-0">
 
-                <div class="row">
-                    <div class="col-md-12 border-right">
-
-                        <!-- Nro Inventario -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Nro Inventario</label>
-                            <input type="text" name="number_inventory" class="form-control form-control-sm"
-                                readonly value="<?php echo $eq['number_inventory']; ?>">
-                        </div>
-
-                        <!-- Fecha Ingreso -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Fecha Ingreso</label>
-                            <input type="date" name="date_created" class="form-control form-control-sm" required
-                                value="<?php echo date('Y-m-d', strtotime($eq['date_created'])); ?>">
-                        </div>
-
-                        <!-- Serie -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Serie</label>
-                            <input type="text" name="serie" class="form-control form-control-sm alfanumerico" required
-                                value="<?php echo $eq['serie']; ?>">
-                        </div>
-
-                        <!-- Equipo -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Equipo</label>
-                            <input type="text" name="name" class="form-control form-control-sm" required
-                                value="<?php echo $eq['name']; ?>">
-                        </div>
-
-                        <div class="row">
-                            <!-- Marca -->
-                            <div class="form-group col-md-3">
-                                <label class="control-label">Marca</label>
-                                <input type="text" name="brand" class="form-control form-control-sm"
-                                    value="<?php echo $eq['brand']; ?>">
+            <!-- === FICHA TÉCNICA: IMAGEN + INFO === -->
+            <div class="row g-0">
+                <!-- IMAGEN -->
+                <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
+                    <div class="text-center w-100">
+                        <?php if (!empty($eq['image'])): ?>
+                            <img src="<?= $eq['image'] ?>" class="img-fluid rounded shadow" 
+                                 style="max-height: 380px; object-fit: contain;" id="equipment-preview">
+                            <br><br>
+                            <a href="javascript:void(0)" class="text-danger delete-image">
+                                <i class="fas fa-trash"></i> Eliminar imagen
+                            </a>
+                            <!-- Input oculto hasta eliminar -->
+                            <div id="upload-image-container" style="display:none;">
+                                <input type="file" name="equipment_image" class="form-control mt-3" accept="image/*" form="manage_equipment">
                             </div>
-
-                            <!-- Modelo -->
-                            <div class="form-group col-md-3">
-                                <label class="control-label">Modelo</label>
-                                <input type="text" name="model" class="form-control form-control-sm" required
-                                    value="<?php echo $eq['model']; ?>">
+                        <?php else: ?>
+                            <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
+                                 style="height: 380px; border: 3px dashed #ccc;">
+                                <i class="fas fa-camera fa-3x text-muted"></i>
                             </div>
+                            <input type="file" name="equipment_image" class="form-control mt-3" accept="image/*" form="manage_equipment">
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-                            <!-- Características -->
-                            <div class="form-group col-md-6 float-left">
-                                <label class="control-label">Características</label>
-                                <textarea name="characteristics" class="form-control" style="height: 80px;"><?php echo $eq['characteristics']; ?></textarea>
+                <!-- INFORMACIÓN CLAVE -->
+                <div class="col-lg-7 p-5">
+                    <form id="manage_equipment" enctype="multipart/form-data">
+                        <input type="hidden" name="id" value="<?= $equipment_id ?>">
+                        <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
+
+                        <!-- NOMBRE + #INVENTARIO -->
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-8">
+                                <input type="text" name="name" class="form-control" 
+                                       required value="<?= $eq['name'] ?>" placeholder="Nombre del equipo">
+                            </div>
+                            <div class="col-md-4">
+                                <span class="badge badge-primary font-weight-bold p-2" style="font-size: 1.1rem;">
+                                    #<?= $eq['number_inventory'] ?>
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Imagen del equipo -->
-                        <div class="form-group col-md-6">
-                            <label class="control-label">Imagen del Equipo</label>
-                            <input type="file" name="equipment_image" class="form-control form-control-sm" accept="image/*">
-                            <?php if (!empty($eq['image'])): ?>
-                                <div class="mt-2" id="current-image">
-                                    <img src="<?php echo $eq['image']; ?>" class="img-thumbnail" style="max-height: 120px;">
-                                    <br>
-                                    <a href="javascript:void(0)" class="text-danger delete-image">
-                                        <i class="fas fa-trash"></i> Eliminar imagen
-                                    </a>
+                        <!-- MARCA Y MODELO -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <input type="text" name="brand" class="form-control" 
+                                       value="<?= $eq['brand'] ?>" placeholder="Marca">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="model" class="form-control" 
+                                       required value="<?= $eq['model'] ?>" placeholder="Modelo">
+                            </div>
+                        </div>
+
+                        <!-- SERIE (EDITABLE) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Serie</label>
+                                <input type="text" name="serie" class="form-control alfanumerico" 
+                                       required value="<?= $eq['serie'] ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Fecha Ingreso</label>
+                                <input type="date" name="date_created" class="form-control" 
+                                       required value="<?= date('Y-m-d', strtotime($eq['date_created'])) ?>">
+                            </div>
+                        </div>
+
+                        <!-- VALOR Y CATEGORÍA -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Valor</label>
+                                <input type="text" name="amount" class="form-control solonumeros" 
+                                       required value="<?= $eq['amount'] ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Categoría</label>
+                                <input type="text" name="discipline" class="form-control" 
+                                       required value="<?= $eq['discipline'] ?>">
+                            </div>
+                        </div>
+
+                        <!-- CONSUMO ELÉCTRICO CON ETIQUETAS -->
+                        <div class="bg-light p-3 rounded mb-3">
+                            <h6 class="mb-3 text-dark">Consumo Eléctrico</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="small text-muted">Voltaje (V)</label>
+                                    <input type="number" step="0.01" min="0" name="voltage" class="form-control form-control-sm" 
+                                           value="<?= $power_spec['voltage'] ?? '' ?>">
                                 </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Valor del Equipo -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Valor del Equipo</label>
-                            <input type="text" name="amount" class="form-control form-control-sm solonumeros" required
-                                value="<?php echo $eq['amount']; ?>">
-                        </div>
-
-                        <!-- Categoría -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Categoría</label>
-                            <input type="text" name="discipline" class="form-control form-control-sm" required
-                                value="<?php echo $eq['discipline']; ?>">
-                        </div>
-
-                        <!-- Tipo de Adquisición -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Tipo de Adquisición</label>
-                            <select name="acquisition_type" class="custom-select custom-select-sm select2" required>
-                                <option value="1" <?php echo ($eq['acquisition_type'] == 1) ? 'selected' : ''; ?>>Compra</option>
-                                <option value="2" <?php echo ($eq['acquisition_type'] == 2) ? 'selected' : ''; ?>>Renta</option>
-                                <option value="3" <?php echo ($eq['acquisition_type'] == 3) ? 'selected' : ''; ?>>Comodato</option>
-                            </select>
-                        </div>
-
-                        <!-- Periodo de Mantenimiento -->
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Periodo de Manto</label>
-                            <select name="mandate_period" class="custom-select custom-select-sm select2" required>
-                                <option value="1" <?php echo ($eq['mandate_period'] == 1) ? 'selected' : ''; ?>>Semanal</option>
-                                <option value="2" <?php echo ($eq['mandate_period'] == 2) ? 'selected' : ''; ?>>Catorcenal</option>
-                                <option value="3" <?php echo ($eq['mandate_period'] == 3) ? 'selected' : ''; ?>>Mensual</option>
-                            </select>
+                                <div class="col-md-4">
+                                    <label class="small text-muted">Amperaje (A)</label>
+                                    <input type="number" step="0.01" min="0" name="amperage" class="form-control form-control-sm" 
+                                           value="<?= $power_spec['amperage'] ?? '' ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-muted">Frecuencia (Hz)</label>
+                                    <input type="number" step="0.01" min="0" name="frequency_hz" class="form-control form-control-sm" 
+                                           value="<?= $power_spec['frequency_hz'] ?? '60.00' ?>">
+                                </div>
+                            </div>
                         </div>
 
                         <!-- PROVEEDOR -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Proveedor</label>
-                            <select name="supplier_id" class="custom-select custom-select-sm select2" required>
-                                <option value="">Seleccionar Proveedor</option>
-                                <?php
-                                $suppliers = $conn->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC");
-                                while ($row = $suppliers->fetch_assoc()):
-                                ?>
-                                    <option value="<?php echo $row['id']; ?>"
-                                        <?php echo ($eq['supplier_id'] == $row['id']) ? 'selected' : ''; ?>>
-                                        <?php echo ucwords($row['empresa']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-
-                        <!-- Departamento -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Departamento</label>
-                            <select name="department_id" class="custom-select custom-select-sm select2" required>
+                        <div class="mb-3">
+                            <label class="font-weight-bold text-dark">Proveedor</label>
+                            <select name="supplier_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
-                                while ($row = $departments->fetch_assoc()):
-                                ?>
-                                    <option value="<?php echo $row['id']; ?>"
-                                        <?php echo (isset($delivery['department_id']) && $delivery['department_id'] == $row['id']) ? 'selected' : ''; ?>>
-                                        <?php echo ucwords($row['name']); ?>
+                                $suppliers = $conn->query("SELECT id,empresa FROM suppliers WHERE estado=1 ORDER BY empresa ASC");
+                                while ($row = $suppliers->fetch_assoc()): ?>
+                                    <option value="<?= $row['id'] ?>" <?= $eq['supplier_id'] == $row['id'] ? 'selected' : '' ?>>
+                                        <?= ucwords($row['empresa']) ?>
                                     </option>
                                 <?php endwhile; ?>
                             </select>
                         </div>
 
-                        <!-- UBICACIÓN -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Ubicación</label>
-                            <select name="location_id" id="location_id" class="form-control select2" required>
-                                <option value="">Seleccionar</option>
-                                <?php
-                                $locations = $conn->query("SELECT id, name FROM equipment_locations ORDER BY name ASC");
-                                while ($row = $locations->fetch_assoc()):
-                                ?>
-                                    <option value="<?php echo $row['id']; ?>"
-                                        <?php echo (isset($delivery['location_id']) && $delivery['location_id'] == $row['id']) ? 'selected' : ''; ?>>
-                                        <?php echo ucwords($row['name']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-
+                        <!-- ADQUISICIÓN -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Tipo Adquisición</label>
+                                <select name="acquisition_type" class="custom-select select2" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    $types = $conn->query("SELECT id,name FROM equipment_acquisition_type ORDER BY name ASC");
+                                    while ($row = $types->fetch_assoc()): ?>
+                                        <option value="<?= $row['id'] ?>" <?= $eq['acquisition_type'] == $row['id'] ? 'selected' : '' ?>>
+                                            <?= ucwords($row['name']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Periodo Mantenimiento</label>
+                                <select name="mandate_period_id" class="custom-select select2" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    $periods = $conn->query("SELECT id,name FROM maintenance_periods ORDER BY id ASC");
+                                    while ($row = $periods->fetch_assoc()): ?>
+                                        <option value="<?= $row['id'] ?>" <?= $eq['mandate_period_id'] == $row['id'] ? 'selected' : '' ?>>
+                                            <?= ucwords($row['name']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
                         </div>
+                    </form>
+                </div>
+            </div>
 
-                        <!-- Cargo Responsable -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Cargo Responsable</label>
-                            <select name="responsible_position" class="custom-select custom-select-sm select2">
-                                <option value="">Seleccionar</option>
-                                <?php
-                                $positions = $conn->query("SELECT * FROM equipment_responsible_positions ORDER BY name ASC");
-                                while ($row = $positions->fetch_assoc()):
-                                ?>
-                                    <option value="<?php echo $row['id']; ?>"
-                                        <?php echo (isset($delivery['responsible_position']) && $delivery['responsible_position'] == $row['id']) ? 'selected' : ''; ?>>
-                                        <?php echo ucwords($row['name']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
+            <!-- === SECCIONES INFERIORES === -->
+            <div class="p-5 bg-white">
+
+                <!-- ENTREGA -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 text-dark">Entrega del Equipo</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Departamento</label>
+                                <select name="department_id" class="custom-select select2" form="manage_equipment" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
+                                    while ($row = $departments->fetch_assoc()): ?>
+                                        <option value="<?= $row['id'] ?>" <?= ($delivery['department_id'] ?? '') == $row['id'] ? 'selected' : '' ?>>
+                                            <?= ucwords($row['name']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Ubicación</label>
+                                <select name="location_id" class="custom-select select2" form="manage_equipment" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    $locations = $conn->query("SELECT id,name FROM equipment_locations ORDER BY name ASC");
+                                    while ($row = $locations->fetch_assoc()): ?>
+                                        <option value="<?= $row['id'] ?>" <?= ($delivery['location_id'] ?? '') == $row['id'] ? 'selected' : '' ?>>
+                                            <?= ucwords($row['name']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Cargo Responsable</label>
+                                <select name="responsible_position" class="custom-select select2" form="manage_equipment">
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    $positions = $conn->query("SELECT * FROM equipment_responsible_positions ORDER BY name ASC");
+                                    while ($row = $positions->fetch_assoc()): ?>
+                                        <option value="<?= $row['id'] ?>" <?= ($delivery['responsible_position'] ?? '') == $row['id'] ? 'selected' : '' ?>>
+                                            <?= ucwords($row['name']) ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
                         </div>
-
-                        <!-- Nombre Responsable -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Nombre Responsable</label>
-                            <input type="text" name="responsible_name" class="form-control form-control-sm" required
-                                value="<?php echo $delivery['responsible_name'] ?? ''; ?>">
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label>Nombre Responsable</label>
+                                <input type="text" name="responsible_name" class="form-control" form="manage_equipment" required value="<?= $delivery['responsible_name'] ?? '' ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Fecha Capacitación</label>
+                                <input type="date" name="date_training" class="form-control" form="manage_equipment" required 
+                                       value="<?= isset($delivery['date_training']) ? date('Y-m-d', strtotime($delivery['date_training'])) : '' ?>">
+                            </div>
                         </div>
-
-                        <!-- Fecha Entrega -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Fecha</label>
-                            <input type="date" name="date" class="form-control form-control-sm" required
-                                value="<?php echo isset($delivery['date']) ? date('Y-m-d', strtotime($delivery['date'])) : ''; ?>">
-                        </div>
-
-                        <!-- Fecha Capacitación -->
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Fecha Capacitación</label>
-                            <input type="date" name="date_training" class="form-control form-control-sm" required
-                                value="<?php echo isset($delivery['date_training']) ? date('Y-m-d', strtotime($delivery['date_training'])) : ''; ?>">
-                        </div>
-
                     </div>
                 </div>
 
-                <!-- === SECCIÓN DOCUMENTOS CONTROL === -->
-                <hr>
+                <!-- CARACTERÍSTICAS -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 text-dark">Características Técnicas</h6>
+                    </div>
+                    <div class="card-body">
+                        <textarea name="characteristics" class="form-control" rows="3" form="manage_equipment"><?= $eq['characteristics'] ?></textarea>
+                    </div>
+                </div>
+
+                <!-- DOCUMENTOS -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 text-dark">Documentos de Control</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Factura Nro</label>
+                                <input type="text" name="invoice" class="form-control" form="manage_equipment" value="<?= $documents['invoice'] ?? '' ?>">
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <?php
+                            $doc_fields = [
+                                'bailment_file' => 'Comodato',
+                                'contract_file' => 'Contrato M',
+                                'usermanual_file' => 'Manual Usuario',
+                                'fast_guide_file' => 'Guía Rápida',
+                                'datasheet_file' => 'Ficha Técnica',
+                                'servicemanual_file' => 'Man. Servicios'
+                            ];
+                            foreach ($doc_fields as $field => $label):
+                                $file_path = $documents[$field] ?? '';
+                                $filename = basename($file_path);
+                            ?>
+                                <div class="col-md-4 mb-3">
+                                    <label><?= $label ?></label>
+                                    <?php if ($file_path && file_exists($file_path)): ?>
+                                        <div class="border p-2 rounded bg-light mb-2 d-flex justify-content-between align-items-center">
+                                            <small class="text-truncate" style="max-width: 150px;" title="<?= $filename ?>">
+                                                <?= $filename ?>
+                                            </small>
+                                            <div>
+                                                <a href="<?= $file_path ?>" target="_blank" class="text-primary mr-2" title="Ver">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="javascript:void(0)" class="text-danger delete-doc" data-field="<?= $field ?>" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="delete_<?= $field ?>" value="0" class="delete-flag" form="manage_equipment">
+                                        <!-- Input oculto hasta eliminar -->
+                                        <div class="upload-doc-container" style="display:none;">
+                                            <input type="file" name="<?= $field ?>" class="form-control form-control-sm mt-1" form="manage_equipment">
+                                        </div>
+                                    <?php else: ?>
+                                        <input type="file" name="<?= $field ?>" class="form-control form-control-sm" form="manage_equipment">
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECEPCIÓN Y RESGUARDO -->
                 <div class="row">
-                    <div class="col-md-12">
-                        <b class="text-muted">Documentos Control</b>
-                        <div class="form-group col-md-12 float-left">
-                            Factura Nro
-                            <input type="text" class="form-control form-control-sm alfanumerico" name="invoice" required
-                                value="<?php echo $documents['invoice'] ?? ''; ?>">
-                            <small id="msg"></small>
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Comodato
-                            <?php if (!empty($documents['bailment_file'])): ?>
-                                <a href="<?php echo $documents['bailment_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="bailment_file">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Contrato M
-                            <?php if (!empty($documents['contract_file'])): ?>
-                                <a href="<?php echo $documents['contract_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="contract_file">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Manual Usuario
-                            <?php if (!empty($documents['usermanual_file'])): ?>
-                                <a href="<?php echo $documents['usermanual_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="usermanual_file">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Guía Rápida
-                            <?php if (!empty($documents['fast_guide_file'])): ?>
-                                <a href="<?php echo $documents['fast_guide_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="fast_guide_file">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Ficha Técnica
-                            <?php if (!empty($documents['datasheet_file'])): ?>
-                                <a href="<?php echo $documents['datasheet_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="datasheet_file">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            Man. Servicios
-                            <?php if (!empty($documents['servicemanual_file'])): ?>
-                                <a href="<?php echo $documents['servicemanual_file']; ?>" target="_blank" class="d-block mb-1 text-primary">Ver actual</a>
-                            <?php endif ?>
-                            <input type="file" class="file form-control form-control-sm" name="servicemanual_file">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light border-0"><h6 class="text-dark">Recepción</h6></div>
+                            <div class="card-body">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="state" value="1" form="manage_equipment" <?= ($reception['state'] ?? 0) == 1 ? 'checked' : '' ?>>
+                                    <label class="form-check-label">Acepto</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="state" value="0" form="manage_equipment" <?= ($reception['state'] ?? 0) == 0 ? 'checked' : '' ?>>
+                                    <label class="form-check-label">Rechazo</label>
+                                </div>
+                                <textarea name="comments" class="form-control mt-2" rows="2" form="manage_equipment"><?= $reception['comments'] ?? '' ?></textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- === SECCIÓN PRUEBAS DE RECEPCIÓN === -->
-                <hr>
-                <div class="row">
-                    <div class="col-md-12 border-right">
-                        <b class="text-muted">Pruebas de Recepción de Equipo</b>
-                        <br><br>
-                        <div class="form-group col-md-3 float-left">
-                            <label class="control-label">Acepto</label>
-                            <input type="radio" name="state" value="1" <?php echo ($reception['state'] ?? 0) == 1 ? 'checked' : ''; ?>>&nbsp;&nbsp;
-                            <label class="control-label">Rechazo</label>
-                            <input type="radio" name="state" value="0" <?php echo ($reception['state'] ?? 0) == 0 ? 'checked' : ''; ?>>
-                        </div>
-                        <div class="form-group col-md-9 float-left">
-                            <label class="control-label">Notas</label><br>
-                            <textarea name="comments" style="width: 100%; height: 120px;"><?php echo $reception['comments'] ?? ''; ?></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- === SECCIÓN RESGUARDO === -->
-                <hr>
-                <div class="row">
-                    <div class="col-md-12 border-left">
-                        <b class="text-muted">Resguardo Equipo</b>
-                        <br><br>
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Tiempo de Garantía</label>
-                            <input type="number" name="warranty_time" class="form-control form-control-sm" min="1" placeholder="años" required
-                                value="<?php echo $safeguard['warranty_time'] ?? ''; ?>"
-                                oninput="validity.valid||(value='');"
-                                title="Ingresa un número mayor a 0 (ej: 1, 2, 3 años)">
-                        </div>
-                        <div class="form-group col-md-4 float-left">
-                            <label class="control-label">Fecha de Adquisición</label>
-                            <input type="date" name="date_adquisition" class="form-control form-control-sm" required
-                                value="<?php echo isset($safeguard['date_adquisition']) ? date('Y-m-d', strtotime($safeguard['date_adquisition'])) : ''; ?>">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-light border-0"><h6 class="text-dark">Resguardo</h6></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Garantía (Años)</label>
+                                        <input type="number" name="warranty_time" class="form-control" min="1" form="manage_equipment" value="<?= $safeguard['warranty_time'] ?? '' ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Fecha Adquisición</label>
+                                        <input type="date" name="date_adquisition" class="form-control" form="manage_equipment" 
+                                               value="<?= isset($safeguard['date_adquisition']) ? date('Y-m-d', strtotime($safeguard['date_adquisition'])) : '' ?>">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <hr>
-                <div class="col-lg-12 text-right justify-content-center d-flex">
-                    <button class="btn btn-primary mr-2">Guardar Cambios</button>
-                    <a href="index.php?page=equipment_list" class="btn btn-secondary">Cancelar</a>
+                <div class="text-center">
+                    <button type="submit" form="manage_equipment" class="btn btn-primary btn-lg px-5">Guardar Cambios</button>
+                    <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+    .border-dashed { border-style: dashed !important; }
+    .form-control, .custom-select { border-radius: 10px; }
+    .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge { font-size: 1.1rem; }
+</style>
+
 <script>
-    // === VALIDAR CAMPOS ===
-    $('.solonumeros').on('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
+    $('.solonumeros').on('input', function(){ this.value = this.value.replace(/[^0-9]/g,''); });
+    $('.alfanumerico').on('input', function(){ this.value = this.value.replace(/[^a-zA-Z0-9]/g,''); });
 
-    $('.alfanumerico').on('input', function() {
-        this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
-    });
-
-    // === INICIALIZAR SELECT2 Y CARGAR VALORES ===
-    $(function() {
-        $('.select2').select2({
-            width: '100%',
-            placeholder: "Seleccionar",
-            allowClear: true
-        });
-
-        // Forzar ubicación
-        var loc_id = '<?php echo $eq["location_id"] ?? ""; ?>';
-        if (loc_id) {
-            $('#location_id').val(loc_id).trigger('change.select2');
-        }
-
-        // Forzar proveedor
-        var sup_id = '<?php echo $eq["supplier_id"] ?? ""; ?>';
-        if (sup_id) {
-            $('select[name="supplier_id"]').val(sup_id).trigger('change.select2');
-        }
+    $(function(){
+        $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
     });
 
     // === ELIMINAR IMAGEN ===
-    $(document).on('click', '.delete-image', function(e) {
+    $(document).on('click', '.delete-image', function(e){
         e.preventDefault();
-        if (confirm('¿Eliminar imagen del equipo?')) {
-            $('#current-image').remove();
+        if(confirm('¿Eliminar imagen?')){
+            $('#equipment-preview').remove();
+            $('.border-dashed').show();
             $('#delete_image_flag').val('1');
+            $('#upload-image-container').show();
         }
     });
 
-    // === GUARDAR FORMULARIO ===
-    $('#manage_equipment').submit(function(e) {
+    // === ELIMINAR DOCUMENTO ===
+    $(document).on('click', '.delete-doc', function(){
+        if(confirm('¿Eliminar documento?')){
+            const field = $(this).data('field');
+            $(this).closest('.col-md-4').find('.border').remove();
+            $(`input[name="delete_${field}"]`).val('1');
+            $(this).closest('.col-md-4').find('.upload-doc-container').show();
+        }
+    });
+
+    // === ENVÍO ===
+    $('#manage_equipment').submit(function(e){
         e.preventDefault();
         start_load();
-
-        var formData = new FormData(this);
-
         $.ajax({
             url: 'ajax.php?action=save_equipment',
-            data: formData,
+            data: new FormData(this),
             cache: false,
             contentType: false,
             processData: false,
             method: 'POST',
-            success: function(resp) {
-                end_load();
+            success: function(resp){
                 resp = resp.trim();
-                if (resp === '1') {
+                if(resp === '1'){
                     alert_toast('Equipo actualizado', 'success');
-                    setTimeout(() => location.href = 'index.php?page=equipment_list', 1000);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     alert_toast('Error: ' + resp, 'danger');
                 }
-            },
-            error: function() {
                 end_load();
-                alert_toast('Error de conexión', 'danger');
             }
         });
     });

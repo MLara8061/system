@@ -4,8 +4,8 @@
 // Datos para las tarjetas
 $total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments")->fetch_assoc()['total'];
 $costo_total = $conn->query("SELECT SUM(amount) as total FROM equipments")->fetch_assoc()['total'];
-$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period = 1")->fetch_assoc()['total'];
-$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period = 2")->fetch_assoc()['total'];
+$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1")->fetch_assoc()['total'];
+$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2")->fetch_assoc()['total'];
 ?>
 
 <!-- Tarjetas de resumen de Equipos -->
@@ -85,6 +85,9 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                         <th>Detalles</th>
                         <th>Proveedor</th>
                         <th>Estado</th>
+                        <th>Próximo Mtto.</th> <!-- NUEVA -->
+                        <th>Último Mtto.</th> <!-- NUEVA -->
+                        <th>Antigüedad</th> <!-- NUEVA -->
                         <th style="width: 60px;">QR</th>
                         <th style="width: 80px;">Acciones</th>
                     </tr>
@@ -92,17 +95,60 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 <tbody>
                     <?php
                     $qry = $conn->query("
-                        SELECT e.*, s.empresa as supplier_name 
+                        SELECT 
+                            e.*,
+                            s.empresa as supplier_name,
+                            DATEDIFF(CURDATE(), e.date_created) AS antiguedad_dias,
+                            COALESCE(
+                                (SELECT fecha_programada 
+                                 FROM mantenimientos m 
+                                 WHERE m.equipo_id = e.id 
+                                   AND m.estatus = 'completado' 
+                                 ORDER BY fecha_programada DESC 
+                                 LIMIT 1),
+                                e.date_created
+                            ) AS ultimo_mtto,
+                            DATE_ADD(
+                                COALESCE(
+                                    (SELECT fecha_programada 
+                                     FROM mantenimientos m 
+                                     WHERE m.equipo_id = e.id 
+                                       AND m.estatus = 'completado' 
+                                     ORDER BY fecha_programada DESC 
+                                     LIMIT 1),
+                                    e.date_created
+                                ),
+                                INTERVAL COALESCE(mp.days_interval, 0) DAY
+                            ) AS proximo_mtto,
+                            DATEDIFF(
+                                DATE_ADD(
+                                    COALESCE(
+                                        (SELECT fecha_programada 
+                                         FROM mantenimientos m 
+                                         WHERE m.equipo_id = e.id 
+                                           AND m.estatus = 'completado' 
+                                         ORDER BY fecha_programada DESC 
+                                         LIMIT 1),
+                                        e.date_created
+                                    ),
+                                    INTERVAL COALESCE(mp.days_interval, 0) DAY
+                                ),
+                                CURDATE()
+                            ) AS dias_restantes
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id 
+                        LEFT JOIN maintenance_periods mp ON e.mandate_period_id = mp.id
                         ORDER BY e.id DESC
                     ");
                     while ($row = $qry->fetch_assoc()) :
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
+                        $proximo = $row['proximo_mtto'] ? date('d/m/Y', strtotime($row['proximo_mtto'])) : 'Sin periodo';
+                        $ultimo = $row['ultimo_mtto'] ? date('d/m/Y', strtotime($row['ultimo_mtto'])) : 'Sin registro';
+                        $antiguedad = $row['antiguedad_dias'] . ' días';
+                        $dias_restantes = $row['dias_restantes'];
                     ?>
                         <tr>
-
-                            <!-- IMAGEN EN LA TABLA -->
+                            <!-- IMAGEN -->
                             <td class="text-center">
                                 <?php if (!empty($row['image'])): ?>
                                     <img src="<?php echo $row['image']; ?>"
@@ -115,6 +161,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     </div>
                                 <?php endif; ?>
                             </td>
+
                             <!-- EQUIPO -->
                             <td>
                                 <div class="d-flex align-items-center">
@@ -167,6 +214,45 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                 </div>
                             </td>
 
+                            <!-- PRÓXIMO MTTO. -->
+                            <td>
+                                <div>
+                                    <strong>
+                                        <?php if ($dias_restantes < 0): ?>
+                                            <span class="text-danger">
+                                                <i class="fas fa-exclamation-circle"></i> <?php echo $proximo; ?>
+                                            </span>
+                                        <?php elseif ($dias_restantes <= 7): ?>
+                                            <span class="text-warning">
+                                                <i class="fas fa-clock"></i> <?php echo $proximo; ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-success">
+                                                <i class="fas fa-calendar-check"></i> <?php echo $proximo; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes días" : "Vencido hace " . abs($dias_restantes) . " días"; ?>
+                                    </small>
+                                </div>
+                            </td>
+
+                            <!-- ÚLTIMO MTTO. -->
+                            <td>
+                                <div>
+                                    <strong><?php echo $ultimo; ?></strong>
+                                </div>
+                            </td>
+
+                            <!-- ANTIGÜEDAD -->
+                            <td>
+                                <div>
+                                    <strong><?php echo $antiguedad; ?></strong>
+                                </div>
+                            </td>
+
                             <!-- QR -->
                             <td class="text-center">
                                 <button type="button" class="btn btn-info btn-sm view-qr" data-id="<?php echo $row['id']; ?>" title="Ver QR">
@@ -183,7 +269,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     <div class="dropdown-menu">
                                         <h6 class="dropdown-header">Acciones</h6>
                                         <a class="dropdown-item" href="./index.php?page=edit_equipment&id=<?php echo $row['id'] ?>">
-                                            <i class="fas fa-edit mr-2 text-primary"></i> Editar
+                                            <i class="fas fa-eye mr-2 text-primary"></i> Ver equipo
                                         </a>
                                         <a class="dropdown-item" href="./index.php?page=equipment_new_revision&id=<?php echo $row['id'] ?>">
                                             <i class="fas fa-tools mr-2 text-success"></i> Nueva Revisión
@@ -234,25 +320,23 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
     </div>
 </div>
 
-<!-- === MODAL QR === -->
+<!-- MODAL QR -->
 <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="qrModalLabel">
-                    <i class="fas fa-qrcode mr-2"></i> Código QR del Equipo
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">×</span>
+                <h5 class="modal-title" id="qrModalLabel">Código QR del Equipo</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body text-center">
                 <div id="qrLoading">
                     <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
-                    <p class="text-muted">Generando código QR...</p>
+                    <p class="text-muted">Generando QR...</p>
                 </div>
                 <div id="qrContent" class="d-none">
-                    <img id="qrImage" src="" alt="Código QR" class="img-fluid rounded shadow-sm" style="max-width: 240px;">
+                    <img id="qrImage" src="" alt="QR" class="img-fluid rounded shadow-sm" style="max-width: 240px;">
                     <div class="mt-3 p-3 bg-light rounded">
                         <p class="mb-1"><strong id="qrName"></strong></p>
                         <p class="mb-1 text-muted"><small>Inventario: <span id="qrInventory"></span></small></p>
@@ -261,12 +345,8 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i> Cerrar
-                </button>
-                <a href="#" id="printLabelBtn" target="_blank" class="btn btn-success">
-                    <i class="fas fa-print mr-1"></i> Imprimir Etiqueta
-                </a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <a href="#" id="printLabelBtn" target="_blank" class="btn btn-success">Imprimir</a>
             </div>
         </div>
     </div>
@@ -274,64 +354,36 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 
 <script>
     $(document).ready(function() {
-        // DataTable
         $('#list').DataTable({
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
-            },
+            language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
             responsive: true,
             autoWidth: false,
-            columnDefs: [{
-                orderable: false,
-                targets: [0, 4, 5, 6]
-            }]
+            columnDefs: [{ orderable: false, targets: [0,4,5,6,7,8,9] }]
         });
 
-        // === MOSTRAR QR ===
         $(document).on('click', '.view-qr', function() {
-            var id = $(this).data('id');
-            var $row = $(this).closest('tr');
-            var name = $row.find('td:eq(1) strong').text().trim();
-            var inventory = $row.find('td:eq(2) strong').text().replace('Inv: ', '').trim();
-            var serie = $row.find('td:eq(2) small').text().split(' - ')[1]?.trim() || 'N/A';
+            const id = $(this).data('id');
+            const $row = $(this).closest('tr');
 
             $('#qrLoading').show();
-            $('#qrContent').hide();
-            $('#qrName').text(name);
-            $('#qrInventory').text(inventory);
-            $('#qrSerie').text(serie);
+            $('#qrContent').addClass('d-none');
+            $('#qrName').text($row.find('td:eq(1) strong').text().trim());
+            $('#qrInventory').text($row.find('td:eq(2) strong').text().replace('Inv: ', '').trim());
+            $('#qrSerie').text($row.find('td:eq(2) small').text().split(' - ')[1]?.trim() || 'N/A');
             $('#printLabelBtn').attr('href', 'print_label.php?id=' + id);
 
-            var qrUrl = 'generate_qr.php?id=' + id + '&_=' + new Date().getTime();
-            $('#qrImage').attr('src', qrUrl)
-                .off('load error')
-                .on('load', function() {
-                    $('#qrLoading').hide();
-                    $('#qrContent').removeClass('d-none').show();
-                })
-                .on('error', function() {
-                    $('#qrLoading').html('<p class="text-danger">Error al cargar QR</p>');
-                });
+            const img = new Image();
+            img.onload = function() {
+                $('#qrImage').attr('src', this.src);
+                $('#qrLoading').hide();
+                $('#qrContent').removeClass('d-none');
+            };
+            img.onerror = function() {
+                $('#qrLoading').html('<p class="text-danger">Error: No se pudo generar el QR</p>');
+            };
+            img.src = 'generate_qr.php?id=' + id + '&t=' + Date.now();
 
             $('#qrModal').modal('show');
         });
-
-        // === ELIMINAR ===
-        $(document).on('click', '.delete', function() {
-            if (confirm("¿Eliminar equipo permanentemente?")) {
-                $.post('ajax.php?action=delete_equipment', {
-                    id: $(this).data('id')
-                }, function(r) {
-                    if (r == 1) {
-                        alert("Equipo eliminado");
-                        location.reload();
-                    } else {
-                        alert("Error al eliminar");
-                    }
-                });
-            }
-        });
-
-        $('[title]').tooltip();
     });
 </script>
