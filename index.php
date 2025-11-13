@@ -29,9 +29,67 @@ include 'header.php'
       <section class="content">
         <div class="container-fluid">
           <?php
-          $page = isset($_GET['page']) ? $_GET['page'] : 'home';
-          include $page . '.php';
-          ?>
+$page = $_GET['page'] ?? 'home';
+
+// === LIMPIAR NOMBRE DE PÁGINA (SEGURIDAD) ===
+$page = preg_replace('/[^a-zA-Z0-9_-]/', '', $page);
+
+// === PÁGINAS PERMITIDAS ===
+$allowed_pages = [
+    'home',
+    'new_equipment',
+    'equipment_list',
+    'edit_equipment',
+    'equipment_report_sistem_list',
+    'equipment_report_revision_month',
+    'new_supplier',
+    'suppliers',
+    'edit_supplier',
+    'accessories_list',
+    'new_accesories',
+    'edit_accesories',
+    'tools_list',
+    'new_tool',
+    'edit_tool',
+    'new_epp',
+    'edit_epp',
+    'calendar',
+    'department_list',
+    'manage_category',
+    'category',
+    'manage_services',
+    'service_list',
+    'locations',
+    'job_positions',
+    'create_user',
+    'user_list',
+    'manage_user',
+    'manage_inventory',
+    'inventory_list',
+
+    // AÑADE MÁS AQUÍ
+];
+
+// === VERIFICAR SI EXISTE Y ESTÁ PERMITIDA ===
+if (in_array($page, $allowed_pages) && file_exists($page . '.php')) {
+    include $page . '.php';
+} else {
+    // === PÁGINA NO ENCONTRADA  ===
+    ?>
+    <div class="container-fluid text-center py-5">
+        <div class="jumbotron bg-light border rounded p-5">
+            <h1 class="display-4 text-danger">404</h1>
+            <h3>Página no encontrada</h3>
+            <p class="lead">Lo sentimos, la página <strong><?= htmlspecialchars($page) ?></strong> no existe.</p>
+            <hr class="my-4">
+            <a href="index.php" class="btn btn-primary btn-lg">
+                Volver al inicio
+            </a>
+        </div>
+    </div>
+    <?php
+}
+?>
         </div><!--/. container-fluid -->
       </section>
       <!-- /.content -->

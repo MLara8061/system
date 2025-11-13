@@ -165,7 +165,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $types = $conn->query("SELECT id,name FROM equipment_acquisition_type ORDER BY name ASC");
+                                    $types = $conn->query("SELECT id,name FROM acquisition_type ORDER BY name ASC");
                                     while ($row = $types->fetch_assoc()): ?>
                                         <option value="<?= $row['id'] ?>" <?= $eq['acquisition_type'] == $row['id'] ? 'selected' : '' ?>>
                                             <?= ucwords($row['name']) ?>
@@ -219,7 +219,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                 <select name="location_id" class="custom-select select2" form="manage_equipment" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $locations = $conn->query("SELECT id,name FROM equipment_locations ORDER BY name ASC");
+                                    $locations = $conn->query("SELECT id,name FROM locations ORDER BY name ASC");
                                     while ($row = $locations->fetch_assoc()): ?>
                                         <option value="<?= $row['id'] ?>" <?= ($delivery['location_id'] ?? '') == $row['id'] ? 'selected' : '' ?>>
                                             <?= ucwords($row['name']) ?>
@@ -232,7 +232,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                 <select name="responsible_position" class="custom-select select2" form="manage_equipment">
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $positions = $conn->query("SELECT * FROM equipment_responsible_positions ORDER BY name ASC");
+                                    $positions = $conn->query("SELECT * FROM responsible_positions ORDER BY name ASC");
                                     while ($row = $positions->fetch_assoc()): ?>
                                         <option value="<?= $row['id'] ?>" <?= ($delivery['responsible_position'] ?? '') == $row['id'] ? 'selected' : '' ?>>
                                             <?= ucwords($row['name']) ?>

@@ -7,7 +7,7 @@ if($position_id){
     // Obtener info del puesto
     $qry = $conn->query("SELECT j.*, elp.location_id 
                          FROM job_positions j 
-                         LEFT JOIN equipment_location_positions elp 
+                         LEFT JOIN location_positions elp 
                          ON elp.job_position_id = j.id 
                          WHERE j.id = $position_id");
     if($qry->num_rows > 0){
@@ -34,7 +34,7 @@ if($position_id){
       <select name="location_id" class="form-control" required>
         <option value="">Seleccionar Ubicación</option>
         <?php
-        $locations = $conn->query("SELECT * FROM equipment_locations ORDER BY name ASC");
+        $locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");
         while($row = $locations->fetch_assoc()):
         ?>
           <option value="<?php echo $row['id'] ?>" <?php echo (isset($location_id) && $location_id == $row['id']) ? 'selected' : '' ?>>

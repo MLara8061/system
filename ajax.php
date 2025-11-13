@@ -1,193 +1,231 @@
 <?php
 ob_start();
-$action = $_GET['action'];
 include 'admin_class.php';
 $crud = new Action();
-if($action == 'login'){
-	$login = $crud->login();
-	if($login)
-		echo $login;
-}
-if($action == 'logout'){
-	$logout = $crud->logout();
-	if($logout)
-		echo $logout;
-}
-if($action == 'save_user'){
-	$save = $crud->save_user();
-	if($save)
-		echo $save;
-}
-if($action == 'save_page_img'){
-	$save = $crud->save_page_img();
-	if($save)
-		echo $save;
-}
-if($action == 'delete_user'){
-	$save = $crud->delete_user();
-	if($save)
-		echo $save;
-}
-if($action == "save_customer"){
-	$save = $crud->save_customer();
-	if($save)
-		echo $save;
-}
-if($action == "delete_customer"){
-	$delete = $crud->delete_customer();
-	if($delete)
-		echo $delete;
-}
-if($action == "save_staff"){
-	$save = $crud->save_staff();
-	if($save)
-		echo $save;
-}
-if($action == "delete_staff"){
-	$delete = $crud->delete_staff();
-	if($delete)
-		echo $delete;
-}
-if($action == "save_department"){
-	$save = $crud->save_department();
-	if($save)
-		echo $save;
-}
-if($action == "delete_department"){
-	$delete = $crud->delete_department();
-	if($delete)
-		echo $delete;
-}
-if($action == "save_ticket"){
-	$save = $crud->save_ticket();
-	if($save)
-		echo $save;
-}
-if($action == "delete_ticket"){
-	$delsete = $crud->delete_ticket();
-	if($delsete)
-		echo $delsete;
-}
 
-if($action == "update_ticket"){
-	$save = $crud->update_ticket();
-	if($save)
-		echo $save;
-}
-if($action == "save_comment"){
-	$save = $crud->save_comment();
-	if($save)
-		echo $save;
-}
-if($action == "delete_comment"){
-	$delsete = $crud->delete_comment();
-	if($delsete)
-		echo $delsete;
-}
-if($action == "save_equipment"){
-	$save = $crud->save_equipment();
-	if($save){
-		echo $save;
-	}
+// === OBTENER ACCIÓN DE FORMA SEGURA ===
+$action = $_REQUEST['action'] ?? '';
 
-	if ($action == "delete_equipment_image") {
-		$delete = $crud->delete_equipment_image();
-		if ($delete) echo $delete;
-	}
-
-}
-if($action == "delete_equipment"){
-	$delete = $crud->delete_equipment();
-	if($delete){
-		echo $delete;
-	}
-}
-if($action == "save_equipment_unsubscribe"){
-	$save = $crud->save_equipment_unsubscribe();
-	if($save){
-		echo $save;
-	}
-}
-
-if($action == "save_equipment_revision"){
-	$save = $crud->save_equipment_revision();
-	if($save){
-		echo $save;
-	}
-}
-
-if($action == "save_supplier"){
-	$save = $crud->save_supplier();
-	if($save){
-		echo $save;
-	}
-}
-
-if($action == "delete_supplier"){
-	$delete = $crud->delete_supplier();
-	if($delete){
-		echo $delete;
-	}
-}
-
-// GUARDAR HERRAMIENTA
-if($action == "save_tool"){
-    error_log("AJAX save_tool llamado");
-    $save = $crud->save_tool();
-    error_log("Respuesta save_tool: $save");
-    echo $save;
-}
-
-// ELIMINAR HERRAMIENTA
-if($action == "delete_tool"){
-    $delete = $crud->delete_tool();
-    if($delete){
-        echo $delete; // 1 = éxito
-    }
-}
-//Epp
-if($_GET['action'] == 'save_epp'){
-    echo $crud->save_epp();
-}
-if($_GET['action'] == 'delete_epp'){
-    echo $crud->delete_epp();
-}
-
-//  MANTENIMIENTOS
-if($action == "get_mantenimientos"){
-    echo $crud->get_mantenimientos();
+// ===================================
+// 1. LOGIN / LOGOUT
+// ===================================
+if ($action == 'login') {
+    echo $crud->login();
     exit;
 }
 
-if($action == "save_maintenance"){
+if ($action == 'logout') {
+    echo $crud->logout();
+    exit;
+}
+
+// ===================================
+// 2. USUARIOS
+// ===================================
+if ($action == 'save_user') {
+    echo $crud->save_user();
+    exit;
+}
+
+if ($action == 'delete_user') {
+    echo $crud->delete_user();
+    exit;
+}
+
+// ===================================
+// 3. IMAGEN PÁGINA
+// ===================================
+if ($action == 'save_page_img') {
+    echo $crud->save_page_img();
+    exit;
+}
+
+// ===================================
+// 4. STAFF / DEPARTAMENTOS
+// ===================================
+if ($action == 'save_staff') {
+    echo $crud->save_staff();
+    exit;
+}
+
+if ($action == 'delete_staff') {
+    echo $crud->delete_staff();
+    exit;
+}
+
+if ($action == 'save_department') {
+    echo $crud->save_department();
+    exit;
+}
+
+if ($action == 'delete_department') {
+    echo $crud->delete_department();
+    exit;
+}
+
+// ===================================
+// 5. TICKETS
+// ===================================
+if ($action == 'save_ticket') {
+    echo $crud->save_ticket();
+    exit;
+}
+
+if ($action == 'update_ticket') {
+    echo $crud->update_ticket();
+    exit;
+}
+
+if ($action == 'delete_ticket') {
+    echo $crud->delete_ticket();
+    exit;
+}
+
+if ($action == 'save_comment') {
+    echo $crud->save_comment();
+    exit;
+}
+
+if ($action == 'delete_comment') {
+    echo $crud->delete_comment();
+    exit;
+}
+
+// ===================================
+// 6. EQUIPOS
+// ===================================
+if ($action == 'save_equipment') {
+    echo $crud->save_equipment();
+    exit;
+}
+
+// 
+if ($action == 'delete_equipment_image') {
+    echo $crud->delete_equipment_image();
+    exit;
+}
+
+if ($action == 'delete_equipment') {
+    echo $crud->delete_equipment();
+    exit;
+}
+
+if ($action == 'save_equipment_unsubscribe') {
+    echo $crud->save_equipment_unsubscribe();
+    exit;
+}
+
+if ($action == 'save_equipment_revision') {
+    echo $crud->save_equipment_revision();
+    exit;
+}
+
+// ===================================
+// 7. PROVEEDORES
+// ===================================
+if ($action == 'save_supplier') {
+    echo $crud->save_supplier();
+    exit;
+}
+
+if ($action == 'delete_supplier') {
+    echo $crud->delete_supplier();
+    exit;
+}
+
+// ===================================
+// 8. HERRAMIENTAS
+// ===================================
+if ($action == 'save_tool') {
+    error_log("AJAX save_tool llamado");
+    $result = $crud->save_tool();
+    error_log("Respuesta save_tool: $result");
+    echo $result;
+    exit;
+}
+
+if ($action == 'delete_tool') {
+    $result = $crud->delete_tool();
+    echo $result;
+    exit;
+}
+
+// ===================================
+// 9. ACCESORIOS
+// ===================================
+if ($action == 'save_accessory') {
+    echo $crud->save_accessory();
+    exit;
+}
+
+if ($action == 'delete_accessory') {
+    echo $crud->delete_accessory();
+    exit;
+}
+
+// ===================================
+// 10. MANTENIMIENTOS
+// ===================================
+if ($action == 'get_mantenimientos') {
+    $crud->get_mantenimientos(); // Ya tiene header + exit
+    exit;
+}
+
+if ($action == 'save_maintenance') {
     echo $crud->save_maintenance();
     exit;
 }
 
-if($action == "complete_maintenance"){
+if ($action == 'complete_maintenance') {
     echo $crud->complete_maintenance();
     exit;
 }
 
-// GUARDAR / EDITAR UBICACIÓN
-if($action == "save_equipment_location"){
+// ===================================
+// 11. UBICACIONES
+// ===================================
+if ($action == 'save_equipment_location') {
     echo $crud->save_equipment_location();
-  }
+    exit;
+}
 
-  if($action == "delete_equipment_location"){
+if ($action == 'delete_equipment_location') {
     echo $crud->delete_equipment_location();
-  }
-  
-// GUARDAR / EDITAR PUESTO DE TRABAJO
-if($action == "save_job_position"){
+    exit;
+}
+
+// ===================================
+// 12. PUESTOS DE TRABAJO
+// ===================================
+if ($action == 'save_job_position') {
     echo $crud->save_job_position();
+    exit;
 }
 
-// ELIMINAR PUESTO DE TRABAJO
-if($action == "delete_job_position"){
+if ($action == 'delete_job_position') {
     echo $crud->delete_job_position();
+    exit;
 }
 
+// ===================================
+// 13. INVENTARIO
+// ===================================
+if ($action == 'save_inventory') {
+    error_log("AJAX save_inventory llamado");
+    $result = $crud->save_inventory();
+    error_log("Respuesta save_inventory: $result");
+    echo $result;
+    exit;
+}
 
+if ($action == 'delete_inventory') {
+    error_log("AJAX delete_inventory llamado");
+    $result = $crud->delete_inventory();
+    error_log("Respuesta delete_inventory: $result");
+    echo $result;
+    exit;
+}
+
+// === FIN ===
 ob_end_flush();
 ?>

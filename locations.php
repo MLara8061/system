@@ -20,7 +20,7 @@
         <tbody>
           <?php
           $i = 1;
-          $qry = $conn->query("SELECT * FROM equipment_locations ORDER BY name ASC");
+          $qry = $conn->query("SELECT * FROM locations ORDER BY name ASC");
           while ($row = $qry->fetch_assoc()):
           ?>
             <tr>

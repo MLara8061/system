@@ -23,8 +23,8 @@
           $i = 1;
           $qry = $conn->query("SELECT j.id as job_id, j.name as job_name, l.name as location_name, l.id as location_id 
                                FROM job_positions j 
-                               LEFT JOIN equipment_location_positions elp ON elp.job_position_id = j.id
-                               LEFT JOIN equipment_locations l ON l.id = elp.location_id
+                               LEFT JOIN location_positions elp ON elp.job_position_id = j.id
+                               LEFT JOIN locations l ON l.id = elp.location_id
                                ORDER BY j.name ASC");
           while ($row = $qry->fetch_assoc()):
           ?>

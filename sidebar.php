@@ -42,7 +42,7 @@
                 <p>Reporte de Sistemas</p>
               </a></li>
             <li class="nav-item"><a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_report_revision_month tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                <p>Informe Revisiones Mensual</p>
+                <p>Revisiones Mensual</p>
               </a></li>
           </ul>
         </li>
@@ -86,11 +86,27 @@
             <p>Accesorios <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item"><a href="index.php?page=new_epp" class="nav-link nav-new_epp tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_accesories" class="nav-link nav-new_epp tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Ingresar </p>
               </a></li>
-            <li class="nav-item"><a href="index.php?page=epp_list" class="nav-link nav-epp_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=accessories_list" class="nav-link nav-epp_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos los Accesorios</p>
+              </a></li>
+          </ul>
+        </li>
+
+        <!-- Inventario -->
+        <li class="nav-item">
+          <a href="#" class="nav-link nav-epp">
+            <i class="nav-icon fas fa-store"></i>
+            <p>Inventario <i class="right fas fa-angle-left"></i></p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item"><a href="index.php?page=manage_inventory" class="nav-link nav-new_epp tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Ingresar </p>
+              </a></li>
+            <li class="nav-item"><a href="index.php?page=inventory_list" class="nav-link nav-epp_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos</p>
               </a></li>
           </ul>
         </li>
@@ -155,7 +171,7 @@
                  
                 </li>
                 <li class="nav-item">
-                  <a href="index.php?page=equipment_locations" class="nav-link nav-equipment_locations tree-item">
+                  <a href="index.php?page=locations" class="nav-link nav-equipment_locations tree-item">
                     <i class="fas fa-angle-right nav-icon"></i>
                     <p>Lista de Ubicaciones</p>
                   </a>
@@ -185,7 +201,7 @@
             <li class="nav-item">
               <a href="#" class="nav-link nav-maintenance">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Mantenimientos <i class="right fas fa-angle-left"></i></p>
+                <p>Usuarios <i class="right fas fa-angle-left"></i></p>
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item"><a href="index.php?page=create_user" class="nav-link nav-create_user tree-item"><i class="fas fa-angle-right nav-icon"></i>
