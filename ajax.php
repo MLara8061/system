@@ -32,6 +32,16 @@ if ($action == 'delete_user') {
     exit;
 }
 
+if ($action == 'check_username') {
+    echo $crud->check_username();
+    exit;
+}
+
+if ($action == 'upload_avatar') {
+    echo $crud->upload_avatar();
+    exit;
+}
+
 // ===================================
 // 3. IMAGEN PÁGINA
 // ===================================

@@ -1,88 +1,170 @@
-<div class="card card-outline card-primary">
-<div class="card-header">
-<h5><span class="fa fa-plus text-primary"></span> Nuevo Usuario</h5>
+<?php 
+include 'db_connect.php';
+$id = $_GET['id'] ?? 0;
+$is_edit = $id > 0;
+$user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_assoc() : [];
+$title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
+?>
+
+<div class="container-fluid">
+    <div class="card shadow-sm border-0" style="border-radius: 16px;">
+        <div class="card-header bg-white border-0 pb-0">
+            <h5 class="modal-title text-dark mb-0">
+                <i class="fa fa-user-plus text-primary mr-2"></i> <?= $title ?>
+            </h5>
+        </div>
+        <div class="card-body pt-3">
+            <form id="manage-user-form">
+                <input type="hidden" name="id" value="<?= $id ?>">
+
+                <!-- NOMBRE -->
+                <div class="form-group">
+                    <label class="font-weight-bold"><strong>Nombre</strong></label>
+                    <input type="text" name="firstname" class="form-control form-control-sm" 
+                           value="<?= $user['firstname'] ?? '' ?>" required placeholder="Ej: Juan">
+                </div>
+
+                <!-- SEGUNDO NOMBRE -->
+                <div class="form-group">
+                    <label class="font-weight-bold"><strong>Segundo Nombre</strong></label>
+                    <input type="text" name="middlename" class="form-control form-control-sm" 
+                           value="<?= $user['middlename'] ?? '' ?>" placeholder="Opcional">
+                </div>
+
+                <!-- APELLIDO -->
+                <div class="form-group">
+                    <label class="font-weight-bold"><strong>Apellido</strong></label>
+                    <input type="text" name="lastname" class="form-control form-control-sm" 
+                           value="<?= $user['lastname'] ?? '' ?>" required placeholder="Ej: Pérez">
+                </div>
+
+                <!-- USUARIO -->
+                <div class="form-group">
+                    <label class="font-weight-bold"><strong>Usuario</strong></label>
+                    <input type="text" name="username" id="username" class="form-control form-control-sm" 
+                           value="<?= $user['username'] ?? '' ?>" required placeholder="Nombre de acceso">
+                    <small id="username-feedback" class="text-danger"></small>
+                </div>
+
+                <!-- ROL -->
+                <div class="form-group">
+                    <label class="font-weight-bold"><strong>Rol</strong></label>
+                    <select name="role" class="form-control form-control-sm" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="1" <?= ($user['role'] ?? '') == 1 ? 'selected' : '' ?>>Administrador</option>
+                        <option value="2" <?= ($user['role'] ?? '') == 2 ? 'selected' : '' ?>>Usuario</option>
+                    </select>
+                </div>
+
+                <!-- CONTRASEÑA -->
+                <div class="form-group">
+                    <label class="font-weight-bold">
+                        <strong>Contraseña</strong> 
+                        <small class="text-muted">
+                            <?= $is_edit ? '(Dejar vacío para no cambiar)' : '(Requerida)' ?>
+                        </small>
+                    </label>
+                    <input type="password" name="password" id="password" class="form-control form-control-sm" 
+                           placeholder="<?= $is_edit ? 'Nueva contraseña' : 'Contraseña segura' ?>" 
+                           <?= !$is_edit ? 'required' : '' ?>>
+                    <small id="password-strength" class="text-muted"></small>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="form-group text-right mt-4">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="history.back()">
+                        <i class="fas fa-arrow-left mr-1"></i> Volver
+                    </button>
+                    <button type="submit" class="btn btn-success btn-sm font-weight-bold">
+                        <i class="fas fa-save mr-1"></i> <?= $is_edit ? 'Guardar Cambios' : 'Crear Usuario' ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-	<div class="card-body">
-		<div class="container-fluid">
-			<div id="msg"></div>
-			<form action="" id="manage-user">	
-				<input type="hidden" name="id" value="">
-				<div class="form-group">
-					<label for="name">Nombre</label>
-					<input type="text" name="firstname" id="firstname" class="form-control" value="" required>
-				</div>
-				<div class="form-group">
-					<label for="name">Apellido</label>
-					<input type="text" name="lastname" id="lastname" class="form-control" value="" required>
-				</div>
-				<div class="form-group">
-					<label for="username">Usuario</label>
-					<input type="text" name="username" id="username" class="form-control" value="" required  autocomplete="off">
-				</div>
-				<div class="form-group">
-					<label for="password">Contraseña</label>
-					<input type="password" name="password" id="password" class="form-control" value="" autocomplete="off">
-				</div>
-				<div class="form-group">
-					<label for="" class="control-label">Avatar</label>
-					<div class="custom-file">
-		              <input type="file" class="custom-file-input rounded-circle" id="customFile" name="img" onchange="displayImg(this,$(this))">
-		              <label class="custom-file-label" for="customFile">Escoger archivo</label>
-		            </div>
-				</div>
-				<div class="form-group d-flex justify-content-center">
-					<img src="" alt="" id="cimg" class="img-fluid img-thumbnail">
-				</div>
-			</form>
-		</div>
-	</div>
-	<div class="card-footer">
-			<div class="col-md-12">
-				<div class="row">
-					<button class="btn btn-sm btn-primary" form="manage-user">Guardar</button>
-				</div>
-			</div>
-		</div>
-</div>
+
 <style>
-	img#cimg{
-		height: 15vh;
-		width: 15vh;
-		object-fit: cover;
-		border-radius: 100% 100%;
-	}
+    .card { max-width: 500px; margin: 0 auto; }
+    .form-control-sm { border-radius: 8px; font-size: 0.9rem; }
+    .form-group label { font-size: 0.9rem; color: #495057; }
+    .btn { min-width: 120px; border-radius: 8px; }
+    #username-feedback { font-size: 0.8rem; }
+    #password-strength { font-size: 0.8rem; }
 </style>
+
 <script>
-	function displayImg(input,_this) {
-	    if (input.files && input.files[0]) {
-	        var reader = new FileReader();
-	        reader.onload = function (e) {
-	        	$('#cimg').attr('src', e.target.result);
-	        }
+$(document).ready(function() {
+    const $form = $('#manage-user-form');
+    const $username = $('#username');
+    const $password = $('#password');
+    const isEdit = <?= $is_edit ? 'true' : 'false' ?>;
 
-	        reader.readAsDataURL(input.files[0]);
-	    }
-	}
-	$('#manage-user').submit(function(e){
-		e.preventDefault();
-		start_loader()
-		$.ajax({
-			url:_base_url_+'classes/Users.php?f=save',
-			data: new FormData($(this)[0]),
-		    cache: false,
-		    contentType: false,
-		    processData: false,
-		    method: 'POST',
-		    type: 'POST',
-			success:function(resp){
-				if(resp ==1){
-					location.href = _base_url_+'admin/?page=user/user_list';
-				}else{
-					$('#msg').html('<div class="alert alert-danger">Usuario existe actualmente</div>')
-					end_loader()
-				}
-			}
-		})
-	})
+    // === VALIDAR USUARIO EN TIEMPO REAL ===
+    let usernameTimeout;
+    $username.on('input', function() {
+        clearTimeout(usernameTimeout);
+        const val = $(this).val().trim();
+        if (val.length < 3) {
+            $('#username-feedback').text('');
+            return;
+        }
+        usernameTimeout = setTimeout(() => {
+            $.ajax({
+                url: 'ajax.php?action=check_username',
+                method: 'POST',
+                data: { username: val, id: <?= $id ?> },
+                success: function(resp) {
+                    if (resp == 1) {
+                        $('#username-feedback').html('<i class="fas fa-times-circle"></i> Usuario ya existe');
+                        $username.addClass('is-invalid');
+                    } else {
+                        $('#username-feedback').html('<i class="fas fa-check-circle text-success"></i> Disponible');
+                        $username.removeClass('is-invalid');
+                    }
+                }
+            });
+        }, 500);
+    });
 
+    // === FUERZA DE CONTRASEÑA ===
+    $password.on('input', function() {
+        const val = $(this).val();
+        let strength = '';
+        if (val.length === 0) strength = '';
+        else if (val.length < 6) strength = '<span class="text-danger">Débil</span>';
+        else if (val.length < 10) strength = '<span class="text-warning">Media</span>';
+        else strength = '<span class="text-success">Fuerte</span>';
+        $('#password-strength').html(strength);
+    });
+
+    // === ENVIAR FORMULARIO ===
+    $form.submit(function(e) {
+        e.preventDefault();
+        if ($username.hasClass('is-invalid')) {
+            alert_toast("Corrige el usuario", 'danger');
+            return;
+        }
+        start_load();
+        $.ajax({
+            url: 'ajax.php?action=save_user',
+            method: 'POST',
+            data: $form.serialize(),
+            success: function(resp) {
+                if (resp == 1) {
+                    alert_toast("Usuario guardado", 'success');
+                    setTimeout(() => {
+                        location.href = 'index.php?page=user_list';
+                    }, 1000);
+                } else if (resp == 2) {
+                    alert_toast("El usuario ya existe", 'danger');
+                    end_load();
+                } else {
+                    alert_toast("Error al guardar", 'danger');
+                    end_load();
+                }
+            }
+        });
+    });
+});
 </script>

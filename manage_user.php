@@ -1,56 +1,54 @@
-<?php
-include('db_connect.php');
-
-$utype = array('', 'users', 'staff', 'customers');
-
-$user_table = $utype[$_SESSION['login_type']] ?? 'users';
-
-if (isset($_GET['id'])) {
-    $user = $conn->query("SELECT * FROM $user_table WHERE id = " . $_GET['id']);
-    if ($user && $user->num_rows > 0) {
-        foreach ($user->fetch_array() as $k => $v) {
-            $meta[$k] = $v;
-        }
-    }
-}
+<?php 
+include 'db_connect.php';
+$id = $_GET['id'] ?? 0;
+$is_edit = $id > 0;
+$user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_assoc() : [];
 ?>
+
 <div class="container-fluid">
-    <div id="msg"></div>
+    <form id="manage-user-form">
+        <input type="hidden" name="id" value="<?= $id ?>">
 
-    <form id="manage-user">
-        <input type="hidden" name="id" value="<?= $meta['id'] ?? '' ?>">
-        <input type="hidden" name="table" value="<?= $user_table ?>">
-
+        <!-- NOMBRE COMPLETO -->
         <div class="form-group">
-            <label>Nombre</label>
-            <input type="text" name="firstname" class="form-control" value="<?= $meta['firstname'] ?? '' ?>" required>
-        </div>
-        <div class="form-group">
-            <label>Segundo Nombre</label>
-            <input type="text" name="middlename" class="form-control" value="<?= $meta['middlename'] ?? '' ?>">
-        </div>
-        <div class="form-group">
-            <label>Apellido</label>
-            <input type="text" name="lastname" class="form-control" value="<?= $meta['lastname'] ?? '' ?>" required>
-        </div>
-        <div class="form-group">
-            <label>Usuario/Correo</label>
-            <input type="text" name="username" class="form-control" value="<?= $meta['username'] ?? '' ?>" required>
-        </div>
-        <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" name="password" class="form-control" placeholder="Dejar en blanco para no cambiar">
+            <label><strong>Nombre</strong></label>
+            <input type="text" name="firstname" class="form-control" value="<?= $user['firstname'] ?? '' ?>" required>
         </div>
 
-        <div class="form-group text-right">
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="index.php?page=user_list" class="btn btn-secondary">Cancelar</a>
+        <div class="form-group">
+            <label><strong>Segundo Nombre</strong></label>
+            <input type="text" name="middlename" class="form-control" value="<?= $user['middlename'] ?? '' ?>">
+        </div>
+
+        <div class="form-group">
+            <label><strong>Apellido</strong></label>
+            <input type="text" name="lastname" class="form-control" value="<?= $user['lastname'] ?? '' ?>" required>
+        </div>
+
+        <!-- USUARIO Y ROL -->
+        <div class="form-group">
+            <label><strong>Usuario</strong></label>
+            <input type="text" name="username" class="form-control" value="<?= $user['username'] ?? '' ?>" required>
+        </div>
+
+        <div class="form-group">
+            <label><strong>Rol</strong></label>
+            <select name="role" class="form-control" required>
+                <option value="1" <?= ($user['role'] ?? '') == 1 ? 'selected' : '' ?>>Administrador</option>
+                <option value="2" <?= ($user['role'] ?? '') == 2 ? 'selected' : '' ?>>Usuario</option>
+            </select>
+        </div>
+
+        <!-- CONTRASEÑA -->
+        <div class="form-group">
+            <label><strong>Contraseña</strong> <small class="text-muted">(Dejar vacío para no cambiar)</small></label>
+            <input type="password" name="password" class="form-control" placeholder="Nueva contraseña">
         </div>
     </form>
 </div>
 
 <script>
-$('#manage-user').submit(function(e) {
+$('#manage-user-form').submit(function(e) {
     e.preventDefault();
     start_load();
     $.ajax({
@@ -60,12 +58,15 @@ $('#manage-user').submit(function(e) {
         success: function(resp) {
             if (resp == 1) {
                 alert_toast("Usuario guardado", 'success');
-                setTimeout(() => location.href = 'index.php?page=user_list', 1500);
+                setTimeout(() => {
+                    $('#editUserModal').modal('hide');
+                    location.reload();
+                }, 1000);
             } else if (resp == 2) {
-                $('#msg').html('<div class="alert alert-danger">Usuario ya existe</div>');
+                alert_toast("El usuario ya existe", 'danger');
                 end_load();
             } else {
-                alert_toast("Error", 'error');
+                alert_toast("Error al guardar", 'danger');
                 end_load();
             }
         }

@@ -1,6 +1,4 @@
 <br>
-<h5 class="">Categoría de Servicios</h5>
-<hr>
 <div class="row">
 	<div class="container-fluid">
 		<div class="card card-outline card-primary">

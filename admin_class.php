@@ -23,22 +23,29 @@ class Action {
     }
 
     // ================== LOGIN / LOGOUT ==================
-    function login() {
+    function login()
+    {
         extract($_POST);
-        $table = $type == 1 ? 'users' : ($type == 2 ? 'staff' : 'customers');
-        $field = $type == 1 ? 'username' : 'email';
-        $qry = $this->db->query("SELECT *, CONCAT(lastname,', ',firstname,' ',middlename) as name 
-                                FROM $table WHERE $field = '$username' AND password = '".md5($password)."' ");
+        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "' AND role = '" . $type . "'");
+
         if ($qry->num_rows > 0) {
-            foreach ($qry->fetch_array() as $key => $value) {
-                if ($key != 'password' && !is_numeric($key))
-                    $_SESSION['login_'.$key] = $value;
+            $user = $qry->fetch_array(); // GUARDAR EN VARIABLE
+
+            foreach ($user as $key => $value) {
+                if ($key != 'password' && !is_numeric($key)) {
+                    $_SESSION['login_' . $key] = $value;
+                }
             }
-            $_SESSION['login_type'] = $type;
+
+            // GUARDAR AVATAR DESDE $user (NO VOLVER A LLAMAR fetch_assoc)
+            $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
+
             return 1;
         } else {
-            return 3;
+            return 2;
         }
+        $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
+        return 1;
     }
 
     function logout() {
@@ -50,30 +57,96 @@ class Action {
     }
 
     // ================== USUARIOS ==================
-    function save_user() {
+    function save_user()
+    {
         extract($_POST);
-        $ue = $_SESSION['login_type'] == 1 ? 'username' : 'email';
-        $data = " firstname = '$firstname', middlename = '$middlename', lastname = '$lastname', $ue = '$username' ";
-        if (!empty($password)) $data .= ", password = '".md5($password)."' ";
+        $id = $id ?? 0;
+        $current_user = $_SESSION['login_id'] ?? 0;
 
-        $chk = $this->db->query("SELECT * FROM $table WHERE $ue = '$username' AND id != '$id'")->num_rows;
-        if ($chk > 0) return 2;
+        // Solo admin o el propio usuario
+        if ($_SESSION['login_type'] != 1 && $id != $current_user) {
+            return 0;
+        }
 
-        $save = empty($id)
-            ? $this->db->query("INSERT INTO $table SET $data")
-            : $this->db->query("UPDATE $table SET $data WHERE id = $id");
+        // Validar usuario único (excepto si no cambió)
+        $original = $this->db->query("SELECT username FROM users WHERE id = $id")->fetch_assoc()['username'] ?? '';
+        if ($username !== $original) {
+            $chk = $this->db->query("SELECT * FROM users WHERE username = '$username' AND id != $id")->num_rows;
+            if ($chk > 0) return 2;
+        }
+
+        // Construir query con todos los campos
+        $data = " firstname = '$firstname'";
+        $data .= ", middlename = '$middlename'";
+        $data .= ", lastname = '$lastname'";
+        $data .= ", username = '$username'";
+        $data .= ", role = '" . ($role ?? 2) . "'";  // Asegurar que role siempre tenga valor
+
+        if (!empty($password)) {
+            $data .= ", password = '" . md5($password) . "'";
+        }
+
+        $sql = $id == 0
+            ? "INSERT INTO users SET $data"
+            : "UPDATE users SET $data WHERE id = $id";
+
+        $save = $this->db->query($sql);
+        return $save ? 1 : 0;
+
+        if ($id == 0) {
+            $data .= ", date_created = UNIX_TIMESTAMP()";
+            $sql = "INSERT INTO users SET $data";
+        } else {
+            $sql = "UPDATE users SET $data WHERE id = $id";
+        }
+        $save = $this->db->query($sql);
 
         if ($save) {
-            $_SESSION['login_firstname'] = $firstname;
-            $_SESSION['login_middlename'] = $middlename;
-            $_SESSION['login_lastname'] = $lastname;
+            $action = $id == 0 ? "Añadió usuario" : "Editó usuario ID: $id";
+            $this->log_activity($action, 'users', $id == 0 ? $this->db->insert_id : $id);
             return 1;
         }
+        return 0;
     }
 
-    function delete_user() {
+    function upload_avatar()
+    {
         extract($_POST);
-        return $this->db->query("DELETE FROM users WHERE id = $id") ? 1 : 0;
+        $id = $id ?? 0;
+        if ($_SESSION['login_id'] != $id && $_SESSION['login_type'] != 1) return;
+
+        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] != 0) return;
+
+        $fname = 'avatar_' . $id . '_' . time() . '.jpg';
+        $path = 'assets/avatars/' . $fname;
+
+        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $path)) {
+            // Eliminar anterior
+            $old = $this->db->query("SELECT avatar FROM users WHERE id = $id")->fetch_assoc()['avatar'];
+            if ($old && $old != 'default-avatar.png' && file_exists('assets/avatars/' . $old)) {
+                unlink('assets/avatars/' . $old);
+            }
+
+            // GUARDAR EN BD
+            $this->db->query("UPDATE users SET avatar = '$fname' WHERE id = $id");
+
+            // **ACTUALIZAR SESIÓN**
+            $_SESSION['login_avatar'] = $fname;
+
+            return 'assets/avatars/' . $fname;
+        }
+        return '';
+    }
+
+    function delete_user()
+    {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM users WHERE id = $id");
+        if ($delete) {
+            $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
+            return 1;
+        }
+        return 0;
     }
 
     // ================== IMAGEN PÁGINA ==================
@@ -91,6 +164,18 @@ class Action {
             }
         }
     }
+
+    function check_username() {
+    extract($_POST);
+    $id = $id ?? 0;
+    $username = trim($username);
+    $sql = "SELECT * FROM users WHERE username = ? AND id != ?";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bind_param("si", $username, $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0 ? 1 : 0;
+}
 
     // ================== CLIENTES / STAFF ==================
     function save_customer() {
@@ -711,5 +796,23 @@ class Action {
         if (empty($id)) return 0;
         return $this->db->query("DELETE FROM suppliers WHERE id = $id") ? 1 : 0;
     }
+
+    //======== LOG ACTIVITY
+function log_activity($action, $table_name, $record_id = null) {
+    $user_id = $_SESSION['login_id'] ?? 0;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    
+    $action = $this->db->real_escape_string($action);
+    $table_name = $this->db->real_escape_string($table_name);
+    $record_id = $record_id ? (int)$record_id : 'NULL';
+
+    $sql = "INSERT INTO activity_log 
+            (user_id, action, table_name, record_id, ip_address) 
+            VALUES ($user_id, '$action', '$table_name', $record_id, '$ip')";
+
+    return $this->db->query($sql);
+}
+
+
 }
 ?>

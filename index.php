@@ -66,6 +66,8 @@ $allowed_pages = [
     'manage_user',
     'manage_inventory',
     'inventory_list',
+    'profile',
+    'activity_log',
 
     // AÑADE MÁS AQUÍ
 ];

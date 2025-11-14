@@ -1,15 +1,31 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <div class="dropdown">
-    <a href="javascript:void(0)" class="brand-link dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-      <span class="brand-image img-circle elevation-3 d-flex justify-content-center align-items-center bg-primary text-white font-weight-500" style="width: 38px;height:50px">
-        <?php echo strtoupper(substr($_SESSION['login_firstname'], 0, 1) . substr($_SESSION['login_lastname'], 0, 1)) ?>
+    <a href="javascript:void(0)"
+      class="brand-link dropdown-toggle text-decoration-none"
+      data-toggle="dropdown"
+      aria-expanded="true">
+
+      <!-- FOTO -->
+      <img src="assets/avatars/<?= $_SESSION['login_avatar'] ?? 'default-avatar.png' ?>"
+        alt="Avatar"
+        class="brand-image img-circle elevation-3"
+        style="width: 38px; height: 38px; object-fit: cover;">
+
+      <!-- NOMBRE -->
+      <span class="brand-text font-weight-light">
+        <?= ucwords($_SESSION['login_firstname'] . ' ' . $_SESSION['login_lastname']) ?>
       </span>
-      <span class="brand-text font-weight-light"><?php echo ucwords($_SESSION['login_firstname'] . ' ' . $_SESSION['login_lastname']) ?></span>
     </a>
-    <div class="dropdown-menu">
-      <a class="dropdown-item manage_account" href="javascript:void(0)" data-id="<?php echo $_SESSION['login_id'] ?>">Gestionar Cuenta</a>
+
+    <div class="dropdown-menu dropdown-menu-right">
+      <!-- MI CUENTA → profile.php -->
+      <a class="dropdown-item" href="index.php?page=profile">
+        <i class="fas fa-user-cog mr-2"></i> Mi Cuenta
+      </a>
       <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="ajax.php?action=logout">Cerrar Sesión</a>
+      <a class="dropdown-item" href="ajax.php?action=logout">
+        <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
+      </a>
     </div>
   </div>
 
@@ -119,7 +135,17 @@
           </a>
         </li>
 
+        <!-- Registro de actividad -->
+        <?php if ($_SESSION['login_role'] == 1): ?>
+          <li class="nav-item">
+            <a href="index.php?page=activity_log" class="nav-link">
+              <i class="fas fa-history nav-icon"></i>
+              <p>Registro de Actividad</p>
+            </a>
+          </li>
+        <?php endif; ?>
         <!-- Configuración -->
+         <?php if($_SESSION['login_role'] == 1): ?>
         <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon fas fa-cogs"></i>
@@ -159,6 +185,7 @@
                   </a></li>
               </ul>
             </li>
+            <?php endif; ?>
 
             <!-- Ubicaciones -->
             <li class="nav-item">
@@ -168,7 +195,7 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
-                 
+
                 </li>
                 <li class="nav-item">
                   <a href="index.php?page=locations" class="nav-link nav-equipment_locations tree-item">
@@ -204,11 +231,8 @@
                 <p>Usuarios <i class="right fas fa-angle-left"></i></p>
               </a>
               <ul class="nav nav-treeview">
-                <li class="nav-item"><a href="index.php?page=create_user" class="nav-link nav-create_user tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Crear Usuario</p>
-                  </a></li>
                 <li class="nav-item"><a href="index.php?page=user_list" class="nav-link nav-user_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Lista de Usuarios</p>
+                    <p>Todos los Usuarios</p>
                   </a></li>
               </ul>
             </li>
