@@ -26,10 +26,15 @@ class Action {
     function login()
     {
         extract($_POST);
-        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "' AND role = '" . $type . "'");
+        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "'");
 
         if ($qry->num_rows > 0) {
             $user = $qry->fetch_array();
+            
+            // Validar que el role coincida con el type solicitado
+            if ($user['role'] != $type) {
+                return 2; // Credenciales incorrectas
+            }
 
             foreach ($user as $key => $value) {
                 if ($key != 'password' && !is_numeric($key)) {
