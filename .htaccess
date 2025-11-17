@@ -10,11 +10,12 @@
   Require all denied
 </FilesMatch>
 
-# Bloquear acceso directo a vistas PHP (solo permitir index.php, login.php, ajax.php)
+# Bloquear acceso directo a vistas PHP (solo permitir archivos específicos)
 <FilesMatch "\.php$">
   Require all denied
 </FilesMatch>
 
-<FilesMatch "^(index|login|ajax)\.php$">
+# Permitir acceso a archivos públicos y modales
+<FilesMatch "^(index|login|ajax|manage_user_modal|manage_comment|manage_ticket|manage_category|manage_department|manage_equipment_location|manage_inventory|manage_job_position|manage_services|generate_qr|generate_pdf|print_label|report_pdf|export_equipment|export_suppliers)\.php$">
   Require all granted
 </FilesMatch>
