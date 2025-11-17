@@ -199,6 +199,20 @@ $pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id =
                         </div>
                     </div>
 
+                    <!-- CÓDIGO QR -->
+                    <div class="qr-container mt-4">
+                        <h6 class="info-label mb-3"><i class="fas fa-qrcode"></i> Código QR</h6>
+                        <img src="generate_qr.php?id=<?= $equipment_id ?>" alt="QR Code" class="img-fluid mb-2" style="max-width: 200px;">
+                        <div>
+                            <a href="print_label.php?id=<?= $equipment_id ?>" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fas fa-print"></i> Imprimir Etiqueta
+                            </a>
+                            <button class="btn btn-sm btn-outline-success" onclick="regenerateQR(<?= $equipment_id ?>)">
+                                <i class="fas fa-sync-alt"></i> Regenerar QR
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- BOTÓN SOLICITAR REVISIÓN -->
                     <div class="text-center mt-5">
                         <a href="index.php?page=equipment_new_revision&id=<?= $equipment_id ?>" 
@@ -269,5 +283,31 @@ $pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id =
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function regenerateQR(equipmentId) {
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    
+    // Cambiar estado del botón
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerando...';
+    
+    // Forzar regeneración
+    const img = document.querySelector('.qr-container img');
+    const timestamp = new Date().getTime();
+    img.src = `generate_qr.php?id=${equipmentId}&force=1&t=${timestamp}`;
+    
+    // Restaurar botón después de 2 segundos
+    img.onload = function() {
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle text-success"></i> Regenerado';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        }, 500);
+    };
+}
+</script>
 </body>
 </html>

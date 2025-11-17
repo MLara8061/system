@@ -27,7 +27,13 @@ $url = $base_url . $id;
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';
 
-// Generamos el QR si no existe o si se quiere regenerar
+// Regenerar si se solicita
+$force = isset($_GET['force']) && $_GET['force'] == '1';
+if ($force && file_exists($filename)) {
+    unlink($filename);
+}
+
+// Generamos el QR si no existe o si se regeneró
 if (!file_exists($filename)) {
     QRcode::png($url, $filename, QR_ECLEVEL_L, 5);
 }

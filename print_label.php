@@ -6,9 +6,15 @@ $id = (int)$_GET['id'];
 $qry = $conn->query("SELECT * FROM equipments WHERE id = $id");
 $eq = $qry->fetch_assoc();
 
+// Generar URL dinámica para QR
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'];
+$script_dir = dirname($_SERVER['SCRIPT_NAME']);
+$qr_url = $protocol . $host . $script_dir . '/index.php?page=view_equipment&id=' . $id;
+
 // Generar QR en base64 (QR más grande dentro de etiqueta pequeña)
 ob_start();
-QRcode::png("http://$_SERVER[HTTP_HOST]/system/view_equipment.php?id=$id", null, QR_ECLEVEL_L, 6); // tamaño QR ajustado
+QRcode::png($qr_url, null, QR_ECLEVEL_L, 6);
 $imageString = base64_encode(ob_get_contents());
 ob_end_clean();
 
