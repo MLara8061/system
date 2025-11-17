@@ -1,12 +1,17 @@
 <?php
-// Diagnóstico de usuarios - acceso solo desde localhost
+// Diagnóstico de usuarios
 require_once 'config/config.php';
 
-// Solo permitir desde localhost
-$is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'localhost']);
-if (!$is_local) {
+// Verificar si el entorno es local o si hay una contraseña temporal
+$is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) 
+    || $_SERVER['HTTP_HOST'] === 'localhost' 
+    || strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false;
+
+// Permitir con contraseña temporal en producción
+$temp_pass = $_GET['auth'] ?? '';
+if (!$is_local && $temp_pass !== 'delsoldev2024') {
     http_response_code(403);
-    die('Acceso denegado');
+    die('Acceso denegado. Use: ?auth=delsoldev2024');
 }
 
 header('Content-Type: text/plain; charset=utf-8');
