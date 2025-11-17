@@ -39,7 +39,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
 
 // === NOMBRES ADICIONALES ===
 $dept = $conn->query("SELECT name FROM departments WHERE id = " . ($delivery['department_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
-$loc = $conn->query("SELECT name FROM equipment_locations WHERE id = " . ($delivery['location_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+$loc = $conn->query("SELECT name FROM locations WHERE id = " . ($delivery['location_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
 $pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id = " . ($delivery['responsible_position'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
 ?>
 
