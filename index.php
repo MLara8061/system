@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php 
+// Constante para permitir includes de vistas
+define('ALLOW_DIRECT_ACCESS', true);
+
 session_start();
 if (!isset($_SESSION['login_id'])) {
   header('location:login.php');
