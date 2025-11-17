@@ -50,9 +50,13 @@
                     <h6 class="mb-0 text-muted">Último Creado</h6>
                     <?php 
                     $last = $conn->query("SELECT date_created FROM users ORDER BY date_created DESC LIMIT 1")->fetch_assoc();
-                    $fecha = $last && $last['date_created'] > 0 
-                        ? date('d/m/Y', $last['date_created']) 
-                        : 'N/A';
+                    if ($last && $last['date_created']) {
+                        // Detectar si es timestamp o datetime
+                        $timestamp = is_numeric($last['date_created']) ? $last['date_created'] : strtotime($last['date_created']);
+                        $fecha = date('d/m/Y', $timestamp);
+                    } else {
+                        $fecha = 'N/A';
+                    }
                     ?>
                     <h4 class="mb-0"><?= $fecha ?></h4>
                 </div>
@@ -107,7 +111,15 @@
                             <td><?= ucwords($fullname) ?></td>
                             <td class="text-center"><?= $role ?></td>
                             <td><code><?= $row['username'] ?></code></td>
-                            <td><small><?= date('d/m/Y', $row['date_created']) ?></small></td>
+                            <td>
+                                <small>
+                                    <?php 
+                                    // Detectar si es timestamp o datetime
+                                    $timestamp = is_numeric($row['date_created']) ? $row['date_created'] : strtotime($row['date_created']);
+                                    echo date('d/m/Y', $timestamp);
+                                    ?>
+                                </small>
+                            </td>
 
                             <!-- ACCIONES -->
                             <td class="text-center">
