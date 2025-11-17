@@ -1,5 +1,5 @@
 <?php 
-include 'db_connect.php';
+require_once 'config/config.php';
 $id = $_GET['id'] ?? 0;
 $qry = $conn->query("SELECT * FROM inventory WHERE id = $id");
 if ($qry->num_rows == 0) {
@@ -35,26 +35,26 @@ $row = $qry->fetch_assoc();
             <!-- CAMPOS EDITABLES -->
             <div class="col-md-8">
                 <div class="form-group">
-                    <label><strong>Nombre</strong></label>
-                    <input type="text" name="name" class="form-control" value="<?= ucwords($row['name']) ?>" required>
+                    <label for="inv-name"><strong>Nombre</strong></label>
+                    <input type="text" name="name" id="inv-name" class="form-control" value="<?= ucwords($row['name']) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label><strong>Categoría</strong></label>
-                    <input type="text" name="category" class="form-control" value="<?= ucwords($row['category'] ?? '') ?>" placeholder="Ej: Papelería">
+                    <label for="inv-category"><strong>Categoría</strong></label>
+                    <input type="text" name="category" id="inv-category" class="form-control" value="<?= ucwords($row['category'] ?? '') ?>" placeholder="Ej: Papelería">
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label><strong>Precio</strong></label>
-                            <input type="number" name="price" class="form-control" value="<?= $row['price'] ?>" step="0.01" min="0" required>
+                            <label for="inv-price"><strong>Precio</strong></label>
+                            <input type="number" name="price" id="inv-price" class="form-control" value="<?= $row['price'] ?>" step="0.01" min="0" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label><strong>Costo</strong></label>
-                            <input type="number" name="cost" class="form-control" value="<?= $row['cost'] ?>" step="0.01" min="0" required>
+                            <label for="inv-cost"><strong>Costo</strong></label>
+                            <input type="number" name="cost" id="inv-cost" class="form-control" value="<?= $row['cost'] ?>" step="0.01" min="0" required>
                         </div>
                     </div>
                 </div>
@@ -62,19 +62,19 @@ $row = $qry->fetch_assoc();
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label><strong>Stock</strong></label>
+                            <label for="stock"><strong>Stock</strong></label>
                             <input type="number" name="stock" id="stock" class="form-control" value="<?= $row['stock'] ?>" min="0" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label><strong>Mín Stock</strong></label>
+                            <label for="min_stock"><strong>Mín Stock</strong></label>
                             <input type="number" name="min_stock" id="min_stock" class="form-control" value="<?= $row['min_stock'] ?>" min="0" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label><strong>Máx Stock</strong></label>
+                            <label for="max_stock"><strong>Máx Stock</strong></label>
                             <input type="number" name="max_stock" id="max_stock" class="form-control" value="<?= $row['max_stock'] ?>" min="0" required>
                         </div>
                     </div>
@@ -82,7 +82,7 @@ $row = $qry->fetch_assoc();
 
                 <!-- STATUS AUTOMÁTICO -->
                 <div class="form-group">
-                    <label><strong>Status</strong></label>
+                    <label for="status-preview"><strong>Status</strong></label>
                     <div id="status-preview" class="mt-2">
                         <?php
                         if ($row['stock'] == 0) echo '<span class="badge badge-danger">Sin Stock</span>';
@@ -157,12 +157,12 @@ $(document).ready(function() {
                         location.reload();
                     }, 1000);
                 } else {
-                    alert_toast("Error al guardar", 'danger');
+                    alert_toast("Error al guardar", 'error');
                     end_load();
                 }
             },
             error: function() {
-                alert_toast("Error de conexión", 'danger');
+                alert_toast("Error de conexión", 'error');
                 end_load();
             }
         });

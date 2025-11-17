@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -287,13 +287,13 @@ $acc = $qry->fetch_assoc();
                         alert_toast('Accesorio actualizado', 'success');
                         setTimeout(() => location.href = 'index.php?page=accesories_list', 1500);
                     } else {
-                        alert_toast('Error: ' + resp, 'danger');
+                        alert_toast('Error: ' + resp, 'error');
                     }
                     end_load();
                 },
                 error: function() {
                     end_load();
-                    alert_toast('Error de conexión', 'danger');
+                    alert_toast('Error de conexión', 'error');
                 }
             });
         });

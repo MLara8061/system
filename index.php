@@ -42,6 +42,11 @@ $allowed_pages = [
     'edit_equipment',
     'equipment_report_sistem_list',
     'equipment_report_revision_month',
+    'equipment_new_revision',
+    'equipment_report_responsible',
+    'equipment_report_sistem',
+    'equipment_unsubscribe',
+    'equipment_report_sistem_editar',
     'new_supplier',
     'suppliers',
     'edit_supplier',
@@ -68,6 +73,8 @@ $allowed_pages = [
     'inventory_list',
     'profile',
     'activity_log',
+    'report_form',
+    'generate_pdf',
 
     // AÑADE MÁS AQUÍ
 ];

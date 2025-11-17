@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 function getInforme($fecha_inicial, $fecha_final, $conn) {

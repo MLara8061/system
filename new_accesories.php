@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $result = $conn->query("SHOW TABLE STATUS LIKE 'accessories'");
@@ -207,7 +207,7 @@ $siguiente_inventario = $row['Auto_increment'];
                     alert_toast('Guardado', 'success');
                     setTimeout(() => location.href = 'index.php?page=accesories_list', 1500);
                 } else {
-                    alert_toast('Error: ' + resp, 'danger');
+                    alert_toast('Error: ' + resp, 'error');
                 }
                 end_load();
             }

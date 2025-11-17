@@ -1,0 +1,89 @@
+<?php
+// generate_pdf.php
+session_start();
+require_once 'config/config.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    die("Invalid access.");
+}
+
+// === RECIBIR DATOS ===
+$order_number = $_POST['orden_mto'] ?? '';
+$report_date = $_POST['fecha_reporte'] ?? '';
+$engineer_name = $_POST['ingeniero_nombre'] ?? 'ING. AMALIA BACAB';
+
+$client_name = $_POST['cliente_nombre'] ?? '';
+$client_phone = $_POST['cliente_tel'] ?? '';
+$client_address = $_POST['cliente_domicilio'] ?? '';
+$client_email = $_POST['cliente_email'] ?? '';
+
+$equipment_id = $_POST['equipo_id_select'] ?? 0;
+$equipment_name = $_POST['equipo_nombre'] ?? '';
+$equipment_brand = $_POST['equipo_marca'] ?? '';
+$equipment_model = $_POST['equipo_modelo'] ?? '';
+$equipment_serial = $_POST['equipo_serie'] ?? '';
+$equipment_inventory_code = $_POST['equipo_inventario'] ?? '';
+$equipment_location = $_POST['equipo_ubicacion'] ?? '';
+$location_id = $_POST['location_id'] ?? 0;
+
+$service_type = $_POST['tipo_servicio'] ?? 'MP';
+$execution_type = $_POST['ejecucion'] ?? 'PLAZA';
+$description = $_POST['descripcion'] ?? '';
+$observations = $_POST['observaciones'] ?? '';
+$final_status = $_POST['status_final'] ?? 'FUNCIONAL';
+$received_by = $_POST['recibe_nombre'] ?? '';
+
+// === REFACCIONES ===
+$parts_used = [];
+if (isset($_POST['refaccion_item_id']) && is_array($_POST['refaccion_item_id'])) {
+    for ($i = 0; $i < count($_POST['refaccion_item_id']); $i++) {
+        if (!empty($_POST['refaccion_item_id'][$i])) {
+            $parts_used[] = [
+                'item_id' => (int)$_POST['refaccion_item_id'][$i],
+                'quantity' => (int)($_POST['refaccion_qty'][$i] ?? 1)
+            ];
+        }
+    }
+}
+$parts_used_json = json_encode($parts_used, JSON_UNESCAPED_UNICODE);
+
+// === INSERTAR REPORTE ===
+$stmt = $conn->prepare("
+    INSERT INTO maintenance_reports (
+        order_number, report_date, engineer_name,
+        client_name, client_phone, client_address, client_email,
+        equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
+        service_type, execution_type, description, observations, final_status, received_by,
+        parts_used
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )
+");
+
+$stmt->bind_param(
+    "ssssssssssssisssssssss",
+    $order_number, $report_date, $engineer_name,
+    $client_name, $client_phone, $client_address, $client_email,
+    $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+    $service_type, $execution_type, $description, $observations, $final_status, $received_by,
+    $parts_used_json
+);
+
+if (!$stmt->execute()) {
+    die("Error saving report: " . $conn->error);
+}
+$report_id = $conn->insert_id;
+$stmt->close();
+
+// === DESCONTAR STOCK ===
+foreach ($parts_used as $part) {
+    $stmt = $conn->prepare("UPDATE inventory SET stock = stock - ? WHERE id = ? AND stock >= ?");
+    $stmt->bind_param("iii", $part['quantity'], $part['item_id'], $part['quantity']);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// === REDIRIGIR A PDF ===
+header("Location: report_pdf.php?id=" . $report_id);
+exit;
+?>

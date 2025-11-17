@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <div class="container-fluid">
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">

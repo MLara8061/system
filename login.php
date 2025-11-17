@@ -2,13 +2,16 @@
 <html lang="es">
 <?php
 session_start();
-include('./db_connect.php');
+require_once 'config/config.php'; 
 if (isset($_SESSION['login_id']))
     header("location:index.php?page=home");
 ?>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Acceder | Sistema de Activos</title>
     
     <!-- Google Fonts -->
@@ -18,18 +21,6 @@ if (isset($_SESSION['login_id']))
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <style>
-        :root {
-            --primary: #4361ee;
-            --primary-light: #eef1ff;
-            --text: #1e293b;
-            --text-light: #64748b;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --radius: 16px;
-            --shadow: 0 10px 25px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -39,132 +30,97 @@ if (isset($_SESSION['login_id']))
         body, html {
             height: 100%;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow: hidden;
+            background: #f8f9fa;
+            color: #2d3748;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* === MOBILE FIRST === */
-        .login-wrapper {
+        .login-container {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            padding: 1rem;
+            background: #f8f9fa;
         }
 
         .login-header {
-            background: linear-gradient(135deg, var(--primary) 0%, #5d7bff 100%);
-            color: white;
-            padding: 2rem 1.5rem;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-header::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--bg);
-            border-radius: 50% 50% 0 0 / 30px 30px 0 0;
-            transform: scaleX(1.5);
+            padding: 1.5rem 1rem;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
         }
 
         .login-header h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 0.3rem;
         }
 
         .login-header p {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
+            font-size: 0.85rem;
+            opacity: 0.95;
         }
 
         .login-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.75rem 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid #e9ecef;
             flex: 1;
-            padding: 2rem 1.5rem;
             display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .card-inner {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 2rem;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            flex-direction: column;
+            align-items: stretch;
         }
 
         .card-title {
-            text-align: center;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--text);
+            margin-bottom: 1.25rem;
+            color: #2d3748;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            display: flex;
+            flex-direction: column;
         }
 
         .form-group label {
-            display: block;
             font-size: 0.875rem;
             font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: var(--text);
+            margin-bottom: 0.4rem;
+            color: #2d3748;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 1rem;
+            padding: 0.7rem 0.9rem;
+            border: 1.5px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
             transition: all 0.2s ease;
             background: white;
+            color: #2d3748;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            background: #3b56d3;
-            transform: translateY(-1px);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px #e7f1ff;
         }
 
         .select-wrapper {
@@ -174,68 +130,77 @@ if (isset($_SESSION['login_id']))
         .select-wrapper select {
             appearance: none;
             padding-right: 2.5rem;
+            cursor: pointer;
         }
 
         .select-wrapper::after {
-            content: '\f107';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+            content: '▼';
             position: absolute;
-            right: 1rem;
+            right: 0.9rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-light);
+            color: #718096;
             pointer-events: none;
+            font-size: 0.7rem;
         }
 
         .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
             text-align: center;
+            margin-bottom: 0.5rem;
+            animation: slideDown 0.3s ease;
         }
 
         .alert-danger {
-            background: #fee2e2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
+            background: #fff5f5;
+            color: #f56565;
+            border: 1.5px solid #feb2b2;
         }
 
-        /* === TABLET & DESKTOP === */
-        @media (min-width: 768px) {
-            .login-wrapper {
-                flex-direction: row;
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
             }
-
-            .login-header {
-                flex: 1;
-                padding: 3rem;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                border-radius: 0 var(--radius) var(--radius) 0;
-            }
-
-            .login-header h1 {
-                font-size: 2.2rem;
-            }
-
-            .login-header p {
-                font-size: 1.1rem;
-            }
-
-            .login-card {
-                flex: 1;
-                padding: 3rem;
-            }
-
-            .card-inner {
-                padding: 2.5rem;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Loader */
+        .btn-primary {
+            width: 100%;
+            padding: 0.8rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: auto;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         #loader {
             position: fixed;
             inset: 0;
@@ -244,20 +209,139 @@ if (isset($_SESSION['login_id']))
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            opacity: 1;
             transition: opacity 0.3s ease;
         }
 
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f4f6;
+            border-top-color: #007bff;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* === TABLET === */
+        @media (min-width: 576px) {
+            .login-container {
+                padding: 2rem;
+                justify-content: center;
+            }
+
+            .login-header {
+                padding: 2rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .login-card {
+                max-width: 420px;
+                margin: 0 auto;
+                padding: 2rem 2rem;
+            }
+
+            .card-title {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* === DESKTOP === */
+        @media (min-width: 768px) {
+            body {
+                background: #f8f9fa !important;
+                overflow-x: hidden;
+            }
+
+            .login-container {
+                flex-direction: row;
+                padding: 0;
+                gap: 0;
+                background: #f8f9fa !important;
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .login-header {
+                flex: 1;
+                border-radius: 0;
+                margin: 0;
+                padding: 3rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+                color: #ffffff !important;
+            }
+
+            .login-header h1 {
+                font-size: 2.2rem;
+                margin-bottom: 0.5rem;
+                color: #ffffff !important;
+            }
+
+            .login-header p {
+                font-size: 1.1rem;
+                color: #ffffff !important;
+            }
+
+            .login-card {
+                flex: 1;
+                max-width: none;
+                border-radius: 0;
+                background: #f8f9fa !important;
+                border: none !important;
+                padding: 3rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+            }
+
+            .card-title {
+                color: #2d3748 !important;
+            }
+
+            .login-card label {
+                color: #2d3748 !important;
+            }
+
+            #login-form {
+                max-width: 400px;
+                width: 100%;
+                background: #ffffff !important;
+                padding: 2.5rem !important;
+                border-radius: 16px !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+                border: 1px solid #e9ecef !important;
+            }
+        }
+
+        /* === LARGE DESKTOP === */
+        @media (min-width: 1200px) {
+            .login-header {
+                padding: 4rem;
+            }
+
+            .login-card {
+                padding: 4rem;
+            }
+
+            .login-header h1 {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
@@ -267,94 +351,116 @@ if (isset($_SESSION['login_id']))
         <div class="spinner"></div>
     </div>
 
-    <div class="login-wrapper">
-        <!-- Header / Hero -->
+    <div class="login-container">
+        <!-- Header compacto -->
         <header class="login-header">
-            <h1>Sistema de Administración de Activos</h1>
-            <p>Gestión eficiente y moderna de tu inventario</p>
+            <h1>Sistema de Activos</h1>
+            <p>Gestión eficiente de inventario</p>
         </header>
 
-        <!-- Login Form -->
-        <section class="login-card">
-            <div class="card-inner">
-                <h2 class="card-title">Iniciar Sesión</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username">Usuario</label>
-                        <input type="text" id="username" name="username" class="form-control" required autofocus>
+        <!-- Card del formulario -->
+        <main class="login-card">
+            <h2 class="card-title">Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="type">Tipo de Usuario</label>
+                    <div class="select-wrapper">
+                        <select id="type" name="type" class="form-control" required>
+                            <option value="2">Staff</option>
+                            <option value="1">Administrador</option>
+                        </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="type">Tipo de Usuario</label>
-                        <div class="select-wrapper">
-                            <select id="type" name="type" class="form-control" required>
-                                <option value="2">Staff</option>
-                                <option value="1">Administrador</option>
-                            </select>
-                        </div>
-                    </div>
+                </div>
 
-                    <button type="submit" class="btn-primary">
-                        <span class="btn-text">Acceder</span>
-                    </button>
-                </form>
-            </div>
-        </section>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">Acceder</span>
+                </button>
+            </form>
+        </main>
     </div>
 
     <script>
-        // Ocultar loader
+        // Ocultar loader suavemente
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 300);
+            loader.classList.add('hidden');
+            setTimeout(() => loader.remove(), 300);
         });
 
-        // Login con AJAX
-        document.getElementById('login-form').addEventListener('submit', function(e) {
+        // Login con AJAX y UX mejorada
+        const form = document.getElementById('login-form');
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const btn = this.querySelector('.btn-primary');
             const btnText = btn.querySelector('.btn-text');
             const originalText = btnText.textContent;
             
+            // Deshabilitar botón y cambiar texto
             btn.disabled = true;
             btnText.textContent = 'Validando...';
 
-            // Limpiar errores previos
+            // Eliminar alertas previas
             const existingAlert = this.querySelector('.alert');
-            if (existingAlert) existingAlert.remove();
+            if (existingAlert) {
+                existingAlert.remove();
+            }
 
-            fetch('ajax.php?action=login', {
-                method: 'POST',
-                body: new FormData(this)
-            })
-            .then(response => response.text())
-            .then(resp => {
-                if (resp.trim() === '1') {
-                    location.href = 'index.php?page=home';
+            try {
+                const response = await fetch('ajax.php?action=login', {
+                    method: 'POST',
+                    body: new FormData(this)
+                });
+                
+                const result = await response.text();
+                console.log('Login response:', result.trim());
+                
+                if (result.trim() === '1') {
+                    // Login exitoso
+                    btnText.textContent = '¡Acceso concedido!';
+                    btn.style.background = 'var(--success)';
+                    
+                    setTimeout(() => {
+                        location.href = 'index.php?page=home';
+                    }, 500);
                 } else {
+                    // Login fallido
                     const alert = document.createElement('div');
                     alert.className = 'alert alert-danger';
                     alert.textContent = 'Usuario o contraseña incorrectos';
-                    this.insertBefore(alert, this.firstChild);
+                    form.insertBefore(alert, form.firstChild);
+                    
+                    // Auto-ocultar después de 4s
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.style.transition = 'opacity 0.3s ease';
+                            alert.style.opacity = '0';
+                            setTimeout(() => alert.remove(), 300);
+                        }
+                    }, 4000);
                 }
-            })
-            .catch(() => {
+            } catch (error) {
+                console.error('Error:', error);
                 const alert = document.createElement('div');
                 alert.className = 'alert alert-danger';
-                alert.textContent = 'Error de conexión';
-                this.insertBefore(alert, this.firstChild);
-            })
-            .finally(() => {
+                alert.textContent = 'Error de conexión. Intenta nuevamente.';
+                form.insertBefore(alert, form.firstChild);
+            } finally {
                 btn.disabled = false;
-                btnText.textContent = originalText;
-            });
+                if (btnText.textContent === 'Validando...') {
+                    btnText.textContent = originalText;
+                }
+            }
         });
     </script>
 </body>

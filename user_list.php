@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <!-- TARJETAS DE RESUMEN -->
 <div class="row mb-4">
@@ -154,51 +154,136 @@ $(document).ready(function() {
         lengthChange: false
     });
 
-    // === MODAL PERSONALIZADO PARA AÑADIR USUARIO ===
-    $(document).on('click', '#add-new-user-btn, .edit-user', function() {
-        const isEdit = $(this).hasClass('edit-user');
-        const id = isEdit ? $(this).data('id') : 0;
-        const url = 'manage_user_modal.php' + (id ? '?id=' + id : '');
-        const title = isEdit ? 'Editar Usuario' : 'Nuevo Usuario';
-        const icon = isEdit ? 'fa-edit' : 'fa-user-plus';
-
-        const modalHtml = `
-            <div class="modal fade" id="userModal" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
-                    <div class="modal-content border-0 shadow-sm">
-                        <div class="modal-header border-0 bg-white pb-0">
-                            <h5 class="modal-title text-dark">
-                                <i class="fa ${icon} text-primary mr-2"></i> ${title}
-                            </h5>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+    // === MODAL ÚNICO (NO DUPLICADO) ===
+    const $modal = $(`
+        <div class="modal fade" id="userModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered modal-mid-large">
+                <div class="modal-content border-0 shadow-sm">
+                    <div class="modal-header border-0 bg-white pb-0">
+                        <h5 class="modal-title text-dark" id="modal-title">
+                            <i class="fa fa-user-plus text-primary mr-2"></i> Nuevo Usuario
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                    </div>
+                    <div class="modal-body pt-2" id="modal-user-content">
+                        <div class="text-center p-4">
+                            <i class="fa fa-spinner fa-spin fa-3x text-muted"></i>
                         </div>
-                        <div class="modal-body pt-2" id="modal-user-content">
-                            <div class="text-center"><i class="fa fa-spinner fa-spin fa-3x text-muted"></i></div>
-                        </div>
-                        <div class="modal-footer bg-light border-0">
-                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
-                                <i class="fas fa-times mr-1"></i> Cancelar
-                            </button>
-                            <button type="submit" form="manage-user-form" class="btn btn-success btn-sm font-weight-bold">
-                                <i class="fas fa-save mr-1"></i> ${isEdit ? 'Guardar Cambios' : 'Crear Usuario'}
-                            </button>
-                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Cancelar
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm font-weight-bold" id="btn-save">
+                            <i class="fas fa-save mr-1"></i> Crear Usuario
+                        </button>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `);
 
-        $('#userModal').remove();
-        $('body').append(modalHtml);
-        $('#modal-user-content').load(url, function() {
-            $('#userModal').modal('show');
+    // Insertar modal una sola vez
+    if ($('#userModal').length === 0) {
+        $('body').append($modal);
+    }
+
+    // === ABRIR MODAL ===
+    $(document).on('click', '#add-new-user-btn, .edit-user', function() {
+        const isEdit = $(this).hasClass('edit-user');
+        const id = isEdit ? $(this).data('id') : 0;
+        const url = `manage_user_modal.php${id ? '?id=' + id : ''}`;
+
+        // Actualizar título y botón
+        $('#modal-title').html(`
+            <i class="fa ${isEdit ? 'fa-edit' : 'fa-user-plus'} text-primary mr-2"></i>
+            ${isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}
+        `);
+        $('#btn-save').html(`
+            <i class="fas fa-save mr-1"></i> ${isEdit ? 'Guardar Cambios' : 'Crear Usuario'}
+        `);
+
+        // Cargar contenido
+        $('#modal-user-content').html('<div class="text-center p-4"><i class="fa fa-spinner fa-spin fa-3x text-muted"></i></div>');
+        $('#userModal').modal('show');
+
+        $.get(url, function(data) {
+            $('#modal-user-content').html(data);
+            initializeUserForm(); // ← Inicializa el formulario
+        }).fail(function() {
+            $('#modal-user-content').html('<p class="text-danger">Error al cargar.</p>');
         });
     });
 
-    // === ELIMINAR USUARIO ===
+    // === INICIALIZAR FORMULARIO (SOLO CARGAR CONTENIDO) ===
+    function initializeUserForm() {
+        const $form = $('#manage-user-form');
+        if ($form.length === 0) {
+            setTimeout(initializeUserForm, 100); // Reintentar si el form aún no está en el DOM
+            return;
+        }
+        // El formulario ya está inicializado en manage_user_modal.php
+    }
+
+    // === BOTÓN GUARDAR (SUBMIT EXPLÍCITO) ===
+    $(document).on('click', '#btn-save', function() {
+        console.log('Botón guardar clickeado');
+        const $form = $('#manage-user-form');
+        console.log('Formulario encontrado:', $form.length);
+        
+        if ($form.length === 0) {
+            alert_toast("Error: Formulario no encontrado", 'error');
+            return;
+        }
+
+        // Validar que el usuario no esté vacío
+        const username = $form.find('input[name="username"]').val().trim();
+        if (username.length < 3) {
+            alert_toast("El usuario debe tener al menos 3 caracteres", 'error');
+            return;
+        }
+
+        // Obtener datos del formulario
+        const formData = new FormData($form[0]);
+        console.log('Enviando formulario con datos:', Object.fromEntries(formData));
+
+        start_load();
+        $.ajax({
+            url: 'ajax.php?action=save_user',
+            method: 'POST',
+            data: $form.serialize(),
+            success: function(resp) {
+                end_load();
+                console.log('Respuesta del servidor:', resp);
+                
+                if (resp == 1) {
+                    alert_toast("Usuario guardado", 'success');
+                    setTimeout(() => {
+                        $('#userModal').modal('hide');
+                        location.reload();
+                    }, 1000);
+                } else if (resp == 2) {
+                    alert_toast("El usuario ya existe", 'error');
+                } else if (resp == 3) {
+                    alert_toast("Campos requeridos vacíos", 'error');
+                } else if (resp == 4) {
+                    alert_toast("Contraseña requerida", 'error');
+                } else {
+                    alert_toast("Error al guardar: código " + resp, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                end_load();
+                console.error('AJAX Error:', status, error, xhr.responseText);
+                alert_toast("Error de conexión: " + error, 'error');
+            }
+        });
+    });
+
+    // === ELIMINAR ===
     $(document).on('click', '.delete-user', function() {
         const id = $(this).data('id');
-        _conf("¿Eliminar este usuario permanentemente?", "delete_user", [id]);
+        _conf("¿Eliminar este usuario?", "delete_user", [id]);
     });
 
     window.delete_user = function(id) {
@@ -208,12 +293,12 @@ $(document).ready(function() {
             method: 'POST',
             data: { id: id },
             success: function(resp) {
+                end_load();
                 if (resp == 1) {
                     alert_toast("Usuario eliminado", 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
                     alert_toast("Error al eliminar", 'error');
-                    end_load();
                 }
             }
         });

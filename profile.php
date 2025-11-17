@@ -1,5 +1,5 @@
 <?php 
-include 'db_connect.php';
+require_once 'config/config.php';
 if (!isset($_SESSION['login_id'])) {
     header('Location: login.php');
     exit;
@@ -37,26 +37,26 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
 
                 <!-- NOMBRE -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Nombre</strong></label>
-                    <input type="text" name="firstname" class="form-control form-control-sm" 
+                    <label for="prof-firstname" class="font-weight-bold"><strong>Nombre</strong></label>
+                    <input type="text" name="firstname" id="prof-firstname" class="form-control form-control-sm" 
                            value="<?= $user['firstname'] ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Segundo Nombre</strong></label>
-                    <input type="text" name="middlename" class="form-control form-control-sm" 
+                    <label for="prof-middlename" class="font-weight-bold"><strong>Segundo Nombre</strong></label>
+                    <input type="text" name="middlename" id="prof-middlename" class="form-control form-control-sm" 
                            value="<?= $user['middlename'] ?>">
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Apellido</strong></label>
-                    <input type="text" name="lastname" class="form-control form-control-sm" 
+                    <label for="prof-lastname" class="font-weight-bold"><strong>Apellido</strong></label>
+                    <input type="text" name="lastname" id="prof-lastname" class="form-control form-control-sm" 
                            value="<?= $user['lastname'] ?>" required>
                 </div>
 
                 <!-- USUARIO -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Usuario</strong></label>
+                    <label for="username" class="font-weight-bold"><strong>Usuario</strong></label>
                     <div class="input-group input-group-sm">
                         <input type="text" name="username" id="username" class="form-control form-control-sm" 
                                value="<?= $user['username'] ?>" required>
@@ -189,12 +189,12 @@ $(document).ready(function() {
                         $cropModal.modal('hide');
                         alert_toast("Foto actualizada", 'success');
                     } else {
-                        alert_toast("Error al subir foto", 'danger');
+                        alert_toast("Error al subir foto", 'error');
                     }
                     end_load();
                 },
                 error: function() {
-                    alert_toast("Error de conexión", 'danger');
+                    alert_toast("Error de conexión", 'error');
                     end_load();
                 }
             });
@@ -260,7 +260,7 @@ $(document).ready(function() {
         // Solo bloquear si el usuario cambió y está duplicado
         const currentVal = $username.val().trim();
         if (currentVal !== originalUsername && $usernameFeedback.hasClass('text-danger')) {
-            alert_toast("El usuario no está disponible", 'danger');
+            alert_toast("El usuario no está disponible", 'error');
             return;
         }
 
@@ -275,15 +275,15 @@ $(document).ready(function() {
                     alert_toast("Perfil actualizado correctamente", 'success');
                     setTimeout(() => location.reload(), 1200);
                 } else if (resp == 2) {
-                    alert_toast("El nombre de usuario ya está en uso", 'danger');
+                    alert_toast("El nombre de usuario ya está en uso", 'error');
                     end_load();
                 } else {
-                    alert_toast("Error al guardar los cambios", 'danger');
+                    alert_toast("Error al guardar los cambios", 'error');
                     end_load();
                 }
             },
             error: function(xhr, status, error) {
-                alert_toast("Error de conexión: " + error, 'danger');
+                alert_toast("Error de conexión: " + error, 'error');
                 end_load();
             }
         });

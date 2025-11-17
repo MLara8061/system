@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<script>alert('ID inválido'); window.location='index.php?page=equipment_list';</script>";
@@ -422,7 +422,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     alert_toast('Equipo actualizado', 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert_toast('Error: ' + resp, 'danger');
+                    alert_toast('Error: ' + resp, 'error');
                 }
                 end_load();
             }

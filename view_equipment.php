@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 // === VALIDAR ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

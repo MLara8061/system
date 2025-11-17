@@ -1,5 +1,5 @@
 <?php 
-include 'db_connect.php';
+require_once 'config/config.php';
 $id = $_GET['id'] ?? 0;
 $is_edit = $id > 0;
 $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_assoc() : [];
@@ -19,22 +19,22 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
 
                 <!-- NOMBRE -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Nombre</strong></label>
-                    <input type="text" name="firstname" class="form-control form-control-sm" 
+                    <label for="create-firstname" class="font-weight-bold"><strong>Nombre</strong></label>
+                    <input type="text" name="firstname" id="create-firstname" class="form-control form-control-sm" 
                            value="<?= $user['firstname'] ?? '' ?>" required placeholder="Ej: Juan">
                 </div>
 
                 <!-- SEGUNDO NOMBRE -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Segundo Nombre</strong></label>
-                    <input type="text" name="middlename" class="form-control form-control-sm" 
+                    <label for="create-middlename" class="font-weight-bold"><strong>Segundo Nombre</strong></label>
+                    <input type="text" name="middlename" id="create-middlename" class="form-control form-control-sm" 
                            value="<?= $user['middlename'] ?? '' ?>" placeholder="Opcional">
                 </div>
 
                 <!-- APELLIDO -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Apellido</strong></label>
-                    <input type="text" name="lastname" class="form-control form-control-sm" 
+                    <label for="create-lastname" class="font-weight-bold"><strong>Apellido</strong></label>
+                    <input type="text" name="lastname" id="create-lastname" class="form-control form-control-sm" 
                            value="<?= $user['lastname'] ?? '' ?>" required placeholder="Ej: Pérez">
                 </div>
 
@@ -48,8 +48,8 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
 
                 <!-- ROL -->
                 <div class="form-group">
-                    <label class="font-weight-bold"><strong>Rol</strong></label>
-                    <select name="role" class="form-control form-control-sm" required>
+                    <label for="create-role" class="font-weight-bold"><strong>Rol</strong></label>
+                    <select name="role" id="create-role" class="form-control form-control-sm" required>
                         <option value="">-- Seleccionar --</option>
                         <option value="1" <?= ($user['role'] ?? '') == 1 ? 'selected' : '' ?>>Administrador</option>
                         <option value="2" <?= ($user['role'] ?? '') == 2 ? 'selected' : '' ?>>Usuario</option>
@@ -142,7 +142,7 @@ $(document).ready(function() {
     $form.submit(function(e) {
         e.preventDefault();
         if ($username.hasClass('is-invalid')) {
-            alert_toast("Corrige el usuario", 'danger');
+            alert_toast("Corrige el usuario", 'error');
             return;
         }
         start_load();
@@ -157,10 +157,10 @@ $(document).ready(function() {
                         location.href = 'index.php?page=user_list';
                     }, 1000);
                 } else if (resp == 2) {
-                    alert_toast("El usuario ya existe", 'danger');
+                    alert_toast("El usuario ya existe", 'error');
                     end_load();
                 } else {
-                    alert_toast("Error al guardar", 'danger');
+                    alert_toast("Error al guardar", 'error');
                     end_load();
                 }
             }

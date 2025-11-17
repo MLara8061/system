@@ -2,7 +2,7 @@
 <html lang="en">
 
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 // Total de Equipos
 $result = $conn->query("SELECT COUNT(*) AS total FROM equipments");
@@ -13,7 +13,7 @@ if ($result) {
 }
 
 // Total de Equipos EPP
-$result = $conn->query("SELECT COUNT(*) AS total FROM equipment_epp");
+$result = $conn->query("SELECT COUNT(*) AS total FROM accessories");
 $total_epp = 0;
 if ($result) {
     $row = $result->fetch_assoc();
@@ -38,7 +38,7 @@ if ($result) {
 
 // Valor Total de Equipos EPP
 $valor_total_epp = 0;
-$result = $conn->query("SELECT SUM(costo) AS total FROM equipment_epp");
+$result = $conn->query("SELECT SUM(cost) AS total FROM accessories");
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_epp = $row && $row['total'] ? $row['total'] : 0;
@@ -199,89 +199,30 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             <div class="col-md-12">
               <div class="card mb-4">
                 <div class="card-header">
-                  <h5 class="card-title">Monthly Recap Report</h5>
+                  <h5 class="card-title">Resumen Mensual de Equipos</h5>
                   <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
                       <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
                       <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
                     </button>
-                    <div class="btn-group">
-                      <button
-                        type="button"
-                        class="btn btn-tool dropdown-toggle"
-                        data-bs-toggle="dropdown">
-                        <i class="bi bi-wrench"></i>
-                      </button>
-                      <div class="dropdown-menu dropdown-menu-end" role="menu">
-                        <a href="#" class="dropdown-item">Action</a>
-                        <a href="#" class="dropdown-item">Another action</a>
-                        <a href="#" class="dropdown-item"> Something else here </a>
-                        <a class="dropdown-divider"></a>
-                        <a href="#" class="dropdown-item">Separated link</a>
-                      </div>
-                    </div>
-                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
-                      <i class="bi bi-x-lg"></i>
-                    </button>
                   </div>
                 </div>
-                <!-- /.card-header -->
                 <div class="card-body">
-                  <!--begin::Row-->
                   <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-12">
+                      <?php
+                      $start = date('Y-m-01', strtotime('-11 months'));
+                      $end = date('Y-m-d');
+                      ?>
                       <p class="text-center">
-                        <strong>Sales: 1 Jan, 2023 - 30 Jul, 2023</strong>
+                        <strong>Equipos Adquiridos: <?php echo date('d M Y', strtotime($start)); ?> - <?php echo date('d M Y', strtotime($end)); ?></strong>
                       </p>
                       <div id="sales-chart"></div>
                     </div>
-                    <!-- /.col -->
-                    <div class="col-md-4">
-                      <p class="text-center"><strong>Goal Completion</strong></p>
-                      <div class="progress-group">
-                        Add Products to Cart
-                        <span class="float-end"><b>160</b>/200</span>
-                        <div class="progress progress-sm">
-                          <div class="progress-bar text-bg-primary" style="width: 80%"></div>
-                        </div>
-                      </div>
-                      <!-- /.progress-group -->
-                      <div class="progress-group">
-                        Complete Purchase
-                        <span class="float-end"><b>310</b>/400</span>
-                        <div class="progress progress-sm">
-                          <div class="progress-bar text-bg-danger" style="width: 75%"></div>
-                        </div>
-                      </div>
-                      <!-- /.progress-group -->
-                      <div class="progress-group">
-                        <span class="progress-text">Visit Premium Page</span>
-                        <span class="float-end"><b>480</b>/800</span>
-                        <div class="progress progress-sm">
-                          <div class="progress-bar text-bg-success" style="width: 60%"></div>
-                        </div>
-                      </div>
-                      <!-- /.progress-group -->
-                      <div class="progress-group">
-                        Send Inquiries
-                        <span class="float-end"><b>250</b>/500</span>
-                        <div class="progress progress-sm">
-                          <div class="progress-bar text-bg-warning" style="width: 50%"></div>
-                        </div>
-                      </div>
-                      <!-- /.progress-group -->
-                    </div>
-                    <!-- /.col -->
                   </div>
-                  <!--end::Row-->
                 </div>
-                <!-- ./card-body -->
-
-                <!-- /.card-footer -->
               </div>
-              <!-- /.card -->
             </div>
-            <!-- /.col -->
           </div>
           <!--end::Row-->
           <!--begin::Row-->
@@ -294,132 +235,64 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                 </div>
               </div>
               <!--end::Row-->
-              <!--begin::Latest Order Widget-->
+              <!--begin::Últimos Equipos-->
               <div class="card">
                 <div class="card-header">
-                  <h3 class="card-title">Latest Orders</h3>
+                  <h3 class="card-title">Últimos Equipos Registrados</h3>
                   <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
                       <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
                       <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
                     </button>
-                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
-                      <i class="bi bi-x-lg"></i>
-                    </button>
                   </div>
                 </div>
-                <!-- /.card-header -->
                 <div class="card-body p-0">
                   <div class="table-responsive">
                     <table class="table m-0">
                       <thead>
                         <tr>
-                          <th>Order ID</th>
-                          <th>Item</th>
-                          <th>Status</th>
-                          <th>Popularity</th>
+                          <th>Inventario</th>
+                          <th>Equipo</th>
+                          <th>Proveedor</th>
+                          <th>Valor</th>
+                          <th>Estado</th>
                         </tr>
                       </thead>
                       <tbody>
+                        <?php
+                        $recent = $conn->query("SELECT e.*, COALESCE(s.empresa, 'Sin Proveedor') as supplier FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id ORDER BY e.date_created DESC LIMIT 7");
+                        while ($eq = $recent->fetch_assoc()):
+                        ?>
                         <tr>
                           <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR9842</a>
+                            <a href="./index.php?page=edit_equipment&id=<?php echo $eq['id']; ?>" class="link-primary">
+                              <?php echo $eq['number_inventory']; ?>
+                            </a>
                           </td>
-                          <td>Call of Duty IV</td>
-                          <td><span class="badge text-bg-success"> Shipped </span></td>
+                          <td><?php echo $eq['name']; ?></td>
+                          <td><small><?php echo $eq['supplier']; ?></small></td>
+                          <td>$<?php echo number_format($eq['amount'], 2); ?></td>
                           <td>
-                            <div id="table-sparkline-1"></div>
+                            <?php if ($eq['revision'] == 1): ?>
+                              <span class="badge text-bg-success">Con Revisión</span>
+                            <?php else: ?>
+                              <span class="badge text-bg-warning">Sin Revisión</span>
+                            <?php endif; ?>
                           </td>
                         </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR1848</a>
-                          </td>
-                          <td>Samsung Smart TV</td>
-                          <td><span class="badge text-bg-warning">Pending</span></td>
-                          <td>
-                            <div id="table-sparkline-2"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
-                          </td>
-                          <td>iPhone 6 Plus</td>
-                          <td><span class="badge text-bg-danger"> Delivered </span></td>
-                          <td>
-                            <div id="table-sparkline-3"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
-                          </td>
-                          <td>Samsung Smart TV</td>
-                          <td><span class="badge text-bg-info">Processing</span></td>
-                          <td>
-                            <div id="table-sparkline-4"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR1848</a>
-                          </td>
-                          <td>Samsung Smart TV</td>
-                          <td><span class="badge text-bg-warning">Pending</span></td>
-                          <td>
-                            <div id="table-sparkline-5"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR7429</a>
-                          </td>
-                          <td>iPhone 6 Plus</td>
-                          <td><span class="badge text-bg-danger"> Delivered </span></td>
-                          <td>
-                            <div id="table-sparkline-6"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <a
-                              href="pages/examples/invoice.html"
-                              class="link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">OR9842</a>
-                          </td>
-                          <td>Call of Duty IV</td>
-                          <td><span class="badge text-bg-success">Shipped</span></td>
-                          <td>
-                            <div id="table-sparkline-7"></div>
-                          </td>
-                        </tr>
+                        <?php endwhile; ?>
                       </tbody>
                     </table>
                   </div>
-                  <!-- /.table-responsive -->
                 </div>
-                <!-- /.card-body -->
                 <div class="card-footer clearfix">
-                  <a href="javascript:void(0)" class="btn btn-sm btn-primary float-start">
-                    Place New Order
+                  <a href="./index.php?page=new_equipment" class="btn btn-sm btn-primary float-start">
+                    <i class="fas fa-plus"></i> Agregar Equipo
                   </a>
-                  <a href="javascript:void(0)" class="btn btn-sm btn-secondary float-end">
-                    View All Orders
+                  <a href="./index.php?page=equipment_list" class="btn btn-sm btn-secondary float-end">
+                    Ver Todos los Equipos
                   </a>
                 </div>
-                <!-- /.card-footer -->
               </div>
               <!-- /.card -->
             </div>
@@ -428,59 +301,38 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
               <!-- /.info-box -->
               <div class="card mb-4">
                 <div class="card-header">
-                  <h3 class="card-title">Browser Usage</h3>
+                  <h3 class="card-title">Distribución por Proveedor</h3>
                   <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
                       <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
                       <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
                     </button>
-                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove">
-                      <i class="bi bi-x-lg"></i>
-                    </button>
                   </div>
                 </div>
-                <!-- /.card-header -->
                 <div class="card-body">
-                  <!--begin::Row-->
                   <div class="row">
                     <div class="col-12">
                       <div id="pie-chart"></div>
                     </div>
-                    <!-- /.col -->
                   </div>
-                  <!--end::Row-->
                 </div>
-                <!-- /.card-body -->
                 <div class="card-footer p-0">
                   <ul class="nav nav-pills flex-column">
+                    <?php
+                    $top_suppliers = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt, ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM equipments), 1) as pct FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id GROUP BY supplier ORDER BY cnt DESC LIMIT 3");
+                    while ($sup = $top_suppliers->fetch_assoc()):
+                    ?>
                     <li class="nav-item">
                       <a href="#" class="nav-link">
-                        United States of America
-                        <span class="float-end text-danger">
-                          <i class="bi bi-arrow-down fs-7"></i>
-                          12%
+                        <?php echo $sup['supplier']; ?>
+                        <span class="float-end text-primary">
+                          <strong><?php echo $sup['pct']; ?>%</strong>
                         </span>
                       </a>
                     </li>
-                    <li class="nav-item">
-                      <a href="#" class="nav-link">
-                        India
-                        <span class="float-end text-success">
-                          <i class="bi bi-arrow-up fs-7"></i> 4%
-                        </span>
-                      </a>
-                    </li>
-                    <li class="nav-item">
-                      <a href="#" class="nav-link">
-                        China
-                        <span class="float-end text-info">
-                          <i class="bi bi-arrow-left fs-7"></i> 0%
-                        </span>
-                      </a>
-                    </li>
+                    <?php endwhile; ?>
                   </ul>
                 </div>
-                <!-- /.footer -->
               </div>
               
 
@@ -543,154 +395,138 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
     crossorigin="anonymous"></script>
   <script>
-    // NOTICE!! DO NOT USE ANY OF THIS JAVASCRIPT
-    // IT'S ALL JUST JUNK FOR DEMO
-    // ++++++++++++++++++++++++++++++++++++++++++
+    <?php
+    // Preparar datos reales para los gráficos
+    // Series mensual: conteo y suma (amount) de equipments últimos 12 meses
+    $months = [];
+    for ($i = 11; $i >= 0; $i--) {
+        $months[] = date('Y-m', strtotime("-{$i} months"));
+    }
 
-    /* apexcharts
-     * -------
-     * Here we will create a few charts using apexcharts
-     */
+    // Inicializar arrays con ceros
+    $counts = array_fill(0, 12, 0);
+    $sums = array_fill(0, 12, 0);
 
-    //-----------------------
-    // - MONTHLY SALES CHART -
-    //-----------------------
+    $start_date = date('Y-m-01', strtotime('-11 months'));
+    $qry = $conn->query("SELECT DATE_FORMAT(date_created, '%Y-%m') AS ym, COUNT(*) AS cnt, SUM(amount) AS total FROM equipments WHERE date_created >= '" . $conn->real_escape_string($start_date) . "' GROUP BY ym ORDER BY ym ASC");
+    $map = [];
+    while ($r = $qry->fetch_assoc()) {
+        $map[$r['ym']] = $r;
+    }
+    foreach ($months as $idx => $m) {
+        if (isset($map[$m])) {
+            $counts[$idx] = (int)$map[$m]['cnt'];
+            $sums[$idx] = (float)$map[$m]['total'];
+        }
+    }
+
+    // Categories (fecha del primer día del mes) para eje X
+    $categories = array_map(function ($m) { return $m . "-01"; }, $months);
+
+    // Pie chart: distribución por proveedor (top 6)
+    $pie_labels = [];
+    $pie_values = [];
+    $pq = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id GROUP BY supplier ORDER BY cnt DESC LIMIT 6");
+    while ($p = $pq->fetch_assoc()) {
+        $pie_labels[] = $p['supplier'];
+        $pie_values[] = (int)$p['cnt'];
+    }
+
+    ?>
+
+    // Monthly equipments: counts and sums from DB
+    const salesCategories = <?php echo json_encode($categories); ?>;
+    const salesCounts = <?php echo json_encode($counts); ?>;
+    const salesSums = <?php echo json_encode($sums); ?>;
 
     const sales_chart_options = {
       series: [{
-          name: 'Digital Goods',
-          data: [28, 48, 40, 19, 86, 27, 90],
+          name: 'Equipos (cantidad)',
+          data: salesCounts,
         },
         {
-          name: 'Electronics',
-          data: [65, 59, 80, 81, 56, 55, 40],
+          name: 'Valor (MXN)',
+          data: salesSums,
         },
       ],
       chart: {
-        height: 180,
+        height: 300,
         type: 'area',
-        toolbar: {
-          show: false,
-        },
+        toolbar: { show: false },
+        locales: [{
+          name: 'es',
+          options: {
+            months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+            shortMonths: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+          }
+        }],
+        defaultLocale: 'es',
       },
-      legend: {
-        show: false,
-      },
+      legend: { show: true, position: 'top' },
       colors: ['#0d6efd', '#20c997'],
-      dataLabels: {
-        enabled: false,
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 2 },
+      xaxis: { 
+        type: 'datetime', 
+        categories: salesCategories,
       },
-      stroke: {
-        curve: 'smooth',
-      },
-      xaxis: {
-        type: 'datetime',
-        categories: [
-          '2023-01-01',
-          '2023-02-01',
-          '2023-03-01',
-          '2023-04-01',
-          '2023-05-01',
-          '2023-06-01',
-          '2023-07-01',
-        ],
-      },
-      tooltip: {
-        x: {
-          format: 'MMMM yyyy',
+      yaxis: [
+        { 
+          title: { text: 'Cantidad de Equipos' },
+          labels: { formatter: function(val) { return Math.floor(val); } }
         },
+        { 
+          opposite: true, 
+          title: { text: 'Valor Total (MXN)' },
+          labels: { formatter: function(val) { return '$' + val.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); } }
+        }
+      ],
+      tooltip: { 
+        shared: true,
+        intersect: false,
+        x: { format: 'MMMM yyyy' },
+        y: [
+          { formatter: function(val) { return val + ' equipos'; } },
+          { formatter: function(val) { return '$' + val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); } }
+        ]
       },
     };
 
-    const sales_chart = new ApexCharts(
-      document.querySelector('#sales-chart'),
-      sales_chart_options,
-    );
+    const sales_chart = new ApexCharts(document.querySelector('#sales-chart'), sales_chart_options);
     sales_chart.render();
 
-    //---------------------------
-    // - END MONTHLY SALES CHART -
-    //---------------------------
-
-    function createSparklineChart(selector, data) {
-      const options = {
-        series: [{
-          data
-        }],
-        chart: {
-          type: 'line',
-          width: 150,
-          height: 30,
-          sparkline: {
-            enabled: true,
-          },
-        },
-        colors: ['var(--bs-primary)'],
-        stroke: {
-          width: 2,
-        },
-        tooltip: {
-          fixed: {
-            enabled: false,
-          },
-          x: {
-            show: false,
-          },
-          y: {
-            title: {
-              formatter() {
-                return '';
-              },
-            },
-          },
-          marker: {
-            show: false,
-          },
-        },
-      };
-
-      const chart = new ApexCharts(document.querySelector(selector), options);
-      chart.render();
-    }
-
-    const table_sparkline_1_data = [25, 66, 41, 89, 63, 25, 44, 12, 36, 9, 54];
-    const table_sparkline_2_data = [12, 56, 21, 39, 73, 45, 64, 52, 36, 59, 44];
-    const table_sparkline_3_data = [15, 46, 21, 59, 33, 15, 34, 42, 56, 19, 64];
-    const table_sparkline_4_data = [30, 56, 31, 69, 43, 35, 24, 32, 46, 29, 64];
-    const table_sparkline_5_data = [20, 76, 51, 79, 53, 35, 54, 22, 36, 49, 64];
-    const table_sparkline_6_data = [5, 36, 11, 69, 23, 15, 14, 42, 26, 19, 44];
-    const table_sparkline_7_data = [12, 56, 21, 39, 73, 45, 64, 52, 36, 59, 74];
-
-    createSparklineChart('#table-sparkline-1', table_sparkline_1_data);
-    createSparklineChart('#table-sparkline-2', table_sparkline_2_data);
-    createSparklineChart('#table-sparkline-3', table_sparkline_3_data);
-    createSparklineChart('#table-sparkline-4', table_sparkline_4_data);
-    createSparklineChart('#table-sparkline-5', table_sparkline_5_data);
-    createSparklineChart('#table-sparkline-6', table_sparkline_6_data);
-    createSparklineChart('#table-sparkline-7', table_sparkline_7_data);
-
-    //-------------
-    // - PIE CHART -
-    //-------------
-
+    // Pie chart: distribución por proveedor
+    const pieLabels = <?php echo json_encode($pie_labels); ?>;
+    const pieValues = <?php echo json_encode($pie_values); ?>;
     const pie_chart_options = {
-      series: [700, 500, 400, 600, 300, 100],
-      chart: {
+      series: pieValues,
+      chart: { 
         type: 'donut',
+        height: 320
       },
-      labels: ['Chrome', 'Edge', 'FireFox', 'Safari', 'Opera', 'IE'],
-      dataLabels: {
-        enabled: false,
+      labels: pieLabels,
+      dataLabels: { 
+        enabled: true,
+        formatter: function(val, opts) {
+          return opts.w.config.series[opts.seriesIndex] + ' equipos';
+        }
       },
       colors: ['#0d6efd', '#20c997', '#ffc107', '#d63384', '#6f42c1', '#adb5bd'],
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center'
+      },
+      tooltip: {
+        y: {
+          formatter: function(val) {
+            return val + ' equipos';
+          }
+        }
+      }
     };
 
     const pie_chart = new ApexCharts(document.querySelector('#pie-chart'), pie_chart_options);
     pie_chart.render();
-
-    //-----------------
-    // - END PIE CHART -
-    //-----------------
   </script>
   <!--end::Script-->
   

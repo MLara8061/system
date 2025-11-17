@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // === NUEVOS CÁLCULOS SIN CANTIDAD ===

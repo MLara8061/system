@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 
 // Validar y limpiar el ID recibido
@@ -30,160 +30,204 @@ if (!is_array($reasons)) {
 }
 ?>
 
-<div class="col-lg-12">
-    <div class="card">
+<div class="container-fluid">
+    <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
+        <div class="card-header bg-light border-0">
+            <h5 class="mb-0 text-dark">Dar de Baja Equipo</h5>
+        </div>
         <div class="card-body">
             <form action="" id="manage_equipment">
                 <input type="hidden" name="id" value="<?php echo $id; ?>">
 
-                <div class="row">
-                    <div class="col-md-12 border-right">
-                        <b class="text-muted">Dar de Baja Equipo</b><br/><br/>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Fecha</label>
-                            <input type="date" name="date" class="form-control form-control-sm" required 
-                                   value="<?php echo isset($date) ? $date : ''; ?>">
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Nro Inventario</label>
-                            <input type="text" name="number_inventory" class="form-control form-control-sm solonumeros" 
-                                   value="<?php echo isset($number_inventory) ? $number_inventory : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Serie</label>
-                            <input type="text" name="serie" class="form-control form-control-sm alfanumerico"
-                                   value="<?php echo isset($serie) ? $serie : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Fecha Ingreso</label>
-                            <input type="date" name="date_created" class="form-control form-control-sm"
-                                   value="<?php echo isset($date_created) ? date('Y-m-d', strtotime($date_created)) : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Equipo</label>
-                            <input type="text" name="name" class="form-control form-control-sm"
-                                   value="<?php echo isset($name) ? $name : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Marca</label>
-                            <input type="text" name="brand" class="form-control form-control-sm"
-                                   value="<?php echo isset($brand) ? $brand : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Modelo</label>
-                            <input type="text" name="model" class="form-control form-control-sm"
-                                   value="<?php echo isset($model) ? $model : ''; ?>" disabled>
-                        </div>
-
-                        <div class="form-group float-left col-md-3">
-                            <label class="control-label">Tipo de Adquisición</label>
-                            <select name="acquisition_type" class="custom-select custom-select-sm select2" disabled>
-                                <option value="1" selected>Compra</option>
-                            </select>
-                        </div>
+                <!-- Datos del equipo -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-dark">Datos del Equipo</h6>
                     </div>
-
-                    <div class="col-md-12 border-right">
-                        <div class="form-group">
-                            <label class="control-label">Descripción Estado Funcional Equipo</label><br/>
-                            <textarea name="description" cols="15" rows="3" style="width:100%" required><?php
-                                echo isset($description) ? $description : '';
-                            ?></textarea>
-                        </div>
-                    </div>
-                </div>
-                <hr/>
-
-                <div class="row">
-                    <div class="col-md-12 border-right">
-                        <b class="text-muted">Causas de Retiro</b><br/><br/>
-                        <?php while ($row = $causas->fetch_object()): ?>
-                            <div class="form-group col-md-6 float-left">
-                                <label>
-                                    <?php
-                                    $checked = in_array($row->id, $reasons, true) ? 'checked' : '';
-                                    echo htmlspecialchars($row->name);
-                                    ?>
-                                    &nbsp;&nbsp;
-                                    <input type="checkbox" name="withdrawal_reason[]" value="<?php echo $row->id; ?>" <?php echo $checked; ?>>
-                                </label>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="font-weight-bold text-dark">Fecha</label>
+                                <input type="date" name="date" class="form-control" required value="<?php echo isset($date) ? $date : ''; ?>">
                             </div>
-                        <?php endwhile; ?>
-                    </div>
-                </div>
-                <hr>
-
-                <div class="row">
-                    <div class="col-md-12 border-right">
-                        <b class="text-muted">Dictamen</b><br/><br/>
-                        <div class="form-group col-md-2 float-left">
-                            <label>Funcional
-                                <input type="radio" name="opinion" required value="1" <?php echo (isset($opinion) && $opinion == 1) ? 'checked' : ''; ?>>
-                            </label><br/>
-                            <label>Disfuncional
-                                <input type="radio" name="opinion" required value="0" <?php echo (isset($opinion) && $opinion == 0) ? 'checked' : ''; ?>>
-                            </label>
-                        </div>
-                        <div class="col-md-1 float-left">
-                            <label class="control-label">Comentarios</label>
-                        </div>
-                        <div class="col-md-8 float-left">
-                            <textarea name="comments" required style="margin-left:20px;width:100%;height:120px"><?php
-                                echo isset($comments) ? $comments : '';
-                            ?></textarea>
-                        </div>
-                    </div>
-                </div>
-                <hr>
-
-                <div class="row">
-                    <div class="col-md-12 border-right">
-                        <div class="form-group col-md-3 float-left">
-                            <b class="text-muted">Responsable de la evaluación</b><br/><br/>
-                            <label>Ingeniero Sistemas
-                                <input type="radio" name="responsible" value="1" <?php echo (isset($responsible) && $responsible == 1) ? 'checked' : ''; ?>>
-                            </label><br/>
-                            <label>Proveedor Externo
-                                <input type="radio" name="responsible" value="2" <?php echo (isset($responsible) && $responsible == 2) ? 'checked' : ''; ?>>
-                            </label>
+                            <div class="col-md-3 mb-3">
+                                <label class="font-weight-bold text-dark">Nro Inventario</label>
+                                <input type="text" name="number_inventory" class="form-control solonumeros" value="<?php echo isset($number_inventory) ? $number_inventory : ''; ?>" disabled>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="font-weight-bold text-dark">Serie</label>
+                                <input type="text" name="serie" class="form-control alfanumerico" value="<?php echo isset($serie) ? $serie : ''; ?>" disabled>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="font-weight-bold text-dark">Fecha Ingreso</label>
+                                <input type="date" name="date_created" class="form-control" value="<?php echo isset($date_created) ? date('Y-m-d', strtotime($date_created)) : ''; ?>" disabled>
+                            </div>
                         </div>
 
-                        <div class="form-group col-md-9 float-left">
-                            <b class="text-muted">Destino del equipo de baja</b><br/><br/>
-                            <label>Guardar en bodega
-                                <input type="radio" name="destination" required value="1" <?php echo (isset($destination) && $destination == 1) ? 'checked' : ''; ?>>
-                            </label>&nbsp;&nbsp;
-                            <label>Devolución al Proveedor
-                                <input type="radio" name="destination" required value="2" <?php echo (isset($destination) && $destination == 2) ? 'checked' : ''; ?>>
-                            </label><br/><br/>
-                            <label>Donar
-                                <input type="radio" name="destination" required value="3" <?php echo (isset($destination) && $destination == 3) ? 'checked' : ''; ?>>
-                            </label>&nbsp;&nbsp;
-                            <label>Venta
-                                <input type="radio" name="destination" required value="4" <?php echo (isset($destination) && $destination == 4) ? 'checked' : ''; ?>>
-                            </label>&nbsp;&nbsp;
-                            <label>Basura
-                                <input type="radio" name="destination" required value="5" <?php echo (isset($destination) && $destination == 5) ? 'checked' : ''; ?>>
-                            </label>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-bold text-dark">Equipo</label>
+                                <input type="text" name="name" class="form-control" value="<?php echo isset($name) ? $name : ''; ?>" disabled>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-bold text-dark">Marca</label>
+                                <input type="text" name="brand" class="form-control" value="<?php echo isset($brand) ? $brand : ''; ?>" disabled>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-bold text-dark">Modelo</label>
+                                <input type="text" name="model" class="form-control" value="<?php echo isset($model) ? $model : ''; ?>" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-bold text-dark">Tipo de Adquisición</label>
+                                <select name="acquisition_type" class="custom-select select2" disabled>
+                                    <option value="1" selected>Compra</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-12 text-right justify-content-center d-flex">
-                    <button class="btn btn-primary mr-2">Guardar</button>
-                    <button class="btn btn-secondary" type="reset">Resetear</button>
+                <!-- Estado funcional -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-dark">Descripción Estado Funcional</h6>
+                    </div>
+                    <div class="card-body">
+                        <textarea name="description" class="form-control" rows="3" required><?php echo isset($description) ? $description : ''; ?></textarea>
+                    </div>
+                </div>
+
+                <!-- Causas de retiro -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-dark">Causas de Retiro</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <?php while ($row = $causas->fetch_object()): ?>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <?php $checked = in_array($row->id, $reasons, true) ? 'checked' : ''; ?>
+                                        <input class="form-check-input" type="checkbox" id="reason_<?php echo $row->id; ?>" name="withdrawal_reason[]" value="<?php echo $row->id; ?>" <?php echo $checked; ?>>
+                                        <label class="form-check-label" for="reason_<?php echo $row->id; ?>"><?php echo htmlspecialchars($row->name); ?></label>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dictamen -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-dark">Dictamen</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="opinion" id="op_ok" required value="1" <?php echo (isset($opinion) && $opinion == 1) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="op_ok">Funcional</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="opinion" id="op_bad" required value="0" <?php echo (isset($opinion) && $opinion == 0) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="op_bad">Disfuncional</label>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <label class="font-weight-bold text-dark">Comentarios</label>
+                                <textarea name="comments" class="form-control" rows="4" required><?php echo isset($comments) ? $comments : ''; ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsable y destino -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-dark">Responsable y Destino</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-bold text-dark d-block mb-2">Responsable de la evaluación</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="responsible" id="resp1" value="1" <?php echo (isset($responsible) && $responsible == 1) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="resp1">Ingeniero Sistemas</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="responsible" id="resp2" value="2" <?php echo (isset($responsible) && $responsible == 2) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="resp2">Proveedor Externo</label>
+                                </div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="font-weight-bold text-dark d-block mb-2">Destino del equipo de baja</label>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="destination" id="dest1" required value="1" <?php echo (isset($destination) && $destination == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="dest1">Guardar en bodega</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="destination" id="dest2" required value="2" <?php echo (isset($destination) && $destination == 2) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="dest2">Devolución al Proveedor</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="destination" id="dest3" required value="3" <?php echo (isset($destination) && $destination == 3) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="dest3">Donar</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="destination" id="dest4" required value="4" <?php echo (isset($destination) && $destination == 4) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="dest4">Venta</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="destination" id="dest5" required value="5" <?php echo (isset($destination) && $destination == 5) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="dest5">Basura</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button class="btn btn-primary btn-lg px-5 mr-2" type="submit">Guardar</button>
+                    <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    .form-control, .custom-select { border-radius: 10px; }
+    .card > .card-header h6, .card > .card-header h5 { font-weight: 600; }
+    .form-check-label { cursor: pointer; }
+    .form-check-input { cursor: pointer; }
+    .card.mb-4 { border: 1px solid #e9ecef; border-radius: 12px; }
+    .card.mb-4 .card-header { background-color: #f8f9fa !important; }
+    textarea.form-control { resize: vertical; }
+    @media (max-width: 576px) {
+        .btn-lg { width: 100%; margin-bottom: .5rem; }
+    }
+    .select2-container--default .select2-selection--single { height: 38px; border-radius: 10px; border: 1px solid #ced4da; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 36px; }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
+    .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shadow-sm { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important; }
+    .border-0 { border: 0!important; }
+    .bg-light { background-color: #f8f9fa!important; }
+    .bg-white { background-color: #fff!important; }
+    .text-dark { color: #343a40!important; }
+    .font-weight-bold { font-weight: 600!important; }
+    .mb-0 { margin-bottom: 0!important; }
+</style>
 
 <script>
 $('.solonumeros').on('input', function () {
@@ -192,6 +236,12 @@ $('.solonumeros').on('input', function () {
 
 $('.alfanumerico').on('input', function () {
     this.value = this.value.replace(/[^a-zA-Z0-9]/g,'');
+});
+
+$(function(){
+    if ($.fn.select2) {
+        $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
+    }
 });
 
 $('#manage_equipment').submit(function(e) {

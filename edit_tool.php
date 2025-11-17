@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? $_GET['id'] : 0;

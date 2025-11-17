@@ -1,6 +1,6 @@
 <?php
 if (!isset($conn)) {
-	include 'db_connect.php';
+	require_once 'config/config.php';
 }
 ?>
 <div class="col-lg-12">

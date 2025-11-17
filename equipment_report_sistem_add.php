@@ -1,68 +1,81 @@
 <?php
-  // Validamos los datos recibidos
-//   if (!isset($_POST['nombre']) || !isset($_POST['numero_inv']) || !isset($_POST['serie']) || !isset($_POST['modelo']) || !isset($_POST['marca']) || !isset($_POST['dia']) || !isset($_POST['mes']) || !isset($_POST['yea']) || !isset($_POST['inicio']) || !isset($_POST['fin']) || !isset($_POST['mantenimientoPreventivo']) || !isset($_POST['unidad_riesgo']) || !isset($_POST['componentes']) || !isset($_POST['toner']) || !isset($_POST['impresiom_pruebas']) || !isset($_POST['numero1']) || !isset($_POST['material1']) || !isset($_POST['numero2']) || !isset($_POST['material2']))  {
-//     // Datos no recibidos
-//     header("Location: index.php?page=equipment_list");
-//     exit();
-//   }
+require_once 'config/config.php';
 
-  // Obtenemos los datos del formulario
-  $nombre = $_POST['nombre'];
-  $numero_inv = $_POST['numero_inv'];
+// === RECIBIR TIPO DE SERVICIO ===
+$tipo_servicio = $_POST['tipo_servicio'] ?? '';
 
-  $serie = $_POST['serie'];
-  $modelo = $_POST['modelo'];
-  $marca = $_POST['marca'];
+// === VALIDAR QUE SEA UNO DE LOS PERMITIDOS ===
+$tipos_permitidos = ['Correctivo', 'Preventivo', 'Capacitacion', 'Operativo', 'Programado', 'Incidencias'];
+if (!in_array($tipo_servicio, $tipos_permitidos)) {
+    $tipo_servicio = 'No especificado';
+}
 
-  $dia = $_POST['dia'];
-  $mes = $_POST['mes'];
-  $yea = $_POST['yea'];
-  $inicio = $_POST['inicio'];
-  $fin = $_POST['fin'];
+// === RESTO DE CAMPOS ===
+$orden_servicio = $_POST['orden_servicio'] ?? '';
+$nombre = $_POST['nombre'] ?? '';
+$numero_inv = $_POST['numero_inv'] ?? '';
+$serie = $_POST['serie'] ?? '';
+$modelo = $_POST['modelo'] ?? '';
+$marca = $_POST['marca'] ?? '';
 
-  $mantenimientoPreventivo = $_POST['mantenimientoPreventivo'];
-  $unidad_riesgo = $_POST['unidad_riesgo'];
-  $componentes = $_POST['componentes'];
-  $toner = $_POST['toner'];
-  $impresiom_pruebas = $_POST['impresiom_pruebas'];
+$fecha_servicio = $_POST['fecha_servicio'] ?? '';
+$hora_inicio = $_POST['hora_inicio'] ?? '';
+$hora_fin = $_POST['hora_fin'] ?? '';
+$fecha_entrega = $_POST['fecha_entrega'] ?? '';
 
-  $numero1 = $_POST['numero1'];
-  $material1 = $_POST['material1'];
-  $numero2 = $_POST['numero2'];
-  $material2 = $_POST['material2'];
+$mantenimientoPreventivo = $_POST['mantenimientoPreventivo'] ?? '';
+$unidad_riesgo = $_POST['unidad_riesgo'] ?? '';
+$componentes = $_POST['componentes'] ?? '';
+$toner = $_POST['toner'] ?? '';
+$impresiom_pruebas = $_POST['impresiom_pruebas'] ?? '';
 
+// === MATERIALES ===
+$materiales = [];
+foreach ($_POST['material_qty'] ?? [] as $i => $qty) {
+    $mid = (int)($_POST['material_id'][$i] ?? 0);
+    $qty = (int)$qty;
+    if ($mid > 0 && $qty > 0 && $i < 2) {
+        $materiales[] = ['id' => $mid, 'qty' => $qty];
+    }
+}
 
+// === VALIDAR STOCK ===
+foreach ($materiales as $m) {
+    $check = $conn->query("SELECT stock, name FROM inventory WHERE id = {$m['id']}")->fetch_array();
+    if (!$check || $check['stock'] < $m['qty']) {
+        header("Location: index.php?page=equipment_list");
+        exit();
+    }
+}
 
+// === MATERIALES EN CAMPOS ===
+$numero1 = $materiales[0]['qty'] ?? '';
+$material1 = $materiales[0]['id'] ?? 0 ? ($conn->query("SELECT name FROM inventory WHERE id = {$materiales[0]['id']}")->fetch_array()['name'] ?? '') : '';
+$numero2 = $materiales[1]['qty'] ?? '';
+$material2 = $materiales[1]['id'] ?? 0 ? ($conn->query("SELECT name FROM inventory WHERE id = {$materiales[1]['id']}")->fetch_array()['name'] ?? '') : '';
 
-//   var_dump($_POST);
+// === INSERTAR CON TIPO DE SERVICIO ===
+$stmt = $conn->prepare("INSERT INTO equipment_report_sistem 
+    (orden_servicio, nombre, numero_inv, serie, modelo, marca, tipo_servicio,
+     fecha_servicio, hora_inicio, hora_fin, fecha_entrega,
+     mantenimientoPreventivo, unidad_riesgo, componentes, toner, impresiom_pruebas,
+     numero1, material1, numero2, material2)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-  // Realizamos la conexión a la base de datos
-  include("db_connect.php");
+$stmt->bind_param("ssssssssssssssssssss",
+    $orden_servicio, $nombre, $numero_inv, $serie, $modelo, $marca, $tipo_servicio,
+    $fecha_servicio, $hora_inicio, $hora_fin, $fecha_entrega,
+    $mantenimientoPreventivo, $unidad_riesgo, $componentes, $toner, $impresiom_pruebas,
+    $numero1, $material1, $numero2, $material2
+);
 
-  // Preparamos la consulta
-  $stmt = $conn->prepare("INSERT INTO equipment_report_sistem (nombre , numero_inv , serie ,modelo ,marca ,dia ,mes ,yea ,inicio ,fin ,mantenimientoPreventivo ,unidad_riesgo ,componentes ,toner ,impresiom_pruebas ,numero1,material1 ,numero2, material2  ) VALUES(?, ? , ? , ?, ? ,?, ? , ? , ?, ?, ? , ? , ?, ?, ? , ? , ?,?,?)");
+$stmt->execute();
+$report_id = $conn->insert_id;
 
-  // Vinculamos los parámetros
-//   $stmt->bind_param("ii", $nombre, $numbero_inv);
-  $stmt->bind_param("sssssssssssssssssss", $nombre, $numero_inv , $serie , $modelo , $marca ,$dia ,$mes ,$yea ,$inicio ,$fin ,$mantenimientoPreventivo ,$unidad_riesgo ,$componentes ,$toner ,$impresiom_pruebas ,$numero1,$material1 ,$numero2, $material2);
+// === DESCONTAR STOCK ===
+foreach ($materiales as $m) {
+    $conn->query("UPDATE inventory SET stock = stock - {$m['qty']} WHERE id = {$m['id']}");
+}
 
-
-  // Ejecutamos la consulta
-  $stmt->execute();
-
-  // Comprobamos el número de filas afectadas
-  if ($stmt->affected_rows === 0) {
-    // No se ha agregado ningún registro
-    header("Location: index.php?page=equipment_list");
-    exit();
-  }
-
-  // Agregamos el mensaje de éxito
-  echo "1 Record Added!";
-
-  // Cerramos la conexión a la base de datos
-  $stmt->close();
-
-  // Redirigimos a la lista de registros
-  header("Location: index.php?page=equipment_list");
-?>
+header("Location: index.php?page=equipment_report_sistem_list");
+exit;

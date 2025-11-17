@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // Obtener el siguiente ID automático
@@ -170,12 +170,12 @@ $siguiente_id = $row['Auto_increment'];
                     alert_toast('Ítem guardado correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=inventory_list', 1500);
                 } else {
-                    alert_toast('Error: ' + resp, 'danger');
+                    alert_toast('Error: ' + resp, 'error');
                 }
                 end_load();
             },
             error: function() {
-                alert_toast('Error de conexión', 'danger');
+                alert_toast('Error de conexión', 'error');
                 end_load();
             }
         });

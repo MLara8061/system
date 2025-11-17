@@ -1,14 +1,20 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // === TOTALES GENERALES DE INVENTARIO ===
 $total_items = $conn->query("SELECT COUNT(*) as total FROM inventory")->fetch_assoc()['total'] ?? 0;
-$activos = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE status = 'active'")->fetch_assoc()['total'] ?? 0;
-$out_of_stock = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE status = 'out_of_stock'")->fetch_assoc()['total'] ?? 0;
+
+// === CAMBIO 1: Contar ítems CON STOCK (stock > 0) ===
+$con_stock = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE stock > 0")->fetch_assoc()['total'] ?? 0;
+
+// === CAMBIO 2: Contar ítems SIN STOCK (stock = 0) ===
+// Se mantiene la variable, pero se asegura la condición de conteo (stock = 0)
+$sin_stock = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE stock = 0")->fetch_assoc()['total'] ?? 0;
+
+// Se mantiene la lógica del valor total
 $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM inventory")->fetch_assoc()['total'] ?? 0;
 ?>
 
-<!-- TARJETAS DE RESUMEN -->
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm border-0" style="border-radius: 12px;">
@@ -21,28 +27,31 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
             </div>
         </div>
     </div>
+    
     <div class="col-md-3">
         <div class="card shadow-sm border-0" style="border-radius: 12px;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
                 <div>
-                    <h6 class="mb-0 text-muted">Activos</h6>
-                    <h4 class="mb-0"><?= $activos ?></h4>
+                    <h6 class="mb-0 text-muted">Con Stock</h6>
+                    <h4 class="mb-0"><?= $con_stock ?></h4>
                 </div>
             </div>
         </div>
     </div>
+    
     <div class="col-md-3">
         <div class="card shadow-sm border-0" style="border-radius: 12px;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-exclamation-triangle fa-2x text-warning mr-3"></i>
                 <div>
                     <h6 class="mb-0 text-muted">Sin Stock</h6>
-                    <h4 class="mb-0"><?= $out_of_stock ?></h4>
+                    <h4 class="mb-0"><?= $sin_stock ?></h4>
                 </div>
             </div>
         </div>
     </div>
+    
     <div class="col-md-3">
         <div class="card shadow-sm border-0" style="border-radius: 12px;">
             <div class="card-body d-flex align-items-center">
@@ -56,16 +65,14 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
     </div>
 </div>
 
-<!-- TABLA DE INVENTARIO -->
 <div class="col-lg-12">
+    <div class="col-lg-12">
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-header bg-white border-0">
             <div class="card-tools float-right">
-                <!-- BOTÓN NUEVO -->
                 <a href="index.php?page=manage_inventory" class="btn btn-tool btn-sm" title="Agregar Item">
                     <i class="fas fa-plus text-secondary"></i>
                 </a>
-                <!-- BOTÓN DESCARGAR -->
                 <a href="#" class="btn btn-tool btn-sm" title="Exportar a Excel" id="export-excel">
                     <i class="fas fa-download text-info"></i>
                 </a>
@@ -123,7 +130,6 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                                 <?php endif; ?>
                             </td>
                             <td><strong><?= ucwords($row['name']) ?></strong></td>
-                            <!-- CATEGORÍA SIN FONDO NI NEGRITA -->
                             <td><span class="text-muted"><?= ucwords($row['category'] ?? 'N/A') ?></span></td>
                             <td>$<?= number_format($row['price'], 2) ?></td>
                             <td>$<?= number_format($row['cost'], 2) ?></td>
@@ -136,7 +142,6 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                             <td class="text-center"><?= $stock_status ?></td>
                             <td><small><?= date('d/m/Y', strtotime($row['created_at'])) ?></small></td>
 
-                            <!-- === ACCIONES CON ENGRANAJE === -->
                             <td class="text-center">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
@@ -238,7 +243,7 @@ $(document).ready(function() {
                     alert_toast("Eliminado correctamente", 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert_toast("Error al eliminar", 'danger');
+                    alert_toast("Error al eliminar", 'error');
                     end_load();
                 }
             }
