@@ -27,29 +27,30 @@ class Action {
     {
         extract($_POST);
         
-        // DEBUG temporal
-        error_log("=== LOGIN DEBUG ===");
-        error_log("Username: " . ($username ?? 'NO ENVIADO'));
-        error_log("Type solicitado: " . ($type ?? 'NO ENVIADO') . " (tipo: " . gettype($type ?? null) . ")");
-        error_log("Password recibido: " . (isset($password) ? 'SÍ (oculto)' : 'NO'));
-        
-        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "'");
-        
-        error_log("Usuarios encontrados: " . $qry->num_rows);
+        // Buscar usuario por username solamente
+        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
 
         if ($qry->num_rows > 0) {
             $user = $qry->fetch_array();
             
-            error_log("Usuario encontrado: " . $user['username']);
-            error_log("Role en BD: " . $user['role'] . " (tipo: " . gettype($user['role']) . ")");
-            error_log("Comparación: " . $user['role'] . " == " . ($type ?? 'NO DEFINIDO'));
+            // Verificar contraseña (soportar MD5 legacy y bcrypt moderno)
+            $password_valid = false;
             
-            // Validar que el role coincida con el type solicitado (comparación flexible)
+            if (strpos($user['password'], '$2y$') === 0) {
+                // Password con bcrypt
+                $password_valid = password_verify($password, $user['password']);
+            } else {
+                // Password con MD5 (legacy)
+                $password_valid = ($user['password'] === md5($password));
+            }
+            
+            if (!$password_valid) {
+                return 2; // Contraseña incorrecta
+            }
+            
+            // Validar que el role coincida con el type solicitado
             if (!isset($type) || $user['role'] != $type) {
-                error_log("RECHAZO: Role no coincide o type no definido");
-                error_log("Comparación estricta: " . ($user['role'] === $type ? 'true' : 'false'));
-                error_log("Comparación flexible: " . ($user['role'] == $type ? 'true' : 'false'));
-                return 2; // Credenciales incorrectas
+                return 2; // Tipo de usuario incorrecto
             }
 
             foreach ($user as $key => $value) {
@@ -66,11 +67,9 @@ class Action {
             $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
 
             $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
-            error_log("LOGIN EXITOSO");
             return 1;
         } else {
-            error_log("RECHAZO: Usuario/contraseña incorrectos");
-            return 2;
+            return 2; // Usuario no encontrado
         }
     }
 
