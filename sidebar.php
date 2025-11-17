@@ -323,8 +323,9 @@
 
 <script>
 $(document).ready(function() {
-  // === INICIALIZAR TREEVIEW DE ADMINLTE (método nativo) ===
-  $('[data-widget="treeview"]').Treeview('init');
+    // === INICIALIZAR TREEVIEW DE ADMINLTE ===
+  // Comentado porque usamos manejadores manuales de slideUp/slideDown
+  // $('[data-widget="treeview"]').Treeview('init');
   
   // === MARCAR PÁGINA ACTIVA ===
   const page = '<?php echo $_GET["page"] ?? "home"; ?>';
