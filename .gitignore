@@ -20,6 +20,7 @@ config.php
 .DS_Store
 Thumbs.db
 *.log
+debug_log.txt
 
 # === CARPETAS TEMPORALES ===
 /temp/
