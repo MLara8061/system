@@ -26,13 +26,27 @@ class Action {
     function login()
     {
         extract($_POST);
+        
+        // DEBUG temporal
+        error_log("=== LOGIN DEBUG ===");
+        error_log("Username: " . ($username ?? 'NO ENVIADO'));
+        error_log("Type solicitado: " . ($type ?? 'NO ENVIADO'));
+        error_log("Password recibido: " . (isset($password) ? 'SÍ (oculto)' : 'NO'));
+        
         $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "'");
+        
+        error_log("Usuarios encontrados: " . $qry->num_rows);
 
         if ($qry->num_rows > 0) {
             $user = $qry->fetch_array();
             
+            error_log("Usuario encontrado: " . $user['username']);
+            error_log("Role en BD: " . $user['role']);
+            error_log("Type solicitado: " . ($type ?? 'NO DEFINIDO'));
+            
             // Validar que el role coincida con el type solicitado
-            if ($user['role'] != $type) {
+            if (!isset($type) || $user['role'] != $type) {
+                error_log("RECHAZO: Role no coincide o type no definido");
                 return 2; // Credenciales incorrectas
             }
 
@@ -50,8 +64,10 @@ class Action {
             $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
 
             $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
+            error_log("LOGIN EXITOSO");
             return 1;
         } else {
+            error_log("RECHAZO: Usuario/contraseña incorrectos");
             return 2;
         }
     }
