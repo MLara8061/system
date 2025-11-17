@@ -165,7 +165,7 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                             <div class="info-label">Adquisición</div>
                             <div class="info-value">
                                 <?php 
-                                $type = $conn->query("SELECT name FROM equipment_acquisition_type WHERE id = " . ($eq['acquisition_type'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+                                $type = $conn->query("SELECT name FROM acquisition_type WHERE id = " . ($eq['acquisition_type'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
                                 echo htmlspecialchars($type);
                                 ?>
                             </div>
