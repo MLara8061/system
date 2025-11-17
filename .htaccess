@@ -1,0 +1,11 @@
+# Bloquear acceso a archivos sensibles en la raíz
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Bloquear archivos .env en cualquier ruta
+  RewriteRule \.env$ - [F,L]
+</IfModule>
+
+# Alternativa sin mod_rewrite
+<FilesMatch "^(\.env|.*\.(sql|bak|sh|ini))$">
+  Require all denied
+</FilesMatch>
