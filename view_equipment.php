@@ -1,4 +1,8 @@
 <?php
+// Habilitar errores para debug
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'config/config.php';
 
 // === VALIDAR ID ===

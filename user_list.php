@@ -81,7 +81,7 @@
             <table class="table table-hover table-striped" id="user-table">
                 <thead class="bg-light">
                     <tr>
-                        <th>#</th>
+                        <th style="width: 60px;">Foto</th>
                         <th>Nombre Completo</th>
                         <th>Rol</th>
                         <th>Usuario</th>
@@ -101,7 +101,9 @@
                                 : 'assets/img/default-avatar.png';
                     ?>
                         <tr>
-                            <td class="text-center"><strong><?= $i++ ?></strong></td>
+                            <td class="text-center">
+                                <img src="<?= $avatar ?>" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #dee2e6;">
+                            </td>
                             <td><?= ucwords($fullname) ?></td>
                             <td class="text-center"><?= $role ?></td>
                             <td><code><?= $row['username'] ?></code></td>
