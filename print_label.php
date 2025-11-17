@@ -10,7 +10,7 @@ $eq = $qry->fetch_assoc();
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
 $host = $_SERVER['HTTP_HOST'];
 $script_dir = dirname($_SERVER['SCRIPT_NAME']);
-$qr_url = $protocol . $host . $script_dir . '/equipment_public.php?id=' . $id;
+$qr_url = $protocol . $host . $script_dir . '/view_equipment.php?id=' . $id;
 
 // Generar QR en base64 (QR más grande dentro de etiqueta pequeña)
 ob_start();

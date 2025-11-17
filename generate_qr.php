@@ -21,7 +21,7 @@ if (!file_exists($dir)) {
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
 $host = $_SERVER['HTTP_HOST'];
 $script_dir = dirname($_SERVER['SCRIPT_NAME']);
-$base_url = $protocol . $host . $script_dir . '/equipment_public.php?id=';
+$base_url = $protocol . $host . $script_dir . '/view_equipment.php?id=';
 $url = $base_url . $id;
 
 // Nombre del archivo QR
