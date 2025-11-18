@@ -50,30 +50,59 @@ if (isset($_POST['refaccion_item_id']) && is_array($_POST['refaccion_item_id']))
 }
 $parts_used_json = json_encode($parts_used, JSON_UNESCAPED_UNICODE);
 
-// === INSERTAR REPORTE ===
-$stmt = $conn->prepare("
-    INSERT INTO maintenance_reports (
-        order_number, report_date, engineer_name,
-        client_name, client_phone, client_address, client_email,
-        equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
-        service_type, execution_type, service_date, service_start_time, service_end_time, description, observations, final_status, received_by,
-        parts_used
-    ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    )
-");
+// === VERIFICAR SI EXISTEN LAS COLUMNAS NUEVAS ===
+$check = $conn->query("SHOW COLUMNS FROM maintenance_reports LIKE 'service_date'");
+$has_new_columns = ($check && $check->num_rows > 0);
 
-$stmt->bind_param(
-    "ssssssssssssisssssssssss",
-    $order_number, $report_date, $engineer_name,
-    $client_name, $client_phone, $client_address, $client_email,
-    $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
-    $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
-    $parts_used_json
-);
+// === INSERTAR REPORTE ===
+if ($has_new_columns) {
+    // Con las columnas nuevas
+    $stmt = $conn->prepare("
+        INSERT INTO maintenance_reports (
+            order_number, report_date, engineer_name,
+            client_name, client_phone, client_address, client_email,
+            equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
+            service_type, execution_type, service_date, service_start_time, service_end_time, description, observations, final_status, received_by,
+            parts_used
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    ");
+
+    $stmt->bind_param(
+        "ssssssssssssisssssssssss",
+        $order_number, $report_date, $engineer_name,
+        $client_name, $client_phone, $client_address, $client_email,
+        $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+        $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
+        $parts_used_json
+    );
+} else {
+    // Sin las columnas nuevas (versión anterior)
+    $stmt = $conn->prepare("
+        INSERT INTO maintenance_reports (
+            order_number, report_date, engineer_name,
+            client_name, client_phone, client_address, client_email,
+            equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
+            service_type, execution_type, description, observations, final_status, received_by,
+            parts_used
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    ");
+
+    $stmt->bind_param(
+        "ssssssssssssisssssssss",
+        $order_number, $report_date, $engineer_name,
+        $client_name, $client_phone, $client_address, $client_email,
+        $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+        $service_type, $execution_type, $description, $observations, $final_status, $received_by,
+        $parts_used_json
+    );
+}
 
 if (!$stmt->execute()) {
-    die("Error saving report: " . $conn->error);
+    die("Error saving report: " . $stmt->error . " | " . $conn->error);
 }
 $report_id = $conn->insert_id;
 $stmt->close();
