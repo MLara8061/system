@@ -1,4 +1,7 @@
 <?php
+// Configurar zona horaria de México
+date_default_timezone_set('America/Cancun');
+
 require_once 'config/config.php';
 
 // === DATOS FIJOS ===
