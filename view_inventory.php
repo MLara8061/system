@@ -28,7 +28,8 @@ $row = $qry->fetch_assoc();
                     <?php endif; ?>
                 </div>
                 <div class="mt-2">
-                    <input type="file" name="image_path" id="image-input" class="form-control form-control-sm" accept="image/*">
+                    <input type="file" name="image_path" id="image-input" class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
+                    <small class="text-muted d-block mt-1">Formatos: JPG, PNG (máx. 5MB)</small>
                 </div>
             </div>
 
@@ -108,7 +109,28 @@ $row = $qry->fetch_assoc();
 </style>
 
 <script>
-$(document).ready(function() {
+    // Validar formato de imagen
+    $('#image-input').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validFormats = ['jpg', 'jpeg', 'png'];
+            
+            if (!validFormats.includes(ext)) {
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                $(this).val('');
+                return false;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
+                $(this).val('');
+                return false;
+            }
+        }
+    });
+
+    $(document).ready(function() {
     // === PREVISUALIZAR IMAGEN ===
     $('#image-input').change(function() {
         const file = this.files[0];

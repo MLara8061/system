@@ -31,7 +31,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
                             <i class="fas fa-camera"></i>
                         </label>
                     </div>
-                    <input type="file" id="avatar-upload" accept="image/*" class="d-none">
+                    <input type="file" id="avatar-upload" accept="image/jpeg,image/png,image/jpg" class="d-none">
                     <p class="text-muted mt-2 mb-0">Haz clic para cambiar foto</p>
                 </div>
 
@@ -144,6 +144,27 @@ $(document).ready(function() {
     const $passwordStrength = $('#password-strength');
     const $toggleBtn = $('#toggle-password');
     const originalUsername = '<?= $user['username'] ?>';
+
+    // === VALIDAR FORMATO DE IMAGEN ===
+    $avatarUpload.on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validFormats = ['jpg', 'jpeg', 'png'];
+            
+            if (!validFormats.includes(ext)) {
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                $(this).val('');
+                return false;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
+                $(this).val('');
+                return false;
+            }
+        }
+    });
 
     // === SUBIR Y RECORTAR IMAGEN ===
     $avatarUpload.on('change', function(e) {
