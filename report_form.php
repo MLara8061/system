@@ -153,6 +153,29 @@ if ($conn) {
                             </div>
                         </div>
 
+                        <!-- HORARIO DE SERVICIO -->
+                        <div class="section-header">HORARIO DE SERVICIO</div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Fecha del Servicio:</label>
+                                    <input type="date" class="form-control form-control-sm" name="service_date" value="<?= date('Y-m-d') ?>">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Hora Inicio:</label>
+                                    <input type="time" class="form-control form-control-sm" name="service_start_time">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Hora Fin:</label>
+                                    <input type="time" class="form-control form-control-sm" name="service_end_time">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- DESCRIPCIÓN -->
                         <div class="section-header">DESCRIPCIÓN DEL TRABAJO</div>
                         <div class="form-group">

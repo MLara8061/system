@@ -207,6 +207,7 @@ if (empty($parts_list)) {
         <div class="order-info">
             <div>ORDEN: <?= htmlspecialchars($report['order_number']) ?></div>
             <div class="fecha">FECHA: <?= htmlspecialchars($report['report_date']) ?></div>
+            <div class="fecha">HORA: <?= date('H:i') ?></div>
         </div>
     </div>
 
@@ -245,6 +246,24 @@ if (empty($parts_list)) {
             <tr><th>Ejecución</th><td><?= $report['execution_type'] ?></td></tr>
         </table>
     </div>
+
+    <!-- HORARIO DE SERVICIO -->
+    <?php if (!empty($report['service_date']) || !empty($report['service_start_time']) || !empty($report['service_end_time'])): ?>
+    <div class="section">
+        <h2>HORARIO DE SERVICIO</h2>
+        <table>
+            <?php if (!empty($report['service_date'])): ?>
+            <tr><th>Fecha</th><td><?= htmlspecialchars($report['service_date']) ?></td></tr>
+            <?php endif; ?>
+            <?php if (!empty($report['service_start_time'])): ?>
+            <tr><th>Hora Inicio</th><td><?= htmlspecialchars($report['service_start_time']) ?></td></tr>
+            <?php endif; ?>
+            <?php if (!empty($report['service_end_time'])): ?>
+            <tr><th>Hora Fin</th><td><?= htmlspecialchars($report['service_end_time']) ?></td></tr>
+            <?php endif; ?>
+        </table>
+    </div>
+    <?php endif; ?>
 
     <!-- DESCRIPCIÓN -->
     <div class="section">

@@ -28,6 +28,9 @@ $location_id = $_POST['location_id'] ?? 0;
 
 $service_type = $_POST['tipo_servicio'] ?? 'MP';
 $execution_type = $_POST['ejecucion'] ?? 'PLAZA';
+$service_date = $_POST['service_date'] ?? '';
+$service_start_time = $_POST['service_start_time'] ?? '';
+$service_end_time = $_POST['service_end_time'] ?? '';
 $description = $_POST['descripcion'] ?? '';
 $observations = $_POST['observaciones'] ?? '';
 $final_status = $_POST['status_final'] ?? 'FUNCIONAL';
@@ -53,19 +56,19 @@ $stmt = $conn->prepare("
         order_number, report_date, engineer_name,
         client_name, client_phone, client_address, client_email,
         equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
-        service_type, execution_type, description, observations, final_status, received_by,
+        service_type, execution_type, service_date, service_start_time, service_end_time, description, observations, final_status, received_by,
         parts_used
     ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )
 ");
 
 $stmt->bind_param(
-    "ssssssssssssisssssssss",
+    "ssssssssssssisssssssssss",
     $order_number, $report_date, $engineer_name,
     $client_name, $client_phone, $client_address, $client_email,
     $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
-    $service_type, $execution_type, $description, $observations, $final_status, $received_by,
+    $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
     $parts_used_json
 );
 
