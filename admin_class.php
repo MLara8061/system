@@ -363,9 +363,9 @@ class Action {
         $data = "";
         $new = empty($id);
 
-        $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id'];
+        $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
         foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id','number_inventory']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
+            if (!in_array($k, ['id']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
                 $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
             }
         }
