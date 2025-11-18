@@ -207,7 +207,7 @@ if (empty($parts_list)) {
         <div class="order-info">
             <div>ORDEN: <?= htmlspecialchars($report['order_number']) ?></div>
             <div class="fecha">FECHA: <?= htmlspecialchars($report['report_date']) ?></div>
-            <div class="fecha">HORA: <?= date('H:i') ?></div>
+            <div class="fecha">HORA: <?= htmlspecialchars($report['report_time'] ?? date('H:i')) ?></div>
         </div>
     </div>
 

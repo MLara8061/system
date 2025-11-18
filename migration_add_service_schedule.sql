@@ -5,6 +5,24 @@
 SET @dbname = DATABASE();
 SET @tablename = 'maintenance_reports';
 
+-- report_time
+SET @columnexists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = @tablename
+    AND COLUMN_NAME = 'report_time'
+);
+
+SET @sqlstmt = IF(@columnexists = 0,
+    'ALTER TABLE maintenance_reports ADD COLUMN report_time TIME NULL DEFAULT NULL AFTER report_date',
+    'SELECT ''Column report_time already exists'' AS msg'
+);
+
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 -- service_date
 SET @columnexists = (
     SELECT COUNT(*)
@@ -63,4 +81,4 @@ DEALLOCATE PREPARE stmt;
 SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE 
 FROM INFORMATION_SCHEMA.COLUMNS 
 WHERE TABLE_NAME = 'maintenance_reports' 
-AND COLUMN_NAME IN ('service_date', 'service_start_time', 'service_end_time');
+AND COLUMN_NAME IN ('report_time', 'service_date', 'service_start_time', 'service_end_time');

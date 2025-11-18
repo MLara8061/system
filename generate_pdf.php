@@ -1,5 +1,8 @@
 <?php
 // generate_pdf.php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require_once 'config/config.php';
 
@@ -10,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // === RECIBIR DATOS ===
 $order_number = $_POST['orden_mto'] ?? '';
 $report_date = $_POST['fecha_reporte'] ?? '';
+$report_time = date('H:i'); // Hora de generación
 $engineer_name = $_POST['ingeniero_nombre'] ?? 'ING. AMALIA BACAB';
 
 $client_name = $_POST['cliente_nombre'] ?? '';
@@ -59,19 +63,19 @@ if ($has_new_columns) {
     // Con las columnas nuevas
     $stmt = $conn->prepare("
         INSERT INTO maintenance_reports (
-            order_number, report_date, engineer_name,
+            order_number, report_date, report_time, engineer_name,
             client_name, client_phone, client_address, client_email,
             equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
             service_type, execution_type, service_date, service_start_time, service_end_time, description, observations, final_status, received_by,
             parts_used
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
     ");
 
     $stmt->bind_param(
-        "ssssssssssssisssssssssss",
-        $order_number, $report_date, $engineer_name,
+        "sssssssssssssissssssssssss",
+        $order_number, $report_date, $report_time, $engineer_name,
         $client_name, $client_phone, $client_address, $client_email,
         $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
         $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
@@ -81,19 +85,19 @@ if ($has_new_columns) {
     // Sin las columnas nuevas (versión anterior)
     $stmt = $conn->prepare("
         INSERT INTO maintenance_reports (
-            order_number, report_date, engineer_name,
+            order_number, report_date, report_time, engineer_name,
             client_name, client_phone, client_address, client_email,
             equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
             service_type, execution_type, description, observations, final_status, received_by,
             parts_used
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
     ");
 
     $stmt->bind_param(
-        "ssssssssssssisssssssss",
-        $order_number, $report_date, $engineer_name,
+        "ssssssssssssissssssssss",
+        $order_number, $report_date, $report_time, $engineer_name,
         $client_name, $client_phone, $client_address, $client_email,
         $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
         $service_type, $execution_type, $description, $observations, $final_status, $received_by,
