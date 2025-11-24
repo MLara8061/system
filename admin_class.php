@@ -578,16 +578,32 @@ class Action {
     }
 
     private function generate_automatic_maintenance($equipment_id, $start_date, $period_id, $is_new = true) {
+        // Obtener el intervalo de días del periodo de mantenimiento
         $qry = $this->db->query("SELECT days_interval FROM maintenance_periods WHERE id = $period_id");
         if ($qry->num_rows == 0) return false;
         $interval = $qry->fetch_array()['days_interval'];
 
+        // Si no es nuevo, eliminar mantenimientos automáticos anteriores
         if (!$is_new) {
             $this->db->query("DELETE FROM mantenimientos WHERE equipo_id = $equipment_id AND descripcion = 'Mantenimiento automático'");
         }
 
-        $fecha = date('Y-m-d', strtotime("+$interval days", strtotime($start_date)));
-        $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) VALUES ('$equipment_id', '$fecha', 'Mantenimiento automático', 'pendiente', NOW())");
+        // Generar mantenimientos para los próximos 12 meses
+        $current_date = strtotime($start_date);
+        $end_date = strtotime("+12 months", $current_date);
+        $count = 0;
+        
+        while ($current_date < $end_date && $count < 50) { // Límite de seguridad de 50 eventos
+            $current_date = strtotime("+$interval days", $current_date);
+            if ($current_date >= $end_date) break;
+            
+            $fecha = date('Y-m-d', $current_date);
+            $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) 
+                             VALUES ('$equipment_id', '$fecha', 'Mantenimiento automático', 'pendiente', NOW())");
+            $count++;
+        }
+        
+        return $count;
     }
 
     // ================== HERRAMIENTAS ==================
