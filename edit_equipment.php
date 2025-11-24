@@ -374,8 +374,6 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     WHERE mr.equipment_id = {$equipment_id}
                     ORDER BY mr.report_date DESC, mr.report_time DESC
                 ");
-                
-                if ($maintenance_query && $maintenance_query->num_rows > 0):
                 ?>
                 <div class="card mb-4">
                     <div class="card-header bg-light border-0">
@@ -384,6 +382,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                         </h6>
                     </div>
                     <div class="card-body">
+                        <?php if ($maintenance_query && $maintenance_query->num_rows > 0): ?>
                         <div class="table-responsive">
                             <table id="maintenanceTable" class="table table-striped table-hover">
                                 <thead class="bg-secondary">
@@ -437,9 +436,14 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                 </tbody>
                             </table>
                         </div>
+                        <?php else: ?>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            No hay registros de mantenimiento para este equipo.
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <?php endif; ?>
 
                 <hr>
                 <div class="text-center">

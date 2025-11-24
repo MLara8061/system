@@ -280,13 +280,12 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                 WHERE mr.equipment_id = $equipment_id
                 ORDER BY mr.report_date DESC, mr.report_time DESC
             ");
-            
-            if ($maintenance_qry && $maintenance_qry->num_rows > 0):
             ?>
             <div class="p-5 bg-white border-top">
                 <h5 class="mb-4 text-primary">
                     <i class="fas fa-history"></i> Historial de Mantenimientos
                 </h5>
+                <?php if ($maintenance_qry && $maintenance_qry->num_rows > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover" id="maintenanceTable">
                         <thead style="background-color: #f8f9fa;">
@@ -324,8 +323,13 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                         </tbody>
                     </table>
                 </div>
+                <?php else: ?>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay registros de mantenimiento para este equipo.
+                </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
         </div>
     </div>
 </div>
