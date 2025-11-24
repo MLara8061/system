@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilidades del Sistema</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .file-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+        .file-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .file-card a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .file-card a:hover {
+            text-decoration: underline;
+        }
+        .file-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #666;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Utilidades del Sistema</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Información:</strong> Esta carpeta contiene herramientas administrativas que no forman parte del flujo normal del sistema.
+        </div>
+
+        <div class="section">
+            <h2>📦 Instalación de Dependencias</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <a href="install_composer_packages.php">install_composer_packages.php</a>
+                    <p>Instalador principal de Composer con PHPSpreadsheet. Usa este si necesitas reinstalar.</p>
+                </div>
+                <div class="file-card">
+                    <a href="install_composer_simple.php">install_composer_simple.php</a>
+                    <p>Instalador simplificado con mejor manejo de errores.</p>
+                </div>
+                <div class="file-card">
+                    <a href="install_phpspreadsheet.php">install_phpspreadsheet.php</a>
+                    <p><em>(Obsoleto)</em> Instalador manual desde GitHub ZIP.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Diagnóstico</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <a href="check_phpspreadsheet.php">check_phpspreadsheet.php</a>
+                    <p>Verificar estado de instalación de PHPSpreadsheet.</p>
+                </div>
+                <div class="file-card">
+                    <a href="debug_phpspreadsheet.php">debug_phpspreadsheet.php</a>
+                    <p>Diagnóstico detallado de estructura de PHPSpreadsheet.</p>
+                </div>
+                <div class="file-card">
+                    <a href="debug_users.php">debug_users.php</a>
+                    <p>Depuración de usuarios del sistema.</p>
+                </div>
+                <div class="file-card">
+                    <a href="diagnostic_users.php">diagnostic_users.php</a>
+                    <p>Diagnóstico completo de tabla de usuarios.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Correcciones</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <a href="fix_phpspreadsheet_structure.php">fix_phpspreadsheet_structure.php</a>
+                    <p>Reorganizar estructura de archivos de PHPSpreadsheet.</p>
+                </div>
+                <div class="file-card">
+                    <a href="fix_phpspreadsheet_location.php">fix_phpspreadsheet_location.php</a>
+                    <p>Mover PHPSpreadsheet a ubicación correcta.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Testing</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <a href="test_qr.php">test_qr.php</a>
+                    <p>Prueba de generación de códigos QR.</p>
+                </div>
+                <div class="file-card">
+                    <a href="test_save_user.php">test_save_user.php</a>
+                    <p>Prueba de guardado de usuarios en base de datos.</p>
+                </div>
+                <div class="file-card">
+                    <a href="test_upload_access.php">test_upload_access.php</a>
+                    <p>Verificar permisos de escritura en carpetas de subida.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔐 Utilidades de Seguridad</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <a href="generate_passwords.php">generate_passwords.php</a>
+                    <p>Generar contraseñas hasheadas para usuarios del sistema.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Advertencia:</strong> 
+            <ul style="margin: 10px 0 0 20px;">
+                <li>Estos archivos son de uso administrativo únicamente</li>
+                <li>No deben ser ejecutados por usuarios finales</li>
+                <li>Algunos pueden estar obsoletos después de la instalación exitosa</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <strong>💡 Consejo:</strong> Una vez que PHPSpreadsheet esté funcionando correctamente, puedes eliminar los archivos de instalación y corrección para mantener el sistema limpio.
+        </div>
+
+        <a href="../index.php" class="back-link">← Volver al Sistema Principal</a>
+    </div>
+</body>
+</html>
