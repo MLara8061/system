@@ -17,12 +17,9 @@ if (!file_exists($dir)) {
     mkdir($dir, 0777, true);
 }
 
-// URL que se codificará dentro del QR - detección automática del dominio
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'];
-$script_dir = dirname($_SERVER['SCRIPT_NAME']);
-$base_url = $protocol . $host . $script_dir . '/view_equipment.php?id=';
-$url = $base_url . $id;
+// URL que se codificará dentro del QR - usar URL base de configuración
+require_once __DIR__ . '/config/config.php';
+$url = BASE_URL . '/view_equipment.php?id=' . $id;
 
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';

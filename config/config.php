@@ -89,6 +89,20 @@ define('DB_CONFIG', $cfg);
 // === CARGAR CONEXIÓN ===
 require_once CONFIG_PATH . 'db_connect.php';
 
+// === URL BASE DEL SITIO ===
+// Configurar la URL base dependiendo del entorno
+if (ENVIRONMENT === 'production') {
+    // URL de producción - IMPORTANTE: Actualizar con tu dominio real de Hostinger
+    // Ejemplo: 'https://miempresa.com' o 'https://subdomain.hostinger.com'
+    define('BASE_URL', getenv('BASE_URL') ?: 'https://tudominio.com');
+} else {
+    // URL local
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'];
+    $script_dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    define('BASE_URL', $protocol . $host . $script_dir);
+}
+
 // === FUNCIÓN db() ===
 function db() {
     return $GLOBALS['conn'] ?? null;
