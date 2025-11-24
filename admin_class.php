@@ -1093,12 +1093,13 @@ class Action {
                 $number_inventory = $row_status['Auto_increment'];
                 
                 // Insertar equipo (sin voltage, amperage, frequency_hz que no existen en la tabla)
+                // mandate_period_id: 1=Preventivo, 2=Correctivo (por defecto 1 si no se especifica)
                 $sql = "INSERT INTO equipments 
                         (number_inventory, serie, name, brand, model, amount, acquisition_type, characteristics, 
-                         discipline, supplier_id, date_created) 
+                         discipline, supplier_id, mandate_period_id, date_created) 
                         VALUES 
                         ($number_inventory, '$serie', '$name', '$brand', '$model', $amount, $acquisition_type_id, 
-                         '$characteristics', '$discipline', $supplier_id, NOW())";
+                         '$characteristics', '$discipline', $supplier_id, 1, NOW())";
                 
                 if ($this->db->query($sql)) {
                     $equipment_id = $this->db->insert_id;
