@@ -475,6 +475,15 @@ try {
     $sheet->setCellValue('A' . ($endRow + 6), '4. No modifiques la hoja "Datos" (está oculta pero contiene las listas)');
     $sheet->getStyle('A' . ($endRow + 6))->getFont()->setSize(10);
     
+    $sheet->setCellValue('A' . ($endRow + 7), '5. IMPORTANTE: Si el número de Serie ya existe en el sistema:');
+    $sheet->getStyle('A' . ($endRow + 7))->getFont()->setSize(10)->setBold(true)->getColor()->setRGB('FF6600');
+    
+    $sheet->setCellValue('A' . ($endRow + 8), '   - Con opción "Actualizar equipos existentes" MARCADA: Se actualizarán todos los datos del equipo');
+    $sheet->getStyle('A' . ($endRow + 8))->getFont()->setSize(9)->setItalic(true);
+    
+    $sheet->setCellValue('A' . ($endRow + 9), '   - Con opción "Actualizar equipos existentes" SIN MARCAR: Se omitirá y reportará como error');
+    $sheet->getStyle('A' . ($endRow + 9))->getFont()->setSize(9)->setItalic(true);
+    
     // Colorear las columnas con dropdown para que sean más visibles
     $dropdownColumns = ['F', 'G', 'H', 'N', 'O', 'Q'];
     foreach ($dropdownColumns as $col) {
