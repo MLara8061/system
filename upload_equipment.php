@@ -1,4 +1,13 @@
-<?php include 'db_connect.php' ?>
+<?php 
+// Incluir conexión a base de datos
+if (file_exists(__DIR__ . '/config/db_connect.php')) {
+    include __DIR__ . '/config/db_connect.php';
+} elseif (file_exists(__DIR__ . '/db_connect.php')) {
+    include __DIR__ . '/db_connect.php';
+} else {
+    die('Error: No se encuentra el archivo de conexión a la base de datos');
+}
+?>
 
 <div class="container-fluid">
     <div class="col-lg-12">
