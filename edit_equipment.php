@@ -365,14 +365,10 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                 <?php
                 // Consultar historial de mantenimientos del equipo
                 $maintenance_query = $conn->query("
-                    SELECT mr.*, 
-                           u.firstname as tech_firstname, u.lastname as tech_lastname,
-                           v.firstname as val_firstname, v.lastname as val_lastname
-                    FROM maintenance_reports mr
-                    LEFT JOIN users u ON mr.technician_id = u.id
-                    LEFT JOIN users v ON mr.validator_id = v.id
-                    WHERE mr.equipment_id = {$equipment_id}
-                    ORDER BY mr.report_date DESC, mr.report_time DESC
+                    SELECT * 
+                    FROM maintenance_reports
+                    WHERE equipment_id = {$equipment_id}
+                    ORDER BY report_date DESC, report_time DESC
                 ");
                 ?>
                 <div class="card mb-4">
@@ -401,15 +397,15 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                         <td><?= date('d/m/Y', strtotime($maint['report_date'])) ?></td>
                                         <td><?= date('H:i', strtotime($maint['report_time'])) ?></td>
                                         <td>
-                                            <?php if ($maint['tech_firstname']): ?>
-                                                <?= ucwords($maint['tech_firstname'] . ' ' . $maint['tech_lastname']) ?>
+                                            <?php if (!empty($maint['engineer_name'])): ?>
+                                                <?= htmlspecialchars($maint['engineer_name']) ?>
                                             <?php else: ?>
                                                 <span class="text-muted">No asignado</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($maint['val_firstname']): ?>
-                                                <?= ucwords($maint['val_firstname'] . ' ' . $maint['val_lastname']) ?>
+                                            <?php if (!empty($maint['received_by'])): ?>
+                                                <?= htmlspecialchars($maint['received_by']) ?>
                                             <?php else: ?>
                                                 <span class="text-muted">No validado</span>
                                             <?php endif; ?>

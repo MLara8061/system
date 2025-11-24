@@ -271,14 +271,10 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
             <!-- === HISTORIAL DE MANTENIMIENTOS === -->
             <?php
             $maintenance_qry = $conn->query("
-                SELECT mr.*, 
-                       u.firstname as tech_firstname, u.lastname as tech_lastname,
-                       v.firstname as val_firstname, v.lastname as val_lastname
-                FROM maintenance_reports mr
-                LEFT JOIN users u ON mr.technician_id = u.id
-                LEFT JOIN users v ON mr.validator_id = v.id
-                WHERE mr.equipment_id = $equipment_id
-                ORDER BY mr.report_date DESC, mr.report_time DESC
+                SELECT * 
+                FROM maintenance_reports
+                WHERE equipment_id = $equipment_id
+                ORDER BY report_date DESC, report_time DESC
             ");
             ?>
             <div class="p-5 bg-white border-top">
@@ -303,8 +299,8 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                             <tr>
                                 <td><?php echo $maint['report_date'] ? date('d/m/Y', strtotime($maint['report_date'])) : 'N/A'; ?></td>
                                 <td><?php echo $maint['report_time'] ? date('H:i', strtotime($maint['report_time'])) : 'N/A'; ?></td>
-                                <td><?php echo htmlspecialchars(trim(($maint['tech_firstname'] ?? '') . ' ' . ($maint['tech_lastname'] ?? '')) ?: 'N/A'); ?></td>
-                                <td><?php echo htmlspecialchars(trim(($maint['val_firstname'] ?? '') . ' ' . ($maint['val_lastname'] ?? '')) ?: 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($maint['engineer_name'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($maint['received_by'] ?? 'N/A'); ?></td>
                                 <td>
                                     <span class="badge bg-<?php echo $maint['execution_type'] == 'Correctivo' ? 'danger' : 'success'; ?>">
                                         <?php echo htmlspecialchars($maint['execution_type'] ?? 'N/A'); ?>
