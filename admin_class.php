@@ -964,7 +964,8 @@ class Action {
         }
         
         // Procesar archivo Excel
-        if ( $xlsx = SimpleXLSX::parse($file['tmp_name']) ) {
+        /** @var \SimpleXLSX $xlsx */
+        if ( $xlsx = \SimpleXLSX::parse($file['tmp_name']) ) {
             $rows = $xlsx->rows();
             
             $success = 0;
@@ -1125,7 +1126,7 @@ class Action {
             ]);
             
         } else {
-            return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . SimpleXLSX::parseError()]);
+            return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . \SimpleXLSX::parseError()]);
         }
     }
 

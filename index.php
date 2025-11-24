@@ -84,6 +84,7 @@ $allowed_pages = [
     'download_template',
     'generate_excel_template',
     
+    
 
     // AÑADE MÁS AQUÍ
 ];
