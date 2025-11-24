@@ -1,7 +1,7 @@
 <?php
 /**
  * Generador de plantilla Excel para carga masiva de equipos
- * Crea un archivo Excel con encabezados y formato correcto
+ * Descarga directa de archivo Excel
  */
 
 // Verificar sesión activa
@@ -13,10 +13,16 @@ if (!defined('ALLOW_DIRECT_ACCESS')) {
     }
 }
 
-// Configurar encabezados para descarga de Excel
-header('Content-Type: application/vnd.ms-excel');
+// Limpiar cualquier salida previa
+if (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Configurar encabezados para forzar descarga de Excel
+header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
 header('Content-Disposition: attachment; filename="plantilla_equipos_' . date('Y-m-d') . '.xls"');
-header('Cache-Control: max-age=0');
+header('Cache-Control: no-cache, must-revalidate');
+header('Expires: 0');
 header('Pragma: public');
 
 // Iniciar búfer de salida

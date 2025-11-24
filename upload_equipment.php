@@ -1,31 +1,5 @@
 <?php include 'db_connect.php' ?>
 
-<!-- Tarjetas de resumen -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card shadow-sm" style="background:#fff;">
-            <div class="card-body d-flex align-items-center">
-                <i class="fas fa-file-upload fa-2x text-primary mr-3"></i>
-                <div>
-                    <h6 class="text-muted mb-1">Carga Masiva de Equipos</h6>
-                    <small class="text-muted">Importa múltiples equipos desde archivo Excel</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm" style="background:#fff;">
-            <div class="card-body d-flex align-items-center">
-                <i class="fas fa-info-circle fa-2x text-info mr-3"></i>
-                <div>
-                    <h6 class="text-muted mb-1">Formato Requerido</h6>
-                    <small class="text-muted">Archivo Excel (.xlsx, .xls) con columnas específicas</small>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="container-fluid">
     <div class="col-lg-12">
         <div class="card shadow-sm">
@@ -118,7 +92,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-download text-success"></i> Descargar Plantilla</h5>
                                 <p class="card-text text-muted">Descarga la plantilla de Excel con el formato correcto y ejemplos.</p>
-                                <a href="index.php?page=download_template" class="btn btn-success btn-block">
+                                <a href="download_template.php" class="btn btn-success btn-block" target="_blank">
                                     <i class="fas fa-file-excel"></i> Descargar Plantilla Excel
                                 </a>
                             </div>
