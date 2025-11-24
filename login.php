@@ -74,6 +74,10 @@ if (isset($_SESSION['login_id']))
             border: 1px solid #e9ecef;
         }
 
+        .login-form-container {
+            width: 100%;
+        }
+
         .card-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -343,7 +347,7 @@ if (isset($_SESSION['login_id']))
                 color: #2d3748 !important;
             }
 
-            #login-form {
+            .login-form-container {
                 max-width: 400px;
                 width: 100%;
                 background: #ffffff !important;
@@ -385,27 +389,29 @@ if (isset($_SESSION['login_id']))
 
         <!-- Card del formulario -->
         <main class="login-card">
-            <h2 class="card-title">Iniciar Sesión</h2>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Usuario</label>
-                    <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
-                            <i class="fas fa-eye"></i>
-                        </button>
+            <div class="login-form-container">
+                <h2 class="card-title">Iniciar Sesión</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username">
                     </div>
-                </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn-primary">
-                    <span class="btn-text">Acceder</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn-primary">
+                        <span class="btn-text">Acceder</span>
+                    </button>
+                </form>
+            </div>
         </main>
     </div>
 
