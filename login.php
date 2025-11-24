@@ -72,10 +72,6 @@ if (isset($_SESSION['login_id']))
             padding: 1.75rem 1.5rem;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             border: 1px solid #e9ecef;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
         }
 
         .card-title {
@@ -84,14 +80,12 @@ if (isset($_SESSION['login_id']))
             margin-bottom: 1.25rem;
             color: #2d3748;
             text-align: center;
-            flex-shrink: 0;
         }
 
         #login-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            flex: 1;
         }
 
         .form-group {
@@ -104,6 +98,38 @@ if (isset($_SESSION['login_id']))
             font-weight: 500;
             margin-bottom: 0.4rem;
             color: #2d3748;
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            padding-right: 2.8rem;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 0.9rem;
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: #2d3748;
+        }
+
+        .toggle-password i {
+            font-size: 1rem;
         }
 
         .form-control {
@@ -181,7 +207,6 @@ if (isset($_SESSION['login_id']))
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-top: auto;
             box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
         }
 
@@ -369,7 +394,12 @@ if (isset($_SESSION['login_id']))
                 
                 <div class="form-group">
                     <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-primary">
@@ -385,6 +415,25 @@ if (isset($_SESSION['login_id']))
             const loader = document.getElementById('loader');
             loader.classList.add('hidden');
             setTimeout(() => loader.remove(), 300);
+        });
+
+        // Toggle mostrar/ocultar contraseña
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Cambiar icono
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
         });
 
         // Login con AJAX y UX mejorada
