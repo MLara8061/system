@@ -80,6 +80,7 @@ $allowed_pages = [
     'activity_log',
     'report_form',
     'generate_pdf',
+    'upload_equipment',
 
     // AÑADE MÁS AQUÍ
 ];
