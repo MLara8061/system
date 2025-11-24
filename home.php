@@ -191,6 +191,38 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
 </div>
     
     <!-- /.row -->
+
+<!-- Gráficas de Servicios de Mantenimiento -->
+<div class="row mb-4">
+    <!-- Gráfica de Tipo de Servicio -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie mr-2"></i>Reportes por Tipo de Servicio
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="service-type-chart" style="min-height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfica de Tipo de Ejecución Mensual -->
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line mr-2"></i>Reportes Mensuales por Tipo de Ejecución
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="execution-monthly-chart" style="min-height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </div>
 <!-- /.container-fluid -->
 
@@ -527,6 +559,209 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
 
     const pie_chart = new ApexCharts(document.querySelector('#pie-chart'), pie_chart_options);
     pie_chart.render();
+
+    // ============================================
+    // GRÁFICAS DE SERVICIOS DE MANTENIMIENTO
+    // ============================================
+
+    <?php
+    // Consultar distribución por tipo de servicio (últimos 12 meses)
+    $service_types = [];
+    $service_counts = [];
+    $start_service = date('Y-m-01', strtotime('-11 months'));
+    
+    $service_query = $conn->query("
+        SELECT service_type, COUNT(*) as total 
+        FROM maintenance_reports 
+        WHERE report_date >= '{$start_service}'
+        GROUP BY service_type 
+        ORDER BY total DESC
+    ");
+    
+    while ($row = $service_query->fetch_assoc()) {
+        $service_types[] = $row['service_type'] ?: 'Sin especificar';
+        $service_counts[] = (int)$row['total'];
+    }
+
+    // Consultar reportes mensuales por tipo de ejecución (últimos 12 meses)
+    $exec_months = [];
+    for ($i = 11; $i >= 0; $i--) {
+        $exec_months[] = date('Y-m', strtotime("-{$i} months"));
+    }
+
+    // Arrays para cada tipo de ejecución
+    $mp_data = array_fill(0, 12, 0);  // MP (Preventivo)
+    $mc_data = array_fill(0, 12, 0);  // MC (Correctivo)
+    
+    $exec_query = $conn->query("
+        SELECT 
+            DATE_FORMAT(report_date, '%Y-%m') as month,
+            execution_type,
+            COUNT(*) as total
+        FROM maintenance_reports
+        WHERE report_date >= '{$start_service}'
+        GROUP BY month, execution_type
+        ORDER BY month ASC
+    ");
+
+    $exec_map = [];
+    while ($row = $exec_query->fetch_assoc()) {
+        $exec_map[$row['month']][$row['execution_type']] = (int)$row['total'];
+    }
+
+    foreach ($exec_months as $idx => $month) {
+        if (isset($exec_map[$month])) {
+            $mp_data[$idx] = $exec_map[$month]['Preventivo'] ?? 0;
+            $mc_data[$idx] = $exec_map[$month]['Correctivo'] ?? 0;
+        }
+    }
+
+    $exec_categories = array_map(function($m) { return $m . '-01'; }, $exec_months);
+    ?>
+
+    // Gráfica 1: Distribución por Tipo de Servicio (Donut)
+    const serviceTypes = <?php echo json_encode($service_types); ?>;
+    const serviceCounts = <?php echo json_encode($service_counts); ?>;
+
+    const serviceTypeChartOptions = {
+        series: serviceCounts,
+        chart: {
+            type: 'donut',
+            height: 350
+        },
+        labels: serviceTypes,
+        colors: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1'],
+        dataLabels: {
+            enabled: true,
+            formatter: function(val, opts) {
+                return opts.w.config.series[opts.seriesIndex] + ' reportes';
+            }
+        },
+        legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            fontSize: '14px'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '65%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total Reportes',
+                            formatter: function(w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: function(val) {
+                    return val + ' reportes';
+                }
+            }
+        }
+    };
+
+    const serviceTypeChart = new ApexCharts(
+        document.querySelector('#service-type-chart'), 
+        serviceTypeChartOptions
+    );
+    serviceTypeChart.render();
+
+    // Gráfica 2: Reportes Mensuales por Tipo de Ejecución (Línea)
+    const execCategories = <?php echo json_encode($exec_categories); ?>;
+    const mpData = <?php echo json_encode($mp_data); ?>;
+    const mcData = <?php echo json_encode($mc_data); ?>;
+
+    const executionMonthlyOptions = {
+        series: [
+            {
+                name: 'MP (Preventivo)',
+                data: mpData
+            },
+            {
+                name: 'MC (Correctivo)',
+                data: mcData
+            }
+        ],
+        chart: {
+            height: 350,
+            type: 'line',
+            toolbar: { show: false },
+            locales: [{
+                name: 'es',
+                options: {
+                    months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    shortMonths: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+                }
+            }],
+            defaultLocale: 'es'
+        },
+        colors: ['#198754', '#dc3545'],
+        dataLabels: {
+            enabled: true,
+            formatter: function(val) {
+                return val > 0 ? val : '';
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        markers: {
+            size: 5,
+            hover: {
+                size: 7
+            }
+        },
+        xaxis: {
+            type: 'datetime',
+            categories: execCategories
+        },
+        yaxis: {
+            title: {
+                text: 'Número de Reportes'
+            },
+            labels: {
+                formatter: function(val) {
+                    return Math.floor(val);
+                }
+            }
+        },
+        legend: {
+            show: true,
+            position: 'top',
+            horizontalAlign: 'center',
+            fontSize: '14px'
+        },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            x: {
+                format: 'MMMM yyyy'
+            },
+            y: {
+                formatter: function(val) {
+                    return val + ' reportes';
+                }
+            }
+        },
+        grid: {
+            borderColor: '#f1f1f1'
+        }
+    };
+
+    const executionMonthlyChart = new ApexCharts(
+        document.querySelector('#execution-monthly-chart'),
+        executionMonthlyOptions
+    );
+    executionMonthlyChart.render();
   </script>
   <!--end::Script-->
   
