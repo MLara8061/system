@@ -82,6 +82,8 @@ $allowed_pages = [
     'generate_pdf',
     'upload_equipment',
     'download_template',
+    'generate_excel_template',
+    
 
     // AÑADE MÁS AQUÍ
 ];

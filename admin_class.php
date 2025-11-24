@@ -975,35 +975,93 @@ class Action {
             for ($i = 1; $i < count($rows); $i++) {
                 $row = $rows[$i];
                 
-                // Validar que tenga datos en columnas obligatorias
-                if (empty($row[0]) || trim($row[0]) == '') {
+                // Validar que tenga datos en columnas obligatorias (Serie, Nombre, Modelo, Valor)
+                if (empty($row[0]) || trim($row[0]) == '' || 
+                    empty($row[1]) || trim($row[1]) == '' ||
+                    empty($row[3]) || trim($row[3]) == '') {
                     $skipped++;
                     continue;
                 }
                 
-                // Mapeo de columnas del Excel
-                // A(0)=Serie, B(1)=Nombre, C(2)=Marca, D(3)=Modelo, E(4)=Tipo Adquisición
-                // F(5)=Características, G(6)=Disciplina, H(7)=Proveedor, I(8)=Cantidad
+                // Mapeo de columnas del Excel (21 columnas: A-U)
+                // A(0)=Serie*, B(1)=Nombre*, C(2)=Marca, D(3)=Modelo*, E(4)=Valor*
+                // F(5)=Tipo Adquisición*, G(6)=Disciplina*, H(7)=Proveedor*, I(8)=Cantidad
+                // J(9)=Características, K(10)=Voltaje, L(11)=Amperaje, M(12)=Frecuencia
+                // N(13)=Departamento*, O(14)=Ubicación*, P(15)=Responsable*, Q(16)=Cargo
+                // R(17)=Fecha Capacitación, S(18)=Factura, T(19)=Garantía, U(20)=Fecha Adquisición
                 
                 $serie = $this->db->real_escape_string(trim($row[0]));
-                $name = (isset($row[1]) && trim($row[1]) != '') ? $this->db->real_escape_string(trim($row[1])) : '';
-                $brand = (isset($row[2]) && trim($row[2]) != '') ? $this->db->real_escape_string(trim($row[2])) : '';
-                $model = (isset($row[3]) && trim($row[3]) != '') ? $this->db->real_escape_string(trim($row[3])) : '';
-                $acquisition_type = (isset($row[4]) && trim($row[4]) != '') ? $this->db->real_escape_string(trim($row[4])) : '';
-                $characteristics = (isset($row[5]) && trim($row[5]) != '') ? $this->db->real_escape_string(trim($row[5])) : '';
-                $discipline = (isset($row[6]) && trim($row[6]) != '') ? $this->db->real_escape_string(trim($row[6])) : '';
-                $supplier_name = (isset($row[7]) && trim($row[7]) != '') ? trim($row[7]) : '';
-                $amount = (isset($row[8]) && trim($row[8]) != '' && intval($row[8]) > 0) ? intval($row[8]) : 1;
+                $name = $this->db->real_escape_string(trim($row[1]));
+                $brand = isset($row[2]) && trim($row[2]) != '' ? $this->db->real_escape_string(trim($row[2])) : '';
+                $model = $this->db->real_escape_string(trim($row[3]));
+                $amount = isset($row[4]) && trim($row[4]) != '' ? floatval($row[4]) : 0;
+                $acquisition_type = isset($row[5]) && trim($row[5]) != '' ? $this->db->real_escape_string(trim($row[5])) : '';
+                $discipline = isset($row[6]) && trim($row[6]) != '' ? $this->db->real_escape_string(trim($row[6])) : '';
+                $supplier_name = isset($row[7]) && trim($row[7]) != '' ? trim($row[7]) : '';
+                $quantity = isset($row[8]) && trim($row[8]) != '' && intval($row[8]) > 0 ? intval($row[8]) : 1;
+                $characteristics = isset($row[9]) && trim($row[9]) != '' ? $this->db->real_escape_string(trim($row[9])) : '';
+                $voltage = isset($row[10]) && trim($row[10]) != '' ? floatval($row[10]) : 0;
+                $amperage = isset($row[11]) && trim($row[11]) != '' ? floatval($row[11]) : 0;
+                $frequency = isset($row[12]) && trim($row[12]) != '' ? floatval($row[12]) : 60;
+                $department_name = isset($row[13]) && trim($row[13]) != '' ? trim($row[13]) : '';
+                $location_name = isset($row[14]) && trim($row[14]) != '' ? trim($row[14]) : '';
+                $responsible_name = isset($row[15]) && trim($row[15]) != '' ? $this->db->real_escape_string(trim($row[15])) : '';
+                $position_name = isset($row[16]) && trim($row[16]) != '' ? trim($row[16]) : '';
+                $date_training = isset($row[17]) && trim($row[17]) != '' ? trim($row[17]) : date('Y-m-d');
+                $invoice = isset($row[18]) && trim($row[18]) != '' ? $this->db->real_escape_string(trim($row[18])) : '';
+                $warranty_time = isset($row[19]) && trim($row[19]) != '' ? intval($row[19]) : 1;
+                $date_adquisition = isset($row[20]) && trim($row[20]) != '' ? trim($row[20]) : date('Y-m-d');
                 
-                // Buscar ID del proveedor solo si se proporcionó un nombre
+                // Buscar IDs en base de datos
+                
+                // Proveedor
                 $supplier_id = 'NULL';
                 if (!empty($supplier_name)) {
                     $supplier_escaped = $this->db->real_escape_string($supplier_name);
-                    $supplier_query = $this->db->query("SELECT id FROM suppliers WHERE name LIKE '%$supplier_escaped%' LIMIT 1");
+                    $supplier_query = $this->db->query("SELECT id FROM suppliers WHERE empresa LIKE '%$supplier_escaped%' LIMIT 1");
                     if ($supplier_query && $supplier_query->num_rows > 0) {
                         $supplier_id = $supplier_query->fetch_assoc()['id'];
                     }
-                    // Si no se encontró el proveedor, simplemente se deja en NULL (no genera error)
+                }
+                
+                // Tipo de adquisición
+                $acquisition_type_id = 'NULL';
+                if (!empty($acquisition_type)) {
+                    $acq_escaped = $this->db->real_escape_string($acquisition_type);
+                    $acq_query = $this->db->query("SELECT id FROM acquisition_type WHERE name LIKE '%$acq_escaped%' LIMIT 1");
+                    if ($acq_query && $acq_query->num_rows > 0) {
+                        $acquisition_type_id = $acq_query->fetch_assoc()['id'];
+                    }
+                }
+                
+                // Departamento
+                $department_id = 'NULL';
+                if (!empty($department_name)) {
+                    $dept_escaped = $this->db->real_escape_string($department_name);
+                    $dept_query = $this->db->query("SELECT id FROM departments WHERE name LIKE '%$dept_escaped%' LIMIT 1");
+                    if ($dept_query && $dept_query->num_rows > 0) {
+                        $department_id = $dept_query->fetch_assoc()['id'];
+                    }
+                }
+                
+                // Ubicación
+                $location_id = 'NULL';
+                if (!empty($location_name)) {
+                    $loc_escaped = $this->db->real_escape_string($location_name);
+                    $loc_query = $this->db->query("SELECT id FROM locations WHERE name LIKE '%$loc_escaped%' LIMIT 1");
+                    if ($loc_query && $loc_query->num_rows > 0) {
+                        $location_id = $loc_query->fetch_assoc()['id'];
+                    }
+                }
+                
+                // Cargo responsable
+                $position_id = 'NULL';
+                if (!empty($position_name)) {
+                    $pos_escaped = $this->db->real_escape_string($position_name);
+                    $pos_query = $this->db->query("SELECT id FROM responsible_positions WHERE name LIKE '%$pos_escaped%' LIMIT 1");
+                    if ($pos_query && $pos_query->num_rows > 0) {
+                        $position_id = $pos_query->fetch_assoc()['id'];
+                    }
                 }
                 
                 // Verificar si el equipo ya existe
@@ -1013,20 +1071,40 @@ class Action {
                     continue;
                 }
                 
+                // Obtener próximo número de inventario
+                $result = $this->db->query("SHOW TABLE STATUS LIKE 'equipments'");
+                $row_status = $result->fetch_assoc();
+                $number_inventory = $row_status['Auto_increment'];
+                
                 // Insertar equipo
                 $sql = "INSERT INTO equipments 
-                        (serie, name, brand, model, acquisition_type, characteristics, discipline, supplier_id, amount, date_created) 
+                        (number_inventory, serie, name, brand, model, amount, acquisition_type, characteristics, 
+                         discipline, supplier_id, voltage, amperage, frequency_hz, date_created) 
                         VALUES 
-                        ('$serie', '$name', '$brand', '$model', '$acquisition_type', '$characteristics', '$discipline', $supplier_id, $amount, NOW())";
+                        ($number_inventory, '$serie', '$name', '$brand', '$model', $amount, $acquisition_type_id, 
+                         '$characteristics', '$discipline', $supplier_id, $voltage, $amperage, $frequency, NOW())";
                 
                 if ($this->db->query($sql)) {
                     $equipment_id = $this->db->insert_id;
                     
-                    // Insertar registros relacionados básicos
-                    $this->db->query("INSERT INTO equipment_reception (equipment_id, state, comments) VALUES ($equipment_id, 'Pendiente', 'Importado desde Excel')");
-                    $this->db->query("INSERT INTO equipment_delivery (equipment_id, department_id) VALUES ($equipment_id, NULL)");
-                    $this->db->query("INSERT INTO equipment_safeguard (equipment_id) VALUES ($equipment_id)");
-                    $this->db->query("INSERT INTO equipment_control_documents (equipment_id) VALUES ($equipment_id)");
+                    // Insertar recepción
+                    $this->db->query("INSERT INTO equipment_reception (equipment_id, state, comments) 
+                                     VALUES ($equipment_id, 1, 'Importado desde Excel')");
+                    
+                    // Insertar entrega
+                    $this->db->query("INSERT INTO equipment_delivery 
+                                     (equipment_id, department_id, location_id, responsible_name, responsible_position, date_training) 
+                                     VALUES ($equipment_id, $department_id, $location_id, '$responsible_name', $position_id, '$date_training')");
+                    
+                    // Insertar resguardo
+                    $this->db->query("INSERT INTO equipment_safeguard 
+                                     (equipment_id, warranty_time, date_adquisition) 
+                                     VALUES ($equipment_id, $warranty_time, '$date_adquisition')");
+                    
+                    // Insertar documentos de control
+                    $this->db->query("INSERT INTO equipment_control_documents 
+                                     (equipment_id, invoice) 
+                                     VALUES ($equipment_id, '$invoice')");
                     
                     $success++;
                 } else {
