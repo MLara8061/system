@@ -48,11 +48,7 @@ class Action {
                 return 2; // Contraseña incorrecta
             }
             
-            // Validar que el role coincida con el type solicitado
-            if (!isset($type) || $user['role'] != $type) {
-                return 2; // Tipo de usuario incorrecto
-            }
-
+            // Establecer sesión sin validar type (detección automática)
             foreach ($user as $key => $value) {
                 if ($key != 'password' && !is_numeric($key)) {
                     // Renombrar 'role' a 'type' para la sesión

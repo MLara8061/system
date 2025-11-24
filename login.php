@@ -371,16 +371,6 @@ if (isset($_SESSION['login_id']))
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
                 </div>
-                
-                <div class="form-group">
-                    <label for="type">Tipo de Usuario</label>
-                    <div class="select-wrapper">
-                        <select id="type" name="type" class="form-control" required>
-                            <option value="2">Staff</option>
-                            <option value="1">Administrador</option>
-                        </select>
-                    </div>
-                </div>
 
                 <button type="submit" class="btn-primary">
                     <span class="btn-text">Acceder</span>
