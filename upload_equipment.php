@@ -92,7 +92,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-download text-success"></i> Descargar Plantilla</h5>
                                 <p class="card-text text-muted">Descarga la plantilla de Excel con el formato correcto y ejemplos.</p>
-                                <a href="download_template.php" class="btn btn-success btn-block" target="_blank">
+                                <a href="ajax.php?action=download_template" class="btn btn-success btn-block">
                                     <i class="fas fa-file-excel"></i> Descargar Plantilla Excel
                                 </a>
                             </div>
