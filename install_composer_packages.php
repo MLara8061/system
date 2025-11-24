@@ -12,6 +12,10 @@ $root = __DIR__;
 $composer_json = $root . '/composer.json';
 $composer_phar = $root . '/composer.phar';
 
+// Establecer variables de entorno
+putenv('HOME=' . $root);
+putenv('COMPOSER_HOME=' . $root . '/.composer');
+
 // 1. Crear composer.json
 echo "<p>1. Creando composer.json...</p>";
 $config = [
@@ -19,7 +23,9 @@ $config = [
         "phpoffice/phpspreadsheet" => "^1.29"
     ],
     "config" => [
-        "vendor-dir" => "vendor"
+        "vendor-dir" => "vendor",
+        "preferred-install" => "dist",
+        "optimize-autoloader" => true
     ]
 ];
 
@@ -29,24 +35,15 @@ echo "<p style='color: green;'>✓ composer.json creado</p>";
 // 2. Descargar Composer
 if (!file_exists($composer_phar)) {
     echo "<p>2. Descargando Composer...</p>";
-    $installer = file_get_contents('https://getcomposer.org/installer');
-    if ($installer) {
-        file_put_contents('composer-setup.php', $installer);
-        
-        // Ejecutar instalador
-        ob_start();
-        include 'composer-setup.php';
-        $output = ob_get_clean();
-        
-        unlink('composer-setup.php');
-        
-        if (file_exists($composer_phar)) {
-            echo "<p style='color: green;'>✓ Composer descargado</p>";
-        } else {
-            die("<p style='color: red;'>✗ Error al descargar Composer</p>");
-        }
+    $composer_url = 'https://getcomposer.org/download/latest-stable/composer.phar';
+    $composer_content = @file_get_contents($composer_url);
+    
+    if ($composer_content) {
+        file_put_contents($composer_phar, $composer_content);
+        chmod($composer_phar, 0755);
+        echo "<p style='color: green;'>✓ Composer descargado (" . number_format(filesize($composer_phar) / 1024 / 1024, 2) . " MB)</p>";
     } else {
-        die("<p style='color: red;'>✗ No se pudo descargar el instalador de Composer</p>");
+        die("<p style='color: red;'>✗ No se pudo descargar Composer. Verifica la conexión.</p>");
     }
 } else {
     echo "<p style='color: green;'>✓ Composer ya existe</p>";
@@ -54,27 +51,71 @@ if (!file_exists($composer_phar)) {
 
 // 3. Ejecutar Composer install
 echo "<p>3. Instalando PHPSpreadsheet (esto puede tardar varios minutos)...</p>";
-echo "<pre>";
+echo "<p style='color: orange;'>Por favor espera, no cierres esta página...</p>";
+echo "<div style='border: 1px solid #ccc; padding: 10px; background: #f5f5f5; max-height: 400px; overflow-y: auto;'>";
+flush();
+ob_flush();
 
-// Usar shell_exec para ejecutar composer
-$command = "php " . escapeshellarg($composer_phar) . " install --no-dev --optimize-autoloader 2>&1";
-$result = shell_exec($command);
+// Cambiar al directorio de trabajo
+chdir($root);
 
-echo htmlspecialchars($result);
-echo "</pre>";
+// Ejecutar composer con variables de entorno configuradas
+$command = sprintf(
+    'HOME=%s COMPOSER_HOME=%s php %s install --no-dev --optimize-autoloader --no-interaction 2>&1',
+    escapeshellarg($root),
+    escapeshellarg($root . '/.composer'),
+    escapeshellarg($composer_phar)
+);
+
+$output = '';
+$handle = popen($command, 'r');
+if ($handle) {
+    while (!feof($handle)) {
+        $line = fgets($handle);
+        echo htmlspecialchars($line) . "<br>";
+        $output .= $line;
+        flush();
+        ob_flush();
+    }
+    pclose($handle);
+} else {
+    // Fallback si popen no funciona
+    $output = shell_exec($command);
+    echo "<pre>" . htmlspecialchars($output) . "</pre>";
+}
+
+echo "</div>";
 
 // 4. Verificar instalación
 echo "<p>4. Verificando instalación...</p>";
 if (file_exists($root . '/vendor/autoload.php')) {
     echo "<p style='color: green; font-size: 18px; font-weight: bold;'>✓ ¡PHPSpreadsheet instalado correctamente!</p>";
-    echo "<p>Puedes eliminar estos archivos de forma segura:</p>";
+    
+    // Verificar que PhpOffice\PhpSpreadsheet está disponible
+    require $root . '/vendor/autoload.php';
+    if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
+        echo "<p style='color: green;'>✓ Clase Spreadsheet cargada correctamente</p>";
+    }
+    
+    echo "<p><strong>Archivos instalados:</strong></p>";
     echo "<ul>";
-    echo "<li>composer.phar</li>";
-    echo "<li>install_composer_packages.php (este archivo)</li>";
+    echo "<li>vendor/autoload.php ✓</li>";
+    echo "<li>vendor/phpoffice/phpspreadsheet/ ✓</li>";
     echo "</ul>";
+    
+    echo "<hr>";
     echo "<p><strong>Ahora la descarga de plantillas Excel funcionará correctamente.</strong></p>";
+    echo "<p style='color: gray; font-size: 12px;'>Nota: Puedes eliminar estos archivos después:</p>";
+    echo "<ul style='color: gray; font-size: 12px;'>";
+    echo "<li>composer.phar</li>";
+    echo "<li>composer.json</li>";
+    echo "<li>composer.lock</li>";
+    echo "<li>install_composer_packages.php</li>";
+    echo "<li>Todos los archivos install_*.php, check_*.php, fix_*.php, debug_*.php</li>";
+    echo "</ul>";
 } else {
     echo "<p style='color: red;'>✗ Error: No se completó la instalación</p>";
-    echo "<p>Puede que necesites instalar Composer manualmente vía SSH.</p>";
+    echo "<p>Output del comando:</p>";
+    echo "<pre>" . htmlspecialchars($output) . "</pre>";
 }
 ?>
