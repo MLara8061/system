@@ -361,6 +361,86 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     </div>
                 </div>
 
+                <!-- HISTORIAL DE MANTENIMIENTOS -->
+                <?php
+                // Consultar historial de mantenimientos del equipo
+                $maintenance_query = $conn->query("
+                    SELECT mr.*, 
+                           u.firstname as tech_firstname, u.lastname as tech_lastname,
+                           v.firstname as val_firstname, v.lastname as val_lastname
+                    FROM maintenance_reports mr
+                    LEFT JOIN users u ON mr.technician_id = u.id
+                    LEFT JOIN users v ON mr.validator_id = v.id
+                    WHERE mr.equipment_id = {$id}
+                    ORDER BY mr.report_date DESC, mr.report_time DESC
+                ");
+                
+                if ($maintenance_query && $maintenance_query->num_rows > 0):
+                ?>
+                <div class="card mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 text-dark">
+                            <i class="fas fa-tools mr-2"></i>Historial de Mantenimientos
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="maintenanceTable" class="table table-striped table-hover">
+                                <thead class="bg-secondary">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Técnico</th>
+                                        <th>Validado por</th>
+                                        <th>Tipo</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php while ($maint = $maintenance_query->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?= date('d/m/Y', strtotime($maint['report_date'])) ?></td>
+                                        <td><?= date('H:i', strtotime($maint['report_time'])) ?></td>
+                                        <td>
+                                            <?php if ($maint['tech_firstname']): ?>
+                                                <?= ucwords($maint['tech_firstname'] . ' ' . $maint['tech_lastname']) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">No asignado</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($maint['val_firstname']): ?>
+                                                <?= ucwords($maint['val_firstname'] . ' ' . $maint['val_lastname']) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">No validado</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($maint['execution_type'] == 'Correctivo'): ?>
+                                                <span class="badge badge-danger">Correctivo</span>
+                                            <?php elseif ($maint['execution_type'] == 'Preventivo'): ?>
+                                                <span class="badge badge-success">Preventivo</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-secondary"><?= $maint['execution_type'] ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="report_pdf.php?id=<?= $maint['id'] ?>" 
+                                               target="_blank" 
+                                               class="btn btn-sm btn-info"
+                                               title="Descargar Reporte PDF">
+                                                <i class="fas fa-file-pdf mr-1"></i>PDF
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <hr>
                 <div class="text-center">
                     <button type="submit" form="manage_equipment" class="btn btn-primary btn-lg px-5">Guardar Cambios</button>
@@ -406,6 +486,32 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
 
     $(function(){
         $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
+        
+        // Inicializar DataTable para historial de mantenimientos
+        if ($('#maintenanceTable').length) {
+            $('#maintenanceTable').DataTable({
+                language: {
+                    sProcessing: "Procesando...",
+                    sLengthMenu: "Mostrar _MENU_ registros",
+                    sZeroRecords: "No se encontraron resultados",
+                    sEmptyTable: "Ningún dato disponible en esta tabla",
+                    sInfo: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    sInfoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+                    sSearch: "Buscar:",
+                    oPaginate: {
+                        sFirst: "Primero",
+                        sLast: "Último",
+                        sNext: "Siguiente",
+                        sPrevious: "Anterior"
+                    }
+                },
+                order: [[0, 'desc'], [1, 'desc']],
+                pageLength: 10,
+                responsive: true,
+                autoWidth: false
+            });
+        }
     });
 
     // === ELIMINAR IMAGEN ===

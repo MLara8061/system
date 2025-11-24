@@ -267,10 +267,87 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                 </div>
             </div>
             <?php endif; ?>
+
+            <!-- === HISTORIAL DE MANTENIMIENTOS === -->
+            <?php
+            $maintenance_qry = $conn->query("
+                SELECT mr.*, 
+                       u.firstname as tech_firstname, u.lastname as tech_lastname,
+                       v.firstname as val_firstname, v.lastname as val_lastname
+                FROM maintenance_reports mr
+                LEFT JOIN users u ON mr.technician_id = u.id
+                LEFT JOIN users v ON mr.validator_id = v.id
+                WHERE mr.equipment_id = $equipment_id
+                ORDER BY mr.report_date DESC, mr.report_time DESC
+            ");
+            
+            if ($maintenance_qry && $maintenance_qry->num_rows > 0):
+            ?>
+            <div class="p-5 bg-white border-top">
+                <h5 class="mb-4 text-primary">
+                    <i class="fas fa-history"></i> Historial de Mantenimientos
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="maintenanceTable">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Técnico</th>
+                                <th>Validado por</th>
+                                <th>Tipo</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($maint = $maintenance_qry->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $maint['report_date'] ? date('d/m/Y', strtotime($maint['report_date'])) : 'N/A'; ?></td>
+                                <td><?php echo $maint['report_time'] ? date('H:i', strtotime($maint['report_time'])) : 'N/A'; ?></td>
+                                <td><?php echo htmlspecialchars(trim(($maint['tech_firstname'] ?? '') . ' ' . ($maint['tech_lastname'] ?? '')) ?: 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars(trim(($maint['val_firstname'] ?? '') . ' ' . ($maint['val_lastname'] ?? '')) ?: 'N/A'); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php echo $maint['execution_type'] == 'Correctivo' ? 'danger' : 'success'; ?>">
+                                        <?php echo htmlspecialchars($maint['execution_type'] ?? 'N/A'); ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="report_pdf.php?id=<?php echo $maint['id']; ?>" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-primary"
+                                       title="Ver reporte PDF">
+                                        <i class="fas fa-file-pdf"></i> Ver PDF
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    <?php if ($maintenance_qry && $maintenance_qry->num_rows > 0): ?>
+    $('#maintenanceTable').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+        },
+        order: [[0, 'desc'], [1, 'desc']],
+        pageLength: 10
+    });
+    <?php endif; ?>
+});
+</script>
 </body>
 </html>
