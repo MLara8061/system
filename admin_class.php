@@ -1015,7 +1015,10 @@ class Action {
                 $supplier_name = isset($row[7]) && trim($row[7]) != '' ? trim($row[7]) : '';
                 $quantity = isset($row[8]) && trim($row[8]) != '' && intval($row[8]) > 0 ? intval($row[8]) : 1;
                 $characteristics = isset($row[9]) && trim($row[9]) != '' ? $this->db->real_escape_string(trim($row[9])) : '';
-                // Columnas K(10)=Voltaje, L(11)=Amperaje, M(12)=Frecuencia no se guardan (no existen en la tabla)
+                // Columnas K(10)=Voltaje, L(11)=Amperaje, M(12)=Frecuencia para equipment_power_specs
+                $voltage = isset($row[10]) && trim($row[10]) != '' ? floatval($row[10]) : 0;
+                $amperage = isset($row[11]) && trim($row[11]) != '' ? floatval($row[11]) : 0;
+                $frequency = isset($row[12]) && trim($row[12]) != '' ? floatval($row[12]) : 60;
                 $department_name = isset($row[13]) && trim($row[13]) != '' ? trim($row[13]) : '';
                 $location_name = isset($row[14]) && trim($row[14]) != '' ? trim($row[14]) : '';
                 $responsible_name = isset($row[15]) && trim($row[15]) != '' ? $this->db->real_escape_string(trim($row[15])) : '';
@@ -1118,6 +1121,14 @@ class Action {
                     $this->db->query("INSERT INTO equipment_control_documents 
                                      (equipment_id, invoice) 
                                      VALUES ($equipment_id, '$invoice')");
+                    
+                    // Insertar especificaciones de consumo eléctrico (si tiene datos)
+                    if (!empty($voltage) && !empty($amperage)) {
+                        $power_w = round($voltage * $amperage, 2);
+                        $this->db->query("INSERT INTO equipment_power_specs 
+                                         (equipment_id, voltage, amperage, frequency_hz, power_w, notes) 
+                                         VALUES ($equipment_id, $voltage, $amperage, $frequency, $power_w, 'Importado desde Excel')");
+                    }
                     
                     $success++;
                 } else {
