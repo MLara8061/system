@@ -970,6 +970,9 @@ class Action {
             return json_encode(['status' => 0, 'msg' => 'Error: PHPSpreadsheet no está instalado']);
         }
         
+        // Verificar si se debe actualizar equipos existentes
+        $update_existing = isset($_POST['update_existing']) && $_POST['update_existing'] == '1';
+        
         // Procesar archivo Excel con PHPSpreadsheet
         try {
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file['tmp_name']);
@@ -977,6 +980,7 @@ class Action {
             $rows = $sheet->toArray();
             
             $success = 0;
+            $updated = 0;
             $errors = [];
             $skipped = 0;
             
@@ -1081,9 +1085,86 @@ class Action {
                 }
                 
                 // Verificar si el equipo ya existe
-                $check = $this->db->query("SELECT id FROM equipments WHERE serie = '$serie'");
+                $check = $this->db->query("SELECT id, name, model FROM equipments WHERE serie = '$serie'");
                 if ($check && $check->num_rows > 0) {
-                    $errors[] = "Fila " . ($i + 1) . ": El equipo con serie '$serie' ya existe";
+                    $existing = $check->fetch_assoc();
+                    $equipment_id = $existing['id'];
+                    
+                    if ($update_existing) {
+                        // ACTUALIZAR equipo existente
+                        $sql = "UPDATE equipments SET 
+                                name = '$name',
+                                brand = '$brand',
+                                model = '$model',
+                                amount = $amount,
+                                acquisition_type = $acquisition_type_id,
+                                characteristics = '$characteristics',
+                                discipline = '$discipline',
+                                supplier_id = $supplier_id
+                                WHERE id = $equipment_id";
+                        
+                        if ($this->db->query($sql)) {
+                            // Actualizar recepción
+                            $this->db->query("UPDATE equipment_reception SET state=1, comments='Actualizado desde Excel' WHERE equipment_id=$equipment_id");
+                            
+                            // Actualizar entrega
+                            $delivery_check = $this->db->query("SELECT id FROM equipment_delivery WHERE equipment_id=$equipment_id");
+                            if ($delivery_check && $delivery_check->num_rows > 0) {
+                                $this->db->query("UPDATE equipment_delivery SET 
+                                                 department_id=$department_id, location_id=$location_id, 
+                                                 responsible_name='$responsible_name', responsible_position=$position_id, 
+                                                 date_training='$date_training' 
+                                                 WHERE equipment_id=$equipment_id");
+                            } else {
+                                $this->db->query("INSERT INTO equipment_delivery 
+                                                 (equipment_id, department_id, location_id, responsible_name, responsible_position, date_training) 
+                                                 VALUES ($equipment_id, $department_id, $location_id, '$responsible_name', $position_id, '$date_training')");
+                            }
+                            
+                            // Actualizar resguardo
+                            $safeguard_check = $this->db->query("SELECT id FROM equipment_safeguard WHERE equipment_id=$equipment_id");
+                            if ($safeguard_check && $safeguard_check->num_rows > 0) {
+                                $this->db->query("UPDATE equipment_safeguard SET 
+                                                 warranty_time=$warranty_time, date_adquisition='$date_adquisition' 
+                                                 WHERE equipment_id=$equipment_id");
+                            } else {
+                                $this->db->query("INSERT INTO equipment_safeguard 
+                                                 (equipment_id, warranty_time, date_adquisition) 
+                                                 VALUES ($equipment_id, $warranty_time, '$date_adquisition')");
+                            }
+                            
+                            // Actualizar documentos
+                            $docs_check = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id=$equipment_id");
+                            if ($docs_check && $docs_check->num_rows > 0) {
+                                $this->db->query("UPDATE equipment_control_documents SET invoice='$invoice' WHERE equipment_id=$equipment_id");
+                            } else {
+                                $this->db->query("INSERT INTO equipment_control_documents (equipment_id, invoice) VALUES ($equipment_id, '$invoice')");
+                            }
+                            
+                            // Actualizar especificaciones eléctricas
+                            if (!empty($voltage) && !empty($amperage)) {
+                                $power_w = round($voltage * $amperage, 2);
+                                $power_check = $this->db->query("SELECT id FROM equipment_power_specs WHERE equipment_id=$equipment_id");
+                                if ($power_check && $power_check->num_rows > 0) {
+                                    $this->db->query("UPDATE equipment_power_specs SET 
+                                                     voltage=$voltage, amperage=$amperage, frequency_hz=$frequency, 
+                                                     power_w=$power_w, notes='Actualizado desde Excel' 
+                                                     WHERE equipment_id=$equipment_id");
+                                } else {
+                                    $this->db->query("INSERT INTO equipment_power_specs 
+                                                     (equipment_id, voltage, amperage, frequency_hz, power_w, notes) 
+                                                     VALUES ($equipment_id, $voltage, $amperage, $frequency, $power_w, 'Importado desde Excel')");
+                                }
+                            }
+                            
+                            $updated++;
+                        } else {
+                            $errors[] = "Fila " . ($i + 1) . ": Error al actualizar '{$existing['name']}' - " . $this->db->error;
+                        }
+                    } else {
+                        // NO actualizar, reportar como error
+                        $errors[] = "Fila " . ($i + 1) . ": El equipo con serie '$serie' ya existe ('{$existing['name']}' - {$existing['model']})";
+                    }
                     continue;
                 }
                 
@@ -1137,7 +1218,8 @@ class Action {
                 }
             }
             
-            $msg = "Carga completada: $success equipos insertados";
+            $msg = "Carga completada: $success equipos nuevos insertados";
+            if ($updated > 0) $msg .= ", $updated equipos actualizados";
             if ($skipped > 0) $msg .= ", $skipped filas omitidas";
             if (count($errors) > 0) $msg .= ", " . count($errors) . " errores";
             
@@ -1145,6 +1227,7 @@ class Action {
                 'status' => 1,
                 'msg' => $msg,
                 'success' => $success,
+                'updated' => $updated,
                 'skipped' => $skipped,
                 'errors' => $errors
             ]);

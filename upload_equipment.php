@@ -88,7 +88,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                     </div>
                 </div>
 
-                <div class="card shadow-sm" style="border-top: 3px solid #667eea;">
+<div class="card shadow-sm" style="border-top: 3px solid #667eea;">
                     <div class="card-header" style="background-color: #f8f9fa;">
                         <h5 class="mb-0"><i class="fas fa-cloud-upload-alt text-primary"></i> Subir Archivo Excel</h5>
                     </div>
@@ -102,11 +102,27 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                                 </div>
                                 <small class="form-text text-muted"><i class="fas fa-info-circle"></i> Formatos permitidos: .xlsx, .xls (máximo 10MB)</small>
                             </div>
+                            
+                            <div class="form-group mt-3">
+                                <div class="card" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                    <div class="card-body py-2">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="update_existing" name="update_existing" value="1">
+                                            <label class="custom-control-label" for="update_existing">
+                                                <strong><i class="fas fa-sync-alt text-info"></i> Actualizar equipos existentes</strong>
+                                                <br>
+                                                <small class="text-muted">Si está marcado, los equipos con series duplicadas se actualizarán con los nuevos datos del Excel. Si no está marcado, se omitirán y se reportarán como errores.</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <hr>
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-upload"></i> Cargar Equipos
                             </button>
-                            <button type="button" class="btn btn-secondary btn-lg ml-2" onclick="$('#upload-excel-form')[0].reset(); $('.custom-file-label').text('Seleccionar archivo...');">
+                            <button type="button" class="btn btn-secondary btn-lg ml-2" onclick="$('#upload-excel-form')[0].reset(); $('.custom-file-label').text('Seleccionar archivo...'); $('#update_existing').prop('checked', false);">
                                 <i class="fas fa-times"></i> Limpiar
                             </button>
                         </form>
@@ -188,7 +204,13 @@ $('#upload-excel-form').submit(function(e) {
                     
                     if (data.success > 0) {
                         html += '<hr><div class="p-2" style="background-color: #d4edda; border-radius: 5px;">';
-                        html += '<p class="mb-0"><strong><i class="fas fa-check text-success"></i> Equipos insertados:</strong> <span class="badge badge-success">' + data.success + '</span></p>';
+                        html += '<p class="mb-0"><strong><i class="fas fa-plus-circle text-success"></i> Equipos nuevos insertados:</strong> <span class="badge badge-success">' + data.success + '</span></p>';
+                        html += '</div>';
+                    }
+                    
+                    if (data.updated > 0) {
+                        html += '<div class="p-2 mt-2" style="background-color: #d1ecf1; border-radius: 5px;">';
+                        html += '<p class="mb-0"><strong><i class="fas fa-sync-alt text-info"></i> Equipos actualizados:</strong> <span class="badge badge-info">' + data.updated + '</span></p>';
                         html += '</div>';
                     }
                     
