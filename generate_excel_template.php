@@ -333,6 +333,7 @@ try {
         $validation->setAllowBlank(false);
         $validation->setShowInputMessage(true);
         $validation->setShowErrorMessage(true);
+        $validation->setShowDropDown(true); // Mostrar dropdown
         $validation->setErrorTitle('Error');
         $validation->setError('Seleccione un tipo de adquisición válido');
         $validation->setPromptTitle('Tipo de Adquisición');
@@ -350,6 +351,7 @@ try {
         $validation->setAllowBlank(false);
         $validation->setShowInputMessage(true);
         $validation->setShowErrorMessage(true);
+        $validation->setShowDropDown(true); // Mostrar dropdown
         $validation->setErrorTitle('Error');
         $validation->setError('Seleccione una disciplina válida');
         $validation->setPromptTitle('Disciplina');
@@ -368,6 +370,7 @@ try {
             $validation->setAllowBlank(false);
             $validation->setShowInputMessage(true);
             $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true); // Mostrar dropdown
             $validation->setErrorTitle('Información');
             $validation->setError('Seleccione un proveedor de la lista');
             $validation->setPromptTitle('Proveedor');
@@ -403,6 +406,7 @@ try {
             $validation->setAllowBlank(false);
             $validation->setShowInputMessage(true);
             $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true); // Mostrar dropdown
             $validation->setErrorTitle('Error');
             $validation->setError('Seleccione un departamento válido');
             $validation->setPromptTitle('Departamento');
@@ -422,6 +426,7 @@ try {
             $validation->setAllowBlank(false);
             $validation->setShowInputMessage(true);
             $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true); // Mostrar dropdown
             $validation->setErrorTitle('Error');
             $validation->setError('Seleccione una ubicación válida');
             $validation->setPromptTitle('Ubicación');
@@ -441,6 +446,7 @@ try {
             $validation->setAllowBlank(true);
             $validation->setShowInputMessage(true);
             $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true); // Mostrar dropdown
             $validation->setErrorTitle('Información');
             $validation->setError('Seleccione un cargo de la lista o deje vacío');
             $validation->setPromptTitle('Cargo Responsable');
@@ -453,9 +459,39 @@ try {
     $dataSheet->setSheetState(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::SHEETSTATE_HIDDEN);
 
     // ========== AGREGAR NOTA EN LA PRIMERA HOJA ==========
-    $sheet->setCellValue('A' . ($endRow + 2), 'NOTA: Los campos marcados con * son obligatorios. Las columnas F, G, H, N, O y Q tienen listas desplegables.');
-    $sheet->getStyle('A' . ($endRow + 2))->getFont()->setItalic(true)->setSize(10)->getColor()->setRGB('FF0000');
+    $sheet->setCellValue('A' . ($endRow + 2), 'INSTRUCCIONES DE USO:');
+    $sheet->getStyle('A' . ($endRow + 2))->getFont()->setBold(true)->setSize(12)->getColor()->setRGB('0066CC');
     $sheet->mergeCells('A' . ($endRow + 2) . ':U' . ($endRow + 2));
+    
+    $sheet->setCellValue('A' . ($endRow + 3), '1. Los campos con * son OBLIGATORIOS');
+    $sheet->getStyle('A' . ($endRow + 3))->getFont()->setSize(10);
+    
+    $sheet->setCellValue('A' . ($endRow + 4), '2. Las columnas F, G, H, N, O y Q tienen LISTAS DESPLEGABLES (▼)');
+    $sheet->getStyle('A' . ($endRow + 4))->getFont()->setSize(10)->getColor()->setRGB('FF0000');
+    
+    $sheet->setCellValue('A' . ($endRow + 5), '3. Haz CLIC en la celda para ver la flecha del desplegable');
+    $sheet->getStyle('A' . ($endRow + 5))->getFont()->setSize(10)->setItalic(true);
+    
+    $sheet->setCellValue('A' . ($endRow + 6), '4. No modifiques la hoja "Datos" (está oculta pero contiene las listas)');
+    $sheet->getStyle('A' . ($endRow + 6))->getFont()->setSize(10);
+    
+    // Colorear las columnas con dropdown para que sean más visibles
+    $dropdownColumns = ['F', 'G', 'H', 'N', 'O', 'Q'];
+    foreach ($dropdownColumns as $col) {
+        for ($i = $startRow; $i <= $startRow + 10; $i++) { // Solo primeras filas para dar una pista visual
+            $currentStyle = $sheet->getStyle($col . $i)->getFill();
+            // Si no tiene fondo, agregar uno amarillo claro
+            if ($currentStyle->getFillType() == Fill::FILL_NONE || 
+                $currentStyle->getStartColor()->getRGB() == 'FFFFFF') {
+                $sheet->getStyle($col . $i)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'FFFFCC'] // Amarillo claro
+                    ]
+                ]);
+            }
+        }
+    }
 
     // ========== GENERAR Y DESCARGAR ARCHIVO ==========
     $spreadsheet->setActiveSheetIndex(0);
