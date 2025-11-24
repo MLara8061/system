@@ -963,18 +963,32 @@ class Action {
             return json_encode(['status' => 0, 'msg' => 'Solo se permiten archivos Excel (.xlsx, .xls)']);
         }
         
-        // Procesar archivo Excel
-        /** @var \SimpleXLSX $xlsx */
-        if ( $xlsx = \SimpleXLSX::parse($file['tmp_name']) ) {
-            $rows = $xlsx->rows();
+        // Cargar PHPSpreadsheet
+        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+        } else {
+            return json_encode(['status' => 0, 'msg' => 'Error: PHPSpreadsheet no está instalado']);
+        }
+        
+        // Procesar archivo Excel con PHPSpreadsheet
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file['tmp_name']);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
             
             $success = 0;
             $errors = [];
             $skipped = 0;
             
-            // Saltar encabezados (fila 0)
+            // Saltar encabezados (fila 0) y filas de ejemplo (2-4 si existen)
             for ($i = 1; $i < count($rows); $i++) {
                 $row = $rows[$i];
+                
+                // Saltar filas de ejemplo (las que tienen EQ-001-2024, EQ-002-2024, etc.)
+                if (isset($row[0]) && strpos($row[0], 'EQ-') === 0 && strpos($row[0], '-2024') !== false) {
+                    $skipped++;
+                    continue;
+                }
                 
                 // Validar que tenga datos en columnas obligatorias (Serie, Nombre, Modelo, Valor)
                 if (empty($row[0]) || trim($row[0]) == '' || 
@@ -1125,8 +1139,8 @@ class Action {
                 'errors' => $errors
             ]);
             
-        } else {
-            return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . \SimpleXLSX::parseError()]);
+        } catch (Exception $e) {
+            return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . $e->getMessage()]);
         }
     }
 
