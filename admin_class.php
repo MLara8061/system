@@ -1015,9 +1015,7 @@ class Action {
                 $supplier_name = isset($row[7]) && trim($row[7]) != '' ? trim($row[7]) : '';
                 $quantity = isset($row[8]) && trim($row[8]) != '' && intval($row[8]) > 0 ? intval($row[8]) : 1;
                 $characteristics = isset($row[9]) && trim($row[9]) != '' ? $this->db->real_escape_string(trim($row[9])) : '';
-                $voltage = isset($row[10]) && trim($row[10]) != '' ? floatval($row[10]) : 0;
-                $amperage = isset($row[11]) && trim($row[11]) != '' ? floatval($row[11]) : 0;
-                $frequency = isset($row[12]) && trim($row[12]) != '' ? floatval($row[12]) : 60;
+                // Columnas K(10)=Voltaje, L(11)=Amperaje, M(12)=Frecuencia no se guardan (no existen en la tabla)
                 $department_name = isset($row[13]) && trim($row[13]) != '' ? trim($row[13]) : '';
                 $location_name = isset($row[14]) && trim($row[14]) != '' ? trim($row[14]) : '';
                 $responsible_name = isset($row[15]) && trim($row[15]) != '' ? $this->db->real_escape_string(trim($row[15])) : '';
@@ -1091,13 +1089,13 @@ class Action {
                 $row_status = $result->fetch_assoc();
                 $number_inventory = $row_status['Auto_increment'];
                 
-                // Insertar equipo
+                // Insertar equipo (sin voltage, amperage, frequency_hz que no existen en la tabla)
                 $sql = "INSERT INTO equipments 
                         (number_inventory, serie, name, brand, model, amount, acquisition_type, characteristics, 
-                         discipline, supplier_id, voltage, amperage, frequency_hz, date_created) 
+                         discipline, supplier_id, date_created) 
                         VALUES 
                         ($number_inventory, '$serie', '$name', '$brand', '$model', $amount, $acquisition_type_id, 
-                         '$characteristics', '$discipline', $supplier_id, $voltage, $amperage, $frequency, NOW())";
+                         '$characteristics', '$discipline', $supplier_id, NOW())";
                 
                 if ($this->db->query($sql)) {
                     $equipment_id = $this->db->insert_id;
