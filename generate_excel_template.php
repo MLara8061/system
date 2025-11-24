@@ -16,7 +16,13 @@ if (!isset($_SESSION['login_id'])) {
 }
 
 // Incluir conexión a base de datos
-require_once 'db_connect.php';
+if (file_exists(__DIR__ . '/config/db_connect.php')) {
+    require_once __DIR__ . '/config/db_connect.php';
+} elseif (file_exists(__DIR__ . '/db_connect.php')) {
+    require_once __DIR__ . '/db_connect.php';
+} else {
+    die('Error: No se encuentra el archivo de conexión a la base de datos');
+}
 
 // Verificar que PHPSpreadsheet existe
 $autoloader_path = __DIR__ . '/lib/PhpSpreadsheet-1.29.0/src/PhpSpreadsheet/Autoloader.php';
