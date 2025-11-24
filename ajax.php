@@ -10,7 +10,13 @@ $action = $_REQUEST['action'] ?? '';
 // 1. LOGIN / LOGOUT
 // ===================================
 if ($action == 'login') {
-    echo $crud->login();
+    error_log("=== AJAX LOGIN LLAMADO ===");
+    error_log("POST data: " . json_encode($_POST));
+    error_log("REQUEST data: " . json_encode($_REQUEST));
+    $result = $crud->login();
+    error_log("Login result: $result");
+    error_log("SESSION después de login: " . json_encode($_SESSION));
+    echo $result;
     exit;
 }
 
@@ -23,7 +29,13 @@ if ($action == 'logout') {
 // 2. USUARIOS
 // ===================================
 if ($action == 'save_user') {
-    echo $crud->save_user();
+    error_log("=== AJAX save_user ===");
+    error_log("POST data: " . json_encode($_POST));
+    error_log("SESSION login_id: " . ($_SESSION['login_id'] ?? 'NOT SET'));
+    error_log("SESSION login_type: " . ($_SESSION['login_type'] ?? 'NOT SET'));
+    $result = $crud->save_user();
+    error_log("Result: " . var_export($result, true));
+    echo $result;
     exit;
 }
 
@@ -244,6 +256,18 @@ if ($action == 'delete_inventory') {
     exit;
 }
 
-// === FIN ===
+if ($action == 'save_maintenance_report') {
+    echo $crud->save_maintenance_report();
+    exit;
+}
+
+if ($action == 'get_equipo_details') {
+    echo $crud->get_equipo_details(); 
+    exit;
+}
+
+if ($action == 'update_and_save_report') {
+}
+
 ob_end_flush();
 ?>

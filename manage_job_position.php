@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 <?php
 $position_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $location_id = '';

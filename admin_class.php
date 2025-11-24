@@ -7,7 +7,7 @@ class Action {
 
     public function __construct() {
         ob_start();
-        include 'db_connect.php';
+        require_once 'config/config.php';
         $this->db = $conn;
     }
 
@@ -26,26 +26,51 @@ class Action {
     function login()
     {
         extract($_POST);
-        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "' AND password = '" . md5($password) . "' AND role = '" . $type . "'");
+        
+        // Buscar usuario por username solamente
+        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
 
         if ($qry->num_rows > 0) {
-            $user = $qry->fetch_array(); // GUARDAR EN VARIABLE
+            $user = $qry->fetch_array();
+            
+            // Verificar contraseña (soportar MD5 legacy y bcrypt moderno)
+            $password_valid = false;
+            
+            if (strpos($user['password'], '$2y$') === 0) {
+                // Password con bcrypt
+                $password_valid = password_verify($password, $user['password']);
+            } else {
+                // Password con MD5 (legacy)
+                $password_valid = ($user['password'] === md5($password));
+            }
+            
+            if (!$password_valid) {
+                return 2; // Contraseña incorrecta
+            }
+            
+            // Validar que el role coincida con el type solicitado
+            if (!isset($type) || $user['role'] != $type) {
+                return 2; // Tipo de usuario incorrecto
+            }
 
             foreach ($user as $key => $value) {
                 if ($key != 'password' && !is_numeric($key)) {
-                    $_SESSION['login_' . $key] = $value;
+                    // Renombrar 'role' a 'type' para la sesión
+                    if ($key === 'role') {
+                        $_SESSION['login_type'] = $value;
+                    } else {
+                        $_SESSION['login_' . $key] = $value;
+                    }
                 }
             }
 
-            // GUARDAR AVATAR DESDE $user (NO VOLVER A LLAMAR fetch_assoc)
             $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
 
+            $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
             return 1;
         } else {
-            return 2;
+            return 2; // Usuario no encontrado
         }
-        $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
-        return 1;
     }
 
     function logout() {
@@ -63,50 +88,110 @@ class Action {
         $id = $id ?? 0;
         $current_user = $_SESSION['login_id'] ?? 0;
 
-        // Solo admin o el propio usuario
-        if ($_SESSION['login_type'] != 1 && $id != $current_user) {
+        $login_type = $_SESSION['login_type'] ?? 0;
+
+        error_log("=== SAVE_USER DEBUG ===");
+        error_log("current_user: $current_user");
+        error_log("login_type: $login_type");
+        error_log("id (para crear/editar): $id");
+        error_log("SESSION completa: " . json_encode($_SESSION));
+
+        // Solo admin puede crear usuarios nuevos (id=0) o editar a otros usuarios
+        // Usuarios normales solo pueden editar su propio perfil
+        if ($login_type != 1) {
+            if ($id == 0 || $id != $current_user) {
+                error_log("Acceso denegado: login_type=$login_type, id=$id, current_user=$current_user");
+                return 0; // Acceso denegado
+            }
+        }
+
+        if (empty($username) || empty($firstname) || empty($lastname)) {
+            error_log("Campos vacíos: username=$username, firstname=$firstname, lastname=$lastname");
+            return 3;
+        }
+
+        $role = (int)($role ?? 2);
+        if (!in_array($role, [1, 2])) $role = 2;
+
+        $original = $id > 0 ? $this->db->query("SELECT username FROM users WHERE id = $id")->fetch_assoc()['username'] ?? '' : '';
+        if ($username !== $original) {
+            $chk = $this->db->query("SELECT id FROM users WHERE username = '$username' AND id != $id")->num_rows;
+            if ($chk > 0) {
+                error_log("Username duplicado: $username");
+                return 2;
+            }
+        }
+
+        $data = "firstname = ?, middlename = ?, lastname = ?, username = ?, role = ?";
+        $params = [$firstname, $middlename ?? '', $lastname, $username, $role];
+        $types = "ssssi";
+
+        if (!empty($password)) {
+            $params[] = password_hash($password, PASSWORD_DEFAULT);
+            $data .= ", password = ?";
+            $types .= "s";
+        }
+
+        if ($id == 0) {
+            if (empty($password)) {
+                error_log("Contraseña requerida para nuevo usuario");
+                return 4;
+            }
+            $sql = "INSERT INTO users SET $data, date_created = NOW()";
+        } else {
+            $sql = "UPDATE users SET $data WHERE id = ?";
+            $params[] = $id;
+            $types .= "i";
+        }
+
+        error_log("Preparando SQL: $sql con types: $types");
+        $stmt = $this->db->prepare($sql);
+        if (!$stmt) {
+            error_log("Error prepare: " . $this->db->error);
+            return 0;
+        }
+        
+        $stmt->bind_param($types, ...$params);
+        $save = $stmt->execute();
+
+        if (!$save) {
+            error_log("Error execute: " . $stmt->error);
             return 0;
         }
 
-        // Validar usuario único (excepto si no cambió)
-        $original = $this->db->query("SELECT username FROM users WHERE id = $id")->fetch_assoc()['username'] ?? '';
-        if ($username !== $original) {
-            $chk = $this->db->query("SELECT * FROM users WHERE username = '$username' AND id != $id")->num_rows;
-            if ($chk > 0) return 2;
-        }
-
-        // Construir query con todos los campos
-        $data = " firstname = '$firstname'";
-        $data .= ", middlename = '$middlename'";
-        $data .= ", lastname = '$lastname'";
-        $data .= ", username = '$username'";
-        $data .= ", role = '" . ($role ?? 2) . "'";  // Asegurar que role siempre tenga valor
-
-        if (!empty($password)) {
-            $data .= ", password = '" . md5($password) . "'";
-        }
-
-        $sql = $id == 0
-            ? "INSERT INTO users SET $data"
-            : "UPDATE users SET $data WHERE id = $id";
-
-        $save = $this->db->query($sql);
-        return $save ? 1 : 0;
-
-        if ($id == 0) {
-            $data .= ", date_created = UNIX_TIMESTAMP()";
-            $sql = "INSERT INTO users SET $data";
-        } else {
-            $sql = "UPDATE users SET $data WHERE id = $id";
-        }
-        $save = $this->db->query($sql);
-
         if ($save) {
-            $action = $id == 0 ? "Añadió usuario" : "Editó usuario ID: $id";
-            $this->log_activity($action, 'users', $id == 0 ? $this->db->insert_id : $id);
+            $new_id = $id == 0 ? $this->db->insert_id : $id;
+            $action = $id == 0 ? "Añadió usuario" : "Editó usuario ID: $new_id";
+            $this->log_activity($action, 'users', $new_id);
+            error_log("Usuario guardado exitosamente: $new_id");
             return 1;
         }
         return 0;
+    }
+
+    function delete_user()
+    {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM users WHERE id = $id");
+        if ($delete) {
+            $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
+            return 1;
+        }
+        return 0;
+    }
+
+    function check_username()
+    {
+        extract($_POST);
+        $id = $id ?? 0;
+        $username = trim($username ?? '');
+
+        if (empty($username)) return 0;
+
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+        $stmt->bind_param("si", $username, $id);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0 ? 1 : 0;
     }
 
     function upload_avatar()
@@ -121,16 +206,12 @@ class Action {
         $path = 'assets/avatars/' . $fname;
 
         if (move_uploaded_file($_FILES['avatar']['tmp_name'], $path)) {
-            // Eliminar anterior
             $old = $this->db->query("SELECT avatar FROM users WHERE id = $id")->fetch_assoc()['avatar'];
             if ($old && $old != 'default-avatar.png' && file_exists('assets/avatars/' . $old)) {
                 unlink('assets/avatars/' . $old);
             }
 
-            // GUARDAR EN BD
             $this->db->query("UPDATE users SET avatar = '$fname' WHERE id = $id");
-
-            // **ACTUALIZAR SESIÓN**
             $_SESSION['login_avatar'] = $fname;
 
             return 'assets/avatars/' . $fname;
@@ -138,18 +219,7 @@ class Action {
         return '';
     }
 
-    function delete_user()
-    {
-        extract($_POST);
-        $delete = $this->db->query("DELETE FROM users WHERE id = $id");
-        if ($delete) {
-            $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
-            return 1;
-        }
-        return 0;
-    }
-
-    // ================== IMAGEN PÁGINA ==================
+    // ================== PÁGINA (IMÁGENES) ==================
     function save_page_img() {
         extract($_POST);
         if ($_FILES['img']['tmp_name'] != '') {
@@ -164,18 +234,6 @@ class Action {
             }
         }
     }
-
-    function check_username() {
-    extract($_POST);
-    $id = $id ?? 0;
-    $username = trim($username);
-    $sql = "SELECT * FROM users WHERE username = ? AND id != ?";
-    $stmt = $this->db->prepare($sql);
-    $stmt->bind_param("si", $username, $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return $result->num_rows > 0 ? 1 : 0;
-}
 
     // ================== CLIENTES / STAFF ==================
     function save_customer() {
@@ -299,15 +357,15 @@ class Action {
         return $this->db->query("DELETE FROM comments WHERE id = $id") ? 1 : 0;
     }
 
-    // ================== EQUIPOS (COMPLEJO) ==================
+    // ================== EQUIPOS (COMPLETO) ==================
     function save_equipment() {
         extract($_POST);
         $data = "";
         $new = empty($id);
 
-        $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id'];
+        $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
         foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id','number_inventory']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
+            if (!in_array($k, ['id']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
                 $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
             }
         }
@@ -413,6 +471,84 @@ class Action {
         return 1;
     }
 
+    function delete_equipment_image()
+    {
+        extract($_POST);
+        $id = (int)$id;
+        $qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
+        $img = $qry->fetch_array()['image'] ?? '';
+        if ($img && file_exists($img)) unlink($img);
+        $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
+        return 1;
+    }
+
+    function delete_equipment()
+    {
+        extract($_POST);
+        if (empty($id) || !is_numeric($id)) return 2;
+
+        $tables = [
+            'equipment_control_documents',
+            'equipment_reception',
+            'equipment_delivery',
+            'equipment_safeguard',
+            'equipment_revision',
+            'equipment_unsubscribe',
+            'equipment_power_specs',
+            'mantenimientos'
+        ];
+
+        foreach ($tables as $table) {
+            if ($table === 'mantenimientos') {
+                $this->db->query("DELETE FROM $table WHERE equipo_id = $id");
+            } else {
+                $this->db->query("DELETE FROM $table WHERE equipment_id = $id");
+            }
+        }
+
+        $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
+        return $delete ? 1 : 2;
+    }
+
+    function save_equipment_unsubscribe()
+    {
+        extract($_POST);
+        $data = "";
+        $array_cols = ['date', 'equipment_id', 'withdrawal_reason', 'description', 'comments', 'opinion', 'destination', 'responsible'];
+        $_POST['equipment_id'] = $id;
+
+        foreach ($_POST as $k => $v) {
+            if (!in_array($k, ['id']) && !is_numeric($k)) {
+                if ($k == 'withdrawal_reason') {
+                    $reasons = json_encode($_POST['withdrawal_reason']);
+                    $data .= empty($data) ? " $k='$reasons' " : ", $k='$reasons' ";
+                } elseif (in_array($k, $array_cols)) {
+                    $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+                }
+            }
+        }
+
+        $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows > 0;
+        $save = $exists
+            ? $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id")
+            : $this->db->query("INSERT INTO equipment_unsubscribe SET $data");
+
+        return $save ? 1 : 2;
+    }
+
+    function save_equipment_revision()
+    {
+        extract($_POST);
+        $data = $this->build_data($_POST, ["equipment_id", "date_revision", "frecuencia"]);
+
+        if (empty($id)) return 2;
+        if ($this->db->query("SELECT id FROM equipments WHERE id = $id")->num_rows == 0) return 2;
+
+        $save = $this->db->query("INSERT INTO equipment_revision SET $data");
+        return $save ? 1 : 2;
+    }
+
+    // Métodos privados para equipos
     private function build_data($post, $allowed) {
         $data = "";
         foreach ($post as $k => $v) {
@@ -452,91 +588,6 @@ class Action {
 
         $fecha = date('Y-m-d', strtotime("+$interval days", strtotime($start_date)));
         $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) VALUES ('$equipment_id', '$fecha', 'Mantenimiento automático', 'pendiente', NOW())");
-    }
-
-    // ===================================
-    // 5. DELETE EQUIPMENT IMAGE
-    // ===================================
-    function delete_equipment_image()
-    {
-        extract($_POST);
-        $id = (int)$id;
-        $qry = $this->db->query("SELECT image FROM equipments WHERE id = $id");
-        $img = $qry->fetch_array()['image'] ?? '';
-        if ($img && file_exists($img)) unlink($img);
-        $this->db->query("UPDATE equipments SET image = NULL WHERE id = $id");
-        return 1;
-    }
-
-    // ===================================
-    // 6. DELETE EQUIPMENT (CASCADA)
-    // ===================================
-    function delete_equipment()
-    {
-        extract($_POST);
-        if (empty($id) || !is_numeric($id)) return 2;
-
-        $tables = [
-            'equipment_control_documents',
-            'equipment_reception',
-            'equipment_delivery',
-            'equipment_safeguard',
-            'equipment_revision',
-            'equipment_unsubscribe',
-            'equipment_power_specs',
-            'mantenimientos'
-        ];
-
-        foreach ($tables as $table) {
-            $this->db->query("DELETE FROM $table WHERE equipment_id = $id");
-        }
-
-        $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
-        return $delete ? 1 : 2;
-    }
-
-    // ===================================
-    // 7. UNSUBSCRIBE (DAR DE BAJA)
-    // ===================================
-    function save_equipment_unsubscribe()
-    {
-        extract($_POST);
-        $data = "";
-        $array_cols = ['date', 'equipment_id', 'withdrawal_reason', 'description', 'comments', 'opinion', 'destination', 'responsible'];
-        $_POST['equipment_id'] = $id;
-
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id']) && !is_numeric($k)) {
-                if ($k == 'withdrawal_reason') {
-                    $reasons = json_encode($_POST['withdrawal_reason']);
-                    $data .= empty($data) ? " $k='$reasons' " : ", $k='$reasons' ";
-                } elseif (in_array($k, $array_cols)) {
-                    $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-                }
-            }
-        }
-
-        $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows > 0;
-        $save = $exists
-            ? $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id")
-            : $this->db->query("INSERT INTO equipment_unsubscribe SET $data");
-
-        return $save ? 1 : 2;
-    }
-
-    // ===================================
-    // 8. SAVE EQUIPMENT REVISION
-    // ===================================
-    function save_equipment_revision()
-    {
-        extract($_POST);
-        $data = $this->build_data($_POST, ["equipment_id", "date_revision", "frecuencia"]);
-
-        if (empty($id)) return 2;
-        if ($this->db->query("SELECT id FROM equipments WHERE id = $id")->num_rows == 0) return 2;
-
-        $save = $this->db->query("INSERT INTO equipment_revision SET $data");
-        return $save ? 1 : 2;
     }
 
     // ================== HERRAMIENTAS ==================
@@ -712,7 +763,7 @@ class Action {
     }
 
     // ================== UBICACIONES / PUESTOS ==================
-    public function save_equipment_location() {
+    function save_equipment_location() {
         extract($_POST);
         $data = "";
         foreach ($_POST as $k => $v) {
@@ -724,7 +775,7 @@ class Action {
         return $save ? (empty($id) ? 1 : 2) : 0;
     }
 
-    public function delete_equipment_location() {
+    function delete_equipment_location() {
         extract($_POST);
         return $this->db->query("DELETE FROM equipment_locations WHERE id = $id") ? 1 : 0;
     }
@@ -797,21 +848,101 @@ class Action {
         return $this->db->query("DELETE FROM suppliers WHERE id = $id") ? 1 : 0;
     }
 
-    //======== LOG ACTIVITY
-function log_activity($action, $table_name, $record_id = null) {
-    $user_id = $_SESSION['login_id'] ?? 0;
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    // ================== UTILIDADES ==================
+    function log_activity($action, $table_name, $record_id = null) {
+        $user_id = $_SESSION['login_id'] ?? 0;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        
+        $action = $this->db->real_escape_string($action);
+        $table_name = $this->db->real_escape_string($table_name);
+        $record_id = $record_id ? (int)$record_id : 'NULL';
+
+        $sql = "INSERT INTO activity_log 
+                (user_id, action, table_name, record_id, ip_address) 
+                VALUES ($user_id, '$action', '$table_name', $record_id, '$ip')";
+
+        return $this->db->query($sql);
+    }
+
+    function get_equipo_details() {
+        header('Content-Type: application/json');
+
+        $equipo_id = $_POST['id'] ?? null; 
+        
+        if (empty($equipo_id)) {
+            return json_encode(['status' => 'error', 'message' => 'ID no proporcionado']);
+        }
+        
+        $equipo_id = $this->db->real_escape_string($equipo_id);
+        
+        $qry = $this->db->query("
+            SELECT 
+                name, brand, model, serie, number_inventory, 
+                discipline AS location_name
+            FROM 
+                equipments 
+            WHERE 
+                id = '{$equipo_id}'
+        ");
+        
+        if ($qry) {
+            if ($qry->num_rows > 0) {
+                $data = $qry->fetch_assoc();
+                $data['location_id'] = ''; 
+                
+                return json_encode(['status' => 1, 'data' => $data]); 
+            } else {
+                return json_encode(['status' => 0, 'message' => 'Equipo no encontrado']); 
+            }
+        } else {
+            return json_encode(['status' => 3, 'message' => 'Error de consulta: ' . $this->db->error]); 
+        }
+    }
     
-    $action = $this->db->real_escape_string($action);
-    $table_name = $this->db->real_escape_string($table_name);
-    $record_id = $record_id ? (int)$record_id : 'NULL';
+    function save_maintenance_report() {
+        extract($_POST); 
+        $data_report = "";
+        
+        $fields_to_save = ['orden_mto', 'fecha_reporte', 'cliente_nombre', 'equipo_id_select', 'tipo_servicio', 'descripcion', 'observaciones', 'status_final', 'ingeniero_nombre', 'recibe_nombre']; 
+        
+        foreach ($_POST as $k => $v) {
+            if (in_array($k, $fields_to_save)) {
+                $data_report .= empty($data_report) ? " $k='$v' " : ", $k='$v' ";
+            }
+        }
+        
+        $save_report = $this->db->query("INSERT INTO maintenance_reports SET $data_report");
 
-    $sql = "INSERT INTO activity_log 
-            (user_id, action, table_name, record_id, ip_address) 
-            VALUES ($user_id, '$action', '$table_name', $record_id, '$ip')";
-
-    return $this->db->query($sql);
-}
+        if (!$save_report) {
+            return json_encode(['status' => 0, 'message' => 'Error al guardar el reporte principal.']); 
+        }
+        
+        $report_id = $this->db->insert_id; 
+        
+        if (isset($refaccion_item_id) && is_array($refaccion_item_id)) {
+            for ($i = 0; $i < count($refaccion_item_id); $i++) {
+                $item_id = $refaccion_item_id[$i];
+                $qty = (int) $refaccion_qty[$i];
+                
+                if (!empty($item_id) && $qty > 0) {
+                    $update_stock = $this->db->query("
+                        UPDATE inventory SET stock = stock - {$qty} WHERE id = {$item_id}
+                    ");
+                    
+                    $save_item = $this->db->query("
+                        INSERT INTO report_items (report_id, item_id, quantity) 
+                        VALUES ({$report_id}, {$item_id}, {$qty})
+                    ");
+                    
+                    if (!$update_stock || !$save_item) {
+                        return json_encode(['status' => 3, 'message' => 'Error al guardar un item o descontar stock.']); 
+                    }
+                }
+            }
+        }
+        
+        return json_encode(['status' => 1, 'report_id' => $report_id, 'message' => 'Reporte guardado exitosamente.']);
+    }
 
     //======== CARGA MASIVA DE EQUIPOS DESDE EXCEL
     function upload_excel_equipment() {
@@ -917,7 +1048,6 @@ function log_activity($action, $table_name, $record_id = null) {
             return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . SimpleXLSX::parseError()]);
         }
     }
-
 
 }
 ?>

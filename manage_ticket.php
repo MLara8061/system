@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 <?php 
 $qry = $conn->query("SELECT * FROM tickets where id = ".$_GET['id'])->fetch_array();
 foreach($qry as $k => $v){

@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 $id = $_GET['id'] ?? '';
 if (empty($id)) {
     echo "<script>location.href='index.php?page=suppliers';</script>";

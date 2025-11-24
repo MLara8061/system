@@ -1,5 +1,5 @@
 <?php 
-include 'db_connect.php';
+require_once 'config/config.php';
 
 if(isset($_GET['id'])){
 	$qry = $conn->query("SELECT * FROM `services_category` where id = '{$_GET['id']}'");

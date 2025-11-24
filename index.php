@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<?php session_start() ?>
-<?php
-if (!isset($_SESSION['login_id']))
+<?php 
+// Constante para permitir includes de vistas
+define('ALLOW_DIRECT_ACCESS', true);
+
+session_start();
+if (!isset($_SESSION['login_id'])) {
   header('location:login.php');
-include 'header.php'
+  exit();
+}
+include 'header.php';
 ?>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -42,6 +47,11 @@ $allowed_pages = [
     'edit_equipment',
     'equipment_report_sistem_list',
     'equipment_report_revision_month',
+    'equipment_new_revision',
+    'equipment_report_responsible',
+    'equipment_report_sistem',
+    'equipment_unsubscribe',
+    'equipment_report_sistem_editar',
     'new_supplier',
     'suppliers',
     'edit_supplier',
@@ -68,6 +78,8 @@ $allowed_pages = [
     'inventory_list',
     'profile',
     'activity_log',
+    'report_form',
+    'generate_pdf',
 
     // AÑADE MÁS AQUÍ
 ];

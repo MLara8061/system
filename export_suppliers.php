@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 // Nombre del archivo
 $filename = "proveedores_" . date('Y-m-d_His') . ".xls";

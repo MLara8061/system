@@ -1,6 +1,6 @@
 <?php 
 include 'header.php'; 
-include 'db_connect.php';  // AÑADIDO: CONEXIÓN A LA BD
+require_once 'config/config.php';  // AÑADIDO: CONEXIÓN A LA BD
 ?>
 <div class="col-lg-12">
     <div class="card card-outline card-primary">

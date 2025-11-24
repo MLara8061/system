@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 <div class="col-lg-12">
 	<div class="card">
 		<div class="card-body">

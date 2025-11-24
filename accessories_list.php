@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $total_acc = $conn->query("SELECT COUNT(*) as total FROM accessories")->fetch_assoc()['total'] ?? 0;
@@ -235,7 +235,7 @@ $(document).ready(function() {
                     alert_toast('Eliminado correctamente', 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert_toast('Error', 'danger');
+                    alert_toast('Error', 'error');
                 }
             });
         }

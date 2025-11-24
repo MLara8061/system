@@ -17,15 +17,23 @@ if (!file_exists($dir)) {
     mkdir($dir, 0777, true);
 }
 
-// URL que se codificará dentro del QR
-// Cambia esta URL según tu entorno (localhost, dominio, etc.)
-$base_url = "http://localhost/system/view_equipment.php?id=";
+// URL que se codificará dentro del QR - detección automática del dominio
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'];
+$script_dir = dirname($_SERVER['SCRIPT_NAME']);
+$base_url = $protocol . $host . $script_dir . '/view_equipment.php?id=';
 $url = $base_url . $id;
 
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';
 
-// Generamos el QR si no existe o si se quiere regenerar
+// Regenerar si se solicita
+$force = isset($_GET['force']) && $_GET['force'] == '1';
+if ($force && file_exists($filename)) {
+    unlink($filename);
+}
+
+// Generamos el QR si no existe o si se regeneró
 if (!file_exists($filename)) {
     QRcode::png($url, $filename, QR_ECLEVEL_L, 5);
 }

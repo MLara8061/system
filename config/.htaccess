@@ -1,0 +1,9 @@
+# Proteger carpeta config de acceso web directo
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+
+# Compatibilidad Apache 2.2 (por si acaso)
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>

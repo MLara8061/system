@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "<script>alert('ID inválido'); window.location='index.php?page=equipment_list';</script>";
@@ -50,14 +50,16 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             </a>
                             <!-- Input oculto hasta eliminar -->
                             <div id="upload-image-container" style="display:none;">
-                                <input type="file" name="equipment_image" class="form-control mt-3" accept="image/*" form="manage_equipment">
+                                <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
+                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             </div>
                         <?php else: ?>
                             <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
                                  style="height: 380px; border: 3px dashed #ccc;">
                                 <i class="fas fa-camera fa-3x text-muted"></i>
                             </div>
-                            <input type="file" name="equipment_image" class="form-control mt-3" accept="image/*" form="manage_equipment">
+                            <input type="file" name="equipment_image" id="equipment_image2" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -380,6 +382,28 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
     $('.solonumeros').on('input', function(){ this.value = this.value.replace(/[^0-9]/g,''); });
     $('.alfanumerico').on('input', function(){ this.value = this.value.replace(/[^a-zA-Z0-9]/g,''); });
 
+    // Validar formato de imagen
+    $('#equipment_image, #equipment_image2').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validFormats = ['jpg', 'jpeg', 'png'];
+            
+            if (!validFormats.includes(ext)) {
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                $(this).val(''); // Limpiar input
+                return false;
+            }
+            
+            // Validar tamaño (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
+                $(this).val('');
+                return false;
+            }
+        }
+    });
+
     $(function(){
         $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
     });
@@ -422,7 +446,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     alert_toast('Equipo actualizado', 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert_toast('Error: ' + resp, 'danger');
+                    alert_toast('Error: ' + resp, 'error');
                 }
                 end_load();
             }

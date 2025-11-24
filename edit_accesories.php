@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -59,8 +59,9 @@ $acc = $qry->fetch_assoc();
 
                             <div id="upload-container" class="mt-3"
                                 style="display: <?= !empty($acc['image']) ? 'none' : 'block' ?>;">
-                                <input type="file" name="imagen" class="form-control" accept="image/*"
+                                <input type="file" name="imagen" id="imagen" class="form-control" accept="image/jpeg,image/png,image/jpg"
                                     onchange="displayImg(this)">
+                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                                 <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-2"
                                     style="display:none; max-height: 200px;">
                             </div>
@@ -238,6 +239,29 @@ $acc = $qry->fetch_assoc();
 </style>
 
 <script>
+    // Validar formato de imagen
+    $('#imagen').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validFormats = ['jpg', 'jpeg', 'png'];
+            
+            if (!validFormats.includes(ext)) {
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                $(this).val('');
+                $('#preview-img').hide();
+                return false;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
+                $(this).val('');
+                $('#preview-img').hide();
+                return false;
+            }
+        }
+    });
+
     function displayImg(input) {
         if (input.files[0]) {
             var reader = new FileReader();
@@ -287,13 +311,13 @@ $acc = $qry->fetch_assoc();
                         alert_toast('Accesorio actualizado', 'success');
                         setTimeout(() => location.href = 'index.php?page=accesories_list', 1500);
                     } else {
-                        alert_toast('Error: ' + resp, 'danger');
+                        alert_toast('Error: ' + resp, 'error');
                     }
                     end_load();
                 },
                 error: function() {
                     end_load();
-                    alert_toast('Error de conexión', 'danger');
+                    alert_toast('Error de conexión', 'error');
                 }
             });
         });

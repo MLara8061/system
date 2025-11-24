@@ -1,4 +1,4 @@
-<?php include 'db_connect.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <!-- Calendario de Mantenimientos -->
 <div class="col-lg-12">

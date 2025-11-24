@@ -1,5 +1,9 @@
 <?php
-include 'db_connect.php';
+// Habilitar errores para debug
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once 'config/config.php';
 
 // === VALIDAR ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -35,8 +39,8 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
 
 // === NOMBRES ADICIONALES ===
 $dept = $conn->query("SELECT name FROM departments WHERE id = " . ($delivery['department_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
-$loc = $conn->query("SELECT name FROM equipment_locations WHERE id = " . ($delivery['location_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
-$pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id = " . ($delivery['responsible_position'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+$loc = $conn->query("SELECT name FROM locations WHERE id = " . ($delivery['location_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+$pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['responsible_position'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +57,6 @@ $pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id =
         .info-label { font-weight: 600; color: #495057; font-size: 0.95rem; }
         .info-value { font-size: 1.1rem; color: #212529; }
         .badge-inv { font-size: 1.3rem; padding: 0.5em 1em; }
-        .qr-container { text-align: center; margin: 20px 0; }
         .btn-revision { 
             background: linear-gradient(45deg, #007bff, #0056b3); 
             border: none; 
@@ -161,7 +164,7 @@ $pos = $conn->query("SELECT name FROM equipment_responsible_positions WHERE id =
                             <div class="info-label">Adquisición</div>
                             <div class="info-value">
                                 <?php 
-                                $type = $conn->query("SELECT name FROM equipment_acquisition_type WHERE id = " . ($eq['acquisition_type'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+                                $type = $conn->query("SELECT name FROM acquisition_type WHERE id = " . ($eq['acquisition_type'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
                                 echo htmlspecialchars($type);
                                 ?>
                             </div>

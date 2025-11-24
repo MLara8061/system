@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // Datos para las tarjetas
@@ -150,11 +150,14 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                         <tr>
                             <!-- IMAGEN -->
                             <td class="text-center">
-                                <?php if (!empty($row['image'])): ?>
-                                    <img src="<?php echo $row['image']; ?>"
-                                        class="rounded shadow-sm"
-                                        style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;">
-                                <?php else: ?>
+                                <?php
+                                    $imgSrc = $row['image'] ?? '';
+                                    $imgFile = __DIR__ . '/' . ltrim($imgSrc, '/');
+                                    if (!empty($imgSrc) && file_exists($imgFile)): ?>
+                                        <img src="<?php echo $imgSrc; ?>"
+                                            class="rounded shadow-sm"
+                                            style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;">
+                                    <?php else: ?>
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center"
                                         style="width: 45px; height: 45px; border: 1px dashed #ccc;">
                                         <i class="fas fa-camera text-muted"></i>
@@ -385,5 +388,33 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
 
             $('#qrModal').modal('show');
         });
+
+        // === ELIMINAR EQUIPO ===
+        $(document).on('click', '.delete', function() {
+            const id = $(this).data('id');
+            _conf("¿Estás seguro de que deseas eliminar este equipo?", "delete_equipment", [id]);
+        });
+
+        window.delete_equipment = function(id) {
+            start_load();
+            $.ajax({
+                url: 'ajax.php?action=delete_equipment',
+                method: 'POST',
+                data: { id: id },
+                success: function(resp) {
+                    end_load();
+                    if (resp == 1) {
+                        alert_toast("Equipo eliminado correctamente", 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        alert_toast("Error al eliminar el equipo", 'error');
+                    }
+                },
+                error: function() {
+                    end_load();
+                    alert_toast("Error de conexión", 'error');
+                }
+            });
+        };
     });
 </script>

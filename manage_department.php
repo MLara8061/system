@@ -1,4 +1,4 @@
-<?php include 'db_connect.php' ?>
+<?php require_once 'config/config.php'; ?>
 <?php
 if (isset($_GET['id'])) {
 	$qry = $conn->query("SELECT * FROM departments where id = " . $_GET['id'])->fetch_array();

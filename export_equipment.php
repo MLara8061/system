@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require_once 'config/config.php';
 
 // =======================
 //  CONSULTA PRINCIPAL
