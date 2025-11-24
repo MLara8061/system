@@ -15,13 +15,15 @@ if (!isset($_SESSION['login_id'])) {
     die('Acceso no autorizado');
 }
 
-// Incluir conexión a base de datos
-if (file_exists(__DIR__ . '/config/db_connect.php')) {
-    require_once __DIR__ . '/config/db_connect.php';
+// Incluir configuración y conexión a base de datos
+if (file_exists(__DIR__ . '/config/config.php')) {
+    require_once __DIR__ . '/config/config.php';
 } elseif (file_exists(__DIR__ . '/db_connect.php')) {
-    require_once __DIR__ . '/db_connect.php';
+    // Fallback para desarrollo local sin estructura config/
+    define('ACCESS', true);
+    include __DIR__ . '/db_connect.php';
 } else {
-    die('Error: No se encuentra el archivo de conexión a la base de datos');
+    die('Error: No se encuentra el archivo de configuración');
 }
 
 // Verificar que PHPSpreadsheet existe
