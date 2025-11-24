@@ -4,10 +4,18 @@
  * Crea un archivo Excel con encabezados y formato correcto
  */
 
+// Verificar sesión activa
+session_start();
+if (!isset($_SESSION['login_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 // Configurar encabezados para descarga de Excel
 header('Content-Type: application/vnd.ms-excel');
 header('Content-Disposition: attachment; filename="plantilla_equipos_' . date('Y-m-d') . '.xls"');
 header('Cache-Control: max-age=0');
+header('Pragma: public');
 
 // Iniciar búfer de salida
 ob_start();
