@@ -5,10 +5,12 @@
  */
 
 // Verificar sesión activa
-session_start();
-if (!isset($_SESSION['login_id'])) {
-    header('Location: login.php');
-    exit;
+if (!defined('ALLOW_DIRECT_ACCESS')) {
+    session_start();
+    if (!isset($_SESSION['login_id'])) {
+        header('Location: login.php');
+        exit;
+    }
 }
 
 // Configurar encabezados para descarga de Excel

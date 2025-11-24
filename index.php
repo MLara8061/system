@@ -81,6 +81,7 @@ $allowed_pages = [
     'report_form',
     'generate_pdf',
     'upload_equipment',
+    'download_template',
 
     // AÑADE MÁS AQUÍ
 ];
