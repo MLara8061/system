@@ -26,15 +26,12 @@ if (file_exists(__DIR__ . '/config/config.php')) {
     die('Error: No se encuentra el archivo de configuración');
 }
 
-// Verificar que PHPSpreadsheet existe
-$autoloader_path = __DIR__ . '/lib/PhpSpreadsheet-1.29.0/src/PhpSpreadsheet/Autoloader.php';
-if (!file_exists($autoloader_path)) {
-    die('Error: No se encuentra la librería PHPSpreadsheet en: ' . $autoloader_path);
+// Cargar PHPSpreadsheet usando Composer autoloader si existe
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require __DIR__ . '/vendor/autoload.php';
+} else {
+    die('Error: PHPSpreadsheet no está instalado. Ejecuta: https://tu-dominio.com/install_composer_packages.php');
 }
-
-// Cargar PHPSpreadsheet
-require $autoloader_path;
-\PhpOffice\PhpSpreadsheet\Autoloader::register();
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
