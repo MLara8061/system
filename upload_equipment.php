@@ -17,80 +17,47 @@ if (file_exists(__DIR__ . '/config/config.php')) {
             </div>
             <div class="card-body">
                 <div class="alert" style="background-color: #e3f2fd; border-left: 4px solid #2196F3; color: #1976d2;">
-                    <strong><i class="fas fa-info-circle"></i> Formato del archivo Excel:</strong>
-                    <table class="table table-sm table-bordered mt-3" style="background: white;">
-                        <thead style="background-color: #f5f5f5;">
-                            <tr>
-                                <th style="width: 80px;">Columna</th>
-                                <th>Campo</th>
-                                <th>Descripción</th>
-                                <th style="width: 100px;">Requerido</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>A</strong></td>
-                                <td><strong>Serie</strong></td>
-                                <td>Número de serie único del equipo</td>
-                                <td><span class="badge badge-danger">Obligatorio</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>B</strong></td>
-                                <td>Nombre</td>
-                                <td>Nombre del equipo</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>C</strong></td>
-                                <td>Marca</td>
-                                <td>Marca del equipo</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>D</strong></td>
-                                <td>Modelo</td>
-                                <td>Modelo del equipo</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>E</strong></td>
-                                <td>Tipo de Adquisición</td>
-                                <td>Compra, Donación, Comodato, etc.</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>F</strong></td>
-                                <td>Características</td>
-                                <td>Descripción de características técnicas</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>G</strong></td>
-                                <td>Disciplina</td>
-                                <td>Área o disciplina del equipo</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>H</strong></td>
-                                <td>Proveedor</td>
-                                <td>Nombre del proveedor (si no existe, se omite)</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>I</strong></td>
-                                <td>Cantidad</td>
-                                <td>Cantidad de equipos (por defecto: 1)</td>
-                                <td><span class="badge badge-secondary">Opcional</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="mt-3 p-2" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
-                        <strong><i class="fas fa-lightbulb text-warning"></i> Notas importantes:</strong>
+                    <strong><i class="fas fa-info-circle"></i> Instrucciones de uso:</strong>
+                    <ol class="mt-3 mb-2">
+                        <li><strong>Descarga la plantilla Excel</strong> con listas desplegables y validaciones pre-configuradas</li>
+                        <li><strong>Completa los datos</strong> de los equipos (las columnas amarillas tienen listas desplegables ▼)</li>
+                        <li><strong>Guarda el archivo</strong> y súbelo usando el formulario de abajo</li>
+                    </ol>
+                    
+                    <div class="mt-3 p-3" style="background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                        <strong><i class="fas fa-exclamation-triangle text-warning"></i> Campos obligatorios en el Excel:</strong>
+                        <ul class="mb-2 mt-2">
+                            <li><strong>Serie</strong> - Número único del equipo</li>
+                            <li><strong>Nombre</strong> - Nombre descriptivo</li>
+                            <li><strong>Modelo</strong> - Modelo del equipo</li>
+                            <li><strong>Tipo de Adquisición</strong> - Seleccionar de la lista desplegable (columna F, amarilla)</li>
+                            <li><strong>Disciplina</strong> - Seleccionar de la lista desplegable (columna G, amarilla)</li>
+                            <li><strong>Proveedor</strong> - Seleccionar de la lista desplegable (columna H, amarilla)</li>
+                            <li><strong>Departamento</strong> - Seleccionar de la lista desplegable (columna N, amarilla)</li>
+                            <li><strong>Ubicación</strong> - Seleccionar de la lista desplegable (columna O, amarilla)</li>
+                            <li><strong>Responsable</strong> - Nombre completo de la persona responsable</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3 p-3" style="background-color: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 5px;">
+                        <strong><i class="fas fa-lightbulb text-info"></i> Datos adicionales que puedes incluir:</strong>
+                        <ul class="mb-2 mt-2">
+                            <li><strong>Marca, Valor, Cantidad, Características</strong> - Información básica del equipo</li>
+                            <li><strong>Voltaje, Amperaje, Frecuencia</strong> - Especificaciones eléctricas (columnas K, L, M)</li>
+                            <li><strong>Cargo Responsable</strong> - Lista desplegable (columna Q, amarilla)</li>
+                            <li><strong>Fecha Capacitación, Factura, Garantía, Fecha Adquisición</strong> - Información adicional</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3 p-3" style="background-color: #d4edda; border-left: 4px solid #28a745; border-radius: 5px;">
+                        <strong><i class="fas fa-check-circle text-success"></i> Notas importantes:</strong>
                         <ul class="mb-0 mt-2">
-                            <li>La primera fila debe contener los encabezados de las columnas</li>
-                            <li><strong>Solo el campo "Serie" es obligatorio</strong>, los demás pueden quedar vacíos</li>
-                            <li>Si un proveedor no existe en el sistema, el equipo se importará sin proveedor</li>
-                            <li>Los campos vacíos no interferirán con la importación</li>
+                            <li>Las <strong>columnas amarillas (F, G, H, N, O, Q)</strong> tienen listas desplegables con datos de tu sistema</li>
+                            <li>Haz <strong>clic en la celda</strong> para ver la flecha del desplegable (▼)</li>
+                            <li>Las <strong>filas de ejemplo</strong> (EQ-001-2024, EQ-002-2024, EQ-003-2024) se omiten automáticamente</li>
+                            <li>Todos los equipos importados tendrán <strong>Mantenimiento Preventivo</strong> por defecto</li>
+                            <li>Si hay <strong>especificaciones eléctricas</strong> (voltaje y amperaje), la potencia se calcula automáticamente</li>
+                            <li>La plantilla tiene <strong>21 columnas (A-U)</strong> con instrucciones al final del archivo</li>
                         </ul>
                     </div>
                 </div>
