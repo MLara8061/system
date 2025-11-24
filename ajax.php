@@ -357,5 +357,36 @@ if ($action == 'get_equipo_details') {
 if ($action == 'update_and_save_report') {
 }
 
+// ================== SERVICIOS Y CATEGORÍAS ==================
+if ($action == 'save_category') {
+    echo $crud->save_category();
+    exit;
+}
+
+if ($action == 'delete_service_category') {
+    echo $crud->delete_service_category();
+    exit;
+}
+
+if ($action == 'load_service_category') {
+    echo $crud->load_service_category();
+    exit;
+}
+
+if ($action == 'save_service') {
+    echo $crud->save_service();
+    exit;
+}
+
+if ($action == 'delete_service') {
+    echo $crud->delete_service();
+    exit;
+}
+
+if ($action == 'load_service') {
+    echo $crud->load_service();
+    exit;
+}
+
 ob_end_flush();
 ?>

@@ -88,7 +88,7 @@ if(isset($_GET['id'])){
 			}
 			//start_loader();
 			$.ajax({
-				url:"tickets/classes/Master.php?f=save_service",
+				url:"ajax.php?action=save_service",
 				dataType:'json',
 				data: new FormData($(this)[0]),
 		   		type: 'POST',

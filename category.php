@@ -41,7 +41,7 @@
 			$('table tbody').html('')
 		}
 		$.ajax({
-			url:"tickets/classes/Master.php?f=load_service_category",
+			url:"ajax.php?action=load_service_category",
 			dataType: "json",
 			error: err=>{
 				console.log(err)
@@ -91,7 +91,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Servicios','tickets/admin/services/manage_category.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Servicios','manage_category.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -100,7 +100,7 @@
 	function delete_data($id){
 		start_loader();
 		$.ajax({
-			url:"tickets/classes/Master.php?f=delete_service_category",
+			url:"ajax.php?action=delete_service_category",
 			method:'POST',
 			data:{id:$id},
 			dataType:'json',
@@ -122,7 +122,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de servicio','tickets/admin/services/manage_category.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de servicio','manage_category.php')
 		})
 	})
 </script>

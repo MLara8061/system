@@ -9,110 +9,154 @@ foreach ($qry as $k => $v) {
 	.d-list {
 		display: list-item;
 	}
+	.comment-card {
+		border-left: 3px solid #667eea;
+	}
 </style>
-<div class="col-lg-12">
+
+<div class="container-fluid">
 	<div class="row">
+		<!-- Ticket Details -->
 		<div class="col-md-8">
-			<div class="card card-outline card-success">
-				<div class="card-header">
-					<h3 class="card-title">Ticket</h3>
+			<div class="card shadow-sm">
+				<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+					<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Detalles del Ticket</h4>
 				</div>
 				<div class="card-body">
 					<div class="container-fluid">
 						<div class="row">
 							<div class="col-md-6">
-								<label for="" class="control-label border-bottom border-primary">Asunto</label>
-								<p class="ml-2 d-list"><b><?php echo $subject ?></b></p>
-								<label for="" class="control-label border-bottom border-primary">Cliente</label>
-								<p class="ml-2 d-list"><b><?php echo $cname ?></b></p>
+								<label for="" class="control-label font-weight-bold">
+									<i class="fas fa-tag text-primary"></i> Asunto
+								</label>
+								<p class="ml-3 mb-3"><?php echo $subject ?></p>
+								
+								<label for="" class="control-label font-weight-bold">
+									<i class="fas fa-user text-primary"></i> Cliente
+								</label>
+								<p class="ml-3 mb-3"><?php echo $cname ?></p>
 							</div>
 							<div class="col-md-6">
-								<label for="" class="control-label border-bottom border-primary">Estado</label>
-								<p class="ml-2 d-list">
+								<label for="" class="control-label font-weight-bold">
+									<i class="fas fa-info-circle text-primary"></i> Estado
+								</label>
+								<p class="ml-3 mb-3">
 									<?php if ($status == 0) : ?>
-										<span class="badge badge-primary">Abierto/Pendiente</span>
+										<span class="badge badge-primary"><i class="fas fa-folder-open"></i> Abierto/Pendiente</span>
 									<?php elseif ($status == 1) : ?>
-										<span class="badge badge-info">En Proceso</span>
+										<span class="badge badge-info"><i class="fas fa-spinner"></i> En Proceso</span>
 									<?php elseif ($status == 2) : ?>
-										<span class="badge badge-success">Finalizado</span>
+										<span class="badge badge-success"><i class="fas fa-check-circle"></i> Finalizado</span>
 									<?php else : ?>
-										<span class="badge badge-secondary">Cerrado</span>
+										<span class="badge badge-secondary"><i class="fas fa-times-circle"></i> Cerrado</span>
 									<?php endif; ?>
 									<?php if ($_SESSION['login_type'] != 3) : ?>
-										<span class="badge btn-outline-primary btn update_status" data-id='<?php echo $id ?>'>Actualizar Estado</span>
+										<button class="btn btn-sm btn-outline-primary update_status ml-2" data-id='<?php echo $id ?>'>
+											<i class="fas fa-edit"></i> Actualizar
+										</button>
 									<?php endif; ?>
 								</p>
-								<label for="" class="control-label border-bottom border-primary">Necesita soporte de</label>
-								<p class="ml-2 d-list"><b><?php echo $dname ?></b></p>
+								
+								<label for="" class="control-label font-weight-bold">
+									<i class="fas fa-building text-primary"></i> Departamento
+								</label>
+								<p class="ml-3 mb-3"><?php echo $dname ?></p>
 							</div>
 						</div>
-						<hr class="border-primary">
-						<div>
+						<hr>
+						<div class="bg-light p-3 rounded">
+							<label class="font-weight-bold"><i class="fas fa-align-left text-primary"></i> Descripción</label>
 							<?php echo html_entity_decode($description) ?>
+						</div>
+						
+						<div class="mt-3">
+							<a href="./index.php?page=edit_ticket&id=<?php echo $id ?>" class="btn btn-primary btn-sm">
+								<i class="fas fa-edit"></i> Editar Ticket
+							</a>
+							<a href="./index.php?page=ticket_list" class="btn btn-secondary btn-sm">
+								<i class="fas fa-arrow-left"></i> Volver a la Lista
+							</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- Comments Section -->
 		<div class="col-md-4">
-			<div class="card card-outline card-primary">
-				<div class="card-header">
-					<h3 class="card-title">Comentario</h3>
+			<div class="card shadow-sm">
+				<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+					<h4 class="mb-0"><i class="fas fa-comments"></i> Comentarios</h4>
 				</div>
-				<div class="card-body p-0 py-2">
+				<div class="card-body p-0 py-2" style="max-height: 600px; overflow-y: auto;">
 					<div class="container-fluid">
 						<?php
 						$comments = $conn->query("SELECT * FROM comments where ticket_id = '$id' order by unix_timestamp(date_created) asc");
-						while ($row = $comments->fetch_assoc()) :
-							if ($row['user_type'] == 1)
-								$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM users where id = {$row['user_id']}")->fetch_array()['name'];
-							if ($row['user_type'] == 2)
-								$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM staff where id = {$row['user_id']}")->fetch_array()['name'];
-							if ($row['user_type'] == 3)
-								$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM customers where id = {$row['user_id']}")->fetch_array()['name'];
+						if ($comments->num_rows > 0) :
+							while ($row = $comments->fetch_assoc()) :
+								if ($row['user_type'] == 1)
+									$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM users where id = {$row['user_id']}")->fetch_array()['name'];
+								if ($row['user_type'] == 2)
+									$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM staff where id = {$row['user_id']}")->fetch_array()['name'];
+								if ($row['user_type'] == 3)
+									$uname = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM customers where id = {$row['user_id']}")->fetch_array()['name'];
 						?>
-							<div class="card card-outline card-info">
-								<div class="card-header">
-									<h5 class="card-title"><?php echo ucwords($uname) ?></h5>
+							<div class="card comment-card mb-2 mx-2">
+								<div class="card-header py-2" style="background-color: #f8f9fa;">
+									<h6 class="card-title mb-0"><i class="fas fa-user-circle"></i> <?php echo ucwords($uname) ?></h6>
 									<div class="card-tools">
-										<span class="text-muted"><?php echo date("M d, Y", strtotime($row['date_created'])) ?></span>
+										<small class="text-muted"><?php echo date("d/m/Y H:i", strtotime($row['date_created'])) ?></small>
 										<?php if ($row['user_type'] == $_SESSION['login_type'] && $row['user_id'] == $_SESSION['login_id']) : ?>
-											<span class="dropleft">
-												<a class="fa fa-ellipsis-v text-muted" href="javascript:void(0)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
-												<div class="dropdown-menu" style="">
-													<a class="dropdown-item edit_comment" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
+											<div class="btn-group dropleft">
+												<button type="button" class="btn btn-tool" data-toggle="dropdown">
+													<i class="fas fa-ellipsis-v"></i>
+												</button>
+												<div class="dropdown-menu">
+													<a class="dropdown-item edit_comment" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
+														<i class="fas fa-edit text-primary"></i> Editar
+													</a>
 													<div class="dropdown-divider"></div>
-													<a class="dropdown-item delete_comment" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Eliminar</a>
+													<a class="dropdown-item delete_comment" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
+														<i class="fas fa-trash text-danger"></i> Eliminar
+													</a>
 												</div>
-											</span>
+											</div>
 										<?php endif; ?>
 									</div>
 								</div>
-								<div class="card-body">
-									<div>
-										<?php echo html_entity_decode($row['comment']) ?>
-									</div>
+								<div class="card-body py-2">
+									<?php echo html_entity_decode($row['comment']) ?>
 								</div>
 							</div>
-						<?php endwhile; ?>
-					</div>
-					<hr class="border-primary">
-					<div class="px-2">
-						<form action="" id="manage-comment">
-							<div class="form-group">
-								<input type="hidden" name="id" value="">
-								<input type="hidden" name="ticket_id" value="<?php echo $id ?>">
-								<label for="" class="control-label">Nuevo Comentario</label>
-								<textarea name="comment" id="" cols="30" rows="" class="fom-control summernote2"></textarea>
+						<?php endwhile; 
+						else : ?>
+							<div class="text-center text-muted py-4">
+								<i class="fas fa-comment-slash fa-3x mb-2"></i>
+								<p>No hay comentarios aún</p>
 							</div>
-							<button class="btn btn-primary btn-sm float-right">Guardar</button>
-						</form>
+						<?php endif; ?>
 					</div>
+				</div>
+				<div class="card-footer">
+					<form action="" id="manage-comment">
+						<div class="form-group mb-2">
+							<input type="hidden" name="id" value="">
+							<input type="hidden" name="ticket_id" value="<?php echo $id ?>">
+							<label for="" class="control-label font-weight-bold">
+								<i class="fas fa-comment-medical"></i> Nuevo Comentario
+							</label>
+							<textarea name="comment" id="" cols="30" rows="" class="form-control summernote2"></textarea>
+						</div>
+						<button class="btn btn-primary btn-sm float-right">
+							<i class="fas fa-paper-plane"></i> Enviar
+						</button>
+					</form>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
 <script>
 	$(function() {
 		$('.summernote2').summernote({
@@ -128,7 +172,7 @@ foreach ($qry as $k => $v) {
 
 	})
 	$('.edit_comment').click(function() {
-		uni_modal("Editar Commentario", "manage_comment.php?id=" + $(this).attr('data-id'))
+		uni_modal("Editar Comentario", "manage_comment.php?id=" + $(this).attr('data-id'))
 	})
 	$('.update_status').click(function() {
 		uni_modal("Actualizar estado del ticket", "manage_ticket.php?id=" + $(this).attr('data-id'))
@@ -155,7 +199,7 @@ foreach ($qry as $k => $v) {
 		})
 	})
 	$('.delete_comment').click(function() {
-		_conf("Deseas eliminar este comentario?", "delete_comment", [$(this).attr('data-id')])
+		_conf("¿Deseas eliminar este comentario?", "delete_comment", [$(this).attr('data-id')])
 	})
 
 	function delete_comment($id) {
@@ -168,7 +212,7 @@ foreach ($qry as $k => $v) {
 			},
 			success: function(resp) {
 				if (resp == 1) {
-					alert_toast("Datos eliminados correctamente", 'success')
+					alert_toast("Comentario eliminado correctamente", 'success')
 					setTimeout(function() {
 						location.reload()
 					}, 1500)

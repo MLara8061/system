@@ -1,1 +1,0 @@
-<h1>Bienvenid@ a <?php echo $_settings->info('name') ?></h1>

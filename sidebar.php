@@ -126,6 +126,21 @@
         </li>
         
         <li class="nav-item">
+          <a href="#" class="nav-link nav-ticket">
+            <i class="nav-icon fas fa-ticket-alt"></i>
+            <p>Tickets de Soporte <i class="right fas fa-angle-left"></i></p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item"><a href="./index.php?page=new_ticket" class="nav-link nav-new_ticket tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Nuevo Ticket</p>
+              </a></li>
+            <li class="nav-item"><a href="./index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Todos los Tickets</p>
+              </a></li>
+          </ul>
+        </li>
+        
+        <li class="nav-item">
           <a href="index.php?page=report_form" class="nav-link nav-reporte_form">
             <i class="fas fa-file-invoice nav-icon"></i>
             <p>Generar Reportes</p>
@@ -173,9 +188,6 @@
                   </a></li>
                 <li class="nav-item"><a href="index.php?page=service_list" class="nav-link nav-service_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                     <p>Lista Servicios</p>
-                  </a></li>
-                <li class="nav-item"><a href="tickets/admin/?page=quote" class="nav-link nav-quote tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Requerimientos</p>
                   </a></li>
               </ul>
             </li>

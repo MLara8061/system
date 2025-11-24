@@ -47,7 +47,7 @@
 			$('table tbody').html('')
 		}
 		$.ajax({
-			url:"tickets/classes/Master.php?f=load_service",
+			url:"ajax.php?action=load_service",
 			dataType: "json",
 			error: err=>{
 				console.log(err)

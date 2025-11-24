@@ -42,7 +42,7 @@ if(isset($_GET['id'])){
 			}
 			//start_loader();
 			$.ajax({
-				url:"tickets/classes/Master.php?f=save_category",
+				url:"ajax.php?action=save_category",
 				method:"POST",
 				data:$(this).serialize(),
 				dataType:'json',

@@ -83,7 +83,10 @@ $allowed_pages = [
     'upload_equipment',
     'download_template',
     'generate_excel_template',
-    
+    'ticket_list',
+    'new_ticket',
+    'edit_ticket',
+    'view_ticket',
     
 
     // AÑADE MÁS AQUÍ

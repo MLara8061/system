@@ -1237,5 +1237,123 @@ class Action {
         }
     }
 
+    // ================== SERVICIOS Y CATEGORÍAS ==================
+    function save_category()
+    {
+        extract($_POST);
+        $data = "";
+        foreach ($_POST as $k => $v) {
+            if (!in_array($k, array('id'))) {
+                if ($k == 'description') $v = addslashes($v);
+                if (!empty($data)) $data .= " , ";
+                $data .= " {$k} = '{$v}' ";
+            }
+        }
+        $chk = $this->db->query("SELECT * FROM `services_category` where category = '{$category}' " . (!empty($id) ? " and id != {$id}" : ""));
+        if ($chk->num_rows > 0) {
+            return json_encode(['status' => 'duplicate']);
+        }
+        if (empty($id)) {
+            $sql = "INSERT INTO `services_category` set $data ";
+        } else {
+            $sql = "UPDATE `services_category` set $data where id = {$id}";
+        }
+        $save = $this->db->query($sql);
+        if ($save) {
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'error', 'data' => $sql]);
+        }
+    }
+
+    function delete_service_category()
+    {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM `services_category` where id ='$id' ");
+        $delete2 = $this->db->query("DELETE FROM `services` where category_id ='$id' ");
+        if ($delete && $delete2) {
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'error', 'error' => $this->db->error]);
+        }
+    }
+
+    function load_service_category()
+    {
+        $qry = $this->db->query("SELECT * FROM `services_category` order by `category` asc");
+        $data = array();
+        while ($row = $qry->fetch_assoc()) {
+            $row['description'] = strip_tags(stripslashes($row['description']));
+            $data[] = $row;
+        }
+        return json_encode(['status' => 'success', 'data' => $data]);
+    }
+
+    function save_service()
+    {
+        extract($_POST);
+        $data = "";
+        foreach ($_POST as $k => $v) {
+            if (!in_array($k, array('id'))) {
+                if ($k == 'description') $v = addslashes($v);
+                if (!empty($data)) $data .= " , ";
+                $data .= " {$k} = '{$v}' ";
+            }
+        }
+        $chk = $this->db->query("SELECT * FROM `services` where service = '{$service}' " . (!empty($id) ? " and id != {$id}" : "")) or die($this->db->error);
+        if ($chk->num_rows > 0) {
+            return json_encode(['status' => 'duplicate']);
+        }
+
+        if (empty($id)) {
+            $sql = "INSERT INTO `services` set $data ";
+        } else {
+            $sql = "UPDATE `services` set $data where id = {$id}";
+        }
+        $save = $this->db->query($sql);
+        if ($save) {
+            $id = !empty($id) ? $id : $this->db->insert_id;
+            if (!is_dir('uploads/services')) mkdir('uploads/services', 0777, true);
+            if (!empty($_FILES['img']['tmp_name'])) {
+                $file = pathinfo($_FILES["img"]["name"]);
+                $fname = $id . '_img.' . ($file['extension']);
+                if (is_file('uploads/services/' . $fname)) {
+                    unlink('uploads/services/' . $fname);
+                }
+                $move = move_uploaded_file($_FILES["img"]["tmp_name"], 'uploads/services/' . $fname);
+                if ($move) {
+                    $data = " img_path = 'uploads/services/{$fname}' ";
+                    $this->db->query("UPDATE `services` set {$data} where id = $id ");
+                }
+            }
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'error', 'data' => $sql]);
+        }
+    }
+
+    function delete_service()
+    {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM `services` where `id` ='$id' ");
+        if ($delete) {
+            return json_encode(['status' => 'success']);
+        } else {
+            return json_encode(['status' => 'error', 'error' => $this->db->error]);
+        }
+    }
+
+    function load_service()
+    {
+        $qry = $this->db->query("SELECT s.*,c.category FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
+        $data = array();
+        while ($row = $qry->fetch_assoc()) {
+            $row['description'] = strip_tags(stripslashes($row['description']));
+            $row['img_path'] = file_exists($row['img_path']) ? $row['img_path'] : 'uploads/default.png';
+            $data[] = $row;
+        }
+        return json_encode(['status' => 'success', 'data' => $data]);
+    }
+
 }
 ?>
