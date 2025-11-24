@@ -53,7 +53,7 @@ if(isset($_GET['id'])){
 			<button class="btn btn-secondary" type="reset">Reset</button>
 		</div>
 			<div class="form-group d-flex justify-content-center">
-				<img src="<?php echo validate_image(isset($img_path) ? $img_path : "") ?>" alt="" id="cimg" class="img-fluid img-thumbnail">
+				<img src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23f0f0f0\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'18\' dy=\'10\' font-weight=\'bold\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\'%3ESin imagen%3C/text%3E%3C/svg%3E' ?>" alt="" id="cimg" class="img-fluid img-thumbnail">
 			</div>
 			
 		
