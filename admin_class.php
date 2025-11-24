@@ -986,22 +986,24 @@ class Action {
                 // F(5)=Características, G(6)=Disciplina, H(7)=Proveedor, I(8)=Cantidad
                 
                 $serie = $this->db->real_escape_string(trim($row[0]));
-                $name = isset($row[1]) ? $this->db->real_escape_string(trim($row[1])) : '';
-                $brand = isset($row[2]) ? $this->db->real_escape_string(trim($row[2])) : '';
-                $model = isset($row[3]) ? $this->db->real_escape_string(trim($row[3])) : '';
-                $acquisition_type = isset($row[4]) ? $this->db->real_escape_string(trim($row[4])) : '';
-                $characteristics = isset($row[5]) ? $this->db->real_escape_string(trim($row[5])) : '';
-                $discipline = isset($row[6]) ? $this->db->real_escape_string(trim($row[6])) : '';
-                $supplier_name = isset($row[7]) ? trim($row[7]) : '';
-                $amount = isset($row[8]) ? intval($row[8]) : 1;
+                $name = (isset($row[1]) && trim($row[1]) != '') ? $this->db->real_escape_string(trim($row[1])) : '';
+                $brand = (isset($row[2]) && trim($row[2]) != '') ? $this->db->real_escape_string(trim($row[2])) : '';
+                $model = (isset($row[3]) && trim($row[3]) != '') ? $this->db->real_escape_string(trim($row[3])) : '';
+                $acquisition_type = (isset($row[4]) && trim($row[4]) != '') ? $this->db->real_escape_string(trim($row[4])) : '';
+                $characteristics = (isset($row[5]) && trim($row[5]) != '') ? $this->db->real_escape_string(trim($row[5])) : '';
+                $discipline = (isset($row[6]) && trim($row[6]) != '') ? $this->db->real_escape_string(trim($row[6])) : '';
+                $supplier_name = (isset($row[7]) && trim($row[7]) != '') ? trim($row[7]) : '';
+                $amount = (isset($row[8]) && trim($row[8]) != '' && intval($row[8]) > 0) ? intval($row[8]) : 1;
                 
-                // Buscar ID del proveedor si existe
+                // Buscar ID del proveedor solo si se proporcionó un nombre
                 $supplier_id = 'NULL';
                 if (!empty($supplier_name)) {
-                    $supplier_query = $this->db->query("SELECT id FROM suppliers WHERE name LIKE '%$supplier_name%' LIMIT 1");
+                    $supplier_escaped = $this->db->real_escape_string($supplier_name);
+                    $supplier_query = $this->db->query("SELECT id FROM suppliers WHERE name LIKE '%$supplier_escaped%' LIMIT 1");
                     if ($supplier_query && $supplier_query->num_rows > 0) {
                         $supplier_id = $supplier_query->fetch_assoc()['id'];
                     }
+                    // Si no se encontró el proveedor, simplemente se deja en NULL (no genera error)
                 }
                 
                 // Verificar si el equipo ya existe
