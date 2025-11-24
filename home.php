@@ -197,10 +197,16 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     <!-- Gráfica de Tipo de Servicio -->
     <div class="col-md-6">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
+            <div class="card-header">
+                <h5 class="card-title">
                     <i class="fas fa-chart-pie mr-2"></i>Reportes por Tipo de Servicio
                 </h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                        <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                        <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div id="service-type-chart" style="min-height: 350px;"></div>
@@ -211,10 +217,16 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     <!-- Gráfica de Tipo de Ejecución Mensual -->
     <div class="col-md-6">
         <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">
+            <div class="card-header">
+                <h5 class="card-title">
                     <i class="fas fa-chart-line mr-2"></i>Reportes Mensuales por Tipo de Ejecución
                 </h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                        <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                        <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div id="execution-monthly-chart" style="min-height: 350px;"></div>
