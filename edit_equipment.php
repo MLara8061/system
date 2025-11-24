@@ -371,7 +371,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     FROM maintenance_reports mr
                     LEFT JOIN users u ON mr.technician_id = u.id
                     LEFT JOIN users v ON mr.validator_id = v.id
-                    WHERE mr.equipment_id = {$id}
+                    WHERE mr.equipment_id = {$equipment_id}
                     ORDER BY mr.report_date DESC, mr.report_time DESC
                 ");
                 
