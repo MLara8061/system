@@ -16,6 +16,6 @@
 </FilesMatch>
 
 # Permitir acceso a archivos públicos y modales
-<FilesMatch "^(index|login|ajax|manage_user_modal|manage_comment|manage_ticket|manage_category|manage_department|manage_equipment_location|manage_inventory|manage_job_position|manage_services|generate_qr|generate_pdf|print_label|report_pdf|export_equipment|export_suppliers|equipment_public|view_equipment|diagnostic_users|generate_passwords|admin_class|test_ajax_access|generate_excel_template|download_template|install_phpspreadsheet|check_phpspreadsheet)\.php$">
+<FilesMatch "^(index|login|ajax|manage_user_modal|manage_comment|manage_ticket|manage_category|manage_department|manage_equipment_location|manage_inventory|manage_job_position|manage_services|generate_qr|generate_pdf|print_label|report_pdf|export_equipment|export_suppliers|equipment_public|view_equipment|diagnostic_users|generate_passwords|admin_class|test_ajax_access|generate_excel_template|download_template|install_phpspreadsheet|check_phpspreadsheet|fix_phpspreadsheet_structure)\.php$">
   Require all granted
 </FilesMatch>

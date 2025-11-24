@@ -40,6 +40,14 @@ if ($zip->open($zip_file) === true) {
     $zip->extractTo($lib_dir);
     $zip->close();
     echo "<p style='color: green;'>✓ Archivos extraídos correctamente.</p>";
+    
+    // Verificar y reorganizar estructura si es necesario
+    $extracted_folder = $lib_dir . '/Phpspreadsheet-1.29.0'; // GitHub usa primera letra mayúscula
+    if (is_dir($extracted_folder) && !is_dir($target_dir)) {
+        echo "<p>4.1. Renombrando carpeta...</p>";
+        rename($extracted_folder, $target_dir);
+    }
+    
 } else {
     die("<p style='color: red;'>✗ Error: No se pudo extraer el archivo ZIP.</p>");
 }
