@@ -3,17 +3,29 @@
  * Generador de plantilla Excel con validaciones usando PHPSpreadsheet
  */
 
+// Mostrar errores para debugging (comentar en producción)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Verificar sesión
 session_start();
 if (!isset($_SESSION['login_id'])) {
+    http_response_code(403);
     die('Acceso no autorizado');
 }
 
 // Incluir conexión a base de datos
-include 'db_connect.php';
+require_once 'db_connect.php';
+
+// Verificar que PHPSpreadsheet existe
+$autoloader_path = __DIR__ . '/lib/PhpSpreadsheet-1.29.0/src/PhpSpreadsheet/Autoloader.php';
+if (!file_exists($autoloader_path)) {
+    die('Error: No se encuentra la librería PHPSpreadsheet en: ' . $autoloader_path);
+}
 
 // Cargar PHPSpreadsheet
-require 'lib/PhpSpreadsheet-1.29.0/src/PhpSpreadsheet/Autoloader.php';
+require $autoloader_path;
 \PhpOffice\PhpSpreadsheet\Autoloader::register();
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -458,6 +470,8 @@ try {
     exit;
 
 } catch (Exception $e) {
-    die('Error al generar plantilla: ' . $e->getMessage());
+    error_log('Error en generate_excel_template.php: ' . $e->getMessage());
+    http_response_code(500);
+    die('Error al generar plantilla: ' . $e->getMessage() . '<br>Archivo: ' . $e->getFile() . '<br>Línea: ' . $e->getLine());
 }
 ?>
