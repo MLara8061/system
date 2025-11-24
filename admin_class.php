@@ -813,6 +813,111 @@ function log_activity($action, $table_name, $record_id = null) {
     return $this->db->query($sql);
 }
 
+    //======== CARGA MASIVA DE EQUIPOS DESDE EXCEL
+    function upload_excel_equipment() {
+        // Usar SimpleXLSX (librería ligera sin dependencias)
+        require_once 'lib/simplexlsx-master/src/SimpleXLSX.php';
+        
+        if (!isset($_FILES['excel_file'])) {
+            return json_encode(['status' => 0, 'msg' => 'No se recibió ningún archivo']);
+        }
+        
+        $file = $_FILES['excel_file'];
+        
+        // Validar extensión
+        $allowed = ['xlsx', 'xls'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        if (!in_array($ext, $allowed)) {
+            return json_encode(['status' => 0, 'msg' => 'Solo se permiten archivos Excel (.xlsx, .xls)']);
+        }
+        
+        // Procesar archivo Excel
+        if ( $xlsx = SimpleXLSX::parse($file['tmp_name']) ) {
+            $rows = $xlsx->rows();
+            
+            $success = 0;
+            $errors = [];
+            $skipped = 0;
+            
+            // Saltar encabezados (fila 0)
+            for ($i = 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+                
+                // Validar que tenga datos en columnas obligatorias
+                if (empty($row[0]) || trim($row[0]) == '') {
+                    $skipped++;
+                    continue;
+                }
+                
+                // Mapeo de columnas del Excel
+                // A(0)=Serie, B(1)=Nombre, C(2)=Marca, D(3)=Modelo, E(4)=Tipo Adquisición
+                // F(5)=Características, G(6)=Disciplina, H(7)=Proveedor, I(8)=Cantidad
+                
+                $serie = $this->db->real_escape_string(trim($row[0]));
+                $name = isset($row[1]) ? $this->db->real_escape_string(trim($row[1])) : '';
+                $brand = isset($row[2]) ? $this->db->real_escape_string(trim($row[2])) : '';
+                $model = isset($row[3]) ? $this->db->real_escape_string(trim($row[3])) : '';
+                $acquisition_type = isset($row[4]) ? $this->db->real_escape_string(trim($row[4])) : '';
+                $characteristics = isset($row[5]) ? $this->db->real_escape_string(trim($row[5])) : '';
+                $discipline = isset($row[6]) ? $this->db->real_escape_string(trim($row[6])) : '';
+                $supplier_name = isset($row[7]) ? trim($row[7]) : '';
+                $amount = isset($row[8]) ? intval($row[8]) : 1;
+                
+                // Buscar ID del proveedor si existe
+                $supplier_id = 'NULL';
+                if (!empty($supplier_name)) {
+                    $supplier_query = $this->db->query("SELECT id FROM suppliers WHERE name LIKE '%$supplier_name%' LIMIT 1");
+                    if ($supplier_query && $supplier_query->num_rows > 0) {
+                        $supplier_id = $supplier_query->fetch_assoc()['id'];
+                    }
+                }
+                
+                // Verificar si el equipo ya existe
+                $check = $this->db->query("SELECT id FROM equipments WHERE serie = '$serie'");
+                if ($check && $check->num_rows > 0) {
+                    $errors[] = "Fila " . ($i + 1) . ": El equipo con serie '$serie' ya existe";
+                    continue;
+                }
+                
+                // Insertar equipo
+                $sql = "INSERT INTO equipments 
+                        (serie, name, brand, model, acquisition_type, characteristics, discipline, supplier_id, amount, date_created) 
+                        VALUES 
+                        ('$serie', '$name', '$brand', '$model', '$acquisition_type', '$characteristics', '$discipline', $supplier_id, $amount, NOW())";
+                
+                if ($this->db->query($sql)) {
+                    $equipment_id = $this->db->insert_id;
+                    
+                    // Insertar registros relacionados básicos
+                    $this->db->query("INSERT INTO equipment_reception (equipment_id, state, comments) VALUES ($equipment_id, 'Pendiente', 'Importado desde Excel')");
+                    $this->db->query("INSERT INTO equipment_delivery (equipment_id, department_id) VALUES ($equipment_id, NULL)");
+                    $this->db->query("INSERT INTO equipment_safeguard (equipment_id) VALUES ($equipment_id)");
+                    $this->db->query("INSERT INTO equipment_control_documents (equipment_id) VALUES ($equipment_id)");
+                    
+                    $success++;
+                } else {
+                    $errors[] = "Fila " . ($i + 1) . ": " . $this->db->error;
+                }
+            }
+            
+            $msg = "Carga completada: $success equipos insertados";
+            if ($skipped > 0) $msg .= ", $skipped filas omitidas";
+            if (count($errors) > 0) $msg .= ", " . count($errors) . " errores";
+            
+            return json_encode([
+                'status' => 1,
+                'msg' => $msg,
+                'success' => $success,
+                'skipped' => $skipped,
+                'errors' => $errors
+            ]);
+            
+        } else {
+            return json_encode(['status' => 0, 'msg' => 'Error al procesar el archivo: ' . SimpleXLSX::parseError()]);
+        }
+    }
+
 
 }
 ?>

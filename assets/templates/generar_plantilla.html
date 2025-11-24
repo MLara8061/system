@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Plantilla Excel - Equipos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generar Plantilla Excel para Equipos</h1>
+    <p>Haz clic en el botón para descargar la plantilla de Excel con el formato correcto.</p>
+    
+    <button onclick="generarPlantilla()">📥 Descargar Plantilla</button>
+    
+    <div id="resultado" style="margin-top: 20px;"></div>
+
+    <script>
+    function generarPlantilla() {
+        // Crear libro de trabajo
+        const wb = XLSX.utils.book_new();
+        
+        // Crear datos
+        const data = [
+            // Encabezados
+            ['Serie', 'Nombre', 'Marca', 'Modelo', 'Tipo de Adquisición', 'Características', 'Disciplina', 'Proveedor', 'Cantidad'],
+            // Ejemplos
+            ['EQ-2024-001', 'Microscopio Óptico', 'Olympus', 'CX23', 'Compra', 'Microscopio binocular con 4 objetivos', 'Laboratorio', 'MediEquip SA', '2'],
+            ['EQ-2024-002', 'Centrifuga', 'Eppendorf', '5424R', 'Donación', 'Centrifuga refrigerada hasta 15000 rpm', 'Laboratorio', 'BioTech Supplies', '1'],
+            ['EQ-2024-003', 'Espectrofotómetro', 'Thermo', 'NanoDrop', 'Comodato', 'Espectrofotómetro UV-Vis', 'Investigación', '', '1'],
+            [],
+            ['INSTRUCCIONES:'],
+            ['1. Elimina las filas de ejemplo (2-4) antes de cargar tus datos'],
+            ['2. La columna "Serie" es obligatoria y debe ser única'],
+            ['3. El proveedor debe existir previamente en el sistema'],
+            ['4. La cantidad debe ser un número entero positivo'],
+            ['5. No modifiques los encabezados de la primera fila']
+        ];
+        
+        // Crear hoja
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        
+        // Establecer anchos de columna
+        ws['!cols'] = [
+            {wch: 15},  // Serie
+            {wch: 25},  // Nombre
+            {wch: 20},  // Marca
+            {wch: 20},  // Modelo
+            {wch: 25},  // Tipo de Adquisición
+            {wch: 40},  // Características
+            {wch: 20},  // Disciplina
+            {wch: 25},  // Proveedor
+            {wch: 10}   // Cantidad
+        ];
+        
+        // Agregar hoja al libro
+        XLSX.utils.book_append_sheet(wb, ws, 'Equipos');
+        
+        // Descargar archivo
+        XLSX.writeFile(wb, 'plantilla_equipos.xlsx');
+        
+        document.getElementById('resultado').innerHTML = '<p class="success">✓ Plantilla descargada exitosamente: plantilla_equipos.xlsx</p>';
+    }
+    </script>
+</body>
+</html>

@@ -185,7 +185,6 @@
                   </a></li>
               </ul>
             </li>
-            <?php endif; ?>
 
             <!-- Ubicaciones -->
             <li class="nav-item">
@@ -224,7 +223,7 @@
               </ul>
             </li>
 
-            <!-- Mantenimientos -->
+            <!-- Usuarios -->
             <li class="nav-item">
               <a href="#" class="nav-link nav-maintenance">
                 <i class="fas fa-angle-right nav-icon"></i>
@@ -236,6 +235,27 @@
                   </a></li>
               </ul>
             </li>
+
+            <!-- Carga Masiva -->
+            <li class="nav-item">
+              <a href="#" class="nav-link nav-upload">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Carga Masiva <i class="right fas fa-angle-left"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="index.php?page=upload_equipment" class="nav-link nav-upload_equipment tree-item">
+                    <i class="fas fa-angle-right nav-icon"></i>
+                    <p>Equipos desde Excel</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+
+          </ul>
+        </li>
+        <?php endif; ?>
+
     </nav>
   </div>
 </aside>
