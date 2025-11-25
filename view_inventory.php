@@ -1,8 +1,25 @@
 <?php 
-require_once 'config/config.php';
+// Permitir acceso desde AJAX/Modal
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar autenticación
+if (!isset($_SESSION['login_id'])) {
+    http_response_code(403);
+    exit('Acceso denegado. Inicie sesión.');
+}
+
+// Cargar configuración
+if (file_exists(__DIR__ . '/config/config.php')) {
+    require_once __DIR__ . '/config/config.php';
+} else {
+    exit('Error: Configuración no encontrada.');
+}
+
 $id = $_GET['id'] ?? 0;
-$qry = $conn->query("SELECT * FROM inventory WHERE id = $id");
-if ($qry->num_rows == 0) {
+$qry = $conn->query("SELECT * FROM inventory WHERE id = " . intval($id));
+if (!$qry || $qry->num_rows == 0) {
     echo "<div class='alert alert-danger'>Ítem no encontrado.</div>";
     exit;
 }
