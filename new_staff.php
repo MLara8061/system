@@ -64,8 +64,8 @@ if (!isset($conn)) {
 					</div>
 				</div>
 				<hr>
-				<div class="col-lg-12 text-right justify-content-center d-flex">
-					<button class="btn btn-primary mr-2">Guardar</button>
+				<div class="col-lg-12 text-right justify-content-center d-flex btn-container-mobile">
+					<button class="btn btn-primary">Guardar</button>
 					<button class="btn btn-secondary" type="reset">Reset</button>
 				</div>
 			</form>

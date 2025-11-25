@@ -48,8 +48,8 @@ if(isset($_GET['id'])){
 	            </div>
 			</div>
 			<hr>
-		<div class="col-lg-12 text-right justify-content-center d-flex">
-			<button class="btn btn-primary mr-2" id="enviar_servicio" >Guardar</button>
+		<div class="col-lg-12 text-right justify-content-center d-flex btn-container-mobile">
+			<button class="btn btn-primary" id="enviar_servicio" >Guardar</button>
 			<button class="btn btn-secondary" type="reset">Reset</button>
 		</div>
 			<div class="form-group d-flex justify-content-center">

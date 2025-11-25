@@ -113,7 +113,7 @@ if ($qry_freq->num_rows > 0) {
                 </div>
 
                 <hr class="my-4">
-                <div class="text-center">
+                <div class="text-center btn-container-mobile">
                     <button type="submit" class="btn btn-primary btn-lg px-5">
                         Guardar Revisión
                     </button>

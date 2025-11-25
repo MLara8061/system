@@ -89,7 +89,7 @@ $siguiente_id = $row['Auto_increment'];
                         </div>
 
                         <!-- BOTONES -->
-                        <div class="text-center mt-4">
+                        <div class="text-center mt-4 btn-container-mobile">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
                                 Guardar
                             </button>

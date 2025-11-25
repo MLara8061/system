@@ -172,7 +172,7 @@ while ($row = $qry_inv->fetch_array()) {
                 <hr class="my-4">
 
                 <!-- === BOTONES === -->
-                <div class="text-center">
+                <div class="text-center btn-container-mobile">
                     <button type="submit" class="btn btn-success btn-lg px-5">Guardar Cambios</button>
                     <a href="index.php?page=equipment_report_sistem_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>

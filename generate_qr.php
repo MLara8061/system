@@ -19,7 +19,7 @@ if (!file_exists($dir)) {
 
 // URL que se codificará dentro del QR - usar URL base de configuración
 require_once __DIR__ . '/config/config.php';
-$url = BASE_URL . '/view_equipment.php?id=' . $id;
+$url = BASE_URL . '/equipment_public.php?id=' . $id;
 
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';

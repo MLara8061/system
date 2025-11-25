@@ -124,7 +124,7 @@ if (!$tool) {
                         </div>
 
                         <!-- BOTONES -->
-                        <div class="text-center">
+                        <div class="text-center btn-container-mobile">
                             <button type="submit" class="btn btn-success btn-lg px-5">
                                 Actualizar Herramienta
                             </button>

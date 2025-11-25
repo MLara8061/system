@@ -442,7 +442,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                 </div>
 
                 <hr>
-                <div class="text-center">
+                <div class="text-center btn-container-mobile">
                     <button type="submit" form="manage_equipment" class="btn btn-primary btn-lg px-5">Guardar Cambios</button>
                     <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>

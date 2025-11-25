@@ -277,7 +277,7 @@ $next_inventory = $row['Auto_increment'];
                 </div>
 
                 <hr>
-                <div class="text-center">
+                <div class="text-center btn-container-mobile">
                     <button type="submit" form="manage_equipment" class="btn btn-primary btn-lg px-5">Guardar Equipo</button>
                     <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>

@@ -196,8 +196,8 @@ if (!is_array($reasons)) {
                     </div>
                 </div>
 
-                <div class="text-center">
-                    <button class="btn btn-primary btn-lg px-5 mr-2" type="submit">Guardar</button>
+                <div class="text-center btn-container-mobile">
+                    <button class="btn btn-primary btn-lg px-5" type="submit">Guardar</button>
                     <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Cancelar</a>
                 </div>
             </form>
