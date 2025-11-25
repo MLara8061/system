@@ -274,7 +274,7 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                 SELECT * 
                 FROM maintenance_reports
                 WHERE equipment_id = $equipment_id
-                ORDER BY report_date DESC, report_time DESC
+                ORDER BY service_date DESC, service_start_time DESC
             ");
             ?>
             <div class="p-5 bg-white border-top">
@@ -297,8 +297,8 @@ $pos = $conn->query("SELECT name FROM job_positions WHERE id = " . ($delivery['r
                         <tbody>
                             <?php while ($maint = $maintenance_qry->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo $maint['report_date'] ? date('d/m/Y', strtotime($maint['report_date'])) : 'N/A'; ?></td>
-                                <td><?php echo $maint['report_time'] ? date('H:i', strtotime($maint['report_time'])) : 'N/A'; ?></td>
+                                <td><?php echo !empty($maint['service_date']) ? date('d/m/Y', strtotime($maint['service_date'])) : 'N/A'; ?></td>
+                                <td><?php echo !empty($maint['service_start_time']) ? date('H:i', strtotime($maint['service_start_time'])) : 'N/A'; ?></td>
                                 <td><?php echo htmlspecialchars($maint['engineer_name'] ?? 'N/A'); ?></td>
                                 <td><?php echo htmlspecialchars($maint['received_by'] ?? 'N/A'); ?></td>
                                 <td>
