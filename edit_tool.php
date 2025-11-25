@@ -20,30 +20,39 @@ if (!$tool) {
                 <div class="row g-0">
                     <!-- IMAGEN A LA IZQUIERDA -->
                     <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
-                        <div class="text-center w-100">
+                        <div class="text-center w-100 position-relative" style="min-height: 420px;">
                             <?php if (!empty($tool['imagen']) && file_exists('uploads/' . $tool['imagen'])): ?>
-                                <img src="uploads/<?= $tool['imagen'] ?>" class="img-fluid rounded shadow" 
-                                     style="max-height: 380px; object-fit: contain;" id="current-img">
-                                <br><br>
-                                <button type="button" class="btn btn-danger btn-sm" id="remove-image">
-                                    Eliminar imagen
-                                </button>
-                                <div id="upload-container" style="display:none;">
-                                    <input type="file" name="imagen" id="imagen" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
-                                    <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
-                                    <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3" 
-                                         style="display:none; max-height: 200px;">
+                                <div class="position-relative d-inline-block">
+                                    <img src="uploads/<?= $tool['imagen'] ?>" 
+                                         class="img-fluid rounded shadow" 
+                                         style="max-height: 380px; object-fit: contain;" 
+                                         id="current-img">
+                                    <button type="button" 
+                                            class="btn btn-danger btn-sm position-absolute" 
+                                            style="top: 10px; right: 10px; z-index: 10;" 
+                                            id="remove-image">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
+                                <br>
+                                <small class="text-muted">Haz clic para eliminar</small>
                             <?php else: ?>
                                 <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
-                                     style="height: 380px; border: 3px dashed #ccc;">
+                                     style="height: 380px; border: 3px dashed #ccc;" id="empty-tool-image">
                                     <i class="fas fa-tools fa-3x text-muted"></i>
                                 </div>
-                                <input type="file" name="imagen" id="imagen2" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
-                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
-                                <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3" 
-                                     style="display:none; max-height: 200px;">
                             <?php endif; ?>
+                            
+                            <div id="upload-container" class="mt-3"
+                                 style="display: <?= (!empty($tool['imagen']) && file_exists('uploads/' . $tool['imagen'])) ? 'none' : 'block' ?>;">
+                                <input type="file" name="imagen" id="imagen" 
+                                       class="form-control" accept="image/jpeg,image/png,image/jpg" 
+                                       onchange="displayImg(this)">
+                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                                <img id="preview-img" src="" alt="" 
+                                     class="img-fluid rounded shadow mt-2" 
+                                     style="display:none; max-height: 200px;">
+                            </div>
                         </div>
                     </div>
 
@@ -161,7 +170,7 @@ if (!$tool) {
 
 <script>
     // Validar formato de imagen
-    $('#imagen, #imagen2').on('change', function(e) {
+    $('#imagen').on('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
@@ -188,6 +197,7 @@ if (!$tool) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 $('#preview-img').attr('src', e.target.result).show();
+                $('#empty-tool-image').hide();
             }
             reader.readAsDataURL(input.files[0]);
         }
@@ -199,16 +209,17 @@ if (!$tool) {
             placeholder: 'Seleccionar',
             allowClear: false
         });
-    });
-
-    // === ELIMINAR IMAGEN ===
-    $(document).on('click', '#remove-image', function() {
-        if (confirm('¿Deseas eliminar esta imagen?')) {
-            $('#current-img').remove();
-            $(this).remove();
-            $('#upload-container').show();
-            $('#keep_image').val('0');
-        }
+        
+        // Eliminar imagen con botón
+        $('#remove-image').click(function() {
+            if (confirm('¿Eliminar imagen actual?')) {
+                $('#current-img').parent().remove();
+                $(this).remove();
+                $('#empty-tool-image').remove();
+                $('#upload-container').show();
+                $('#keep_image').val('0');
+            }
+        });
     });
 
     // === ENVIAR ===

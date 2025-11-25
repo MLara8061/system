@@ -40,27 +40,39 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
             <div class="row g-0">
                 <!-- IMAGEN -->
                 <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
-                    <div class="text-center w-100">
-                        <?php if (!empty($eq['image'])): ?>
-                            <img src="<?= $eq['image'] ?>" class="img-fluid rounded shadow" 
-                                 style="max-height: 380px; object-fit: contain;" id="equipment-preview">
-                            <br><br>
-                            <a href="javascript:void(0)" class="text-danger delete-image">
-                                <i class="fas fa-trash"></i> Eliminar imagen
-                            </a>
-                            <!-- Input oculto hasta eliminar -->
-                            <div id="upload-image-container" style="display:none;">
-                                <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
-                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                    <div class="text-center w-100 position-relative" style="min-height: 420px;">
+                        <?php if (!empty($eq['image']) && file_exists($eq['image'])): ?>
+                            <div class="position-relative d-inline-block">
+                                <img src="<?= $eq['image'] ?>" 
+                                     class="img-fluid rounded shadow" 
+                                     style="max-height: 380px; object-fit: contain;" 
+                                     id="equipment-preview">
+                                <button type="button" 
+                                        class="btn btn-danger btn-sm position-absolute" 
+                                        style="top: 10px; right: 10px; z-index: 10;" 
+                                        id="remove-equipment-image">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
+                            <br>
+                            <small class="text-muted">Haz clic para eliminar</small>
                         <?php else: ?>
                             <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
-                                 style="height: 380px; border: 3px dashed #ccc;">
+                                 style="height: 380px; border: 3px dashed #ccc;" id="empty-equipment-image">
                                 <i class="fas fa-camera fa-3x text-muted"></i>
                             </div>
-                            <input type="file" name="equipment_image" id="equipment_image2" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                         <?php endif; ?>
+                        
+                        <div id="upload-equipment-container" class="mt-3"
+                             style="display: <?= (!empty($eq['image']) && file_exists($eq['image'])) ? 'none' : 'block' ?>;">
+                            <input type="file" name="equipment_image" id="equipment_image" 
+                                   class="form-control" accept="image/jpeg,image/png,image/jpg" 
+                                   form="manage_equipment" onchange="previewEquipmentImg(this)">
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                            <img id="equipment-preview-new" src="" alt="" 
+                                 class="img-fluid rounded shadow mt-2"
+                                 style="display:none; max-height: 200px;">
+                        </div>
                     </div>
                 </div>
 
@@ -462,8 +474,20 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
     $('.solonumeros').on('input', function(){ this.value = this.value.replace(/[^0-9]/g,''); });
     $('.alfanumerico').on('input', function(){ this.value = this.value.replace(/[^a-zA-Z0-9]/g,''); });
 
+    // Previsualizar imagen de equipo
+    function previewEquipmentImg(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#equipment-preview-new').attr('src', e.target.result).show();
+                $('#empty-equipment-image').hide();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     // Validar formato de imagen
-    $('#equipment_image, #equipment_image2').on('change', function(e) {
+    $('#equipment_image').on('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
@@ -471,14 +495,15 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
             
             if (!validFormats.includes(ext)) {
                 alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
-                $(this).val(''); // Limpiar input
+                $(this).val('');
+                $('#equipment-preview-new').hide();
                 return false;
             }
             
-            // Validar tamaño (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
+                $('#equipment-preview-new').hide();
                 return false;
             }
         }
@@ -486,6 +511,17 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
 
     $(function(){
         $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
+        
+        // Eliminar imagen de equipo
+        $('#remove-equipment-image').click(function() {
+            if (confirm('¿Eliminar imagen actual?')) {
+                $('#equipment-preview').parent().remove();
+                $(this).remove();
+                $('#empty-equipment-image').remove();
+                $('#upload-equipment-container').show();
+                $('#delete_image_flag').val('1');
+            }
+        });
         
         // Inicializar DataTable para historial de mantenimientos
         if ($('#maintenanceTable').length) {
@@ -511,17 +547,6 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                 responsive: true,
                 autoWidth: false
             });
-        }
-    });
-
-    // === ELIMINAR IMAGEN ===
-    $(document).on('click', '.delete-image', function(e){
-        e.preventDefault();
-        if(confirm('¿Eliminar imagen?')){
-            $('#equipment-preview').remove();
-            $('.border-dashed').show();
-            $('#delete_image_flag').val('1');
-            $('#upload-image-container').show();
         }
     });
 

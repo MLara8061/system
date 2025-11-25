@@ -12,24 +12,42 @@ $row = $qry->fetch_assoc();
 <div class="container-fluid">
     <form id="update-inventory-form">
         <input type="hidden" name="id" value="<?= $row['id'] ?>">
+        <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
         
         <div class="row">
             <!-- IMAGEN -->
             <div class="col-md-4 text-center mb-3">
-                <div id="image-preview">
+                <div id="image-preview" class="position-relative d-inline-block">
                     <?php if (!empty($row['image_path']) && file_exists('uploads/'.$row['image_path'])): ?>
-                        <img src="uploads/<?= $row['image_path'] ?>" class="img-fluid rounded" style="max-height: 180px;">
-                        <br><small class="text-muted">Haz clic para cambiar</small>
+                        <div class="position-relative d-inline-block">
+                            <img src="uploads/<?= $row['image_path'] ?>" 
+                                 class="img-fluid rounded" 
+                                 style="max-height: 180px;" 
+                                 id="current-inv-img">
+                            <button type="button" 
+                                    class="btn btn-danger btn-sm position-absolute" 
+                                    style="top: 5px; right: 5px; z-index: 10; padding: 2px 6px;" 
+                                    id="remove-inv-image">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <br><small class="text-muted">Haz clic para eliminar</small>
                     <?php else: ?>
-                        <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="height:180px;">
+                        <div class="bg-light border rounded d-flex align-items-center justify-content-center" 
+                             style="height:180px;" id="empty-inv-image">
                             <i class="fas fa-box fa-3x text-muted"></i>
                         </div>
                         <br><small class="text-muted">Sin imagen</small>
                     <?php endif; ?>
                 </div>
-                <div class="mt-2">
-                    <input type="file" name="image_path" id="image-input" class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
+                <div class="mt-2" id="upload-inv-container" 
+                     style="display: <?= (!empty($row['image_path']) && file_exists('uploads/'.$row['image_path'])) ? 'none' : 'block' ?>;">
+                    <input type="file" name="image_path" id="image-input" 
+                           class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
                     <small class="text-muted d-block mt-1">Formatos: JPG, PNG (máx. 5MB)</small>
+                    <img id="preview-inv-img" src="" alt="" 
+                         class="img-fluid rounded mt-2" 
+                         style="display:none; max-height: 120px;">
                 </div>
             </div>
 
@@ -119,30 +137,36 @@ $row = $qry->fetch_assoc();
             if (!validFormats.includes(ext)) {
                 alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
                 $(this).val('');
+                $('#preview-inv-img').hide();
                 return false;
             }
             
             if (file.size > 5 * 1024 * 1024) {
                 alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
+                $('#preview-inv-img').hide();
                 return false;
             }
+            
+            // Previsualizar
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#preview-inv-img').attr('src', e.target.result).show();
+                $('#empty-inv-image').hide();
+            };
+            reader.readAsDataURL(file);
         }
     });
 
     $(document).ready(function() {
-    // === PREVISUALIZAR IMAGEN ===
-    $('#image-input').change(function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                $('#image-preview').html(
-                    `<img src="${e.target.result}" class="img-fluid rounded" style="max-height:180px;">
-                     <br><small class="text-muted">Imagen lista para guardar</small>`
-                );
-            };
-            reader.readAsDataURL(file);
+    // === ELIMINAR IMAGEN ===
+    $('#remove-inv-image').click(function() {
+        if (confirm('¿Eliminar imagen actual?')) {
+            $('#current-inv-img').parent().remove();
+            $(this).remove();
+            $('#empty-inv-image').remove();
+            $('#upload-inv-container').show();
+            $('#delete_image_flag').val('1');
         }
     });
 
