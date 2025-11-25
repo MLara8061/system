@@ -68,6 +68,7 @@ $is_local = $is_cli
     || str_ends_with($host, '.test')
     || str_contains($host, '.dev');
 
+// Hostinger y otros servicios son producción
 define('ENVIRONMENT', $is_local ? 'local' : 'production');
 
 // === CONFIGURACIÓN BD ===
@@ -92,40 +93,34 @@ define('DB_CONFIG', $cfg);
 // === CARGAR CONEXIÓN ===
 require_once CONFIG_PATH . 'db_connect.php';
 
-// === URL BASE DEL SITIO ===
-// Configurar la URL base dependiendo del entorno
-if (ENVIRONMENT === 'production') {
-    // URL de producción - IMPORTANTE: Actualizar con tu dominio real de Hostinger
-    // Ejemplo: 'https://miempresa.com' o 'https://subdomain.hostinger.com'
-    define('BASE_URL', getenv('BASE_URL') ?: 'https://tudominio.com');
-} else {
-    // URL local - Detectar automáticamente o usar valor del .env
-    $base_url_env = getenv('BASE_URL');
+// === URL BASE DEL SITIO (DETECCIÓN AUTOMÁTICA) ===
+// El sistema detecta automáticamente el dominio y protocolo sin importar dónde esté alojado
+$base_url_env = getenv('BASE_URL');
+
+if ($base_url_env && $base_url_env !== '') {
+    // Si BASE_URL está definido en .env, usar ese valor
+    define('BASE_URL', $base_url_env);
+} elseif (isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME'])) {
+    // Detección automática basada en el servidor actual
+    // Funciona en cualquier dominio: Hostinger, otro hosting, o localhost
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'];
     
-    if ($base_url_env && $base_url_env !== '') {
-        // Si está definido en .env, usar ese
-        define('BASE_URL', $base_url_env);
-    } elseif (isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME'])) {
-        // Construir desde variables del servidor
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-        $host = $_SERVER['HTTP_HOST'];
-        
-        // Obtener el directorio base del proyecto
-        $script_path = $_SERVER['SCRIPT_NAME'];
-        $project_dir = '';
-        
-        // Si el script está en una subcarpeta, extraer la ruta base
-        if (str_contains($script_path, '/system/')) {
-            $project_dir = '/system';
-        } elseif (dirname($script_path) !== '/') {
-            $project_dir = rtrim(dirname($script_path), '/');
-        }
-        
-        define('BASE_URL', $protocol . $host . $project_dir);
-    } else {
-        // Fallback para localhost (cuando se ejecuta desde CLI o contextos sin $_SERVER)
-        define('BASE_URL', 'http://localhost/system');
+    // Detectar si está en subcarpeta
+    $script_path = $_SERVER['SCRIPT_NAME'];
+    $project_dir = '';
+    
+    // Si el script está en una subcarpeta, extraer la ruta base
+    if (str_contains($script_path, '/system/')) {
+        $project_dir = '/system';
+    } elseif (dirname($script_path) !== '/' && dirname($script_path) !== '.') {
+        $project_dir = rtrim(dirname($script_path), '/');
     }
+    
+    define('BASE_URL', $protocol . $host . $project_dir);
+} else {
+    // Fallback para CLI o contextos sin $_SERVER
+    define('BASE_URL', ENVIRONMENT === 'production' ? 'https://indigo-porcupine-764368.hostingersite.com' : 'http://localhost/system');
 }
 
 // === FUNCIÓN db() ===
