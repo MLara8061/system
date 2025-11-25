@@ -19,7 +19,19 @@ if (!file_exists($dir)) {
 
 // URL que se codificará dentro del QR - usar URL base de configuración
 require_once __DIR__ . '/config/config.php';
-$url = BASE_URL . '/equipment_public.php?id=' . $id;
+
+// DEBUG: Forzar detección correcta en localhost
+if (isset($_SERVER['HTTP_HOST']) && 
+    (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || 
+     strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false)) {
+    // Construir URL local manualmente
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'];
+    $base_local = $protocol . $host . '/system';
+    $url = $base_local . '/equipment_public.php?id=' . $id;
+} else {
+    $url = BASE_URL . '/equipment_public.php?id=' . $id;
+}
 
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';
