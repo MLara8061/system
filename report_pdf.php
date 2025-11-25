@@ -151,6 +151,21 @@ if (empty($parts_list)) {
             width: 32%;
         }
 
+        /* Tabla de dos columnas para servicio */
+        .service-grid {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .service-col {
+            flex: 1;
+        }
+
+        .service-col table {
+            margin: 0;
+        }
+
         .materiales {
             margin-top: 6px;
             font-size: 10px;
@@ -238,37 +253,59 @@ if (empty($parts_list)) {
         </table>
     </div>
 
-    <!-- SERVICIO -->
+    <!-- SERVICIO Y HORARIO (DOS COLUMNAS) -->
     <div class="section">
-        <h2>SERVICIO</h2>
-        <table>
-            <tr><th>Tipo</th><td><strong><?= $report['service_type'] ?></strong></td></tr>
-            <tr><th>Ejecución</th><td><?= $report['execution_type'] ?></td></tr>
-        </table>
+        <h2>SERVICIO Y HORARIO</h2>
+        <div class="service-grid">
+            <!-- Columna 1: Servicio -->
+            <div class="service-col">
+                <table>
+                    <tr><th>Tipo</th><td><strong><?= $report['service_type'] ?></strong></td></tr>
+                    <tr><th>Ejecución</th><td><?= $report['execution_type'] ?></td></tr>
+                </table>
+            </div>
+            <!-- Columna 2: Horario -->
+            <div class="service-col">
+                <table>
+                    <?php if (!empty($report['service_date'])): ?>
+                    <tr><th>Fecha</th><td><?= htmlspecialchars($report['service_date']) ?></td></tr>
+                    <?php endif; ?>
+                    <?php if (!empty($report['service_start_time'])): ?>
+                    <tr><th>Hora Inicio</th><td><?= htmlspecialchars($report['service_start_time']) ?></td></tr>
+                    <?php endif; ?>
+                    <?php if (!empty($report['service_end_time'])): ?>
+                    <tr><th>Hora Fin</th><td><?= htmlspecialchars($report['service_end_time']) ?></td></tr>
+                    <?php endif; ?>
+                    <?php 
+                    // Rellenar filas vacías si faltan datos del horario
+                    $row_count = 0;
+                    if (!empty($report['service_date'])) $row_count++;
+                    if (!empty($report['service_start_time'])) $row_count++;
+                    if (!empty($report['service_end_time'])) $row_count++;
+                    
+                    // Asegurar que ambas tablas tengan la misma altura (mínimo 2 filas)
+                    while ($row_count < 2) {
+                        echo '<tr><th>&nbsp;</th><td>&nbsp;</td></tr>';
+                        $row_count++;
+                    }
+                    ?>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <!-- HORARIO DE SERVICIO -->
-    <?php if (!empty($report['service_date']) || !empty($report['service_start_time']) || !empty($report['service_end_time'])): ?>
-    <div class="section">
-        <h2>HORARIO DE SERVICIO</h2>
-        <table>
-            <?php if (!empty($report['service_date'])): ?>
-            <tr><th>Fecha</th><td><?= htmlspecialchars($report['service_date']) ?></td></tr>
-            <?php endif; ?>
-            <?php if (!empty($report['service_start_time'])): ?>
-            <tr><th>Hora Inicio</th><td><?= htmlspecialchars($report['service_start_time']) ?></td></tr>
-            <?php endif; ?>
-            <?php if (!empty($report['service_end_time'])): ?>
-            <tr><th>Hora Fin</th><td><?= htmlspecialchars($report['service_end_time']) ?></td></tr>
-            <?php endif; ?>
-        </table>
-    </div>
-    <?php endif; ?>
 
     <!-- DESCRIPCIÓN -->
     <div class="section">
         <h2>DESCRIPCIÓN</h2>
-        <p style="margin:4px 0;"><?= nl2br(htmlspecialchars($report['description'])) ?: '—' ?></p>
+        <?php 
+        // Limitar descripción a 800 caracteres para evitar que el PDF se divida en dos páginas
+        $description = $report['description'];
+        $max_chars = 800;
+        if (strlen($description) > $max_chars) {
+            $description = substr($description, 0, $max_chars) . '... (texto truncado)';
+        }
+        ?>
+        <p style="margin:4px 0;"><?= nl2br(htmlspecialchars($description)) ?: '—' ?></p>
     </div>
 
     <!-- REFACCIONES -->
