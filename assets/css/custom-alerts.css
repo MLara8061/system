@@ -1,0 +1,199 @@
+/* ===================================
+   SISTEMA DE ALERTAS MODERNO Y MINIMALISTA
+   Centrado en pantalla con animaciones suaves
+   =================================== */
+
+/* Overlay de fondo */
+.alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; }
+}
+
+/* Contenedor de la alerta */
+.custom-alert {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    min-width: 320px;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.8);
+    opacity: 0;
+    animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    text-align: center;
+}
+
+@keyframes popIn {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes popOut {
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Cerrar con animación */
+.alert-overlay.closing {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+.alert-overlay.closing .custom-alert {
+    animation: popOut 0.2s ease forwards;
+}
+
+/* Ícono de la alerta */
+.custom-alert-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    animation: iconBounce 0.6s ease;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Colores por tipo */
+.custom-alert-icon.success {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #0a8f4d;
+}
+
+.custom-alert-icon.error {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #d32f2f;
+}
+
+.custom-alert-icon.warning {
+    background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+    color: #f57c00;
+}
+
+.custom-alert-icon.info {
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+    color: #0277bd;
+}
+
+/* Título */
+.custom-alert-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+/* Mensaje */
+.custom-alert-message {
+    font-size: 15px;
+    color: #7f8c8d;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+/* Botón de cerrar */
+.custom-alert-close {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.custom-alert-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.custom-alert-close:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .custom-alert {
+        min-width: 280px;
+        max-width: 90%;
+        padding: 24px 28px;
+    }
+    
+    .custom-alert-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+    }
+    
+    .custom-alert-title {
+        font-size: 18px;
+    }
+    
+    .custom-alert-message {
+        font-size: 14px;
+    }
+}
+
+/* Barra de progreso opcional */
+.custom-alert-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0 0 16px 16px;
+    animation: progressBar 3s linear forwards;
+}
+
+@keyframes progressBar {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Modo oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+    .custom-alert {
+        background: #2c3e50;
+    }
+    
+    .custom-alert-title {
+        color: #ecf0f1;
+    }
+    
+    .custom-alert-message {
+        color: #bdc3c7;
+    }
+}

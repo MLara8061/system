@@ -85,28 +85,15 @@
 		showConfirmButton: false,
 		timer: 5000
 	});
-	window.alert_toast = function($msg = 'TEST', $bg = 'success') {
-		//   $('#alert_toast').removeClass('bg-success')
-		//   $('#alert_toast').removeClass('bg-danger')
-		//   $('#alert_toast').removeClass('bg-info')
-		//   $('#alert_toast').removeClass('bg-warning')
-
-		// if($bg == 'success')
-		//   $('#alert_toast').addClass('bg-success')
-		// if($bg == 'danger')
-		//   $('#alert_toast').addClass('bg-danger')
-		// if($bg == 'info')
-		//   $('#alert_toast').addClass('bg-info')
-		// if($bg == 'warning')
-		//   $('#alert_toast').addClass('bg-warning')
-		// $('#alert_toast .toast-body').html($msg)
-		// $('#alert_toast').toast({delay:3000}).toast('show');
-		console.log('TEST')
-		Toast.fire({
-			icon: $bg,
-			title: $msg
-		})
-	}
+	
+	// Comentado el alert_toast antiguo - ahora se carga desde custom-alerts.js
+	// window.alert_toast = function($msg = 'TEST', $bg = 'success') {
+	// 	Toast.fire({
+	// 		icon: $bg,
+	// 		title: $msg
+	// 	})
+	// }
+	
 	$(function() {
 		$('.summernote').summernote({
 			height: 300,
@@ -144,6 +131,8 @@
 
 <!-- AdminLTE for demo purposes -->
 <script src="assets/dist/js/demo.js"></script>
+<!-- Sistema de Alertas Moderno -->
+<script src="assets/js/custom-alerts.js"></script>
 <!-- DataTables  & Plugins -->
 <script src="assets/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>

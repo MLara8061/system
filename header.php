@@ -31,6 +31,8 @@
   <link rel="stylesheet" href="assets/dist/css/styles.css">
   <!-- Botones Responsive UX -->
   <link rel="stylesheet" href="assets/css/button-responsive.css">
+  <!-- Sistema de Alertas Moderno -->
+  <link rel="stylesheet" href="assets/css/custom-alerts.css">
   <script src="assets/plugins/jquery/jquery.min.js"></script>
   <!-- summernote -->
   <link rel="stylesheet" href="assets/plugins/summernote/summernote-bs4.min.css">
