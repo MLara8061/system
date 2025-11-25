@@ -96,11 +96,22 @@ if (ENVIRONMENT === 'production') {
     // Ejemplo: 'https://miempresa.com' o 'https://subdomain.hostinger.com'
     define('BASE_URL', getenv('BASE_URL') ?: 'https://tudominio.com');
 } else {
-    // URL local
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    $host = $_SERVER['HTTP_HOST'];
-    $script_dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    define('BASE_URL', $protocol . $host . $script_dir);
+    // URL local - Detectar automáticamente o usar valor del .env
+    $base_url_env = getenv('BASE_URL');
+    
+    if ($base_url_env) {
+        // Si está definido en .env, usar ese
+        define('BASE_URL', $base_url_env);
+    } elseif (isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME'])) {
+        // Construir desde variables del servidor
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'];
+        $script_dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        define('BASE_URL', $protocol . $host . $script_dir);
+    } else {
+        // Fallback para localhost (cuando se ejecuta desde CLI o contextos sin $_SERVER)
+        define('BASE_URL', 'http://localhost/system');
+    }
 }
 
 // === FUNCIÓN db() ===
