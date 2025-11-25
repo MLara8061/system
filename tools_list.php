@@ -220,19 +220,31 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.delete-tool', function() {
-        if (confirm("¿Eliminar esta herramienta?")) {
-            $.ajax({
-                url: 'ajax.php?action=delete_tool',
-                method: 'POST',
-                data: { id: $(this).data('id') },
-                success: function(resp) {
-                    if (resp == 1) {
-                        alert("Eliminada");
-                        setTimeout(() => location.reload(), 800);
-                    } else alert("Error");
-                }
-            });
-        }
+        const toolId = $(this).data('id');
+        confirm_toast(
+            '¿Estás seguro de eliminar esta herramienta? Esta acción no se puede deshacer.',
+            function() {
+                start_load();
+                $.ajax({
+                    url: 'ajax.php?action=delete_tool',
+                    method: 'POST',
+                    data: { id: toolId },
+                    success: function(resp) {
+                        end_load();
+                        if (resp == 1) {
+                            alert_toast('Herramienta eliminada correctamente', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            alert_toast('Error al eliminar la herramienta', 'error');
+                        }
+                    },
+                    error: function() {
+                        end_load();
+                        alert_toast('Error de conexión', 'error');
+                    }
+                });
+            }
+        );
     });
 });
 </script>

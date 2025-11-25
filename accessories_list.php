@@ -229,16 +229,24 @@ $(document).ready(function() {
 
     $(document).on('click', '.delete-accessory', function() {
         let id = $(this).data('id');
-        if (confirm('¿Eliminar este accesorio?')) {
-            $.post('ajax.php?action=delete_accessory', { id: id }, function(resp) {
-                if (resp == 1) {
-                    alert_toast('Eliminado correctamente', 'success');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    alert_toast('Error', 'error');
-                }
-            });
-        }
+        confirm_toast(
+            '¿Estás seguro de eliminar este accesorio? Esta acción no se puede deshacer.',
+            function() {
+                start_load();
+                $.post('ajax.php?action=delete_accessory', { id: id }, function(resp) {
+                    end_load();
+                    if (resp == 1) {
+                        alert_toast('Accesorio eliminado correctamente', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        alert_toast('Error al eliminar el accesorio', 'error');
+                    }
+                }).fail(function() {
+                    end_load();
+                    alert_toast('Error de conexión', 'error');
+                });
+            }
+        );
     });
 });
 </script>
