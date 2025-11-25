@@ -283,7 +283,10 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
         $(document).on('click', '.delete', function(e) {
             e.preventDefault();
             let id = $(this).data('id');
-            _conf("¿Estás seguro de eliminar este proveedor?", "delete_supplier", [id]);
+            confirm_toast(
+                '¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer.',
+                function() { delete_supplier(id); }
+            );
         });
 
         // Tooltip

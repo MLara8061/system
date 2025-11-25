@@ -53,7 +53,11 @@
 			uni_modal("Editar Departmento", "manage_department.php?id=" + $(this).attr('data-id'))
 		})
 		$('.delete_department').click(function() {
-			_conf("Deseas eliminar este departamento?", "delete_department", [$(this).attr('data-id')])
+			const deptId = $(this).attr('data-id');
+			confirm_toast(
+				'¿Estás seguro de eliminar este departamento? Esta acción no se puede deshacer.',
+				function() { delete_department(deptId); }
+			);
 		})
 
 	})

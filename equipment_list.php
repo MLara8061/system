@@ -392,7 +392,10 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
         // === ELIMINAR EQUIPO ===
         $(document).on('click', '.delete', function() {
             const id = $(this).data('id');
-            _conf("¿Estás seguro de que deseas eliminar este equipo?", "delete_equipment", [id]);
+            confirm_toast(
+                '¿Estás seguro de eliminar este equipo? Esta acción no se puede deshacer.',
+                function() { delete_equipment(id); }
+            );
         });
 
         window.delete_equipment = function(id) {

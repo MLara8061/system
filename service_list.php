@@ -102,7 +102,11 @@
 			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Servicio',_base_url_+'admin/services/manage_services.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
-			_conf('Estas segur@ de eliminar estos datos','delete_data',[$(this).attr('data-id')]);
+			const serviceId = $(this).attr('data-id');
+			confirm_toast(
+				'¿Estás seguro de eliminar este servicio? Esta acción no se puede deshacer.',
+				function() { delete_data(serviceId); }
+			);
 		})
 	}
 	function delete_data($id){

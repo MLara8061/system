@@ -46,7 +46,11 @@
 	$(document).ready(function() {
 		$('#list').dataTable()
 		$('.delete_staff').click(function() {
-			_conf("Deseas eliminar este empleado?", "delete_staff", [$(this).attr('data-id')])
+			const staffId = $(this).attr('data-id');
+			confirm_toast(
+				'¿Estás seguro de eliminar este empleado? Esta acción no se puede deshacer.',
+				function() { delete_staff(staffId); }
+			);
 		})
 	})
 

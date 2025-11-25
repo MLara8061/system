@@ -105,7 +105,11 @@
 	$(document).ready(function() {
 		$('#list').dataTable()
 		$('.delete_ticket').click(function() {
-			_conf("Deseas eliminar este ticket?", "delete_ticket", [$(this).attr('data-id')])
+			const ticketId = $(this).attr('data-id');
+			confirm_toast(
+				'¿Estás seguro de eliminar este ticket? Esta acción no se puede deshacer.',
+				function() { delete_ticket(ticketId); }
+			);
 		})
 	})
 

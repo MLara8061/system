@@ -228,7 +228,10 @@ $(document).ready(function() {
     // === ELIMINAR ITEM ===
     $(document).on('click', '.delete-inventory', function() {
         const id = $(this).data('id');
-        _conf("¿Eliminar este ítem del inventario?", "delete_inventory", [id]);
+        confirm_toast(
+            '¿Estás seguro de eliminar este ítem del inventario? Esta acción no se puede deshacer.',
+            function() { delete_inventory(id); }
+        );
     });
 
     // === FUNCIÓN ELIMINAR ===

@@ -297,7 +297,10 @@ $(document).ready(function() {
     // === ELIMINAR ===
     $(document).on('click', '.delete-user', function() {
         const id = $(this).data('id');
-        _conf("¿Eliminar este usuario?", "delete_user", [id]);
+        confirm_toast(
+            '¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.',
+            function() { delete_user(id); }
+        );
     });
 
     window.delete_user = function(id) {
