@@ -34,15 +34,36 @@ $eq = $qry->fetch_assoc();
 
 // === INFORMACIÓN BÁSICA ===
 $reception = $delivery = [];
-$qry = $conn->query("SELECT * FROM equipment_reception WHERE equipment_id = $equipment_id");
-if ($qry->num_rows > 0) $reception = $qry->fetch_assoc();
+$reception_result = $conn->query("SELECT * FROM equipment_reception WHERE equipment_id = $equipment_id");
+if ($reception_result && $reception_result->num_rows > 0) {
+    $reception = $reception_result->fetch_assoc();
+}
 
-$qry = $conn->query("SELECT * FROM equipment_delivery WHERE equipment_id = $equipment_id");
-if ($qry->num_rows > 0) $delivery = $qry->fetch_assoc();
+$delivery_result = $conn->query("SELECT * FROM equipment_delivery WHERE equipment_id = $equipment_id");
+if ($delivery_result && $delivery_result->num_rows > 0) {
+    $delivery = $delivery_result->fetch_assoc();
+}
 
-// === NOMBRES ADICIONALES ===
-$dept = $conn->query("SELECT name FROM departments WHERE id = " . ($delivery['department_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
-$loc = $conn->query("SELECT name FROM equipment_locations WHERE id = " . ($delivery['location_id'] ?? 0))->fetch_assoc()['name'] ?? 'N/A';
+// === NOMBRES ADICIONALES (con manejo de errores) ===
+$dept = 'N/A';
+if (!empty($delivery['department_id'])) {
+    $dept_result = $conn->query("SELECT name FROM departments WHERE id = " . intval($delivery['department_id']));
+    if ($dept_result && $dept_result->num_rows > 0) {
+        $dept = $dept_result->fetch_assoc()['name'];
+    }
+}
+
+$loc = 'N/A';
+if (!empty($delivery['location_id'])) {
+    // Verificar si la tabla existe antes de consultar
+    $table_check = $conn->query("SHOW TABLES LIKE 'equipment_locations'");
+    if ($table_check && $table_check->num_rows > 0) {
+        $loc_result = $conn->query("SELECT name FROM equipment_locations WHERE id = " . intval($delivery['location_id']));
+        if ($loc_result && $loc_result->num_rows > 0) {
+            $loc = $loc_result->fetch_assoc()['name'];
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
