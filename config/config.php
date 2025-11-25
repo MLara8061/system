@@ -56,11 +56,14 @@ foreach ($lines as $line) {
 }
 
 // === DETECTAR ENTORNO (MEJORADO) ===
-$host = $_SERVER['HTTP_HOST'] ?? php_uname('n');
+$host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? php_uname('n');
 $is_cli = php_sapi_name() === 'cli';
 $is_local = $is_cli
-    || in_array($host, ['localhost', '127.0.0.1', '::1'], true)
+    || in_array($host, ['localhost', '127.0.0.1', '::1', 'localhost:80', 'localhost:8080'], true)
+    || str_starts_with($host, 'localhost')
     || str_starts_with($host, '192.168.')
+    || str_starts_with($host, '10.')
+    || str_starts_with($host, '172.16.')
     || str_ends_with($host, '.local')
     || str_ends_with($host, '.test')
     || str_contains($host, '.dev');
@@ -99,15 +102,26 @@ if (ENVIRONMENT === 'production') {
     // URL local - Detectar automáticamente o usar valor del .env
     $base_url_env = getenv('BASE_URL');
     
-    if ($base_url_env) {
+    if ($base_url_env && $base_url_env !== '') {
         // Si está definido en .env, usar ese
         define('BASE_URL', $base_url_env);
     } elseif (isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME'])) {
         // Construir desde variables del servidor
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
         $host = $_SERVER['HTTP_HOST'];
-        $script_dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-        define('BASE_URL', $protocol . $host . $script_dir);
+        
+        // Obtener el directorio base del proyecto
+        $script_path = $_SERVER['SCRIPT_NAME'];
+        $project_dir = '';
+        
+        // Si el script está en una subcarpeta, extraer la ruta base
+        if (str_contains($script_path, '/system/')) {
+            $project_dir = '/system';
+        } elseif (dirname($script_path) !== '/') {
+            $project_dir = rtrim(dirname($script_path), '/');
+        }
+        
+        define('BASE_URL', $protocol . $host . $project_dir);
     } else {
         // Fallback para localhost (cuando se ejecuta desde CLI o contextos sin $_SERVER)
         define('BASE_URL', 'http://localhost/system');
