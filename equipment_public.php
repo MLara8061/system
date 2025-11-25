@@ -1,6 +1,21 @@
 <?php
 // Vista pública de equipos - sin requerir autenticación
-require_once 'config/config.php';
+// Activar errores para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Verificar que config.php existe
+if (!file_exists(__DIR__ . '/config/config.php')) {
+    die("Error: No se encuentra config/config.php");
+}
+
+require_once __DIR__ . '/config/config.php';
+
+// Verificar conexión
+if (!isset($conn) || !$conn) {
+    die("Error: No hay conexión a la base de datos");
+}
 
 // === VALIDAR ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
