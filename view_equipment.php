@@ -394,8 +394,11 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                 </div>
 
                 <hr>
-                <div class="text-center btn-container-mobile">
-                    <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">Volver</a>
+                <div class="text-center btn-container-mobile d-flex flex-column flex-md-row justify-content-center gap-3">
+                    <a href="equipment_report_pdf.php?id=<?= $equipment_id ?>" class="btn btn-danger btn-lg px-4 mb-3 mb-md-0" target="_blank" rel="noopener">
+                        <i class="fas fa-file-pdf mr-2"></i>Reporte
+                    </a>
+                    <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-4">Volver</a>
                 </div>
             </div>
         </div>
