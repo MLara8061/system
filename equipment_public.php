@@ -135,6 +135,29 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
                 padding: 0.75rem 1rem;
             }
         }
+        
+        /* Estilos personalizados para badges */
+        .badge-primary {
+            background-color: #cfe2ff !important;
+            color: #084298 !important;
+            border: 1px solid #b6d4fe;
+        }
+        
+        .badge-success {
+            background-color: #d1e7dd !important;
+            color: #0f5132 !important;
+            border: 1px solid #badbcc;
+        }
+        
+        .badge-danger {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border: 1px solid #f5c2c7;
+        }
+        
+        .badge {
+            font-weight: 600 !important;
+        }
     </style>
 </head>
 <body>
