@@ -4,6 +4,11 @@ require_once 'config/config.php';
 
 header('Content-Type: text/html; charset=UTF-8');
 
+// Verificar que la conexión existe
+if (!isset($conn) || $conn->connect_error) {
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Error de conexión a la base de datos.</h3>');
+}
+
 if (!function_exists('equipment_pdf_column_exists')) {
     function equipment_pdf_column_exists(mysqli $conn, $table, $column) {
         static $cache = [];
