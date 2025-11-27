@@ -1,4 +1,5 @@
 <?php
+define('ACCESS', true);
 require_once 'config/config.php';
 
 // =======================

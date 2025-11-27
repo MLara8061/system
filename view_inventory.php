@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+<?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
 $id = $_GET['id'] ?? 0;
 $qry = $conn->query("SELECT * FROM inventory WHERE id = " . intval($id));

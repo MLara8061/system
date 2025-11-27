@@ -1,5 +1,6 @@
 <?php
 // report_pdf.php
+define('ACCESS', true);
 require_once 'config/config.php';
 
 $report_id = $_GET['id'] ?? 0;

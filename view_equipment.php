@@ -1,4 +1,5 @@
 <?php
+define('ACCESS', true);
 require_once 'config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

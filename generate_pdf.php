@@ -7,6 +7,7 @@ ini_set('display_errors', 1);
 date_default_timezone_set('America/Cancun');
 
 session_start();
+define('ACCESS', true);
 require_once 'config/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

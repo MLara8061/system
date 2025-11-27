@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+<?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
 $qry = $conn->query("SELECT t.*,concat(c.lastname,', ',c.firstname,' ',c.middlename) as cname, d.name as dname FROM tickets t inner join customers c on c.id= t.customer_id inner join departments d on d.id = t.department_id  where  t.id = " . $_GET['id'])->fetch_array();
 foreach ($qry as $k => $v) {
