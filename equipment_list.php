@@ -271,8 +271,11 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                                     </button>
                                     <div class="dropdown-menu">
                                         <h6 class="dropdown-header">Acciones</h6>
+                                        <a class="dropdown-item" href="./index.php?page=view_equipment&id=<?php echo $row['id'] ?>">
+                                            <i class="fas fa-eye mr-2 text-primary"></i> Ver
+                                        </a>
                                         <a class="dropdown-item" href="./index.php?page=edit_equipment&id=<?php echo $row['id'] ?>">
-                                            <i class="fas fa-eye mr-2 text-primary"></i> Ver equipo
+                                            <i class="fas fa-edit mr-2 text-secondary"></i> Editar
                                         </a>
                                         <a class="dropdown-item" href="./index.php?page=equipment_new_revision&id=<?php echo $row['id'] ?>">
                                             <i class="fas fa-tools mr-2 text-success"></i> Nueva Revisión
