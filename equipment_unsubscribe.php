@@ -293,11 +293,27 @@ $('#manage_equipment').submit(function(e) {
                 return;
             }
             if (resp.status === 1) {
-                $('#modalUnsubscribeResultFolio').text(resp.folio || '');
-                $('#modalUnsubscribePrint').data('href', 'equipment_unsubscribe_pdf.php?id=' + (resp.unsubscribe_id || ''));
-                $('#modalUnsubscribePrint').prop('disabled', !resp.unsubscribe_id);
-                $('#modalUnsubscribeResult').modal('show');
-                alert_toast('Datos guardados correctamente', 'success');
+                var folio = resp.folio || '';
+                var pdfUrl = resp.unsubscribe_id ? 'equipment_unsubscribe_pdf.php?id=' + resp.unsubscribe_id : '';
+                var successMessage = folio ? 'Se generó el folio ' + folio + '.' : 'Datos guardados correctamente.';
+                alert_toast(successMessage, 'success');
+
+                if (pdfUrl && typeof confirm_toast === 'function') {
+                    confirm_toast('¿Deseas imprimir el formato en PDF?', function() {
+                        window.open(pdfUrl, '_blank');
+                        location.replace('index.php?page=equipment_list');
+                    }, function() {
+                        location.replace('index.php?page=equipment_list');
+                    });
+                } else if (pdfUrl) {
+                    var proceed = window.confirm('¿Deseas imprimir el formato en PDF?');
+                    if (proceed) {
+                        window.open(pdfUrl, '_blank');
+                    }
+                    location.replace('index.php?page=equipment_list');
+                } else {
+                    location.replace('index.php?page=equipment_list');
+                }
             } else {
                 var msg = resp.message ? resp.message : 'Error al guardar la baja.';
                 alert_toast(msg, 'error');
@@ -310,42 +326,5 @@ $('#manage_equipment').submit(function(e) {
     });
 });
 
-$(function(){
-    $('#modalUnsubscribePrint').on('click', function(){
-        var href = $(this).data('href');
-        if (href) {
-            window.open(href, '_blank');
-        }
-        location.replace('index.php?page=equipment_list');
-    });
-
-    $('#modalUnsubscribeBack').on('click', function(){
-        location.replace('index.php?page=equipment_list');
-    });
-
-    $('#modalUnsubscribeResult').on('hidden.bs.modal', function(){
-        location.replace('index.php?page=equipment_list');
-    });
-});
+// No se requiere confirm modal propio: confirm_toast cubre la interacción
 </script>
-
-<div class="modal fade" id="modalUnsubscribeResult" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Baja registrada</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-2">Se generó el folio <strong id="modalUnsubscribeResultFolio"></strong>.</p>
-                <p class="mb-0">¿Deseas imprimir el formato en PDF?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="modalUnsubscribeBack" data-dismiss="modal">Omitir</button>
-                <button type="button" class="btn btn-primary" id="modalUnsubscribePrint">Imprimir</button>
-            </div>
-        </div>
-    </div>
-</div>

@@ -1,6 +1,8 @@
 <?php
 require_once 'config/config.php';
 
+header('Content-Type: text/html; charset=UTF-8');
+
 $unsubscribeId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($unsubscribeId <= 0) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Identificador de baja no válido.</h3>');
@@ -71,18 +73,42 @@ $timeValue = !empty($unsubscribe['time']) ? date('H:i', strtotime($unsubscribe['
 $dateCreated = !empty($unsubscribe['date_created']) ? date('d/m/Y', strtotime($unsubscribe['date_created'])) : '';
 
 $history = [];
-$historyStmt = $conn->prepare("SELECT order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
-                                FROM maintenance_reports
-                                WHERE equipment_id = ?
-                                ORDER BY report_date DESC, report_time DESC
-                                LIMIT 12");
-$historyStmt->bind_param('i', $equipmentId);
-$historyStmt->execute();
-$historyRes = $historyStmt->get_result();
-while ($historyRes && $row = $historyRes->fetch_assoc()) {
-    $history[] = $row;
+$historySql = "SELECT order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
+                FROM maintenance_reports
+                WHERE equipment_id = ?
+                ORDER BY report_date DESC, report_time DESC
+                LIMIT 12";
+$historyStmt = $conn->prepare($historySql);
+if ($historyStmt) {
+    $historyStmt->bind_param('i', $equipmentId);
+    if ($historyStmt->execute()) {
+        $historyRes = $historyStmt->get_result();
+        while ($historyRes && $row = $historyRes->fetch_assoc()) {
+            $history[] = $row;
+        }
+    } else {
+        error_log('equipment_unsubscribe_pdf: fallo al ejecutar historial -> ' . $historyStmt->error);
+    }
+    $historyStmt->close();
+} else {
+    error_log('equipment_unsubscribe_pdf: fallo al preparar historial -> ' . $conn->error);
+    $historyFallbackSql = "SELECT id AS order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
+                            FROM maintenance_reports
+                            WHERE equipment_id = ?
+                            ORDER BY id DESC
+                            LIMIT 12";
+    $historyStmtLegacy = $conn->prepare($historyFallbackSql);
+    if ($historyStmtLegacy) {
+        $historyStmtLegacy->bind_param('i', $equipmentId);
+        if ($historyStmtLegacy->execute()) {
+            $historyResLegacy = $historyStmtLegacy->get_result();
+            while ($historyResLegacy && $row = $historyResLegacy->fetch_assoc()) {
+                $history[] = $row;
+            }
+        }
+        $historyStmtLegacy->close();
+    }
 }
-$historyStmt->close();
 
 $equipmentName = $unsubscribe['equipment_name'] ?? '';
 $inventory = $unsubscribe['number_inventory'] ?? '';
