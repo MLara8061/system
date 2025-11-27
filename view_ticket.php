@@ -12,6 +12,34 @@ foreach ($qry as $k => $v) {
 	.comment-card {
 		border-left: 3px solid #667eea;
 	}
+	
+	/* Responsive */
+	@media (max-width: 768px) {
+		.card-body {
+			padding: 1rem !important;
+		}
+		.card-header h4 {
+			font-size: 1.1rem;
+		}
+		.btn-sm {
+			font-size: 0.8rem;
+			padding: 0.4rem 0.6rem;
+		}
+		.ml-3 {
+			margin-left: 0.5rem !important;
+		}
+	}
+	
+	@media (max-width: 576px) {
+		.btn-sm {
+			width: 100%;
+			margin-bottom: 0.5rem;
+		}
+		.update_status {
+			margin-left: 0 !important;
+			margin-top: 0.5rem;
+		}
+	}
 </style>
 
 <div class="container-fluid">

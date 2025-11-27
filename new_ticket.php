@@ -115,7 +115,7 @@ if ($equipment_name && $inventory) {
 
 					<hr>
 					<div class="row">
-						<div class="col-lg-12 text-right">
+						<div class="col-lg-12 text-right text-center text-md-right">
 							<button class="btn btn-primary" type="submit">
 								<i class="fas fa-save"></i> Guardar Ticket
 							</button>
@@ -132,6 +132,33 @@ if ($equipment_name && $inventory) {
 		</div>
 	</div>
 </div>
+
+<style>
+@media (max-width: 768px) {
+	.card-body {
+		padding: 1rem !important;
+	}
+	.card-header h4 {
+		font-size: 1.1rem;
+	}
+	.btn {
+		margin-bottom: 0.5rem;
+	}
+	.alert {
+		font-size: 0.9rem;
+	}
+}
+
+@media (max-width: 576px) {
+	.btn {
+		width: 100%;
+		margin-bottom: 0.5rem;
+	}
+	.form-group label {
+		font-size: 0.9rem;
+	}
+}
+</style>
 
 <script>
 	$('#manage_ticket').submit(function(e) {

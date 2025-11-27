@@ -12,7 +12,8 @@
 					</a>
 				</div>
 				
-				<table class="table table-hover table-bordered" id="list">
+				<div class="table-responsive">
+				<table class="table table-hover table-bordered table-sm" id="list">
 					<colgroup>
 						<col width="5%">
 						<col width="12%">
@@ -88,6 +89,7 @@
 						<?php endwhile; ?>
 					</tbody>
 				</table>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -100,10 +102,58 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+	.card-body {
+		padding: 1rem !important;
+	}
+	.table-responsive {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	#list {
+		font-size: 0.85rem;
+	}
+	#list th,
+	#list td {
+		padding: 0.5rem !important;
+		white-space: nowrap;
+	}
+	.truncate {
+		max-width: 150px;
+	}
+	.btn-sm {
+		padding: 0.25rem 0.5rem;
+		font-size: 0.75rem;
+	}
+	.badge {
+		font-size: 0.7rem;
+	}
+	.card-header h4 {
+		font-size: 1.1rem;
+	}
+}
+
+@media (max-width: 576px) {
+	#list {
+		font-size: 0.75rem;
+	}
+	.truncate {
+		max-width: 100px;
+	}
+}
 </style>
 <script>
 	$(document).ready(function() {
-		$('#list').dataTable()
+		$('#list').dataTable({
+			responsive: true,
+			scrollX: true,
+			autoWidth: false,
+			language: {
+				url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+			}
+		})
 		$('.delete_ticket').click(function() {
 			const ticketId = $(this).attr('data-id');
 			confirm_toast(
