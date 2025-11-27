@@ -697,7 +697,7 @@ class Action {
                     continue;
                 }
 
-                $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) VALUES ({$eq['id']}, '$candidateStr', 'Mantenimiento automático', 'pendiente', NOW())");
+                $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, hora_programada, tipo_mantenimiento, descripcion, estatus, created_at) VALUES ({$eq['id']}, '$candidateStr', NULL, 'Preventivo', 'Mantenimiento automático', 'pendiente', NOW())");
             }
         }
     }
@@ -889,7 +889,7 @@ class Action {
         $startStr = $startDate->format('Y-m-d');
         $endStr = $endDate->format('Y-m-d');
 
-        $sql = "SELECT m.id, m.fecha_programada, m.descripcion, m.estatus, e.name, $statusSelect, u.date AS unsubscribe_date
+        $sql = "SELECT m.id, m.equipo_id, m.fecha_programada, m.hora_programada, m.tipo_mantenimiento, m.descripcion, m.estatus, e.name, $statusSelect, u.date AS unsubscribe_date
                 FROM mantenimientos m
                 JOIN equipments e ON m.equipo_id = e.id
                 LEFT JOIN equipment_unsubscribe u ON u.equipment_id = e.id
@@ -922,19 +922,38 @@ class Action {
                     $title .= ' - ' . $excerpt;
                 }
 
+                $typeLabel = trim((string)($row['tipo_mantenimiento'] ?? ''));
+                if ($typeLabel !== '') {
+                    $title = '[' . $typeLabel . '] ' . $title;
+                }
+
                 $status = strtolower((string)($row['estatus'] ?? ''));
                 $color = '#dc3545';
                 if ($status === 'completado') {
-                    $color = '#28a745';
+                    $color = '#6c757d';
                 } elseif ($status === 'en_proceso' || $status === 'en proceso') {
                     $color = '#ffc107';
+                }
+
+                $start = $row['fecha_programada'];
+                $hora = trim((string)($row['hora_programada'] ?? ''));
+                if ($hora !== '') {
+                    if (strlen($hora) === 5) {
+                        $hora .= ':00';
+                    }
+                    $start .= 'T' . $hora;
                 }
 
                 $events[] = [
                     'id' => $row['id'],
                     'title' => $title,
-                    'start' => $row['fecha_programada'],
-                    'color' => $color
+                    'start' => $start,
+                    'color' => $color,
+                    'extendedProps' => [
+                        'equipment_id' => (int)$row['equipo_id'],
+                        'hora_programada' => $hora,
+                        'tipo_mantenimiento' => $typeLabel
+                    ]
                 ];
             }
         }
@@ -945,10 +964,48 @@ class Action {
     }
 
     function save_maintenance() {
-        extract($_POST);
-        $data = "equipo_id='$equipo_id', fecha_programada='$fecha_programada'";
-        if (!empty($descripcion)) $data .= ", descripcion='".addslashes($descripcion)."'";
-        $sql = empty($id) ? "INSERT INTO mantenimientos SET $data" : "UPDATE mantenimientos SET $data WHERE id=$id";
+        $equipo_id = isset($_POST['equipo_id']) ? (int)$_POST['equipo_id'] : 0;
+        $fecha_programada = trim($_POST['fecha_programada'] ?? '');
+        $descripcion = $_POST['descripcion'] ?? '';
+        $tipo_input = strtolower(trim($_POST['tipo_mantenimiento'] ?? ''));
+        $hora_input = trim($_POST['hora_programada'] ?? '');
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+        if ($equipo_id <= 0 || empty($fecha_programada)) {
+            return 0;
+        }
+
+        $allowedTypes = [
+            'predictivo' => 'Predictivo',
+            'preventivo' => 'Preventivo',
+            'correctivo' => 'Correctivo'
+        ];
+        $tipo_mantenimiento = $allowedTypes[$tipo_input] ?? 'Preventivo';
+
+        $hora_sql = 'NULL';
+        if ($hora_input !== '' && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora_input)) {
+            if (strlen($hora_input) === 5) {
+                $hora_input .= ':00';
+            }
+            $hora_sql = "'" . $this->db->real_escape_string($hora_input) . "'";
+        }
+
+        $data = [];
+        $data[] = "equipo_id=" . $equipo_id;
+        $data[] = "fecha_programada='" . $this->db->real_escape_string($fecha_programada) . "'";
+        $data[] = "tipo_mantenimiento='" . $this->db->real_escape_string($tipo_mantenimiento) . "'";
+        $data[] = "hora_programada=$hora_sql";
+        if (!empty($descripcion)) {
+            $data[] = "descripcion='" . addslashes($descripcion) . "'";
+        }
+
+        $setClause = implode(', ', $data);
+        if ($id <= 0) {
+            $sql = "INSERT INTO mantenimientos SET $setClause";
+        } else {
+            $sql = "UPDATE mantenimientos SET $setClause WHERE id=" . $id;
+        }
+
         return $this->db->query($sql) ? 1 : 0;
     }
 

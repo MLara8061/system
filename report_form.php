@@ -19,6 +19,7 @@ $ingeniero_nombre = "ING. AMALIA BACAB";
 
 // === CONSULTAS ===
 $equipos_list = $conn->query("SELECT id, name FROM equipments ORDER BY name ASC");
+$prefill_equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : 0;
 
 $inventario_data = [];
 if ($conn) {
@@ -236,7 +237,7 @@ if ($conn) {
                                         <select class="form-control form-control-sm select2" id="equipo_id_select" name="equipo_id_select" required>
                                             <option value="">Buscar y seleccionar equipo...</option>
                                             <?php while ($row = $equipos_list->fetch_assoc()): ?>
-                                                <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?></option>
+                                                <option value="<?= $row['id'] ?>" <?= $prefill_equipment_id === (int)$row['id'] ? 'selected' : '' ?>><?= htmlspecialchars($row['name']) ?></option>
                                             <?php endwhile; ?>
                                         </select>
                                     </div>
@@ -485,8 +486,7 @@ $(document).ready(function() {
     });
 
     // === CARGAR EQUIPO ===
-    $('#equipo_id_select').on('change', function() {
-        const id = $(this).val();
+    function loadEquipmentDetails(id) {
         if (!id) {
             $('#equipo_nombre, #equipo_marca, #equipo_modelo, #equipo_serie, #equipo_inventario, #equipo_ubicacion, #location_id_hidden').val('');
             return;
@@ -503,6 +503,11 @@ $(document).ready(function() {
                 $('#location_id_hidden').val(d.location_id);
             }
         }, 'json');
+    }
+
+    $('#equipo_id_select').on('change', function() {
+        const id = $(this).val();
+        loadEquipmentDetails(id);
     });
 
     // === ENVÍO ===
@@ -526,6 +531,10 @@ $(document).ready(function() {
     initNewSelect2();
     $(document).on('change input', '.refaccion_qty, .inventory_select', check_stock);
     $('#inventory_select_1').trigger('change');
+
+    if ($('#equipo_id_select').val()) {
+        loadEquipmentDetails($('#equipo_id_select').val());
+    }
 });
 </script>
 

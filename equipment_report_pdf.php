@@ -15,9 +15,6 @@ $equipment = $equipmentQry->fetch_assoc();
 
 $reception = $conn->query("SELECT * FROM equipment_reception WHERE equipment_id = $equipmentId LIMIT 1")->fetch_assoc() ?: [];
 $delivery = $conn->query("SELECT * FROM equipment_delivery WHERE equipment_id = $equipmentId LIMIT 1")->fetch_assoc() ?: [];
-$safeguard = $conn->query("SELECT * FROM equipment_safeguard WHERE equipment_id = $equipmentId LIMIT 1")->fetch_assoc() ?: [];
-$documents = $conn->query("SELECT * FROM equipment_control_documents WHERE equipment_id = $equipmentId LIMIT 1")->fetch_assoc() ?: [];
-$powerSpec = $conn->query("SELECT * FROM equipment_power_specs WHERE equipment_id = $equipmentId ORDER BY id DESC LIMIT 1")->fetch_assoc() ?: [];
 
 $supplierName = 'N/A';
 if (!empty($equipment['supplier_id'])) {
@@ -66,31 +63,10 @@ if (!empty($equipment['mandate_period_id'])) {
         $maintenancePeriod = $period->fetch_assoc()['name'];
     }
 }
-$docLabels = [
-    'bailment_file' => 'Comodato',
-    'contract_file' => 'Contrato',
-    'usermanual_file' => 'Manual Usuario',
-    'fast_guide_file' => 'Guía Rápida',
-    'datasheet_file' => 'Ficha Técnica',
-    'servicemanual_file' => 'Manual Servicio'
-];
-
-function equipment_doc_exists($path) {
-    if (empty($path)) {
-        return false;
-    }
-    if (file_exists($path)) {
-        return true;
-    }
-    $alt = __DIR__ . '/' . ltrim($path, '/');
-    return file_exists($alt);
-}
-
 $characteristics = $equipment['characteristics'] ?? '';
 
 $dateCreated = !empty($equipment['date_created']) ? date('d/m/Y', strtotime($equipment['date_created'])) : '—';
 $dateTraining = !empty($delivery['date_training']) ? date('d/m/Y', strtotime($delivery['date_training'])) : '—';
-$dateAcquisition = !empty($safeguard['date_adquisition']) ? date('d/m/Y', strtotime($safeguard['date_adquisition'])) : '—';
 
 $qrDataUri = null;
 $qrCandidate = __DIR__ . '/uploads/qrcodes/equipment_' . $equipmentId . '.png';
@@ -218,14 +194,6 @@ $generatedAt = date('d/m/Y H:i');
             height: 120px;
             object-fit: contain;
         }
-        .documents-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .documents-list li {
-            margin-bottom: 4px;
-        }
         .footer {
             margin-top: 18px;
             text-align: right;
@@ -303,39 +271,6 @@ $generatedAt = date('d/m/Y H:i');
             <tr><th>Responsable</th><td><?= htmlspecialchars($delivery['responsible_name'] ?? '—') ?></td></tr>
             <tr><th>Cargo</th><td><?= htmlspecialchars($positionName) ?></td></tr>
             <tr><th>Fecha de capacitación</th><td><?= $dateTraining ?></td></tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Características Técnicas</h2>
-        <table>
-            <tr><th>Voltaje</th><td><?= htmlspecialchars($powerSpec['voltage'] ?? '—') ?></td></tr>
-            <tr><th>Amperaje</th><td><?= htmlspecialchars($powerSpec['amperage'] ?? '—') ?></td></tr>
-            <tr><th>Frecuencia</th><td><?= htmlspecialchars($powerSpec['frequency_hz'] ?? '—') ?></td></tr>
-            <tr><th>Potencia</th><td><?= htmlspecialchars($powerSpec['power_kw'] ?? '—') ?></td></tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Resguardo y Garantía</h2>
-        <table>
-            <tr><th>Tiempo de garantía</th><td><?= htmlspecialchars($safeguard['warranty_time'] ?? '—') ?></td></tr>
-            <tr><th>Fecha de adquisición</th><td><?= $dateAcquisition ?></td></tr>
-            <tr><th>Comentarios</th><td><?= nl2br(htmlspecialchars($reception['comments'] ?? '')) ?: '—' ?></td></tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Documentos</h2>
-        <table>
-            <tr><th>Factura</th><td><?= htmlspecialchars($documents['invoice'] ?? '—') ?></td></tr>
-            <?php foreach ($docLabels as $field => $label):
-                $path = $documents[$field] ?? '';
-                $status = equipment_doc_exists($path);
-                $display = $status ? 'Disponible (' . htmlspecialchars(basename($path)) . ')' : 'No disponible';
-            ?>
-                <tr><th><?= htmlspecialchars($label) ?></th><td><?= $display ?></td></tr>
-            <?php endforeach; ?>
         </table>
     </div>
 

@@ -45,6 +45,7 @@
 
     .fc-event {
         font-size: 0.75rem !important;
+        cursor: pointer;
     }
 </style>
 
@@ -64,13 +65,7 @@
                 openModal(info.dateStr);
             },
             eventClick: function(info) {
-                if (confirm('¿Marcar como completado?')) {
-                    $.post('ajax.php?action=complete_maintenance', {
-                        id: info.event.id
-                    }, function() {
-                        calendar.refetchEvents();
-                    });
-                }
+                showCompleteMaintenanceDialog(info, calendar);
             }
         });
         calendar.render();
@@ -83,7 +78,67 @@
         $('#maintenanceModal').modal('show');
         $('#maintenance-form')[0].reset();
         $('#m_id').val('');
+        $('#tipo_mantenimiento').val('Preventivo');
+        $('#hora_programada').val('');
         if (date) $('[name="fecha_programada"]').val(date);
+    }
+
+    function showCompleteMaintenanceDialog(info, calendar) {
+        const event = info.event;
+        const type = event.extendedProps.tipo_mantenimiento || 'Mantenimiento';
+        const hora = event.extendedProps.hora_programada || '';
+        const fecha = event.startStr ? new Date(event.startStr).toLocaleDateString('es-MX') : '';
+
+        const message = `¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
+
+        const $modal = $('<div class="modal fade" tabindex="-1" role="dialog">\n' +
+            '  <div class="modal-dialog" role="document">\n' +
+            '    <div class="modal-content">\n' +
+            '      <div class="modal-header bg-secondary text-white">\n' +
+            '        <h5 class="modal-title">Confirmar</h5>\n' +
+            '        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">\n' +
+            '          <span aria-hidden="true">&times;</span>\n' +
+            '        </button>\n' +
+            '      </div>\n' +
+            '      <div class="modal-body">\n' +
+            `        <p>${message}</p>\n` +
+            '      </div>\n' +
+            '      <div class="modal-footer">\n' +
+            '        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>\n' +
+            '        <button type="button" class="btn btn-primary" id="confirm-complete">Marcar como completado</button>\n' +
+            '      </div>\n' +
+            '    </div>\n' +
+            '  </div>\n' +
+            '</div>');
+
+        $modal.appendTo('body');
+        $modal.modal('show');
+
+        $modal.on('click', '#confirm-complete', function() {
+            start_load();
+            $.post('ajax.php?action=complete_maintenance', {
+                id: event.id
+            }, function(resp) {
+                end_load();
+                resp = (resp || '').trim();
+                if (resp === '1') {
+                    alert_toast('Mantenimiento marcado como completado', 'success');
+                    calendar.refetchEvents();
+                    window.location.href = `index.php?page=report_form&equipment_id=${encodeURIComponent(event.extendedProps.equipment_id || '')}`;
+                } else {
+                    alert_toast('No se pudo completar el mantenimiento', 'error');
+                }
+                $modal.modal('hide');
+            }).fail(function() {
+                end_load();
+                alert_toast('Error de conexión', 'error');
+                $modal.modal('hide');
+            });
+        });
+
+        $modal.on('hidden.bs.modal', function() {
+            $modal.remove();
+        });
     }
 </script>
 
@@ -115,6 +170,18 @@
                     <div class="form-group">
                         <label>Fecha</label>
                         <input type="date" name="fecha_programada" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de mantenimiento</label>
+                        <select name="tipo_mantenimiento" id="tipo_mantenimiento" class="form-control form-control-sm" required>
+                            <option value="Predictivo">Predictivo</option>
+                            <option value="Preventivo" selected>Preventivo</option>
+                            <option value="Correctivo">Correctivo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <input type="time" name="hora_programada" id="hora_programada" class="form-control form-control-sm">
                     </div>
                     <div class="form-group">
                         <label>Descripción</label>

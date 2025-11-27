@@ -152,12 +152,6 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                         </div>
                     </div>
 
-                    <div class="mt-3">
-                        <a href="equipment_report_pdf.php?id=<?= $equipment_id ?>" class="btn btn-danger btn-lg shadow-sm" target="_blank" rel="noopener">
-                            <i class="fas fa-file-pdf mr-2"></i>Reporte
-                        </a>
-                    </div>
-
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="text-muted small">Marca</label>
