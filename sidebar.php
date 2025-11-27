@@ -55,6 +55,9 @@
             <li class="nav-item"><a href="index.php?page=equipment_report_revision_month" class="nav-link nav-equipment_report_revision_month tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Revisiones Mensual</p>
               </a></li>
+            <li class="nav-item"><a href="index.php?page=equipment_unsubscribe_report" class="nav-link nav-equipment_unsubscribe_report tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Bajas registradas</p>
+              </a></li>
           </ul>
         </li>
 

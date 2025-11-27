@@ -52,6 +52,7 @@ $allowed_pages = [
     'equipment_report_responsible',
     'equipment_report_sistem',
     'equipment_unsubscribe',
+    'equipment_unsubscribe_report',
     'equipment_report_sistem_editar',
     'new_supplier',
     'suppliers',

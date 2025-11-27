@@ -28,6 +28,19 @@ $reasons = json_decode($raw_reason, true);
 if (!is_array($reasons)) {
     $reasons = [];
 }
+$session_first = isset($_SESSION['login_firstname']) ? $_SESSION['login_firstname'] : '';
+$session_middle = isset($_SESSION['login_middlename']) ? $_SESSION['login_middlename'] : '';
+$session_last = isset($_SESSION['login_lastname']) ? $_SESSION['login_lastname'] : '';
+$session_username = isset($_SESSION['login_username']) ? $_SESSION['login_username'] : '';
+$current_user_name = trim(implode(' ', array_filter([$session_first, $session_middle, $session_last])));
+if ($current_user_name === '') {
+    $current_user_name = $session_username;
+}
+$current_user_name = $current_user_name ?: 'No registrado';
+
+$default_date = isset($date) && !empty($date) ? date('Y-m-d', strtotime($date)) : date('Y-m-d');
+$default_time = isset($time) && !empty($time) ? date('H:i', strtotime($time)) : date('H:i');
+$existing_folio = isset($folio) ? $folio : '';
 ?>
 
 <div class="container-fluid">
@@ -48,7 +61,11 @@ if (!is_array($reasons)) {
                         <div class="row">
                             <div class="col-md-3 mb-3">
                                 <label class="font-weight-bold text-dark">Fecha</label>
-                                <input type="date" name="date" class="form-control" required value="<?php echo isset($date) ? $date : ''; ?>">
+                                <input type="date" name="date" class="form-control" required value="<?php echo htmlspecialchars($default_date); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="font-weight-bold text-dark">Hora</label>
+                                <input type="time" name="time" class="form-control" required value="<?php echo htmlspecialchars($default_time); ?>">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="font-weight-bold text-dark">Nro Inventario</label>
@@ -87,6 +104,18 @@ if (!is_array($reasons)) {
                                 </select>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold text-dark">Usuario que realiza la baja</label>
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($current_user_name); ?>" readonly>
+                            </div>
+                            <?php if (!empty($existing_folio)): ?>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-bold text-dark">Folio generado</label>
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($existing_folio); ?>" readonly>
+                            </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
@@ -111,8 +140,8 @@ if (!is_array($reasons)) {
                                 <div class="col-md-6 mb-2">
                                     <div class="form-check">
                                         <?php $checked = in_array($row->id, $reasons, true) ? 'checked' : ''; ?>
-                                        <input class="form-check-input" type="checkbox" id="reason_<?php echo $row->id; ?>" name="withdrawal_reason[]" value="<?php echo $row->id; ?>" <?php echo $checked; ?>>
-                                        <label class="form-check-label" for="reason_<?php echo $row->id; ?>"><?php echo htmlspecialchars($row->name); ?></label>
+                                                <input class="form-check-input" type="checkbox" id="reason_<?php echo $row->id; ?>" name="withdrawal_reason[]" value="<?php echo $row->id; ?>" <?php echo $checked; ?>>
+                                                <label class="form-check-label" for="reason_<?php echo $row->id; ?>"><?php echo htmlspecialchars($row->name); ?></label>
                                     </div>
                                 </div>
                             <?php endwhile; ?>
@@ -156,7 +185,7 @@ if (!is_array($reasons)) {
                                 <label class="font-weight-bold text-dark d-block mb-2">Responsable de la evaluación</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="responsible" id="resp1" value="1" <?php echo (isset($responsible) && $responsible == 1) ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="resp1">Ingeniero Sistemas</label>
+                                    <label class="form-check-label" for="resp1">Jefe de servicio</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="responsible" id="resp2" value="2" <?php echo (isset($responsible) && $responsible == 2) ? 'checked' : ''; ?>>
@@ -253,22 +282,70 @@ $('#manage_equipment').submit(function(e) {
         url: 'ajax.php?action=save_equipment_unsubscribe',
         data: postData,
         cache: false,
-        dataType: 'text',
+        dataType: 'json',
         contentType: false,
         processData: false,
         method: 'POST',
         success: function(resp) {
-            if (resp == 1) {
-                end_load();
-                alert_toast('Datos guardados correctamente', "success");
-                setTimeout(function() {
-                    location.replace('index.php?page=equipment_list');
-                }, 750);
-            } else if (resp == 2) {
-                $('#msg').html("<div class='alert alert-danger'>Error al guardar el equipo.</div>");
-                end_load();
+            end_load();
+            if (!resp || typeof resp.status === 'undefined') {
+                alert_toast('No se pudo guardar la baja. Intenta de nuevo.', 'error');
+                return;
             }
+            if (resp.status === 1) {
+                $('#modalUnsubscribeResultFolio').text(resp.folio || '');
+                $('#modalUnsubscribePrint').data('href', 'equipment_unsubscribe_pdf.php?id=' + (resp.unsubscribe_id || ''));
+                $('#modalUnsubscribePrint').prop('disabled', !resp.unsubscribe_id);
+                $('#modalUnsubscribeResult').modal('show');
+                alert_toast('Datos guardados correctamente', 'success');
+            } else {
+                var msg = resp.message ? resp.message : 'Error al guardar la baja.';
+                alert_toast(msg, 'error');
+            }
+        },
+        error: function() {
+            end_load();
+            alert_toast('No se pudo guardar la baja. Revisa tu conexión.', 'error');
         }
     });
 });
+
+$(function(){
+    $('#modalUnsubscribePrint').on('click', function(){
+        var href = $(this).data('href');
+        if (href) {
+            window.open(href, '_blank');
+        }
+        location.replace('index.php?page=equipment_list');
+    });
+
+    $('#modalUnsubscribeBack').on('click', function(){
+        location.replace('index.php?page=equipment_list');
+    });
+
+    $('#modalUnsubscribeResult').on('hidden.bs.modal', function(){
+        location.replace('index.php?page=equipment_list');
+    });
+});
 </script>
+
+<div class="modal fade" id="modalUnsubscribeResult" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Baja registrada</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Se generó el folio <strong id="modalUnsubscribeResultFolio"></strong>.</p>
+                <p class="mb-0">¿Deseas imprimir el formato en PDF?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="modalUnsubscribeBack" data-dismiss="modal">Omitir</button>
+                <button type="button" class="btn btn-primary" id="modalUnsubscribePrint">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -133,6 +133,7 @@ if ($action == 'delete_equipment') {
 }
 
 if ($action == 'save_equipment_unsubscribe') {
+    header('Content-Type: application/json; charset=utf-8');
     echo $crud->save_equipment_unsubscribe();
     exit;
 }

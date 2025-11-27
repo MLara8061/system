@@ -508,28 +508,113 @@ class Action {
 
     function save_equipment_unsubscribe()
     {
-        extract($_POST);
-        $data = "";
-        $array_cols = ['date', 'equipment_id', 'withdrawal_reason', 'description', 'comments', 'opinion', 'destination', 'responsible'];
-        $_POST['equipment_id'] = $id;
+        $equipmentId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($equipmentId <= 0) {
+            return json_encode(['status' => 0, 'message' => 'Equipo inválido.']);
+        }
 
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id']) && !is_numeric($k)) {
-                if ($k == 'withdrawal_reason') {
-                    $reasons = json_encode($_POST['withdrawal_reason']);
-                    $data .= empty($data) ? " $k='$reasons' " : ", $k='$reasons' ";
-                } elseif (in_array($k, $array_cols)) {
-                    $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-                }
+        $equipmentExists = $this->db->query("SELECT id FROM equipments WHERE id = {$equipmentId} LIMIT 1");
+        if (!$equipmentExists || $equipmentExists->num_rows === 0) {
+            return json_encode(['status' => 0, 'message' => 'No se encontró el equipo.']);
+        }
+
+        $dateInput = $_POST['date'] ?? date('Y-m-d');
+        $dateObj = DateTime::createFromFormat('Y-m-d', $dateInput) ?: DateTime::createFromFormat('Y-m-d H:i:s', $dateInput);
+        $dateValue = $dateObj ? $dateObj->format('Y-m-d') : date('Y-m-d');
+
+        $timeInput = $_POST['time'] ?? date('H:i');
+        $timeValue = null;
+        foreach (['H:i', 'H:i:s'] as $timeFormat) {
+            $timeObj = DateTime::createFromFormat($timeFormat, $timeInput);
+            if ($timeObj instanceof DateTime) {
+                $timeValue = $timeObj->format('H:i:s');
+                break;
+            }
+        }
+        if (!$timeValue) {
+            $timeValue = date('H:i:s');
+        }
+
+        $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+        $comments = isset($_POST['comments']) ? trim($_POST['comments']) : '';
+        $opinion = isset($_POST['opinion']) ? (int)$_POST['opinion'] : null;
+        $destination = isset($_POST['destination']) ? (int)$_POST['destination'] : null;
+        $responsible = isset($_POST['responsible']) ? (int)$_POST['responsible'] : null;
+
+        $rawReasons = isset($_POST['withdrawal_reason']) ? $_POST['withdrawal_reason'] : [];
+        if (!is_array($rawReasons)) {
+            $rawReasons = [];
+        }
+        $reasonIds = array_values(array_filter(array_map('intval', $rawReasons), function ($value) {
+            return $value > 0;
+        }));
+        $withdrawalJson = $this->db->real_escape_string(json_encode($reasonIds, JSON_UNESCAPED_UNICODE));
+
+        $now = date('Y-m-d H:i:s');
+        $sessionFirst = $_SESSION['login_firstname'] ?? '';
+        $sessionMiddle = $_SESSION['login_middlename'] ?? '';
+        $sessionLast = $_SESSION['login_lastname'] ?? '';
+        $sessionUsername = $_SESSION['login_username'] ?? '';
+        $processedName = trim(implode(' ', array_filter([$sessionFirst, $sessionMiddle, $sessionLast])));
+        if ($processedName === '') {
+            $processedName = $sessionUsername;
+        }
+        $processedName = $processedName ?: 'No registrado';
+        $processedBy = isset($_SESSION['login_id']) ? (int)$_SESSION['login_id'] : null;
+
+        $setParts = [
+            "`date` = '" . $this->db->real_escape_string($dateValue) . "'",
+            "`time` = '" . $this->db->real_escape_string($timeValue) . "'",
+            "`description` = '" . $this->db->real_escape_string($description) . "'",
+            "`comments` = '" . $this->db->real_escape_string($comments) . "'",
+            "`opinion` = " . ($opinion === null ? "NULL" : (int)$opinion),
+            "`destination` = " . ($destination === null ? "NULL" : (int)$destination),
+            "`responsible` = " . ($responsible === null ? "NULL" : (int)$responsible),
+            "`withdrawal_reason` = '" . $withdrawalJson . "'",
+            "`processed_by` = " . ($processedBy === null ? "NULL" : $processedBy),
+            "`processed_by_name` = '" . $this->db->real_escape_string($processedName) . "'",
+            "`updated_at` = '" . $this->db->real_escape_string($now) . "'"
+        ];
+
+        $existing = $this->db->query("SELECT id, folio FROM equipment_unsubscribe WHERE equipment_id = {$equipmentId} LIMIT 1");
+        $folio = '';
+        $unsubscribeId = null;
+        if ($existing && $existing->num_rows > 0) {
+            $row = $existing->fetch_assoc();
+            $unsubscribeId = (int)$row['id'];
+            $folio = $row['folio'] ?? '';
+            $sql = "UPDATE equipment_unsubscribe SET " . implode(', ', $setParts) . " WHERE equipment_id = {$equipmentId}";
+            $save = $this->db->query($sql);
+        } else {
+            $insertParts = array_merge($setParts, [
+                "`equipment_id` = {$equipmentId}",
+                "`created_at` = '" . $this->db->real_escape_string($now) . "'"
+            ]);
+            $sql = "INSERT INTO equipment_unsubscribe SET " . implode(', ', $insertParts);
+            $save = $this->db->query($sql);
+            if ($save) {
+                $unsubscribeId = $this->db->insert_id;
             }
         }
 
-        $exists = $this->db->query("SELECT id FROM equipment_unsubscribe WHERE equipment_id = $id")->num_rows > 0;
-        $save = $exists
-            ? $this->db->query("UPDATE equipment_unsubscribe SET $data WHERE equipment_id = $id")
-            : $this->db->query("INSERT INTO equipment_unsubscribe SET $data");
+        if (!$save) {
+            error_log('Error al guardar baja de equipo: ' . $this->db->error);
+            return json_encode(['status' => 0, 'message' => 'No se pudo guardar la baja.']);
+        }
 
-        return $save ? 1 : 2;
+        if ($unsubscribeId && empty($folio)) {
+            $folio = sprintf('BAJ-%s-%04d', date('Y'), $unsubscribeId);
+            $folioEscaped = $this->db->real_escape_string($folio);
+            $this->db->query("UPDATE equipment_unsubscribe SET folio = '{$folioEscaped}' WHERE id = {$unsubscribeId}");
+        }
+
+        return json_encode([
+            'status' => 1,
+            'unsubscribe_id' => $unsubscribeId,
+            'folio' => $folio,
+            'processed_by_name' => $processedName,
+            'equipment_id' => $equipmentId
+        ]);
     }
 
     function save_equipment_revision()
