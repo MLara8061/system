@@ -61,7 +61,7 @@ if ($unsubscribeId <= 0) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Identificador de baja no válido.</h3>');
 }
 
-$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.location_id, e.id AS equipment_ref
+$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.id AS equipment_ref
                     FROM equipment_unsubscribe eu
                     INNER JOIN equipments e ON e.id = eu.equipment_id
                     WHERE eu.id = {$unsubscribeId} LIMIT 1";

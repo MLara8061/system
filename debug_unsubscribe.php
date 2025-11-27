@@ -81,7 +81,7 @@ echo "<h2>6. Probar consulta completa del PDF</h2>";
 $testId = isset($_GET['test_id']) ? (int)$_GET['test_id'] : 1;
 echo "Probando con ID: $testId<br><br>";
 
-$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.location_id, e.id AS equipment_ref
+$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.id AS equipment_ref
                     FROM equipment_unsubscribe eu
                     INNER JOIN equipments e ON e.id = eu.equipment_id
                     WHERE eu.id = {$testId} LIMIT 1";
