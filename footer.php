@@ -6,7 +6,22 @@
 <script src="assets/plugins/select2/js/select2.full.min.js"></script>
 <!-- Summernote -->
 <script src="assets/plugins/summernote/summernote-bs4.min.js"></script>
+
 <script>
+(function($){
+    var loaderSelector = '#page-loading-indicator';
+    var hiddenClass = 'is-hidden';
+    var loaderTemplate = '<div id="page-loading-indicator"><div class="spinner" aria-hidden="true"></div></div>';
+
+    function ensureLoader() {
+        var $loader = $(loaderSelector);
+        if (!$loader.length) {
+            $('body').prepend(loaderTemplate);
+            $loader = $(loaderSelector);
+        }
+        return $loader;
+    }
+
 	$(document).ready(function() {
 		// $('.datetimepicker').datetimepicker({
 		//     format:'Y/m/d H:i',
@@ -17,14 +32,28 @@
 			placeholder: "Selecciona aquí",
 			width: "100%"
 		})
+
+        var $loader = ensureLoader();
+        var hideLoader = function() {
+            if (!$loader.hasClass(hiddenClass)) {
+                $loader.addClass(hiddenClass);
+            }
+        };
+
+        $(window).on('load', hideLoader);
+        setTimeout(hideLoader, 800);
+
+        $(document)
+            .on('ajaxStart', function() {
+                ensureLoader().removeClass(hiddenClass);
+            })
+            .on('ajaxStop', hideLoader);
 	})
 	window.start_load = function() {
-		$('body').prepend('<div id="preloader2"></div>')
+		ensureLoader().removeClass(hiddenClass);
 	}
 	window.end_load = function() {
-		$('#preloader2').fadeOut('fast', function() {
-			$(this).remove();
-		})
+		ensureLoader().addClass(hiddenClass);
 	}
 	window.viewer_modal = function($src = '') {
 		start_load()
@@ -110,6 +139,7 @@
 		})
 
 	})
+})(jQuery);
 </script>
 
 

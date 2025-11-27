@@ -233,27 +233,28 @@ if (isset($_SESSION['login_id']))
         #loader {
             position: fixed;
             inset: 0;
-            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            opacity: 1;
-            transition: opacity 0.3s ease;
+            pointer-events: none;
+            background: transparent;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
         #loader.hidden {
             opacity: 0;
-            pointer-events: none;
+            visibility: hidden;
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f4f6;
-            border-top-color: #007bff;
+            width: 42px;
+            height: 42px;
+            border: 3px solid rgba(13, 110, 253, 0.2);
+            border-top-color: #0d6efd;
             border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+            animation: spin 0.8s linear infinite;
+            background: transparent;
         }
 
         @keyframes spin {

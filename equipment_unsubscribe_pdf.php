@@ -3,6 +3,53 @@ require_once 'config/config.php';
 
 header('Content-Type: text/html; charset=UTF-8');
 
+if (!function_exists('equipment_pdf_column_exists')) {
+    function equipment_pdf_column_exists(mysqli $conn, $table, $column) {
+        static $cache = [];
+        $key = $table . '.' . $column;
+        if (array_key_exists($key, $cache)) {
+            return $cache[$key];
+        }
+        $safeTable = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+        $safeColumn = $conn->real_escape_string($column);
+        $sql = "SHOW COLUMNS FROM `{$safeTable}` LIKE '{$safeColumn}'";
+        $res = $conn->query($sql);
+        $exists = $res && $res->num_rows > 0;
+        if ($res instanceof mysqli_result) {
+            $res->free();
+        }
+        $cache[$key] = $exists;
+        return $exists;
+    }
+
+    function equipment_pdf_pick_column(mysqli $conn, $table, array $candidates, $alias) {
+        foreach ($candidates as $candidate) {
+            if ($candidate === null) {
+                continue;
+            }
+            if (equipment_pdf_column_exists($conn, $table, $candidate)) {
+                $safeCandidate = preg_replace('/[^a-zA-Z0-9_]/', '', $candidate);
+                $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
+                return "{$safeCandidate} AS {$safeAlias}";
+            }
+        }
+        $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '', $alias);
+        return "NULL AS {$safeAlias}";
+    }
+
+    function equipment_pdf_resolve_column(mysqli $conn, $table, array $candidates, $fallback = 'id') {
+        foreach ($candidates as $candidate) {
+            if ($candidate === null) {
+                continue;
+            }
+            if (equipment_pdf_column_exists($conn, $table, $candidate)) {
+                return preg_replace('/[^a-zA-Z0-9_]/', '', $candidate);
+            }
+        }
+        return preg_replace('/[^a-zA-Z0-9_]/', '', $fallback);
+    }
+}
+
 $unsubscribeId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($unsubscribeId <= 0) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Identificador de baja no válido.</h3>');
@@ -76,10 +123,21 @@ $timeValue = !empty($unsubscribe['time']) ? date('H:i', strtotime($unsubscribe['
 $dateCreated = !empty($unsubscribe['date_created']) ? date('d/m/Y', strtotime($unsubscribe['date_created'])) : '';
 
 $history = [];
-$historySql = "SELECT order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
+$historySelect = [
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['order_number', 'orden_mto', 'id'], 'order_number'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['report_date', 'fecha_reporte'], 'report_date'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['report_time', 'hora_reporte'], 'report_time'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['service_type', 'tipo_servicio'], 'service_type'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['execution_type', 'tipo_ejecucion'], 'execution_type'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['engineer_name', 'ingeniero_nombre'], 'engineer_name'),
+    equipment_pdf_pick_column($conn, 'maintenance_reports', ['final_status', 'status_final'], 'final_status')
+];
+
+$orderColumn = equipment_pdf_resolve_column($conn, 'maintenance_reports', ['report_date', 'fecha_reporte', 'id']);
+$historySql = "SELECT " . implode(', ', $historySelect) . "
                 FROM maintenance_reports
                 WHERE equipment_id = {$equipmentId}
-                ORDER BY report_date DESC, report_time DESC
+                ORDER BY {$orderColumn} DESC
                 LIMIT 12";
 $historyRes = $conn->query($historySql);
 if ($historyRes instanceof mysqli_result) {

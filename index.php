@@ -13,6 +13,9 @@ include 'header.php';
 ?>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+  <div id="page-loading-indicator">
+    <div class="spinner" aria-hidden="true"></div>
+  </div>
   <div class="wrapper">
     <?php include 'topbar.php' ?>
     <?php include 'sidebar.php' ?>
