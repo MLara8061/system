@@ -39,28 +39,28 @@ if ($records) {
 ?>
 <div class="container-fluid">
     <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
-        <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between">
-            <div>
+        <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between flex-wrap">
+            <div class="mb-2 mb-md-0">
                 <h5 class="mb-0 text-dark">Reporte de equipos dados de baja</h5>
                 <small class="text-muted">Resumen general de bajas registradas, folios y responsables.</small>
             </div>
         </div>
-        <div class="card-body">
+        <div class="card-body p-2 p-md-3">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="unsubscribe-table" style="width: 100%;">
+                <table class="table table-bordered table-hover table-sm" id="unsubscribe-table" style="width: 100%; font-size: 0.85rem;">
                     <thead class="thead-light">
                         <tr>
-                            <th>Folio</th>
-                            <th>Equipo</th>
-                            <th>N° inventario</th>
-                            <th>Fecha</th>
-                            <th>Usuario</th>
-                            <th>Responsable</th>
-                            <th>Destino</th>
-                            <th>Dictamen</th>
-                            <th>Causas</th>
-                            <th>Mantenimientos</th>
-                            <th>Acciones</th>
+                            <th style="min-width: 100px;">Folio</th>
+                            <th style="min-width: 150px;">Equipo</th>
+                            <th style="min-width: 80px;">N° inv.</th>
+                            <th style="min-width: 100px;">Fecha</th>
+                            <th style="min-width: 120px;">Usuario</th>
+                            <th style="min-width: 100px;">Responsable</th>
+                            <th style="min-width: 120px;">Destino</th>
+                            <th style="min-width: 100px;">Dictamen</th>
+                            <th style="min-width: 150px;">Causas</th>
+                            <th style="min-width: 80px;">Mttos.</th>
+                            <th style="min-width: 80px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,8 +124,42 @@ $(function(){
                 url: 'https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
             },
             order: [[3, 'desc']],
-            pageLength: 25
+            pageLength: 25,
+            responsive: true,
+            scrollX: true,
+            autoWidth: false,
+            columnDefs: [
+                { width: "100px", targets: 0 },
+                { width: "150px", targets: 1 },
+                { width: "80px", targets: 2 },
+                { width: "100px", targets: 3 },
+                { width: "80px", targets: 10 }
+            ]
         });
     }
 });
 </script>
+
+<style>
+@media (max-width: 768px) {
+    .card-body {
+        padding: 0.5rem !important;
+    }
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #unsubscribe-table {
+        font-size: 0.75rem !important;
+    }
+    #unsubscribe-table th,
+    #unsubscribe-table td {
+        padding: 0.5rem !important;
+        white-space: nowrap;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+</style>

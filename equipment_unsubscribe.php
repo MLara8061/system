@@ -243,9 +243,6 @@ $existing_folio = isset($folio) ? $folio : '';
     .card.mb-4 { border: 1px solid #e9ecef; border-radius: 12px; }
     .card.mb-4 .card-header { background-color: #f8f9fa !important; }
     textarea.form-control { resize: vertical; }
-    @media (max-width: 576px) {
-        .btn-lg { width: 100%; margin-bottom: .5rem; }
-    }
     .select2-container--default .select2-selection--single { height: 38px; border-radius: 10px; border: 1px solid #ced4da; }
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 36px; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 36px; }
@@ -257,6 +254,53 @@ $existing_folio = isset($folio) ? $folio : '';
     .text-dark { color: #343a40!important; }
     .font-weight-bold { font-weight: 600!important; }
     .mb-0 { margin-bottom: 0!important; }
+    
+    /* Responsive Improvements */
+    @media (max-width: 768px) {
+        .card-body { padding: 1rem !important; }
+        .btn-lg { 
+            width: 100%; 
+            margin-bottom: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+        .btn-container-mobile { 
+            padding: 0 1rem 1rem 1rem; 
+        }
+        .form-group label,
+        .font-weight-bold {
+            font-size: 0.9rem;
+        }
+        .form-control,
+        .custom-select {
+            font-size: 0.9rem;
+        }
+        /* Ajustar columnas de radio buttons */
+        .col-sm-6 {
+            margin-bottom: 0.5rem;
+        }
+        .card.shadow-sm {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .card-header h5,
+        .card-header h6 {
+            font-size: 1rem;
+        }
+        .row.mb-3,
+        .row.mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+        .col-md-3,
+        .col-md-4,
+        .col-md-6,
+        .col-md-8,
+        .col-md-9 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
 </style>
 
 <script>

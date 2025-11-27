@@ -63,13 +63,78 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .card { border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .info-label { font-weight: 600; color: #495057; font-size: 0.95rem; }
-        .info-value { font-size: 1.1rem; color: #212529; }
-        .badge-inv { font-size: 1.3rem; padding: 0.5em 1em; }
-        .section-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; margin: -1rem -1rem 1.5rem -1rem; }
-        .public-badge { position: absolute; top: 15px; right: 15px; font-size: 0.85rem; }
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            padding: 10px; 
+        }
+        .card { 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+        }
+        .info-label { 
+            font-weight: 600; 
+            color: #495057; 
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        .info-value { 
+            font-size: 1rem; 
+            color: #212529; 
+            word-break: break-word;
+        }
+        .badge-inv { 
+            font-size: 1.1rem; 
+            padding: 0.4em 0.8em; 
+        }
+        .section-header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 1.5rem; 
+            margin: 0;
+        }
+        .section-header h3 {
+            font-size: 1.5rem;
+            word-break: break-word;
+            padding-right: 100px;
+        }
+        .public-badge { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            font-size: 0.75rem; 
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .section-header { padding: 1rem; }
+            .section-header h3 { 
+                font-size: 1.2rem; 
+                padding-right: 80px;
+            }
+            .badge-inv { font-size: 1rem; }
+            .info-label { font-size: 0.8rem; }
+            .info-value { font-size: 0.95rem; }
+            .public-badge { 
+                font-size: 0.7rem;
+                top: 10px;
+                right: 10px;
+            }
+            .table-responsive { overflow-x: auto; }
+        }
+        
+        @media (max-width: 576px) {
+            .section-header h3 { 
+                font-size: 1rem;
+                padding-right: 70px;
+            }
+            .btn-lg { 
+                width: 100%;
+                padding: 0.75rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
