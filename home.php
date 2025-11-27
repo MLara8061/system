@@ -318,9 +318,9 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                           <td>$<?php echo number_format($eq['amount'], 2); ?></td>
                           <td>
                             <?php if ($eq['revision'] == 1): ?>
-                              <span class="badge text-bg-success">Con Revisión</span>
+                              <span class="badge badge-success"><strong>Con Revisión</strong></span>
                             <?php else: ?>
-                              <span class="badge text-bg-warning">Sin Revisión</span>
+                              <span class="badge badge-warning"><strong>Sin Revisión</strong></span>
                             <?php endif; ?>
                           </td>
                         </tr>
