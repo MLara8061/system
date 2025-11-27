@@ -574,32 +574,162 @@ class Action {
     }
 
     private function generate_automatic_maintenance($equipment_id, $start_date, $period_id, $is_new = true) {
-        // Obtener el intervalo de días del periodo de mantenimiento
+        $period_id = (int)$period_id;
         $qry = $this->db->query("SELECT days_interval FROM maintenance_periods WHERE id = $period_id");
-        if ($qry->num_rows == 0) return false;
-        $interval = $qry->fetch_array()['days_interval'];
+        if (!$qry || $qry->num_rows == 0) {
+            return false;
+        }
 
-        // Si no es nuevo, eliminar mantenimientos automáticos anteriores
         if (!$is_new) {
             $this->db->query("DELETE FROM mantenimientos WHERE equipo_id = $equipment_id AND descripcion = 'Mantenimiento automático'");
         }
 
-        // Generar mantenimientos para los próximos 12 meses
-        $current_date = strtotime($start_date);
-        $end_date = strtotime("+12 months", $current_date);
-        $count = 0;
-        
-        while ($current_date < $end_date && $count < 50) { // Límite de seguridad de 50 eventos
-            $current_date = strtotime("+$interval days", $current_date);
-            if ($current_date >= $end_date) break;
-            
-            $fecha = date('Y-m-d', $current_date);
-            $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) 
-                             VALUES ('$equipment_id', '$fecha', 'Mantenimiento automático', 'pendiente', NOW())");
-            $count++;
+        $start = DateTime::createFromFormat('Y-m-d', $start_date) ?: DateTime::createFromFormat('Y-m-d H:i:s', $start_date);
+        if (!$start) {
+            $start = new DateTime();
         }
-        
-        return $count;
+        $start->setTime(0, 0, 0);
+        $end = (clone $start)->modify('+36 months');
+
+        $this->ensure_maintenance_schedule($start, $end, (int)$equipment_id);
+        return true;
+    }
+
+    private function ensure_maintenance_schedule(DateTime $start, DateTime $end, $equipmentId = null) {
+        $periods = [];
+        $periodRes = $this->db->query("SELECT id, days_interval FROM maintenance_periods");
+        if (!$periodRes) {
+            return;
+        }
+        while ($row = $periodRes->fetch_assoc()) {
+            $periods[(int)$row['id']] = (int)$row['days_interval'];
+        }
+        if (empty($periods)) {
+            return;
+        }
+
+        $statusColumn = $this->detect_equipment_status_column();
+        $statusSelect = $statusColumn ? "e.`$statusColumn` AS status_value" : "NULL AS status_value";
+
+        $where = "WHERE e.mandate_period_id IS NOT NULL";
+        if ($equipmentId !== null) {
+            $where .= " AND e.id = " . (int)$equipmentId;
+        }
+
+        $sql = "SELECT e.id, e.mandate_period_id, e.date_created, $statusSelect, u.date AS unsubscribe_date
+                FROM equipments e
+                LEFT JOIN equipment_unsubscribe u ON u.equipment_id = e.id
+                $where";
+
+        $equipments = $this->db->query($sql);
+        if (!$equipments) {
+            return;
+        }
+
+        $startStr = $start->format('Y-m-d');
+        $endStr = $end->format('Y-m-d');
+
+        while ($eq = $equipments->fetch_assoc()) {
+            $periodId = (int)($eq['mandate_period_id'] ?? 0);
+            $intervalDays = $periods[$periodId] ?? 0;
+            if ($intervalDays <= 0) {
+                continue;
+            }
+
+            $statusValue = $eq['status_value'];
+            if ($statusValue !== null && strtoupper(trim($statusValue)) !== 'ACTIVO') {
+                $this->db->query("DELETE FROM mantenimientos WHERE equipo_id = {$eq['id']} AND descripcion = 'Mantenimiento automático' AND fecha_programada >= '$startStr'");
+                continue;
+            }
+
+            if (empty($eq['date_created'])) {
+                continue;
+            }
+
+            $dateCreated = DateTime::createFromFormat('Y-m-d', $eq['date_created']) ?: DateTime::createFromFormat('Y-m-d H:i:s', $eq['date_created']);
+            if (!$dateCreated) {
+                continue;
+            }
+            $dateCreated->setTime(0, 0, 0);
+
+            $unsubscribeDate = null;
+            if (!empty($eq['unsubscribe_date'])) {
+                $unsubscribeDate = DateTime::createFromFormat('Y-m-d', $eq['unsubscribe_date']) ?: DateTime::createFromFormat('Y-m-d H:i:s', $eq['unsubscribe_date']);
+                if ($unsubscribeDate) {
+                    $unsubscribeDate->setTime(0, 0, 0);
+                    $cutoff = $unsubscribeDate->format('Y-m-d');
+                    $this->db->query("DELETE FROM mantenimientos WHERE equipo_id = {$eq['id']} AND fecha_programada >= '$cutoff'");
+                    if ($unsubscribeDate <= $start) {
+                        continue;
+                    }
+                }
+            }
+
+            $limitDate = clone $end;
+            if ($unsubscribeDate && $unsubscribeDate < $limitDate) {
+                $limitDate = (clone $unsubscribeDate)->modify('-1 day');
+            }
+
+            if ($limitDate < $start) {
+                continue;
+            }
+
+            $limitStr = $limitDate->format('Y-m-d');
+
+            $lastRow = $this->db->query("SELECT MAX(fecha_programada) AS last_date FROM mantenimientos WHERE equipo_id = {$eq['id']}");
+            $lastDate = $lastRow && $lastRow->num_rows ? $lastRow->fetch_assoc()['last_date'] : null;
+            $cursor = $lastDate ? DateTime::createFromFormat('Y-m-d', $lastDate) : clone $dateCreated;
+            if (!$cursor) {
+                continue;
+            }
+            $cursor->setTime(0, 0, 0);
+
+            while (true) {
+                $cursor->modify("+{$intervalDays} days");
+                $candidateStr = $cursor->format('Y-m-d');
+
+                if ($candidateStr > $limitStr) {
+                    break;
+                }
+
+                $exists = $this->db->query("SELECT 1 FROM mantenimientos WHERE equipo_id = {$eq['id']} AND fecha_programada = '$candidateStr' LIMIT 1");
+                if ($exists && $exists->num_rows > 0) {
+                    continue;
+                }
+
+                $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, descripcion, estatus, created_at) VALUES ({$eq['id']}, '$candidateStr', 'Mantenimiento automático', 'pendiente', NOW())");
+            }
+        }
+    }
+
+    private function detect_equipment_status_column() {
+        static $statusColumn = false;
+        if ($statusColumn !== false) {
+            return $statusColumn ?: null;
+        }
+
+        foreach (['status', 'estatus', 'estado', 'state'] as $candidate) {
+            $res = $this->db->query("SHOW COLUMNS FROM equipments LIKE '$candidate'");
+            if ($res && $res->num_rows > 0) {
+                $statusColumn = $candidate;
+                return $statusColumn;
+            }
+        }
+
+        $statusColumn = null;
+        return null;
+    }
+
+    private function createDateFromParam($value) {
+        if (!$value) {
+            return null;
+        }
+        $value = substr($value, 0, 10);
+        $date = DateTime::createFromFormat('Y-m-d', $value);
+        if ($date) {
+            $date->setTime(0, 0, 0);
+        }
+        return $date ?: null;
     }
 
     // ================== HERRAMIENTAS ==================
@@ -737,25 +867,78 @@ class Action {
 
     // ================== MANTENIMIENTOS ==================
     function get_mantenimientos() {
-        $events = [];
-        $sql = "SELECT m.id, m.fecha_programada, m.descripcion, m.estatus, e.name 
-                FROM mantenimientos m 
-                JOIN equipments e ON m.equipo_id = e.id 
-                ORDER BY m.fecha_programada";
-        $qry = $this->db->query($sql);
-        if (!$qry) return json_encode([]);
+        $startParam = $_GET['start'] ?? date('Y-m-01');
+        $endParam = $_GET['end'] ?? date('Y-m-d', strtotime('+12 months'));
 
-        while ($row = $qry->fetch_assoc()) {
-            $title = $row['name'];
-            if (!empty($row['descripcion'])) $title .= ' - ' . substr($row['descripcion'], 0, 25);
-            $color = $row['estatus'] == 'completado' ? '#28a745' : '#dc3545';
-            $events[] = [
-                'id' => $row['id'],
-                'title' => $title,
-                'start' => $row['fecha_programada'],
-                'color' => $color
-            ];
+        $startDate = $this->createDateFromParam($startParam) ?? new DateTime(date('Y-m-01'));
+        $endDate = $this->createDateFromParam($endParam);
+
+        if (!$endDate) {
+            $endDate = (clone $startDate)->modify('+12 months');
         }
+
+        if ($endDate <= $startDate) {
+            $endDate = (clone $startDate)->modify('+12 months');
+        }
+
+        $this->ensure_maintenance_schedule($startDate, $endDate);
+
+        $statusColumn = $this->detect_equipment_status_column();
+        $statusSelect = $statusColumn ? "e.`$statusColumn` AS status_value" : "NULL AS status_value";
+
+        $startStr = $startDate->format('Y-m-d');
+        $endStr = $endDate->format('Y-m-d');
+
+        $sql = "SELECT m.id, m.fecha_programada, m.descripcion, m.estatus, e.name, $statusSelect, u.date AS unsubscribe_date
+                FROM mantenimientos m
+                JOIN equipments e ON m.equipo_id = e.id
+                LEFT JOIN equipment_unsubscribe u ON u.equipment_id = e.id
+                WHERE m.fecha_programada BETWEEN '$startStr' AND '$endStr'";
+
+        if ($statusColumn) {
+            $sql .= " AND (UPPER(e.`$statusColumn`) = 'ACTIVO')";
+        }
+
+        $sql .= " AND (u.date IS NULL OR m.fecha_programada < u.date)
+                  ORDER BY m.fecha_programada";
+
+        $events = [];
+        if ($qry = $this->db->query($sql)) {
+            while ($row = $qry->fetch_assoc()) {
+                $title = $row['name'];
+                $description = trim((string)($row['descripcion'] ?? ''));
+                if ($description !== '') {
+                    if (function_exists('mb_substr')) {
+                        $excerpt = mb_substr($description, 0, 40);
+                        if (mb_strlen($description) > 40) {
+                            $excerpt .= '...';
+                        }
+                    } else {
+                        $excerpt = substr($description, 0, 40);
+                        if (strlen($description) > 40) {
+                            $excerpt .= '...';
+                        }
+                    }
+                    $title .= ' - ' . $excerpt;
+                }
+
+                $status = strtolower((string)($row['estatus'] ?? ''));
+                $color = '#dc3545';
+                if ($status === 'completado') {
+                    $color = '#28a745';
+                } elseif ($status === 'en_proceso' || $status === 'en proceso') {
+                    $color = '#ffc107';
+                }
+
+                $events[] = [
+                    'id' => $row['id'],
+                    'title' => $title,
+                    'start' => $row['fecha_programada'],
+                    'color' => $color
+                ];
+            }
+        }
+
         header('Content-Type: application/json');
         echo json_encode($events);
         exit;
