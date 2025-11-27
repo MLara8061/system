@@ -1,4 +1,5 @@
 <?php
+define('ACCESS', true);
 require_once 'config/config.php';
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
 
