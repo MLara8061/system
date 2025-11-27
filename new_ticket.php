@@ -2,6 +2,18 @@
 if (!isset($conn)) {
 	require_once 'config/config.php';
 }
+
+// Capturar parámetros del equipo si vienen desde el QR
+$equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : '';
+$equipment_name = isset($_GET['equipment_name']) ? htmlspecialchars($_GET['equipment_name']) : '';
+$inventory = isset($_GET['inventory']) ? htmlspecialchars($_GET['inventory']) : '';
+$reporter_name = isset($_GET['reporter_name']) ? htmlspecialchars($_GET['reporter_name']) : '';
+
+// Pre-cargar el asunto si viene del equipo
+$default_subject = '';
+if ($equipment_name && $inventory) {
+    $default_subject = "Reporte de equipo: $equipment_name (Inv: $inventory)";
+}
 ?>
 <div class="container-fluid">
 	<div class="col-lg-12">
@@ -10,14 +22,37 @@ if (!isset($conn)) {
 				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Nuevo Ticket de Soporte</h4>
 			</div>
 			<div class="card-body">
+				<?php if ($equipment_name): ?>
+				<div class="alert alert-info">
+					<i class="fas fa-info-circle me-2"></i>
+					<strong>Reportando equipo:</strong> <?php echo $equipment_name; ?> 
+					<?php if ($inventory): ?>
+					- <strong>Inventario:</strong> #<?php echo $inventory; ?>
+					<?php endif; ?>
+				</div>
+				<?php endif; ?>
+				
 				<form action="" id="manage_ticket">
 					<input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
+					<input type="hidden" name="equipment_id" value="<?php echo $equipment_id ?>">
 					
 					<div class="row">
+						<!-- NOMBRE DE QUIEN REPORTA -->
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="" class="control-label"><i class="fas fa-user-edit"></i> Nombre de quien reporta</label>
+								<input type="text" name="reporter_name" class="form-control form-control-sm" required 
+								       value="<?php echo $reporter_name ?>" 
+								       placeholder="Ingrese su nombre completo">
+							</div>
+						</div>
+
 						<div class="col-md-6">
 							<div class="form-group">
 								<label for="" class="control-label"><i class="fas fa-tag"></i> Asunto</label>
-								<input type="text" name="subject" class="form-control form-control-sm" required value="<?php echo isset($subject) ? $subject : '' ?>" placeholder="Ingrese el asunto del ticket">
+								<input type="text" name="subject" class="form-control form-control-sm" required 
+								       value="<?php echo isset($subject) ? $subject : $default_subject ?>" 
+								       placeholder="Ingrese el asunto del ticket">
 							</div>
 						</div>
 

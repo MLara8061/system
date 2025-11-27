@@ -125,10 +125,6 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
                             <div class="info-value"><?php echo date('d/m/Y', strtotime($eq['date_created'])); ?></div>
                         </div>
                         <div class="col-md-6">
-                            <div class="info-label">Valor</div>
-                            <div class="info-value">$<?php echo number_format($eq['amount'], 2); ?></div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="info-label">Categoría</div>
                             <div class="info-value"><?php echo htmlspecialchars($eq['discipline']); ?></div>
                         </div>
@@ -227,12 +223,9 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
             <?php 
             $has_docs = false;
             $doc_fields = [
-                'bailment_file' => 'Comodato',
-                'contract_file' => 'Contrato M',
                 'usermanual_file' => 'Manual Usuario',
-                'fast_guide_file' => 'Guía Rápida',
                 'datasheet_file' => 'Ficha Técnica',
-                'servicemanual_file' => 'Man. Servicios'
+                'fast_guide_file' => 'Guía Rápida'
             ];
             foreach ($doc_fields as $field => $label):
                 if (!empty($documents[$field]) && file_exists($documents[$field])):
@@ -328,6 +321,20 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
                     No hay registros de mantenimiento para este equipo.
                 </div>
                 <?php endif; ?>
+            </div>
+
+            <!-- BOTÓN REPORTAR EQUIPO -->
+            <div class="px-4 pb-4">
+                <hr class="mb-4">
+                <div class="text-center">
+                    <a href="index.php?page=new_ticket&equipment_id=<?php echo $equipment_id; ?>&equipment_name=<?php echo urlencode($eq['name']); ?>&inventory=<?php echo urlencode($eq['number_inventory']); ?>" 
+                       class="btn btn-lg btn-danger px-5">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Reportar Equipo
+                    </a>
+                    <p class="text-muted mt-2 mb-0">
+                        <small>Reportar algún problema o solicitar soporte técnico</small>
+                    </p>
+                </div>
             </div>
 
             <!-- FOOTER -->
