@@ -177,7 +177,7 @@
             <li class="nav-item">
               <a href="#" class="nav-link nav-service">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Servicios <i class="right fas fa-angle-left"></i></p>
+                <p>Tickets <i class="right fas fa-angle-left"></i></p>
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item"><a href="index.php?page=manage_category" class="nav-link nav-manage_category tree-item"><i class="fas fa-angle-right nav-icon"></i>
@@ -187,10 +187,10 @@
                     <p>Lista Categorías</p>
                   </a></li>
                 <li class="nav-item"><a href="index.php?page=manage_services" class="nav-link nav-manage_services tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Crear Servicios</p>
+                    <p>Crear Tciket</p>
                   </a></li>
                 <li class="nav-item"><a href="index.php?page=service_list" class="nav-link nav-service_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Lista Servicios</p>
+                    <p>Todos los Tickets</p>
                   </a></li>
               </ul>
             </li>
