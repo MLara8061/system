@@ -8,15 +8,18 @@ if ($unsubscribeId <= 0) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Identificador de baja no válido.</h3>');
 }
 
-$sql = $conn->prepare("SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.location_id, e.id AS equipment_ref
-                        FROM equipment_unsubscribe eu
-                        INNER JOIN equipments e ON e.id = eu.equipment_id
-                        WHERE eu.id = ? LIMIT 1");
-$sql->bind_param('i', $unsubscribeId);
-$sql->execute();
-$result = $sql->get_result();
-$unsubscribe = $result ? $result->fetch_assoc() : null;
-$sql->close();
+$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.location_id, e.id AS equipment_ref
+                    FROM equipment_unsubscribe eu
+                    INNER JOIN equipments e ON e.id = eu.equipment_id
+                    WHERE eu.id = {$unsubscribeId} LIMIT 1";
+$unsubscribeRes = $conn->query($unsubscribeSql);
+if ($unsubscribeRes === false) {
+    error_log('equipment_unsubscribe_pdf: fallo al consultar baja -> ' . $conn->error);
+}
+$unsubscribe = $unsubscribeRes ? $unsubscribeRes->fetch_assoc() : null;
+if ($unsubscribeRes instanceof mysqli_result) {
+    $unsubscribeRes->free();
+}
 
 if (!$unsubscribe) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">No se encontró la información de la baja.</h3>');
@@ -75,38 +78,28 @@ $dateCreated = !empty($unsubscribe['date_created']) ? date('d/m/Y', strtotime($u
 $history = [];
 $historySql = "SELECT order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
                 FROM maintenance_reports
-                WHERE equipment_id = ?
+                WHERE equipment_id = {$equipmentId}
                 ORDER BY report_date DESC, report_time DESC
                 LIMIT 12";
-$historyStmt = $conn->prepare($historySql);
-if ($historyStmt) {
-    $historyStmt->bind_param('i', $equipmentId);
-    if ($historyStmt->execute()) {
-        $historyRes = $historyStmt->get_result();
-        while ($historyRes && $row = $historyRes->fetch_assoc()) {
-            $history[] = $row;
-        }
-    } else {
-        error_log('equipment_unsubscribe_pdf: fallo al ejecutar historial -> ' . $historyStmt->error);
+$historyRes = $conn->query($historySql);
+if ($historyRes instanceof mysqli_result) {
+    while ($row = $historyRes->fetch_assoc()) {
+        $history[] = $row;
     }
-    $historyStmt->close();
+    $historyRes->free();
 } else {
-    error_log('equipment_unsubscribe_pdf: fallo al preparar historial -> ' . $conn->error);
+    error_log('equipment_unsubscribe_pdf: fallo historial principal -> ' . $conn->error);
     $historyFallbackSql = "SELECT id AS order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
                             FROM maintenance_reports
-                            WHERE equipment_id = ?
+                            WHERE equipment_id = {$equipmentId}
                             ORDER BY id DESC
                             LIMIT 12";
-    $historyStmtLegacy = $conn->prepare($historyFallbackSql);
-    if ($historyStmtLegacy) {
-        $historyStmtLegacy->bind_param('i', $equipmentId);
-        if ($historyStmtLegacy->execute()) {
-            $historyResLegacy = $historyStmtLegacy->get_result();
-            while ($historyResLegacy && $row = $historyResLegacy->fetch_assoc()) {
-                $history[] = $row;
-            }
+    $historyFallbackRes = $conn->query($historyFallbackSql);
+    if ($historyFallbackRes instanceof mysqli_result) {
+        while ($row = $historyFallbackRes->fetch_assoc()) {
+            $history[] = $row;
         }
-        $historyStmtLegacy->close();
+        $historyFallbackRes->free();
     }
 }
 
