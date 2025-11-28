@@ -597,10 +597,12 @@ $manual = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <?php if (isset($_GET['download']) && $_GET['download'] == '1'): ?>
     <script>
         window.onload = function() {
             document.getElementById('downloadBtn').style.display = 'none';
+            document.getElementById('toc').style.display = 'none';
             setTimeout(function() {
                 window.print();
             }, 500);
@@ -617,199 +619,283 @@ $manual = [
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #2c3e50;
-            background: #f8f9fa;
-            padding: 20px;
+            color: #4a5568;
+            background: #f7fafc;
+            padding: 0;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
+            width: 100%;
             margin: 0 auto;
             background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
         }
         
         /* PORTADA */
         .cover {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 80px 60px;
+            padding: 40px 20px;
             text-align: center;
-            min-height: 400px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
         
         .cover h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         
         .cover p {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: clamp(14px, 2.5vw, 18px);
+            margin-bottom: 8px;
             opacity: 0.95;
         }
         
         .cover .version {
-            font-size: 16px;
+            font-size: clamp(12px, 2vw, 14px);
             opacity: 0.8;
-            margin-top: 30px;
+            margin-top: 20px;
+        }
+        
+        /* TABLA DE CONTENIDOS */
+        .toc {
+            background: #f7fafc;
+            padding: 30px;
+            margin: 30px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .toc h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding: 0;
+            background: none;
+            box-shadow: none;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 10px;
+            padding: 0;
+        }
+        
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .toc a:hover {
+            background: #edf2f7;
+            color: #5a67d8;
+            transform: translateX(5px);
+        }
+        
+        .toc a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
         }
         
         /* CONTENIDO */
         .content {
-            padding: 60px;
+            padding: 20px;
         }
         
         .section {
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             page-break-inside: avoid;
         }
         
         h2 {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 25px;
-            margin: 30px 0 20px 0;
-            font-size: 24px;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 12px 20px;
+            margin: 25px 0 15px 0;
+            font-size: clamp(18px, 3vw, 22px);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+            scroll-margin-top: 20px;
         }
         
         h3 {
-            color: #1e3a8a;
-            font-size: 20px;
-            margin: 25px 0 15px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #3b82f6;
+            color: #2d3748;
+            font-size: clamp(16px, 2.5vw, 18px);
+            margin: 20px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
         }
         
         h4 {
-            color: #3b82f6;
-            font-size: 18px;
-            margin: 20px 0 10px 0;
+            color: #667eea;
+            font-size: clamp(14px, 2vw, 16px);
+            margin: 15px 0 8px 0;
         }
         
         p {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: justify;
+            font-size: 14px;
         }
         
         ul, ol {
-            margin: 15px 0 15px 30px;
+            margin: 12px 0 12px 25px;
+            font-size: 14px;
         }
         
         li {
-            margin-bottom: 10px;
-            padding-left: 5px;
+            margin-bottom: 8px;
+            padding-left: 3px;
         }
         
         .steps {
-            background: #f8f9fa;
-            border-left: 4px solid #3b82f6;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 4px;
+            background: #f7fafc;
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-size: 14px;
         }
         
         .steps li {
-            margin-bottom: 12px;
-            line-height: 1.8;
+            margin-bottom: 10px;
+            line-height: 1.6;
         }
         
         .note {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            font-style: italic;
+            background: #fefcbf;
+            border-left: 3px solid #ecc94b;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-size: 13px;
         }
         
         .tip {
-            background: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+            background: #e6fffa;
+            border-left: 3px solid #38b2ac;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-size: 13px;
         }
         
         .feature-box {
-            background: #e7f3ff;
-            border: 1px solid #b3d7ff;
-            padding: 20px;
-            margin: 20px 0;
+            background: #ebf4ff;
+            border: 1px solid #bee3f8;
+            padding: 15px;
+            margin: 15px 0;
             border-radius: 6px;
+            font-size: 14px;
         }
         
         .feature-box ul {
-            margin: 10px 0 0 20px;
-        }
-        
-        .table-wrapper {
-            overflow-x: auto;
-            margin: 20px 0;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        thead {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white;
-        }
-        
-        thead th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border: 1px solid #2563eb;
-        }
-        
-        tbody tr {
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        tbody tr:nth-child(even) {
-            background: white;
-        }
-        
-        tbody td {
-            padding: 12px 15px;
-            border: 1px solid #dee2e6;
-            color: #495057;
+            margin: 8px 0 0 20px;
         }
         
         .problem-solution {
-            background: #f8f9fa;
+            background: #fff5f5;
             border-radius: 6px;
-            padding: 20px;
-            margin: 15px 0;
-            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 12px 0;
+            border-left: 3px solid #fc8181;
+            font-size: 14px;
         }
         
         .problem-solution h4 {
-            color: #dc3545;
+            color: #c53030;
             margin-top: 0;
         }
         
         .footer {
-            background: #4b5563;
+            background: #2d3748;
             color: white;
-            padding: 30px 60px;
+            padding: 25px 20px;
             text-align: center;
+            font-size: 13px;
+        }
+        
+        /* BOTÓN DE DESCARGA */
+        .download-section {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
             font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-download i {
+            font-size: 16px;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .cover {
+                padding: 30px 15px;
+                min-height: 250px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .toc {
+                margin: 20px 15px;
+                padding: 20px 15px;
+            }
+            
+            h2 {
+                padding: 10px 15px;
+                margin: 20px 0 12px 0;
+            }
+            
+            .steps, .note, .tip, .feature-box, .problem-solution {
+                padding: 12px;
+            }
         }
         
         @media print {
@@ -818,9 +904,8 @@ $manual = [
                 padding: 0;
             }
             
-            .container {
-                box-shadow: none;
-                border-radius: 0;
+            .download-section, .toc {
+                display: none !important;
             }
             
             .section {
@@ -851,18 +936,39 @@ $manual = [
             
             <!-- Botón de descarga (solo visible cuando NO se está descargando) -->
             <?php if (!isset($_GET['download'])): ?>
-            <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: #e7f3ff; border-radius: 8px;">
-                <h3 style="color: #1e3a8a; margin-bottom: 15px;">Descargar Manual en PDF</h3>
-                <p style="margin-bottom: 15px;">Para guardar este manual como archivo PDF:</p>
-                <button id="downloadBtn" onclick="window.print()" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; border: none; padding: 15px 40px; font-size: 16px; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <i style="margin-right: 8px;">📥</i> Descargar como PDF
+            <div id="downloadBtn" class="download-section">
+                <button onclick="window.print()" class="btn-download">
+                    <i class="fas fa-file-pdf"></i>
+                    Descargar PDF
                 </button>
-                <p style="margin-top: 15px; font-size: 14px; color: #666;">También puede usar <strong>Ctrl+P</strong> (Windows) o <strong>Cmd+P</strong> (Mac)</p>
+                <span style="color: #718096; font-size: 13px;">Ctrl+P (Windows) o Cmd+P (Mac)</span>
+            </div>
+            
+            <!-- Índice Interactivo -->
+            <div id="toc" class="toc">
+                <h2><i class="fas fa-list"></i> Índice de Contenidos</h2>
+                <ul>
+                    <li><a href="#intro"><i class="fas fa-info-circle"></i> 1. Introducción al Sistema</a></li>
+                    <li><a href="#access"><i class="fas fa-sign-in-alt"></i> 2. Acceso al Sistema</a></li>
+                    <li><a href="#dashboard"><i class="fas fa-chart-line"></i> 3. Dashboard Principal</a></li>
+                    <li><a href="#equipos"><i class="fas fa-laptop-medical"></i> 4. Gestión de Equipos</a></li>
+                    <li><a href="#proveedores"><i class="fas fa-truck"></i> 5. Gestión de Proveedores</a></li>
+                    <li><a href="#herramientas"><i class="fas fa-tools"></i> 6. Gestión de Herramientas</a></li>
+                    <li><a href="#accesorios"><i class="fas fa-hard-hat"></i> 7. Gestión de Accesorios</a></li>
+                    <li><a href="#inventario"><i class="fas fa-boxes"></i> 8. Gestión de Inventario</a></li>
+                    <li><a href="#mantenimientos"><i class="fas fa-calendar-check"></i> 9. Calendario de Mantenimientos</a></li>
+                    <li><a href="#tickets"><i class="fas fa-ticket-alt"></i> 10. Sistema de Tickets</a></li>
+                    <li><a href="#reportes"><i class="fas fa-file-invoice"></i> 11. Generación de Reportes</a></li>
+                    <li><a href="#admin"><i class="fas fa-cogs"></i> 12. Configuración (Administradores)</a></li>
+                    <li><a href="#tips"><i class="fas fa-lightbulb"></i> 13. Consejos y Buenas Prácticas</a></li>
+                    <li><a href="#troubleshooting"><i class="fas fa-wrench"></i> 14. Solución de Problemas</a></li>
+                    <li><a href="#support"><i class="fas fa-life-ring"></i> 15. Soporte Técnico</a></li>
+                </ul>
             </div>
             <?php endif; ?>
             
             <!-- INTRODUCCIÓN -->
-            <div class="section">
+            <div class="section" id="intro">
                 <h2><?= htmlspecialchars($manual['intro']['title']) ?></h2>
                 <p><?= $manual['intro']['content'] ?></p>
                 
@@ -877,7 +983,7 @@ $manual = [
             </div>
             
             <!-- ACCESO AL SISTEMA -->
-            <div class="section">
+            <div class="section" id="access">
                 <h2><?= htmlspecialchars($manual['access']['title']) ?></h2>
                 <?php foreach ($manual['access']['sections'] as $section): ?>
                     <h3><?= htmlspecialchars($section['subtitle']) ?></h3>
@@ -911,7 +1017,7 @@ $manual = [
             </div>
             
             <!-- DASHBOARD -->
-            <div class="section">
+            <div class="section" id="dashboard">
                 <h2><?= htmlspecialchars($manual['dashboard']['title']) ?></h2>
                 <p><?= $manual['dashboard']['content'] ?></p>
                 
@@ -931,7 +1037,7 @@ $manual = [
             </div>
             
             <!-- GESTIÓN DE EQUIPOS -->
-            <div class="section">
+            <div class="section" id="equipos">
                 <h2><?= htmlspecialchars($manual['equipos']['title']) ?></h2>
                 <?php foreach ($manual['equipos']['modules'] as $module): ?>
                     <h3><?= htmlspecialchars($module['subtitle']) ?></h3>
@@ -974,7 +1080,7 @@ $manual = [
             </div>
             
             <!-- GESTIÓN DE PROVEEDORES -->
-            <div class="section">
+            <div class="section" id="proveedores">
                 <h2><?= htmlspecialchars($manual['proveedores']['title']) ?></h2>
                 <?php foreach ($manual['proveedores']['modules'] as $module): ?>
                     <h3><?= htmlspecialchars($module['subtitle']) ?></h3>
@@ -987,7 +1093,7 @@ $manual = [
             </div>
             
             <!-- GESTIÓN DE HERRAMIENTAS -->
-            <div class="section">
+            <div class="section" id="herramientas">
                 <h2><?= htmlspecialchars($manual['herramientas']['title']) ?></h2>
                 <?php foreach ($manual['herramientas']['modules'] as $module): ?>
                     <h3><?= htmlspecialchars($module['subtitle']) ?></h3>
@@ -1000,7 +1106,7 @@ $manual = [
             </div>
             
             <!-- GESTIÓN DE ACCESORIOS -->
-            <div class="section">
+            <div class="section" id="accesorios">
                 <h2><?= htmlspecialchars($manual['accesorios']['title']) ?></h2>
                 <?php foreach ($manual['accesorios']['modules'] as $module): ?>
                     <h3><?= htmlspecialchars($module['subtitle']) ?></h3>
@@ -1013,7 +1119,7 @@ $manual = [
             </div>
             
             <!-- GESTIÓN DE INVENTARIO -->
-            <div class="section">
+            <div class="section" id="inventario">
                 <h2><?= htmlspecialchars($manual['inventario']['title']) ?></h2>
                 <p><?= $manual['inventario']['content'] ?></p>
                 <?php foreach ($manual['inventario']['modules'] as $module): ?>
@@ -1027,7 +1133,7 @@ $manual = [
             </div>
             
             <!-- CALENDARIO DE MANTENIMIENTOS -->
-            <div class="section">
+            <div class="section" id="mantenimientos">
                 <h2><?= htmlspecialchars($manual['mantenimientos']['title']) ?></h2>
                 <p><?= $manual['mantenimientos']['content'] ?></p>
                 <ol class="steps">
@@ -1041,7 +1147,7 @@ $manual = [
             </div>
             
             <!-- SISTEMA DE TICKETS -->
-            <div class="section">
+            <div class="section" id="tickets">
                 <h2><?= htmlspecialchars($manual['tickets']['title']) ?></h2>
                 <?php foreach ($manual['tickets']['modules'] as $module): ?>
                     <h3><?= htmlspecialchars($module['subtitle']) ?></h3>
@@ -1054,7 +1160,7 @@ $manual = [
             </div>
             
             <!-- GENERACIÓN DE REPORTES -->
-            <div class="section">
+            <div class="section" id="reportes">
                 <h2><?= htmlspecialchars($manual['reportes']['title']) ?></h2>
                 <p><?= $manual['reportes']['content'] ?></p>
                 <ol class="steps">
@@ -1068,7 +1174,7 @@ $manual = [
             </div>
             
             <!-- CONFIGURACIÓN DEL SISTEMA -->
-            <div class="section">
+            <div class="section" id="admin">
                 <h2><?= htmlspecialchars($manual['admin']['title']) ?></h2>
                 <p><?= $manual['admin']['content'] ?></p>
                 <?php foreach ($manual['admin']['modules'] as $module): ?>
@@ -1093,7 +1199,7 @@ $manual = [
             </div>
             
             <!-- CONSEJOS Y BUENAS PRÁCTICAS -->
-            <div class="section">
+            <div class="section" id="tips">
                 <h2><?= htmlspecialchars($manual['tips']['title']) ?></h2>
                 <ul class="steps">
                     <?php foreach ($manual['tips']['items'] as $item): ?>
@@ -1103,7 +1209,7 @@ $manual = [
             </div>
             
             <!-- SOLUCIÓN DE PROBLEMAS -->
-            <div class="section">
+            <div class="section" id="troubleshooting">
                 <h2><?= htmlspecialchars($manual['troubleshooting']['title']) ?></h2>
                 <?php foreach ($manual['troubleshooting']['issues'] as $issue): ?>
                     <div class="problem-solution">
@@ -1119,7 +1225,7 @@ $manual = [
             </div>
             
             <!-- SOPORTE TÉCNICO -->
-            <div class="section">
+            <div class="section" id="support">
                 <h2><?= htmlspecialchars($manual['support']['title']) ?></h2>
                 <p><?= $manual['support']['content'] ?></p>
                 <ul>
@@ -1147,6 +1253,24 @@ $manual = [
         // window.onload = function() {
         //     window.print();
         // };
+        
+        // Smooth scroll para el índice
+        document.addEventListener('DOMContentLoaded', function() {
+            const tocLinks = document.querySelectorAll('.toc a');
+            tocLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>
