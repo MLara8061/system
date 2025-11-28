@@ -756,27 +756,35 @@ $manual = [
         }
         
         ul, ol {
-            margin: 12px 0 12px 25px;
+            margin: 12px 0 12px 20px;
+            padding-left: 20px;
             font-size: 14px;
         }
         
         li {
             margin-bottom: 8px;
-            padding-left: 3px;
+            padding-left: 5px;
         }
         
         .steps {
             background: #f7fafc;
             border-left: 3px solid #667eea;
-            padding: 15px;
+            padding: 15px 15px 15px 20px;
             margin: 15px 0;
             border-radius: 6px;
             font-size: 14px;
         }
         
+        .steps ol,
+        .steps ul {
+            margin: 8px 0 8px 10px;
+            padding-left: 25px;
+        }
+        
         .steps li {
             margin-bottom: 10px;
             line-height: 1.6;
+            padding-left: 5px;
         }
         
         .note {
