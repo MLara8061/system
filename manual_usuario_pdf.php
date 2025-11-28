@@ -902,8 +902,29 @@ $manual = [
                 margin: 20px 0 12px 0;
             }
             
-            .steps, .note, .tip, .feature-box, .problem-solution {
+            .steps {
+                padding: 15px 10px 15px 15px;
+                margin: 15px 5px;
+            }
+            
+            .steps ol,
+            .steps ul {
+                margin: 8px 0 8px 5px;
+                padding-left: 25px;
+            }
+            
+            .steps li {
+                padding-left: 5px;
+            }
+            
+            .note, .tip, .feature-box, .problem-solution {
                 padding: 12px;
+                margin: 15px 5px;
+            }
+            
+            ul, ol {
+                margin: 12px 0 12px 15px;
+                padding-left: 20px;
             }
         }
         
