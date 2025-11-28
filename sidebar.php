@@ -149,6 +149,13 @@
             <p>Generar Reportes</p>
           </a>
         </li>
+        
+        <li class="nav-item">
+          <a href="manual_usuario_pdf.php" target="_blank" class="nav-link">
+            <i class="fas fa-book nav-icon"></i>
+            <p>Manual de Usuario</p>
+          </a>
+        </li>
 
         <?php if ($_SESSION['login_type'] == 1): ?>
           <li class="nav-item">
