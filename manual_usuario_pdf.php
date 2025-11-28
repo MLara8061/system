@@ -903,18 +903,18 @@ $manual = [
             }
             
             .steps {
-                padding: 15px 10px 15px 25px;
+                padding: 15px 10px 15px 30px;
                 margin: 15px 5px;
             }
             
             .steps ol,
             .steps ul {
                 margin: 8px 0 8px 0;
-                padding-left: 35px;
+                padding-left: 40px;
             }
             
             .steps li {
-                padding-left: 8px;
+                padding-left: 10px;
             }
             
             .note, .tip, .feature-box, .problem-solution {
@@ -923,8 +923,8 @@ $manual = [
             }
             
             ul, ol {
-                margin: 12px 0 12px 15px;
-                padding-left: 20px;
+                margin: 12px 0 12px 10px;
+                padding-left: 30px;
             }
         }
         
