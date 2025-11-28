@@ -769,7 +769,7 @@ $manual = [
         .steps {
             background: #f7fafc;
             border-left: 3px solid #667eea;
-            padding: 15px 15px 15px 20px;
+            padding: 15px 15px 15px 25px;
             margin: 15px 0;
             border-radius: 6px;
             font-size: 14px;
@@ -777,14 +777,14 @@ $manual = [
         
         .steps ol,
         .steps ul {
-            margin: 8px 0 8px 10px;
-            padding-left: 25px;
+            margin: 8px 0 8px 15px;
+            padding-left: 30px;
         }
         
         .steps li {
             margin-bottom: 10px;
             line-height: 1.6;
-            padding-left: 5px;
+            padding-left: 8px;
         }
         
         .note {
@@ -806,9 +806,10 @@ $manual = [
         }
         
         .feature-box {
-            background: #ebf4ff;
-            border: 1px solid #bee3f8;
-            padding: 15px;
+        .feature-box ul {
+            margin: 8px 0 0 10px;
+            padding-left: 20px;
+        }   padding: 15px;
             margin: 15px 0;
             border-radius: 6px;
             font-size: 14px;
