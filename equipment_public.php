@@ -415,9 +415,9 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
             <div class="px-4 pb-4">
                 <hr class="mb-4">
                 <div class="text-center">
-                    <a href="index.php?page=new_ticket&equipment_id=<?php echo $equipment_id; ?>&equipment_name=<?php echo urlencode($eq['name']); ?>&inventory=<?php echo urlencode($eq['number_inventory']); ?>" 
+                    <a href="report_issue_public.php?equipment_id=<?php echo $equipment_id; ?>" 
                        class="btn btn-lg btn-danger px-5">
-                        <i class="fas fa-exclamation-triangle me-2"></i> Reportar Equipo
+                        <i class="fas fa-exclamation-triangle me-2"></i> Reportar Falla
                     </a>
                     <p class="text-muted mt-2 mb-0">
                         <small>Reportar algún problema o solicitar soporte técnico</small>
