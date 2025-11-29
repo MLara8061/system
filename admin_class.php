@@ -1230,41 +1230,73 @@ class Action {
     }
 
     function save_job_position() {
-        extract($_POST);
-        $name = $this->db->real_escape_string($name);
-        $location_id = isset($location_id) && !empty($location_id) ? intval($location_id) : 'NULL';
-        $department_id = isset($department_id) && !empty($department_id) ? intval($department_id) : 'NULL';
-        
-        if (empty($id)) {
-            // Crear nuevo puesto
-            $save = $this->db->query("INSERT INTO job_positions SET name='$name', location_id=$location_id, department_id=$department_id");
-            $id = $this->db->insert_id;
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $name = isset($_POST['name']) ? $this->db->real_escape_string($_POST['name']) : '';
+            $location_id = isset($_POST['location_id']) && !empty($_POST['location_id']) ? intval($_POST['location_id']) : 'NULL';
+            $department_id = isset($_POST['department_id']) && !empty($_POST['department_id']) ? intval($_POST['department_id']) : 'NULL';
             
-            // Mantener compatibilidad con tabla antigua location_positions
-            if($location_id !== 'NULL') {
-                $this->db->query("INSERT IGNORE INTO location_positions SET job_position_id=$id, location_id=$location_id");
+            error_log("DEBUG save_job_position: id=$id, name=$name, location_id=$location_id, department_id=$department_id");
+            
+            if (empty($name)) {
+                error_log("ERROR: Job position name is empty");
+                return 0;
             }
             
-            return 1;
-        } else {
-            // Actualizar puesto existente
-            $this->db->query("UPDATE job_positions SET name='$name', location_id=$location_id, department_id=$department_id WHERE id=$id");
-            
-            // Actualizar tabla antigua location_positions para compatibilidad
-            $exists = $this->db->query("SELECT id FROM location_positions WHERE job_position_id=$id")->num_rows;
-            if ($exists > 0) {
-                if($location_id !== 'NULL') {
-                    $this->db->query("UPDATE location_positions SET location_id=$location_id WHERE job_position_id=$id");
-                } else {
-                    $this->db->query("DELETE FROM location_positions WHERE job_position_id=$id");
+            if ($id == 0) {
+                // Crear nuevo puesto
+                $query = "INSERT INTO job_positions SET name='$name', location_id=$location_id, department_id=$department_id";
+                error_log("DEBUG: INSERT query = $query");
+                $save = $this->db->query($query);
+                
+                if(!$save) {
+                    error_log("ERROR save_job_position INSERT: " . $this->db->error);
+                    return 0;
                 }
+                
+                $id = $this->db->insert_id;
+                error_log("DEBUG: New job position ID = $id");
+                
+                // Mantener compatibilidad con tabla antigua location_positions
+                if($location_id !== 'NULL') {
+                    $compat_query = "INSERT IGNORE INTO location_positions SET job_position_id=$id, location_id=$location_id";
+                    error_log("DEBUG: Compatibility INSERT = $compat_query");
+                    $this->db->query($compat_query);
+                }
+                
+                return 1;
             } else {
-                if($location_id !== 'NULL') {
-                    $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
+                // Actualizar puesto existente
+                $query = "UPDATE job_positions SET name='$name', location_id=$location_id, department_id=$department_id WHERE id=$id";
+                error_log("DEBUG: UPDATE query = $query");
+                $update = $this->db->query($query);
+                
+                if(!$update) {
+                    error_log("ERROR save_job_position UPDATE: " . $this->db->error);
+                    return 0;
                 }
+                
+                // Actualizar tabla antigua location_positions para compatibilidad
+                $check = $this->db->query("SELECT id FROM location_positions WHERE job_position_id=$id");
+                $exists = $check ? $check->num_rows : 0;
+                
+                if ($exists > 0) {
+                    if($location_id !== 'NULL') {
+                        $this->db->query("UPDATE location_positions SET location_id=$location_id WHERE job_position_id=$id");
+                    } else {
+                        $this->db->query("DELETE FROM location_positions WHERE job_position_id=$id");
+                    }
+                } else {
+                    if($location_id !== 'NULL') {
+                        $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
+                    }
+                }
+                
+                return 2;
             }
-            
-            return 2;
+        } catch (Exception $e) {
+            error_log("EXCEPTION in save_job_position: " . $e->getMessage());
+            return 0;
         }
     }
 
