@@ -468,8 +468,14 @@ if (isset($_SESSION['login_id']))
                     body: new FormData(this)
                 });
                 
+                // Verificar si la respuesta es exitosa
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const result = await response.text();
                 console.log('Login response:', result.trim());
+                console.log('Response status:', response.status);
                 
                 if (result.trim() === '1') {
                     // Login exitoso
@@ -483,7 +489,19 @@ if (isset($_SESSION['login_id']))
                     // Login fallido
                     const alert = document.createElement('div');
                     alert.className = 'alert alert-danger';
-                    alert.textContent = 'Usuario o contraseña incorrectos';
+                    
+                    // Mensajes más específicos
+                    if (result.trim() === '2') {
+                        alert.textContent = 'Usuario no encontrado';
+                    } else if (result.trim() === '3') {
+                        alert.textContent = 'Contraseña incorrecta';
+                    } else if (result.includes('error') || result.includes('Error')) {
+                        alert.textContent = 'Error del servidor. Intenta más tarde.';
+                        console.error('Server error:', result);
+                    } else {
+                        alert.textContent = 'Usuario o contraseña incorrectos';
+                    }
+                    
                     form.insertBefore(alert, form.firstChild);
                     
                     // Auto-ocultar después de 4s

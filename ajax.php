@@ -14,9 +14,16 @@ try {
     include 'admin_class.php';
     $crud = new Action();
 } catch (Exception $e) {
+    ob_end_clean();
     error_log("ERROR initializing admin_class: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => 'Error de inicialización']);
+    echo "ERROR: " . $e->getMessage();
+    exit;
+} catch (Error $e) {
+    ob_end_clean();
+    error_log("FATAL ERROR initializing admin_class: " . $e->getMessage());
+    http_response_code(500);
+    echo "ERROR: " . $e->getMessage();
     exit;
 }
 
@@ -27,12 +34,8 @@ $action = $_REQUEST['action'] ?? '';
 // 1. LOGIN / LOGOUT
 // ===================================
 if ($action == 'login') {
-    error_log("=== AJAX LOGIN LLAMADO ===");
-    error_log("POST data: " . json_encode($_POST));
-    error_log("REQUEST data: " . json_encode($_REQUEST));
+    ob_end_clean(); // Limpiar buffer antes de responder
     $result = $crud->login();
-    error_log("Login result: $result");
-    error_log("SESSION después de login: " . json_encode($_SESSION));
     echo $result;
     exit;
 }
