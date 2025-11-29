@@ -26,7 +26,8 @@ $company_info = [
 
 $orden_mto = "HAC" . date('dmYHi');
 $fecha_reporte = date('d/m/Y');
-$ingeniero_nombre = "ING. AMALIA BACAB";
+// El nombre del ingeniero es el mismo usuario logueado que genera el reporte
+$ingeniero_nombre = $current_user_name;
 
 // === CONSULTAS ===
 $equipos_list = $conn->query("SELECT id, name FROM equipments ORDER BY name ASC");
