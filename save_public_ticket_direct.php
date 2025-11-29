@@ -34,11 +34,9 @@ try {
     }
     $equipment = $eq_query->fetch_assoc();
     
-    // Generar número de ticket
-    $ticket_number = 'PUB-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
-    
     // Crear el subject del ticket
     $subject = "Falla reportada: {$issue_type} - {$equipment['name']} (#{$equipment['number_inventory']})";
+    $subject_escaped = $conn->real_escape_string($subject);
     
     // Crear descripción completa
     $full_description = "**REPORTE PÚBLICO VÍA QR**\n\n";
@@ -49,12 +47,26 @@ try {
     if ($reporter_email) $full_description .= "**Email:** $reporter_email\n";
     if ($reporter_phone) $full_description .= "**Teléfono:** $reporter_phone\n";
     $full_description .= "\n**Descripción:**\n$description";
+    $description_escaped = htmlentities(str_replace("'", "&#x2019;", $full_description));
+    
+    // Obtener department_id del equipo si existe
+    $dept_query = $conn->query("SELECT department_id FROM equipment_delivery WHERE equipment_id = $equipment_id LIMIT 1");
+    $department_id = 0;
+    if ($dept_query && $dept_query->num_rows > 0) {
+        $dept_row = $dept_query->fetch_assoc();
+        $department_id = intval($dept_row['department_id'] ?? 0);
+    }
+    
+    // Si no hay department_id, usar uno por defecto o NULL
+    $dept_value = $department_id > 0 ? $department_id : 'NULL';
     
     // Insertar ticket
     $sql = "INSERT INTO tickets SET 
-            subject = '$subject',
-            description = '" . htmlentities(str_replace("'", "&#x2019;", $full_description)) . "',
+            subject = '$subject_escaped',
+            description = '$description_escaped',
             status = 0,
+            customer_id = 0,
+            department_id = $dept_value,
             equipment_id = $equipment_id,
             reporter_name = '$reporter_name',
             reporter_email = '$reporter_email',

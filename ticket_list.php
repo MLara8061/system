@@ -52,7 +52,12 @@
 							<tr>
 								<td class="text-center"><?php echo $i++ ?></td>
 								<td><?php echo date("d/m/Y", strtotime($row['date_created'])) ?></td>
-								<td><?php echo ucwords($row['reporter_name'] ?? 'N/A') ?></td>
+								<td>
+									<?php echo ucwords($row['reporter_name'] ?? 'N/A') ?>
+									<?php if (isset($row['is_public']) && $row['is_public'] == 1): ?>
+										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> Público</small>
+									<?php endif; ?>
+								</td>
 								<td><strong><?php echo $row['subject'] ?></strong></td>
 								<td class="truncate"><?php echo strip_tags($desc) ?></td>
 								<td class="text-center">

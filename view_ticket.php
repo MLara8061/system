@@ -1,9 +1,27 @@
 <?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
-$qry = $conn->query("SELECT t.*,concat(c.lastname,', ',c.firstname,' ',c.middlename) as cname, d.name as dname FROM tickets t inner join customers c on c.id= t.customer_id inner join departments d on d.id = t.department_id  where  t.id = " . $_GET['id'])->fetch_array();
+// Consulta adaptada para soportar tickets públicos (sin customer_id)
+$qry = $conn->query("SELECT t.*, 
+    COALESCE(CONCAT(c.lastname,', ',c.firstname,' ',c.middlename), t.reporter_name, 'Cliente Público') as cname, 
+    COALESCE(d.name, 'Sin Departamento') as dname,
+    t.is_public,
+    t.reporter_email,
+    t.reporter_phone,
+    t.ticket_number,
+    e.name as equipment_name,
+    e.number_inventory
+FROM tickets t 
+LEFT JOIN customers c ON c.id = t.customer_id 
+LEFT JOIN departments d ON d.id = t.department_id
+LEFT JOIN equipments e ON e.id = t.equipment_id
+WHERE t.id = " . intval($_GET['id']))->fetch_array();
+
 foreach ($qry as $k => $v) {
 	$$k = $v;
 }
+
+// Variables adicionales para tickets públicos
+$is_public_ticket = isset($is_public) && $is_public == 1;
 ?>
 <style>
 	.d-list {
@@ -48,9 +66,36 @@ foreach ($qry as $k => $v) {
 		<div class="col-md-8">
 			<div class="card shadow-sm">
 				<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-					<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Detalles del Ticket</h4>
+					<h4 class="mb-0">
+						<i class="fas fa-ticket-alt"></i> Detalles del Ticket
+						<?php if ($is_public_ticket): ?>
+							<span class="badge badge-warning ml-2"><i class="fas fa-qrcode"></i> Reporte Público</span>
+						<?php endif; ?>
+					</h4>
 				</div>
 				<div class="card-body">
+					<?php if ($is_public_ticket): ?>
+					<!-- Información adicional para tickets públicos -->
+					<div class="alert alert-info mb-3">
+						<h6 class="mb-2"><i class="fas fa-info-circle"></i> Ticket Público</h6>
+						<p class="mb-1"><strong>N° Ticket:</strong> <?php echo htmlspecialchars($ticket_number ?? 'N/A'); ?></p>
+						<?php if (!empty($equipment_name)): ?>
+						<p class="mb-1"><strong>Equipo:</strong> <?php echo htmlspecialchars($equipment_name); ?> 
+							<?php if (!empty($number_inventory)): ?>
+								(#<?php echo htmlspecialchars($number_inventory); ?>)
+							<?php endif; ?>
+						</p>
+						<?php endif; ?>
+						<p class="mb-1"><strong>Reportado por:</strong> <?php echo htmlspecialchars($cname); ?></p>
+						<?php if (!empty($reporter_email)): ?>
+						<p class="mb-1"><strong>Email:</strong> <?php echo htmlspecialchars($reporter_email); ?></p>
+						<?php endif; ?>
+						<?php if (!empty($reporter_phone)): ?>
+						<p class="mb-0"><strong>Teléfono:</strong> <?php echo htmlspecialchars($reporter_phone); ?></p>
+						<?php endif; ?>
+					</div>
+					<?php endif; ?>
+					
 					<div class="container-fluid">
 						<div class="row">
 							<div class="col-md-6">
