@@ -463,7 +463,7 @@ if (isset($_SESSION['login_id']))
             }
 
             try {
-                const response = await fetch('ajax.php?action=login', {
+                const response = await fetch('ajax_login.php', {
                     method: 'POST',
                     body: new FormData(this)
                 });
