@@ -3,7 +3,7 @@
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) {
-    echo "<script>alert('ID inválido'); window.location='index.php?page=accesories_list';</script>";
+    echo "<script>alert('ID inválido'); window.location='index.php?page=accessories_list';</script>";
     exit;
 }
 
@@ -15,8 +15,8 @@ if (!$qry) {
          <p>" . $conn->error . "</p>
          </div></div>");
 }
-if ($qry->num_rows == 0) {
-    echo "<script>alert('Accesorio no encontrado'); window.location='index.php?page=accesories_list';</script>";
+if ($qry->num_rows === 0) {
+    echo "<script>alert('Accesorio no encontrado'); window.location='index.php?page=accessories_list';</script>";
     exit;
 }
 $acc = $qry->fetch_assoc();
@@ -309,7 +309,7 @@ $acc = $qry->fetch_assoc();
                     resp = resp.trim();
                     if (resp === '1') {
                         alert_toast('Accesorio actualizado', 'success');
-                        setTimeout(() => location.href = 'index.php?page=accesories_list', 1500);
+                        setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                     } else {
                         alert_toast('Error: ' + resp, 'error');
                     }

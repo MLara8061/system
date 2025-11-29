@@ -229,7 +229,7 @@ $siguiente_inventario = $row['Auto_increment'];
                 resp = resp.trim();
                 if (resp == '1') {
                     alert_toast('Guardado', 'success');
-                    setTimeout(() => location.href = 'index.php?page=accesories_list', 1500);
+                    setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
