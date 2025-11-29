@@ -1,7 +1,19 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // No mostrar errores al usuario
+ini_set('log_errors', 1);
+
 ob_start();
-include 'admin_class.php';
-$crud = new Action();
+
+try {
+    include 'admin_class.php';
+    $crud = new Action();
+} catch (Exception $e) {
+    error_log("ERROR initializing admin_class: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Error de inicialización']);
+    exit;
+}
 
 // === OBTENER ACCIÓN DE FORMA SEGURA ===
 $action = $_REQUEST['action'] ?? '';
@@ -377,35 +389,50 @@ if ($action == 'get_job_positions_by_location') {
 }
 
 if ($action == 'get_locations_by_department') {
-    $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
+    error_log("DEBUG get_locations_by_department: Called");
     
-    if ($department_id > 0) {
-        // Obtener ubicaciones que pertenecen al departamento
-        $qry = $conn->query("SELECT l.id, l.name 
-                             FROM locations l 
-                             WHERE l.department_id = $department_id 
-                             ORDER BY l.name ASC");
-        $locations = [];
+    try {
+        $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
+        error_log("DEBUG: department_id = $department_id");
         
-        if($qry) {
-            while ($row = $qry->fetch_assoc()) {
-                $locations[] = $row;
+        if ($department_id > 0) {
+            // Obtener ubicaciones que pertenecen al departamento
+            $query = "SELECT l.id, l.name 
+                     FROM locations l 
+                     WHERE l.department_id = $department_id 
+                     ORDER BY l.name ASC";
+            error_log("DEBUG: Query = $query");
+            
+            $qry = $conn->query($query);
+            $locations = [];
+            
+            if($qry) {
+                while ($row = $qry->fetch_assoc()) {
+                    $locations[] = $row;
+                }
+                error_log("DEBUG: Found " . count($locations) . " locations");
+            } else {
+                error_log("ERROR: Query failed: " . $conn->error);
             }
-        }
-        
-        echo json_encode($locations);
-    } else {
-        // Si no hay departamento, devolver todas las ubicaciones
-        $qry = $conn->query("SELECT id, name FROM locations ORDER BY name ASC");
-        $locations = [];
-        
-        if($qry) {
-            while ($row = $qry->fetch_assoc()) {
-                $locations[] = $row;
+            
+            echo json_encode($locations);
+        } else {
+            error_log("DEBUG: No department_id, returning all locations");
+            // Si no hay departamento, devolver todas las ubicaciones
+            $qry = $conn->query("SELECT id, name FROM locations ORDER BY name ASC");
+            $locations = [];
+            
+            if($qry) {
+                while ($row = $qry->fetch_assoc()) {
+                    $locations[] = $row;
+                }
             }
+            
+            echo json_encode($locations);
         }
-        
-        echo json_encode($locations);
+    } catch (Exception $e) {
+        error_log("EXCEPTION in get_locations_by_department: " . $e->getMessage());
+        echo json_encode(['error' => $e->getMessage()]);
     }
     exit;
 }
