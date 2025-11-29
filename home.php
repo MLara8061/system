@@ -5,7 +5,7 @@
 require_once 'config/config.php';
 
 // Total de Equipos
-$result = $conn->query("SELECT COUNT(*) AS total FROM equipments");
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL");
 $total_equipos = 0;
 if ($result) {
     $row = $result->fetch_assoc();
@@ -30,7 +30,7 @@ if ($result) {
 
 // Valor Total de Equipos
 $valor_total_equipos = 0;
-$result = $conn->query("SELECT SUM(amount) AS total FROM equipments");
+$result = $conn->query("SELECT SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL");
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_equipos = $row && $row['total'] ? $row['total'] : 0;
@@ -304,7 +304,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                       </thead>
                       <tbody>
                         <?php
-                        $recent = $conn->query("SELECT e.*, COALESCE(s.empresa, 'Sin Proveedor') as supplier FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id ORDER BY e.date_created DESC LIMIT 7");
+                        $recent = $conn->query("SELECT e.*, COALESCE(s.empresa, 'Sin Proveedor') as supplier FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL ORDER BY e.date_created DESC LIMIT 7");
                         while ($eq = $recent->fetch_assoc()):
                         ?>
                         <tr>
@@ -363,7 +363,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                 <div class="card-footer p-0">
                   <ul class="nav nav-pills flex-column">
                     <?php
-                    $top_suppliers = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt, ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM equipments), 1) as pct FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id GROUP BY supplier ORDER BY cnt DESC LIMIT 3");
+                    $top_suppliers = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt, ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM equipments e2 LEFT JOIN equipment_unsubscribe u2 ON e2.id = u2.equipment_id WHERE u2.id IS NULL), 1) as pct FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL GROUP BY supplier ORDER BY cnt DESC LIMIT 3");
                     while ($sup = $top_suppliers->fetch_assoc()):
                     ?>
                     <li class="nav-item">
@@ -452,7 +452,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     $sums = array_fill(0, 12, 0);
 
     $start_date = date('Y-m-01', strtotime('-11 months'));
-    $qry = $conn->query("SELECT DATE_FORMAT(date_created, '%Y-%m') AS ym, COUNT(*) AS cnt, SUM(amount) AS total FROM equipments WHERE date_created >= '" . $conn->real_escape_string($start_date) . "' GROUP BY ym ORDER BY ym ASC");
+    $qry = $conn->query("SELECT DATE_FORMAT(e.date_created, '%Y-%m') AS ym, COUNT(*) AS cnt, SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.date_created >= '" . $conn->real_escape_string($start_date) . "' GROUP BY ym ORDER BY ym ASC");
     $map = [];
     while ($r = $qry->fetch_assoc()) {
         $map[$r['ym']] = $r;
@@ -470,7 +470,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     // Pie chart: distribución por proveedor (top 6)
     $pie_labels = [];
     $pie_values = [];
-    $pq = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id GROUP BY supplier ORDER BY cnt DESC LIMIT 6");
+    $pq = $conn->query("SELECT COALESCE(s.empresa, 'Sin Proveedor') as supplier, COUNT(*) as cnt FROM equipments e LEFT JOIN suppliers s ON e.supplier_id = s.id LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL GROUP BY supplier ORDER BY cnt DESC LIMIT 6");
     while ($p = $pq->fetch_assoc()) {
         $pie_labels[] = $p['supplier'];
         $pie_values[] = (int)$p['cnt'];

@@ -2,10 +2,10 @@
 
 <?php
 // Datos para las tarjetas
-$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments")->fetch_assoc()['total'];
-$costo_total = $conn->query("SELECT SUM(amount) as total FROM equipments")->fetch_assoc()['total'];
-$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1")->fetch_assoc()['total'];
-$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2")->fetch_assoc()['total'];
+$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL")->fetch_assoc()['total'];
+$costo_total = $conn->query("SELECT SUM(e.amount) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL")->fetch_assoc()['total'];
+$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 1")->fetch_assoc()['total'];
+$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 2")->fetch_assoc()['total'];
 ?>
 
 <!-- Tarjetas de resumen de Equipos -->
@@ -138,6 +138,8 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id 
                         LEFT JOIN maintenance_periods mp ON e.mandate_period_id = mp.id
+                        LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
+                        WHERE u.id IS NULL
                         ORDER BY e.id DESC
                     ");
                     while ($row = $qry->fetch_assoc()) :
@@ -316,9 +318,9 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mand
                 <div class="col-sm-6 text-right">
                     <small class="text-muted">
                         Con revisión:
-                        <span class="badge badge-success"><?php echo $conn->query("SELECT * FROM equipments WHERE revision = 1")->num_rows; ?></span>
+                        <span class="badge badge-success"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 1")->num_rows; ?></span>
                         Sin revisión:
-                        <span class="badge badge-warning"><?php echo $conn->query("SELECT * FROM equipments WHERE revision = 0")->num_rows; ?></span>
+                        <span class="badge badge-warning"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 0")->num_rows; ?></span>
                     </small>
                 </div>
             </div>
