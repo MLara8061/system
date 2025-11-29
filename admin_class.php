@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 ini_set('display_errors', 1);
 
 class Action {
@@ -73,11 +75,6 @@ class Action {
     }
 
     function logout() {
-        // Iniciar sesión si no está iniciada
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-        
         // Limpiar variables de sesión
         $_SESSION = array();
         
@@ -93,8 +90,9 @@ class Action {
         // Destruir la sesión
         session_destroy();
         
-        // Redirigir
-        exit(header("location:login.php"));
+        // Redirigir sin usar exit(header()) para permitir que ajax.php maneje la respuesta
+        header("location:login.php");
+        return 1;
     }
 
     // ================== USUARIOS ==================

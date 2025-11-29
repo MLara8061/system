@@ -33,7 +33,7 @@ if ($action == 'login') {
 }
 
 if ($action == 'logout') {
-    echo $crud->logout();
+    $crud->logout();
     exit;
 }
 

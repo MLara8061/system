@@ -73,7 +73,7 @@
              style="font-size: 0.75rem; border-radius: 6px;">
             <i class="fas fa-user-cog mr-1" style="font-size: 0.8rem;"></i> Mi Perfil
           </a>
-          <a href="ajax.php?action=logout" class="btn btn-outline-primary btn-xs px-3 py-1 d-flex align-items-center"
+          <a href="logout.php" class="btn btn-outline-primary btn-xs px-3 py-1 d-flex align-items-center"
              style="font-size: 0.75rem; border-radius: 6px;">
             <i class="fas fa-sign-out-alt mr-1" style="font-size: 0.8rem;"></i> Cerrar
           </a>
