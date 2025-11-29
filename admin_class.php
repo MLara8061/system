@@ -27,6 +27,9 @@ class Action {
     {
         extract($_POST);
         
+        // Escapar entrada para prevenir SQL injection
+        $username = $this->db->real_escape_string($username);
+        
         // Buscar usuario por username solamente
         $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
 
@@ -45,7 +48,7 @@ class Action {
             }
             
             if (!$password_valid) {
-                return 2; // Contraseña incorrecta
+                return 3; // Contraseña incorrecta
             }
             
             // Establecer sesión sin validar type (detección automática)
@@ -70,13 +73,28 @@ class Action {
     }
 
     function logout() {
-        // Limpiar variables de sesión primero
-        foreach ($_SESSION as $key => $value) {
-            unset($_SESSION[$key]);
+        // Iniciar sesión si no está iniciada
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
         }
-        // Luego destruir la sesión
+        
+        // Limpiar variables de sesión
+        $_SESSION = array();
+        
+        // Si se desea destruir la sesión completamente, borrar también la cookie de sesión
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        
+        // Destruir la sesión
         session_destroy();
-        header("location:login.php");
+        
+        // Redirigir
+        exit(header("location:login.php"));
     }
 
     // ================== USUARIOS ==================
