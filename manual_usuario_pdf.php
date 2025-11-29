@@ -923,8 +923,8 @@ $manual = [
             }
             
             ul, ol {
-                margin: 12px 0 12px 10px;
-                padding-left: 30px;
+                margin: 12px 0 12px 5px;
+                padding-left: 35px;
             }
         }
         
