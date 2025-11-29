@@ -70,10 +70,12 @@ class Action {
     }
 
     function logout() {
-        session_destroy();
+        // Limpiar variables de sesión primero
         foreach ($_SESSION as $key => $value) {
             unset($_SESSION[$key]);
         }
+        // Luego destruir la sesión
+        session_destroy();
         header("location:login.php");
     }
 
