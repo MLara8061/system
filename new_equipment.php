@@ -328,31 +328,40 @@ $next_inventory = $row['Auto_increment'];
             var location_id = $(this).val();
             var $responsiblePosition = $('#responsible_position');
             
+            console.log('Location changed:', location_id);
+            
             // Limpiar y deshabilitar select de cargo
             $responsiblePosition.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
             
             if(location_id){
+                console.log('Making AJAX request with location_id:', location_id);
                 $.ajax({
                     url: 'ajax.php?action=get_job_positions_by_location',
                     method: 'POST',
                     data: { location_id: location_id },
                     dataType: 'json',
                     success: function(positions){
+                        console.log('AJAX Success. Received positions:', positions);
                         $responsiblePosition.empty().append('<option value="">Seleccionar cargo</option>');
                         if(positions.length > 0){
                             $.each(positions, function(index, position){
+                                console.log('Adding position:', position);
                                 $responsiblePosition.append('<option value="'+ position.id +'">'+ position.name.toUpperCase() +'</option>');
                             });
                             $responsiblePosition.prop('disabled', false);
                         } else {
+                            console.log('No positions found for this location');
                             $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
                         }
                     },
-                    error: function(){
+                    error: function(xhr, status, error){
+                        console.error('AJAX Error:', status, error);
+                        console.error('Response:', xhr.responseText);
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
                     }
                 });
             } else {
+                console.log('No location selected');
                 $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>');
             }
         });

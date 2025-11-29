@@ -327,19 +327,34 @@ if ($action == 'delete_job_position') {
 }
 
 if ($action == 'get_job_positions_by_location') {
+    error_log("DEBUG: get_job_positions_by_location called");
     $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
+    error_log("DEBUG: location_id = " . $location_id);
+    
     if ($location_id > 0) {
-        $qry = $conn->query("SELECT j.id, j.name 
-                             FROM job_positions j 
-                             INNER JOIN location_positions lp ON lp.job_position_id = j.id 
-                             WHERE lp.location_id = $location_id 
-                             ORDER BY j.name ASC");
+        $query = "SELECT j.id, j.name 
+                  FROM job_positions j 
+                  INNER JOIN location_positions lp ON lp.job_position_id = j.id 
+                  WHERE lp.location_id = $location_id 
+                  ORDER BY j.name ASC";
+        error_log("DEBUG: Query = " . $query);
+        
+        $qry = $conn->query($query);
         $positions = [];
-        while ($row = $qry->fetch_assoc()) {
-            $positions[] = $row;
+        
+        if($qry) {
+            error_log("DEBUG: Query executed successfully, rows = " . $qry->num_rows);
+            while ($row = $qry->fetch_assoc()) {
+                $positions[] = $row;
+            }
+        } else {
+            error_log("DEBUG: Query error = " . $conn->error);
         }
+        
+        error_log("DEBUG: Returning " . count($positions) . " positions");
         echo json_encode($positions);
     } else {
+        error_log("DEBUG: location_id is 0 or invalid");
         echo json_encode([]);
     }
     exit;
