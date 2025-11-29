@@ -174,6 +174,8 @@ $model = $unsubscribe['model'] ?? '';
 $serie = $unsubscribe['serie'] ?? '';
 $discipline = $unsubscribe['discipline'] ?? '';
 $amount = $unsubscribe['amount'] ?? '';
+// Formatear valor como moneda
+$amount_formatted = ($amount !== '' && is_numeric($amount)) ? '$' . number_format((float)$amount, 2, '.', ',') : 'No especificado';
 $imagePath = $unsubscribe['image'] ?? '';
 $imageData = '';
 if (!empty($imagePath) && file_exists($imagePath)) {
@@ -374,7 +376,7 @@ $updatedAt = !empty($unsubscribe['updated_at']) ? date('d/m/Y H:i', strtotime($u
                         </tr>
                         <tr>
                             <td class="label">Valor referencial</td>
-                            <td><?= htmlspecialchars($amount !== '' ? $amount : 'No especificado') ?></td>
+                            <td><?= htmlspecialchars($amount_formatted) ?></td>
                         </tr>
                         <tr>
                             <td class="label">Fecha de alta</td>

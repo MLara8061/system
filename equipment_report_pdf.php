@@ -66,6 +66,11 @@ if (!empty($equipment['mandate_period_id'])) {
 }
 $characteristics = $equipment['characteristics'] ?? '';
 
+// Formatear valor como moneda
+$amount_formatted = (isset($equipment['amount']) && $equipment['amount'] !== '' && is_numeric($equipment['amount'])) 
+    ? '$' . number_format((float)$equipment['amount'], 2, '.', ',') 
+    : '—';
+
 $dateCreated = !empty($equipment['date_created']) ? date('d/m/Y', strtotime($equipment['date_created'])) : '—';
 $dateTraining = !empty($delivery['date_training']) ? date('d/m/Y', strtotime($delivery['date_training'])) : '—';
 
@@ -257,7 +262,7 @@ $generatedAt = date('d/m/Y H:i');
         <table>
             <tr><th>Características</th><td><?= nl2br(htmlspecialchars($characteristics)) ?: '—' ?></td></tr>
             <tr><th>Proveedor</th><td><?= htmlspecialchars($supplierName) ?></td></tr>
-            <tr><th>Valor</th><td><?= htmlspecialchars($equipment['amount'] ?? '—') ?></td></tr>
+            <tr><th>Valor</th><td><?= htmlspecialchars($amount_formatted) ?></td></tr>
             <tr><th>Disciplina</th><td><?= htmlspecialchars($equipment['discipline'] ?? '—') ?></td></tr>
             <tr><th>Tipo de adquisición</th><td><?= htmlspecialchars($acquisitionName) ?></td></tr>
             <tr><th>Periodo de mantenimiento</th><td><?= htmlspecialchars($maintenancePeriod) ?></td></tr>

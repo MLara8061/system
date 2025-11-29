@@ -15,6 +15,11 @@ if (!$qry || $qry->num_rows === 0) {
 }
 $eq = $qry->fetch_assoc();
 
+// Formatear el valor como moneda
+$amount_formatted = (isset($eq['amount']) && $eq['amount'] !== '' && is_numeric($eq['amount'])) 
+    ? '$' . number_format((float)$eq['amount'], 2, '.', ',') 
+    : '';
+
 if (!function_exists('equipment_file_exists')) {
     function equipment_file_exists($path)
     {
@@ -178,7 +183,7 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="text-muted small">Valor</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($eq['amount']) ?>" readonly disabled>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($amount_formatted) ?>" readonly disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small">Categoría</label>
