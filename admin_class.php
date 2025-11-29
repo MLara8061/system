@@ -280,41 +280,60 @@ class Action {
 
     // ================== DEPARTAMENTOS ==================
     function save_department() {
-        extract($_POST);
+        // No usar extract() para evitar conflictos
+        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        $name = isset($_POST['name']) ? $this->db->real_escape_string($_POST['name']) : '';
+        $locations = isset($_POST['locations']) ? $_POST['locations'] : [];
+        $positions = isset($_POST['positions']) ? $_POST['positions'] : [];
         
         // Log para debugging
-        error_log("DEBUG save_department: POST data = " . print_r($_POST, true));
+        error_log("DEBUG save_department: id=$id, name=$name");
+        error_log("DEBUG save_department: locations = " . print_r($locations, true));
+        error_log("DEBUG save_department: positions = " . print_r($positions, true));
         
-        // Preparar datos del departamento (solo nombre, sin description ni arrays)
-        $name = $this->db->real_escape_string($name);
+        // Validar nombre
+        if(empty($name)) {
+            error_log("ERROR: Name is empty");
+            return 0;
+        }
         
         // Verificar si el nombre ya existe
-        $check = $this->db->query("SELECT * FROM departments WHERE name='$name' ".(!empty($id) ? "AND id != $id" : ''))->num_rows;
-        if ($check > 0) return 2;
+        $check = $this->db->query("SELECT * FROM departments WHERE name='$name' ".($id > 0 ? "AND id != $id" : ''))->num_rows;
+        if ($check > 0) {
+            error_log("ERROR: Department name already exists");
+            return 2;
+        }
 
         // Guardar departamento
-        if(empty($id)) {
-            $save = $this->db->query("INSERT INTO departments SET name='$name'");
+        if($id == 0) {
+            $query = "INSERT INTO departments SET name='$name'";
+            error_log("DEBUG: Executing INSERT: $query");
+            $save = $this->db->query($query);
             if(!$save) {
                 error_log("ERROR save_department INSERT: " . $this->db->error);
                 return 0;
             }
             $id = $this->db->insert_id;
+            error_log("DEBUG: New department ID = $id");
         } else {
-            $save = $this->db->query("UPDATE departments SET name='$name' WHERE id = $id");
+            $query = "UPDATE departments SET name='$name' WHERE id = $id";
+            error_log("DEBUG: Executing UPDATE: $query");
+            $save = $this->db->query($query);
             if(!$save) {
                 error_log("ERROR save_department UPDATE: " . $this->db->error);
                 return 0;
             }
         }
         
-        if($save && $id) {
+        if($save && $id > 0) {
             // Actualizar relaciones con ubicaciones
-            if(isset($locations) && is_array($locations) && count($locations) > 0) {
-                error_log("DEBUG: Processing locations: " . print_r($locations, true));
+            if(is_array($locations) && count($locations) > 0) {
+                error_log("DEBUG: Processing " . count($locations) . " locations");
                 
                 // Quitar el departamento de ubicaciones que ya no están seleccionadas
-                $update = $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
+                $query = "UPDATE locations SET department_id = NULL WHERE department_id = $id";
+                error_log("DEBUG: Clearing locations: $query");
+                $update = $this->db->query($query);
                 if(!$update) {
                     error_log("ERROR clearing locations: " . $this->db->error);
                 }
@@ -323,7 +342,9 @@ class Action {
                 foreach($locations as $location_id) {
                     $location_id = intval($location_id);
                     if($location_id > 0) {
-                        $update = $this->db->query("UPDATE locations SET department_id = $id WHERE id = $location_id");
+                        $query = "UPDATE locations SET department_id = $id WHERE id = $location_id";
+                        error_log("DEBUG: Assigning location $location_id: $query");
+                        $update = $this->db->query($query);
                         if(!$update) {
                             error_log("ERROR updating location $location_id: " . $this->db->error);
                         }
@@ -336,11 +357,13 @@ class Action {
             }
             
             // Actualizar relaciones con puestos
-            if(isset($positions) && is_array($positions) && count($positions) > 0) {
-                error_log("DEBUG: Processing positions: " . print_r($positions, true));
+            if(is_array($positions) && count($positions) > 0) {
+                error_log("DEBUG: Processing " . count($positions) . " positions");
                 
                 // Quitar el departamento de puestos que ya no están seleccionados
-                $update = $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
+                $query = "UPDATE job_positions SET department_id = NULL WHERE department_id = $id";
+                error_log("DEBUG: Clearing positions: $query");
+                $update = $this->db->query($query);
                 if(!$update) {
                     error_log("ERROR clearing positions: " . $this->db->error);
                 }
@@ -349,7 +372,9 @@ class Action {
                 foreach($positions as $position_id) {
                     $position_id = intval($position_id);
                     if($position_id > 0) {
-                        $update = $this->db->query("UPDATE job_positions SET department_id = $id WHERE id = $position_id");
+                        $query = "UPDATE job_positions SET department_id = $id WHERE id = $position_id";
+                        error_log("DEBUG: Assigning position $position_id: $query");
+                        $update = $this->db->query($query);
                         if(!$update) {
                             error_log("ERROR updating position $position_id: " . $this->db->error);
                         }
