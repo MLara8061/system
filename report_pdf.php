@@ -178,7 +178,7 @@ if (empty($parts_list)) {
         }
 
         .firma {
-            width: 48%;
+            width: 30%;
             display: inline-block;
             text-align: center;
             vertical-align: top;
@@ -344,6 +344,11 @@ if (empty($parts_list)) {
                 <div class="linea"></div>
                 <div class="nombre">RECIBE</div>
                 <div style="font-size:9px;"><?= htmlspecialchars($report['received_by']) ?: 'Nombre y firma' ?></div>
+            </div>
+            <div class="firma">
+                <div class="linea"></div>
+                <div class="nombre">ADMINISTRATIVO</div>
+                <div style="font-size:9px;"><?= htmlspecialchars($report['admin_name']) ?: 'No registrado' ?></div>
             </div>
         </div>
     </div>

@@ -4,6 +4,17 @@ date_default_timezone_set('America/Cancun');
 
 require_once 'config/config.php';
 
+// === OBTENER NOMBRE DEL USUARIO LOGUEADO ===
+$session_first = isset($_SESSION['login_firstname']) ? $_SESSION['login_firstname'] : '';
+$session_middle = isset($_SESSION['login_middlename']) ? $_SESSION['login_middlename'] : '';
+$session_last = isset($_SESSION['login_lastname']) ? $_SESSION['login_lastname'] : '';
+$session_username = isset($_SESSION['login_username']) ? $_SESSION['login_username'] : '';
+$current_user_name = trim(implode(' ', array_filter([$session_first, $session_middle, $session_last])));
+if ($current_user_name === '') {
+    $current_user_name = $session_username;
+}
+$current_user_name = $current_user_name ?: 'No registrado';
+
 // === DATOS FIJOS ===
 $company_info = [
     'company_name' => "Venta, Mantenimiento Preventivo y Correctivo de Equipo Médico",
@@ -189,6 +200,7 @@ if ($conn) {
                         <input type="hidden" name="orden_mto" value="<?= $orden_mto ?>">
                         <input type="hidden" name="fecha_reporte" value="<?= $fecha_reporte ?>">
                         <input type="hidden" name="ingeniero_nombre" value="<?= $ingeniero_nombre ?>">
+                        <input type="hidden" name="admin_name" value="<?= htmlspecialchars($current_user_name) ?>">
 
                         <!-- MEMBRETE -->
                         <div class="row mb-4">

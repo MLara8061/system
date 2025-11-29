@@ -1403,7 +1403,7 @@ class Action {
         extract($_POST); 
         $data_report = "";
         
-        $fields_to_save = ['orden_mto', 'fecha_reporte', 'cliente_nombre', 'equipo_id_select', 'tipo_servicio', 'descripcion', 'observaciones', 'status_final', 'ingeniero_nombre', 'recibe_nombre']; 
+        $fields_to_save = ['orden_mto', 'fecha_reporte', 'cliente_nombre', 'equipo_id_select', 'tipo_servicio', 'descripcion', 'observaciones', 'status_final', 'ingeniero_nombre', 'recibe_nombre', 'admin_name']; 
         
         foreach ($_POST as $k => $v) {
             if (in_array($k, $fields_to_save)) {
