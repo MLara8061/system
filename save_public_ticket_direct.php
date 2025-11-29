@@ -34,6 +34,9 @@ try {
     }
     $equipment = $eq_query->fetch_assoc();
     
+    // Generar ticket_number único
+    $ticket_number = 'TKT-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+    
     // Crear el subject del ticket
     $subject = "Falla reportada: {$issue_type} - {$equipment['name']} (#{$equipment['number_inventory']})";
     $subject_escaped = $conn->real_escape_string($subject);
