@@ -151,8 +151,8 @@ $next_inventory = $row['Auto_increment'];
                         <div class="row">
                             <div class="col-md-4">
                                 <label>Departamento</label>
-                                <select name="department_id" class="custom-select select2" form="manage_equipment" required>
-                                    <option value="">Seleccionar</option>
+                                <select name="department_id" id="department_id" class="custom-select select2" form="manage_equipment" required>
+                                    <option value="">Seleccionar departamento</option>
                                     <?php
                                     $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
                                     while ($row = $departments->fetch_assoc()): ?>
@@ -162,18 +162,13 @@ $next_inventory = $row['Auto_increment'];
                             </div>
                             <div class="col-md-4">
                                 <label>Ubicación</label>
-                                <select name="location_id" id="location_id" class="custom-select select2" form="manage_equipment" required>
-                                    <option value="">Seleccionar</option>
-                                    <?php
-                                    $locations = $conn->query("SELECT id,name FROM locations ORDER BY name ASC");
-                                    while ($row = $locations->fetch_assoc()): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
-                                    <?php endwhile; ?>
+                                <select name="location_id" id="location_id" class="custom-select select2" form="manage_equipment" required disabled>
+                                    <option value="">Seleccionar departamento primero</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label>Cargo Responsable</label>
-                                <select name="responsible_position" id="responsible_position" class="custom-select select2" form="manage_equipment">
+                                <select name="responsible_position" id="responsible_position" class="custom-select select2" form="manage_equipment" disabled>
                                     <option value="">Seleccionar ubicación primero</option>
                                 </select>
                             </div>
@@ -323,45 +318,72 @@ $next_inventory = $row['Auto_increment'];
             maximumInputLength: 0
         });
 
-        // Filtrado en cascada: Cargar cargos según ubicación seleccionada
+        // CASCADA 1: Cargar ubicaciones cuando se selecciona un departamento
+        $('#department_id').on('change', function(){
+            var department_id = $(this).val();
+            var $locationSelect = $('#location_id');
+            var $positionSelect = $('#responsible_position');
+            
+            // Limpiar y deshabilitar los selectores dependientes
+            $locationSelect.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
+            $positionSelect.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true);
+            
+            if(department_id){
+                $.ajax({
+                    url: 'ajax.php?action=get_locations_by_department',
+                    method: 'POST',
+                    data: { department_id: department_id },
+                    dataType: 'json',
+                    success: function(locations){
+                        $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
+                        if(locations.length > 0){
+                            $.each(locations, function(index, location){
+                                $locationSelect.append('<option value="'+ location.id +'">'+ location.name.toUpperCase() +'</option>');
+                            });
+                            $locationSelect.prop('disabled', false);
+                        } else {
+                            $locationSelect.append('<option value="">No hay ubicaciones en este departamento</option>');
+                        }
+                    },
+                    error: function(){
+                        $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
+                    }
+                });
+            } else {
+                $locationSelect.empty().append('<option value="">Seleccionar departamento primero</option>');
+            }
+        });
+
+        // CASCADA 2: Cargar cargos cuando se selecciona una ubicación
         $('#location_id').on('change', function(){
             var location_id = $(this).val();
             var $responsiblePosition = $('#responsible_position');
-            
-            console.log('Location changed:', location_id);
             
             // Limpiar y deshabilitar select de cargo
             $responsiblePosition.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
             
             if(location_id){
-                console.log('Making AJAX request with location_id:', location_id);
                 $.ajax({
                     url: 'ajax.php?action=get_job_positions_by_location',
                     method: 'POST',
                     data: { location_id: location_id },
                     dataType: 'json',
                     success: function(positions){
-                        console.log('AJAX Success. Received positions:', positions);
                         $responsiblePosition.empty().append('<option value="">Seleccionar cargo</option>');
                         if(positions.length > 0){
                             $.each(positions, function(index, position){
-                                console.log('Adding position:', position);
                                 $responsiblePosition.append('<option value="'+ position.id +'">'+ position.name.toUpperCase() +'</option>');
                             });
                             $responsiblePosition.prop('disabled', false);
                         } else {
-                            console.log('No positions found for this location');
                             $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
                         }
                     },
-                    error: function(xhr, status, error){
-                        console.error('AJAX Error:', status, error);
-                        console.error('Response:', xhr.responseText);
+                    error: function(){
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
                     }
                 });
             } else {
-                console.log('No location selected');
                 $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>');
             }
         });

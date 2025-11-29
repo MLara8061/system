@@ -10,22 +10,41 @@
 			<table class="table tabe-hover table-bordered" id="list">
 				<thead>
 					<tr>
-						<th>#</th>
-						<th>Nombre</th>
-						<th>Descripción</th>
-						<th>Acción</th>
+						<th class="text-center" style="width: 5%">#</th>
+						<th style="width: 25%">Nombre</th>
+						<th style="width: 30%">Ubicaciones</th>
+						<th style="width: 30%">Puestos</th>
+						<th class="text-center" style="width: 10%">Acción</th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php
 					$i = 1;
-					$qry = $conn->query("SELECT * FROM departments order by  name asc");
+					$qry = $conn->query("SELECT d.* FROM departments d ORDER BY d.name ASC");
 					while ($row = $qry->fetch_assoc()) :
+						$dept_id = $row['id'];
+						
+						// Obtener ubicaciones del departamento
+						$locations_qry = $conn->query("SELECT name FROM locations WHERE department_id = $dept_id ORDER BY name ASC");
+						$locations = [];
+						while($loc = $locations_qry->fetch_assoc()) {
+							$locations[] = $loc['name'];
+						}
+						$locations_text = !empty($locations) ? implode(', ', $locations) : '<span class="text-muted">Sin ubicaciones</span>';
+						
+						// Obtener puestos del departamento
+						$positions_qry = $conn->query("SELECT name FROM job_positions WHERE department_id = $dept_id ORDER BY name ASC");
+						$positions = [];
+						while($pos = $positions_qry->fetch_assoc()) {
+							$positions[] = $pos['name'];
+						}
+						$positions_text = !empty($positions) ? implode(', ', $positions) : '<span class="text-muted">Sin puestos</span>';
 					?>
 						<tr>
 							<th class="text-center"><?php echo $i++ ?></th>
 							<td><b><?php echo ucwords($row['name']) ?></b></td>
-							<td><b><?php echo $row['description'] ?></b></td>
+							<td><small><?php echo $locations_text ?></small></td>
+							<td><small><?php echo $positions_text ?></small></td>
 							<td class="text-center ">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
 									Acción

@@ -1,26 +1,81 @@
 <?php require_once 'config/config.php'; ?>
 <?php
+$department_id = 0;
+$name = '';
+$selected_locations = [];
+$selected_positions = [];
+
 if (isset($_GET['id'])) {
-	$qry = $conn->query("SELECT * FROM departments where id = " . $_GET['id'])->fetch_array();
-	foreach ($qry as $k => $v) {
-		$$k = $v;
+	$department_id = intval($_GET['id']);
+	$qry = $conn->query("SELECT * FROM departments WHERE id = $department_id")->fetch_array();
+	if($qry) {
+		foreach ($qry as $k => $v) {
+			$$k = $v;
+		}
+		
+		// Obtener ubicaciones asignadas
+		$loc_qry = $conn->query("SELECT id FROM locations WHERE department_id = $department_id");
+		while($loc = $loc_qry->fetch_assoc()) {
+			$selected_locations[] = $loc['id'];
+		}
+		
+		// Obtener puestos asignados
+		$pos_qry = $conn->query("SELECT id FROM job_positions WHERE department_id = $department_id");
+		while($pos = $pos_qry->fetch_assoc()) {
+			$selected_positions[] = $pos['id'];
+		}
 	}
 }
 ?>
 <div class="container-fluid">
 	<form action="" id="manage-department">
-		<input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
+		<input type="hidden" name="id" value="<?php echo $department_id ?>">
+		
 		<div class="form-group">
-			<label for="" class="control-label">Nombre</label>
-			<input type="text" class="form-control form-control-sm" name="name" value='<?php echo isset($name) ? $name : '' ?>'>
+			<label for="" class="control-label">Nombre del Departamento</label>
+			<input type="text" class="form-control form-control-sm" name="name" value='<?php echo htmlspecialchars($name) ?>' required>
 		</div>
+		
 		<div class="form-group">
-			<label for="" class="control-label">Descripción</label>
-			<textarea name="description" id="" cols="30" rows="4" class="form-control"><?php echo isset($description) ? $description : '' ?></textarea>
+			<label for="" class="control-label">Ubicaciones</label>
+			<select name="locations[]" class="form-control select2" multiple="multiple" style="width: 100%">
+				<?php
+				$locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");
+				while($row = $locations->fetch_assoc()):
+				?>
+					<option value="<?php echo $row['id'] ?>" <?php echo in_array($row['id'], $selected_locations) ? 'selected' : '' ?>>
+						<?php echo ucwords($row['name']) ?>
+					</option>
+				<?php endwhile; ?>
+			</select>
+			<small class="form-text text-muted">Selecciona las ubicaciones que pertenecen a este departamento</small>
+		</div>
+		
+		<div class="form-group">
+			<label for="" class="control-label">Puestos de Trabajo</label>
+			<select name="positions[]" class="form-control select2" multiple="multiple" style="width: 100%">
+				<?php
+				$positions = $conn->query("SELECT * FROM job_positions ORDER BY name ASC");
+				while($row = $positions->fetch_assoc()):
+				?>
+					<option value="<?php echo $row['id'] ?>" <?php echo in_array($row['id'], $selected_positions) ? 'selected' : '' ?>>
+						<?php echo ucwords($row['name']) ?>
+					</option>
+				<?php endwhile; ?>
+			</select>
+			<small class="form-text text-muted">Selecciona los puestos que pertenecen a este departamento</small>
 		</div>
 	</form>
 </div>
 <script>
+	$(function(){
+		$('.select2').select2({
+			placeholder: 'Seleccionar...',
+			allowClear: true,
+			width: '100%'
+		});
+	});
+	
 	$('#manage-department').submit(function(e) {
 		e.preventDefault()
 		$('input').removeClass("border-danger")

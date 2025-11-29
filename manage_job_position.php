@@ -2,20 +2,20 @@
 <?php
 $position_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $location_id = '';
+$department_id = '';
 
 if($position_id){
     // Obtener info del puesto
-    $qry = $conn->query("SELECT j.*, elp.location_id 
+    $qry = $conn->query("SELECT j.*, j.location_id, j.department_id 
                          FROM job_positions j 
-                         LEFT JOIN location_positions elp 
-                         ON elp.job_position_id = j.id 
                          WHERE j.id = $position_id");
     if($qry->num_rows > 0){
         $data = $qry->fetch_assoc();
         foreach($data as $k => $v){
             $$k = $v;
         }
-        $location_id = $data['location_id'];
+        $location_id = $data['location_id'] ?? '';
+        $department_id = $data['department_id'] ?? '';
     }
 }
 ?>
@@ -28,10 +28,25 @@ if($position_id){
       <label class="control-label">Nombre del Puesto</label>
       <input type="text" name="name" class="form-control" required value="<?php echo isset($name) ? $name : '' ?>">
     </div>
+    
+    <div class="form-group">
+      <label class="control-label">Departamento</label>
+      <select name="department_id" id="department_id" class="form-control">
+        <option value="">Seleccionar Departamento</option>
+        <?php
+        $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
+        while($row = $departments->fetch_assoc()):
+        ?>
+          <option value="<?php echo $row['id'] ?>" <?php echo (isset($department_id) && $department_id == $row['id']) ? 'selected' : '' ?>>
+            <?php echo ucwords($row['name']) ?>
+          </option>
+        <?php endwhile; ?>
+      </select>
+    </div>
 
     <div class="form-group">
       <label class="control-label">Ubicación</label>
-      <select name="location_id" class="form-control" required>
+      <select name="location_id" id="location_id" class="form-control" required>
         <option value="">Seleccionar Ubicación</option>
         <?php
         $locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");

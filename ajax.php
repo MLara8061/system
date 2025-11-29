@@ -332,22 +332,107 @@ if ($action == 'get_job_positions_by_location') {
     error_log("DEBUG: location_id = " . $location_id);
     
     if ($location_id > 0) {
+        // Primero intentar con la nueva estructura (location_id directo en job_positions)
         $query = "SELECT j.id, j.name 
                   FROM job_positions j 
-                  INNER JOIN location_positions lp ON lp.job_position_id = j.id 
-                  WHERE lp.location_id = $location_id 
+                  WHERE j.location_id = $location_id 
                   ORDER BY j.name ASC";
-        error_log("DEBUG: Query = " . $query);
+        error_log("DEBUG: Query (new structure) = " . $query);
         
         $qry = $conn->query($query);
         $positions = [];
         
-        if($qry) {
-            error_log("DEBUG: Query executed successfully, rows = " . $qry->num_rows);
+        if($qry && $qry->num_rows > 0) {
+            error_log("DEBUG: Using new structure, rows = " . $qry->num_rows);
             while ($row = $qry->fetch_assoc()) {
                 $positions[] = $row;
             }
         } else {
+            // Fallback a estructura antigua (tabla intermedia location_positions)
+            $query = "SELECT j.id, j.name 
+                      FROM job_positions j 
+                      INNER JOIN location_positions lp ON lp.job_position_id = j.id 
+                      WHERE lp.location_id = $location_id 
+                      ORDER BY j.name ASC";
+            error_log("DEBUG: Fallback query (old structure) = " . $query);
+            
+            $qry = $conn->query($query);
+            if($qry) {
+                error_log("DEBUG: Using old structure, rows = " . $qry->num_rows);
+                while ($row = $qry->fetch_assoc()) {
+                    $positions[] = $row;
+                }
+            } else {
+                error_log("DEBUG: Query error = " . $conn->error);
+            }
+        }
+        
+        error_log("DEBUG: Returning " . count($positions) . " positions");
+        echo json_encode($positions);
+    } else {
+        error_log("DEBUG: location_id is 0 or invalid");
+        echo json_encode([]);
+    }
+    exit;
+}
+
+if ($action == 'get_locations_by_department') {
+    $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
+    
+    if ($department_id > 0) {
+        // Obtener ubicaciones que pertenecen al departamento
+        $qry = $conn->query("SELECT l.id, l.name 
+                             FROM locations l 
+                             WHERE l.department_id = $department_id 
+                             ORDER BY l.name ASC");
+        $locations = [];
+        
+        if($qry) {
+            while ($row = $qry->fetch_assoc()) {
+                $locations[] = $row;
+            }
+        }
+        
+        echo json_encode($locations);
+    } else {
+        // Si no hay departamento, devolver todas las ubicaciones
+        $qry = $conn->query("SELECT id, name FROM locations ORDER BY name ASC");
+        $locations = [];
+        
+        if($qry) {
+            while ($row = $qry->fetch_assoc()) {
+                $locations[] = $row;
+            }
+        }
+        
+        echo json_encode($locations);
+    }
+    exit;
+}
+
+if ($action == 'get_positions_by_department') {
+    $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
+    
+    if ($department_id > 0) {
+        // Obtener puestos que pertenecen al departamento
+        $qry = $conn->query("SELECT j.id, j.name 
+                             FROM job_positions j 
+                             WHERE j.department_id = $department_id 
+                             ORDER BY j.name ASC");
+        $positions = [];
+        
+        if($qry) {
+            while ($row = $qry->fetch_assoc()) {
+                $positions[] = $row;
+            }
+        }
+        
+        echo json_encode($positions);
+    } else {
+        echo json_encode([]);
+    }
+    exit;
+}
             error_log("DEBUG: Query error = " . $conn->error);
         }
         

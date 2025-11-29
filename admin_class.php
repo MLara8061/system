@@ -281,23 +281,62 @@ class Action {
     // ================== DEPARTAMENTOS ==================
     function save_department() {
         extract($_POST);
-        $data = "";
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id']) && !is_numeric($k)) {
-                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-            }
-        }
+        
+        // Preparar datos del departamento (solo nombre, sin description ni arrays)
+        $name = $this->db->real_escape_string($name);
+        
+        // Verificar si el nombre ya existe
         $check = $this->db->query("SELECT * FROM departments WHERE name='$name' ".(!empty($id) ? "AND id != $id" : ''))->num_rows;
         if ($check > 0) return 2;
 
-        $save = empty($id)
-            ? $this->db->query("INSERT INTO departments SET $data")
-            : $this->db->query("UPDATE departments SET $data WHERE id = $id");
+        // Guardar departamento
+        if(empty($id)) {
+            $save = $this->db->query("INSERT INTO departments SET name='$name'");
+            $id = $this->db->insert_id;
+        } else {
+            $save = $this->db->query("UPDATE departments SET name='$name' WHERE id = $id");
+        }
+        
+        if($save && $id) {
+            // Actualizar relaciones con ubicaciones
+            if(isset($locations) && is_array($locations)) {
+                // Quitar el departamento de ubicaciones que ya no están seleccionadas
+                $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
+                
+                // Asignar el departamento a las ubicaciones seleccionadas
+                foreach($locations as $location_id) {
+                    $location_id = intval($location_id);
+                    $this->db->query("UPDATE locations SET department_id = $id WHERE id = $location_id");
+                }
+            } else {
+                // Si no hay ubicaciones seleccionadas, quitar todas las asignaciones
+                $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
+            }
+            
+            // Actualizar relaciones con puestos
+            if(isset($positions) && is_array($positions)) {
+                // Quitar el departamento de puestos que ya no están seleccionados
+                $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
+                
+                // Asignar el departamento a los puestos seleccionados
+                foreach($positions as $position_id) {
+                    $position_id = intval($position_id);
+                    $this->db->query("UPDATE job_positions SET department_id = $id WHERE id = $position_id");
+                }
+            } else {
+                // Si no hay puestos seleccionados, quitar todas las asignaciones
+                $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
+            }
+        }
+        
         return $save ? 1 : 0;
     }
 
     function delete_department() {
         extract($_POST);
+        // Antes de eliminar, quitar las relaciones
+        $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
+        $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
         return $this->db->query("DELETE FROM departments WHERE id = $id") ? 1 : 0;
     }
 
@@ -1119,20 +1158,39 @@ class Action {
 
     function save_job_position() {
         extract($_POST);
-        $data = "name='$name'";
+        $name = $this->db->real_escape_string($name);
+        $location_id = isset($location_id) && !empty($location_id) ? intval($location_id) : 'NULL';
+        $department_id = isset($department_id) && !empty($department_id) ? intval($department_id) : 'NULL';
+        
         if (empty($id)) {
-            $save = $this->db->query("INSERT INTO job_positions SET $data");
+            // Crear nuevo puesto
+            $save = $this->db->query("INSERT INTO job_positions SET name='$name', location_id=$location_id, department_id=$department_id");
             $id = $this->db->insert_id;
-            $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
+            
+            // Mantener compatibilidad con tabla antigua location_positions
+            if($location_id !== 'NULL') {
+                $this->db->query("INSERT IGNORE INTO location_positions SET job_position_id=$id, location_id=$location_id");
+            }
+            
             return 1;
         } else {
-            $this->db->query("UPDATE job_positions SET $data WHERE id=$id");
+            // Actualizar puesto existente
+            $this->db->query("UPDATE job_positions SET name='$name', location_id=$location_id, department_id=$department_id WHERE id=$id");
+            
+            // Actualizar tabla antigua location_positions para compatibilidad
             $exists = $this->db->query("SELECT id FROM location_positions WHERE job_position_id=$id")->num_rows;
             if ($exists > 0) {
-                $this->db->query("UPDATE location_positions SET location_id=$location_id WHERE job_position_id=$id");
+                if($location_id !== 'NULL') {
+                    $this->db->query("UPDATE location_positions SET location_id=$location_id WHERE job_position_id=$id");
+                } else {
+                    $this->db->query("DELETE FROM location_positions WHERE job_position_id=$id");
+                }
             } else {
-                $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
+                if($location_id !== 'NULL') {
+                    $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
+                }
             }
+            
             return 2;
         }
     }
