@@ -105,6 +105,11 @@ if ($action == 'save_ticket') {
     exit;
 }
 
+if ($action == 'save_public_ticket') {
+    echo $crud->save_public_ticket();
+    exit;
+}
+
 if ($action == 'update_ticket') {
     echo $crud->update_ticket();
     exit;
