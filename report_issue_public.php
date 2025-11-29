@@ -1,4 +1,6 @@
 <?php
+// Evitar inicio de sesión - este es un archivo público
+session_start(); // Iniciar pero no validar
 define('ACCESS', true);
 require_once 'config/config.php';
 
@@ -172,7 +174,7 @@ $equipment = $qry->fetch_assoc();
             submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...');
             
             $.ajax({
-                url: 'ajax.php?action=save_public_ticket',
+                url: 'save_public_ticket_direct.php',
                 method: 'POST',
                 data: $(this).serialize(),
                 dataType: 'json',
