@@ -86,6 +86,21 @@ $equipment = $qry->fetch_assoc();
             color: #28a745;
             margin-bottom: 20px;
         }
+        @media (max-width: 576px) {
+            .success-message {
+                padding: 20px 15px;
+            }
+            .success-message i {
+                font-size: 40px;
+            }
+            .success-message h4 {
+                font-size: 1.25rem;
+            }
+            .success-message .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -159,9 +174,9 @@ $equipment = $qry->fetch_assoc();
             <h4 class="text-success">¡Reporte Enviado Exitosamente!</h4>
             <p class="text-muted">Tu reporte ha sido registrado. El equipo de soporte se pondrá en contacto contigo pronto.</p>
             <p><strong>Número de Ticket: <span id="ticketNumber"></span></strong></p>
-            <a href="view_equipment.php?id=<?= $equipment_id ?>" class="btn btn-secondary mt-3">
-                <i class="fas fa-arrow-left mr-2"></i>Volver
-            </a>
+            <button type="button" class="btn btn-secondary mt-3" onclick="location.reload()">
+                <i class="fas fa-plus mr-2"></i>Reportar Otra Falla
+            </button>
         </div>
     </div>
 

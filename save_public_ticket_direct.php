@@ -41,16 +41,21 @@ try {
     $subject = "Falla reportada: {$issue_type} - {$equipment['name']} (#{$equipment['number_inventory']})";
     $subject_escaped = $conn->real_escape_string($subject);
     
-    // Crear descripción completa
-    $full_description = "**REPORTE PÚBLICO VÍA QR**\n\n";
-    $full_description .= "**Equipo:** {$equipment['name']}\n";
-    $full_description .= "**N° Inventario:** {$equipment['number_inventory']}\n";
-    $full_description .= "**Tipo de Falla:** $issue_type\n\n";
-    $full_description .= "**Reportado por:** $reporter_name\n";
-    if ($reporter_email) $full_description .= "**Email:** $reporter_email\n";
-    if ($reporter_phone) $full_description .= "**Teléfono:** $reporter_phone\n";
-    $full_description .= "\n**Descripción:**\n$description";
-    $description_escaped = htmlentities(str_replace("'", "&#x2019;", $full_description));
+    // Crear descripción completa con formato HTML
+    $full_description = "<div style='background: #f8f9fa; padding: 15px; border-left: 4px solid #667eea; margin-bottom: 15px;'>";
+    $full_description .= "<p style='margin: 0; color: #6c757d; font-size: 12px;'><strong>📱 REPORTE PÚBLICO VÍA QR</strong></p>";
+    $full_description .= "</div>";
+    $full_description .= "<p><strong>🖥️ Equipo:</strong> {$equipment['name']}</p>";
+    $full_description .= "<p><strong>📋 N° Inventario:</strong> {$equipment['number_inventory']}</p>";
+    $full_description .= "<p><strong>⚠️ Tipo de Falla:</strong> $issue_type</p>";
+    $full_description .= "<hr style='margin: 15px 0; border: none; border-top: 1px solid #dee2e6;'>";
+    $full_description .= "<p><strong>👤 Reportado por:</strong> $reporter_name</p>";
+    if ($reporter_email) $full_description .= "<p><strong>📧 Email:</strong> $reporter_email</p>";
+    if ($reporter_phone) $full_description .= "<p><strong>📞 Teléfono:</strong> $reporter_phone</p>";
+    $full_description .= "<hr style='margin: 15px 0; border: none; border-top: 1px solid #dee2e6;'>";
+    $full_description .= "<p><strong>📝 Descripción de la Falla:</strong></p>";
+    $full_description .= "<p style='background: #fff3cd; padding: 10px; border-radius: 5px;'>" . nl2br(htmlspecialchars($description)) . "</p>";
+    $description_escaped = $conn->real_escape_string($full_description);
     
     // Obtener department_id del equipo si existe
     $dept_query = $conn->query("SELECT department_id FROM equipment_delivery WHERE equipment_id = $equipment_id LIMIT 1");
