@@ -1403,11 +1403,26 @@ class Action {
         extract($_POST); 
         $data_report = "";
         
-        $fields_to_save = ['orden_mto', 'fecha_reporte', 'cliente_nombre', 'equipo_id_select', 'tipo_servicio', 'descripcion', 'observaciones', 'status_final', 'ingeniero_nombre', 'recibe_nombre', 'admin_name']; 
+        // Mapeo de campos POST a columnas de BD
+        $field_mapping = [
+            'orden_mto' => 'order_number',
+            'fecha_reporte' => 'report_date',
+            'cliente_nombre' => 'client_name',
+            'equipo_id_select' => 'equipment_id',
+            'tipo_servicio' => 'service_type',
+            'descripcion' => 'description',
+            'observaciones' => 'observations',
+            'status_final' => 'final_status',
+            'ingeniero_nombre' => 'engineer_name',
+            'recibe_nombre' => 'received_by',
+            'admin_name' => 'admin_name'
+        ];
         
         foreach ($_POST as $k => $v) {
-            if (in_array($k, $fields_to_save)) {
-                $data_report .= empty($data_report) ? " $k='$v' " : ", $k='$v' ";
+            if (isset($field_mapping[$k])) {
+                $column_name = $field_mapping[$k];
+                $escaped_value = $this->db->real_escape_string($v);
+                $data_report .= empty($data_report) ? " $column_name='$escaped_value' " : ", $column_name='$escaped_value' ";
             }
         }
         
