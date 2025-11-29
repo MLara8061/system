@@ -27,50 +27,72 @@ class Action {
     // ================== LOGIN / LOGOUT ==================
     function login()
     {
-        extract($_POST);
-        
-        // Escapar entrada para prevenir SQL injection
-        $username = $this->db->real_escape_string($username);
-        
-        // Buscar usuario por username solamente
-        $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
+        try {
+            extract($_POST);
+            
+            // Verificar que existan los campos
+            if (empty($username) || empty($password)) {
+                error_log("LOGIN ERROR: username o password vacío");
+                return 2;
+            }
+            
+            // Escapar entrada para prevenir SQL injection
+            $username = $this->db->real_escape_string($username);
+            
+            // Buscar usuario por username solamente
+            $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
 
-        if ($qry->num_rows > 0) {
-            $user = $qry->fetch_array();
-            
-            // Verificar contraseña (soportar MD5 legacy y bcrypt moderno)
-            $password_valid = false;
-            
-            if (strpos($user['password'], '$2y$') === 0) {
-                // Password con bcrypt
-                $password_valid = password_verify($password, $user['password']);
-            } else {
-                // Password con MD5 (legacy)
-                $password_valid = ($user['password'] === md5($password));
+            if (!$qry) {
+                error_log("LOGIN ERROR: Query failed - " . $this->db->error);
+                return 2;
             }
-            
-            if (!$password_valid) {
-                return 3; // Contraseña incorrecta
-            }
-            
-            // Establecer sesión sin validar type (detección automática)
-            foreach ($user as $key => $value) {
-                if ($key != 'password' && !is_numeric($key)) {
-                    // Renombrar 'role' a 'type' para la sesión
-                    if ($key === 'role') {
-                        $_SESSION['login_type'] = $value;
-                    } else {
-                        $_SESSION['login_' . $key] = $value;
+
+            if ($qry->num_rows > 0) {
+                $user = $qry->fetch_array();
+                
+                // Verificar contraseña (soportar MD5 legacy y bcrypt moderno)
+                $password_valid = false;
+                
+                if (strpos($user['password'], '$2y$') === 0) {
+                    // Password con bcrypt
+                    $password_valid = password_verify($password, $user['password']);
+                } else {
+                    // Password con MD5 (legacy)
+                    $password_valid = ($user['password'] === md5($password));
+                }
+                
+                if (!$password_valid) {
+                    error_log("LOGIN ERROR: Password inválido para usuario: $username");
+                    return 3; // Contraseña incorrecta
+                }
+                
+                // Establecer sesión sin validar type (detección automática)
+                foreach ($user as $key => $value) {
+                    if ($key != 'password' && !is_numeric($key)) {
+                        // Renombrar 'role' a 'type' para la sesión
+                        if ($key === 'role') {
+                            $_SESSION['login_type'] = $value;
+                        } else {
+                            $_SESSION['login_' . $key] = $value;
+                        }
                     }
                 }
+
+                $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
+
+                // Log activity solo si login_id existe
+                if (isset($_SESSION['login_id'])) {
+                    $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
+                }
+                
+                return 1;
+            } else {
+                error_log("LOGIN ERROR: Usuario no encontrado: $username");
+                return 2; // Usuario no encontrado
             }
-
-            $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
-
-            $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
-            return 1;
-        } else {
-            return 2; // Usuario no encontrado
+        } catch (Exception $e) {
+            error_log("LOGIN EXCEPTION: " . $e->getMessage());
+            return 2;
         }
     }
 

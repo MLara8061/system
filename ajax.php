@@ -3,6 +3,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // No mostrar errores al usuario
 ini_set('log_errors', 1);
 
+// Asegurar que la sesión esté iniciada antes de incluir admin_class
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 ob_start();
 
 try {
