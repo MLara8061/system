@@ -19,7 +19,8 @@ try {
     require_once 'config/config.php';
     if ($conn) {
         echo "✓ Conexión a BD establecida<br>";
-        echo "Base de datos: " . DB_NAME . "<br>";
+        $db_name = $conn->query("SELECT DATABASE() as db")->fetch_assoc()['db'];
+        echo "Base de datos: " . $db_name . "<br>";
     } else {
         echo "✗ Error de conexión<br>";
     }
