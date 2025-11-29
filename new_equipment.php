@@ -330,7 +330,7 @@ $next_inventory = $row['Auto_increment'];
             
             if(department_id){
                 $.ajax({
-                    url: 'ajax.php?action=get_locations_by_department',
+                    url: 'ajax_simple.php?action=get_locations_by_department',
                     method: 'POST',
                     data: { department_id: department_id },
                     dataType: 'json',
@@ -364,7 +364,7 @@ $next_inventory = $row['Auto_increment'];
             
             if(location_id){
                 $.ajax({
-                    url: 'ajax.php?action=get_job_positions_by_location',
+                    url: 'ajax_simple.php?action=get_job_positions_by_location',
                     method: 'POST',
                     data: { location_id: location_id },
                     dataType: 'json',

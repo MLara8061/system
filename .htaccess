@@ -16,7 +16,7 @@
 </FilesMatch>
 
 # Permitir acceso a archivos públicos y modales
-<FilesMatch "^(index|login|ajax|manage_user_modal|manage_comment|manage_ticket|manage_category|manage_department|manage_equipment_location|manage_inventory|manage_job_position|manage_services|generate_qr|generate_pdf|equipment_report_pdf|equipment_unsubscribe_pdf|equipment_unsubscribe_report|print_label|report_pdf|export_equipment|export_suppliers|equipment_public|view_equipment|view_inventory|view_ticket|admin_class|generate_excel_template|download_template|debug_unsubscribe|manual_usuario_pdf|descargar_manual|test_relations|check_structure|run_migration|test_save_department|assign_relations|test_cascada)\.php$">
+<FilesMatch "^(index|login|ajax|ajax_simple|manage_user_modal|manage_comment|manage_ticket|manage_category|manage_department|manage_equipment_location|manage_inventory|manage_job_position|manage_services|generate_qr|generate_pdf|equipment_report_pdf|equipment_unsubscribe_pdf|equipment_unsubscribe_report|print_label|report_pdf|export_equipment|export_suppliers|equipment_public|view_equipment|view_inventory|view_ticket|admin_class|generate_excel_template|download_template|debug_unsubscribe|manual_usuario_pdf|descargar_manual|test_relations|check_structure|run_migration|test_save_department|assign_relations|test_cascada)\.php$">
   Require all granted
 </FilesMatch>
 
