@@ -320,7 +320,13 @@ $next_inventory = $row['Auto_increment'];
     });
 
     $(function(){
-        $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
+        $('.select2').select2({ 
+            width: '100%', 
+            placeholder: 'Seleccionar', 
+            allowClear: true,
+            dropdownAutoWidth: true,
+            maximumInputLength: 0
+        });
     });
 
     $('#manage_equipment').submit(function(e){

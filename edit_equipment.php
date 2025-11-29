@@ -510,7 +510,13 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
     });
 
     $(function(){
-        $('.select2').select2({ width: '100%', placeholder: 'Seleccionar', allowClear: true });
+        $('.select2').select2({ 
+            width: '100%', 
+            placeholder: 'Seleccionar', 
+            allowClear: true,
+            dropdownAutoWidth: true,
+            maximumInputLength: 0
+        });
         
         // Eliminar imagen de equipo
         $('#remove-equipment-image').click(function() {

@@ -1107,14 +1107,14 @@ class Action {
             if ($k != 'id') $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
         }
         $save = empty($id)
-            ? $this->db->query("INSERT INTO equipment_locations SET $data")
-            : $this->db->query("UPDATE equipment_locations SET $data WHERE id = $id");
+            ? $this->db->query("INSERT INTO locations SET $data")
+            : $this->db->query("UPDATE locations SET $data WHERE id = $id");
         return $save ? (empty($id) ? 1 : 2) : 0;
     }
 
     function delete_equipment_location() {
         extract($_POST);
-        return $this->db->query("DELETE FROM equipment_locations WHERE id = $id") ? 1 : 0;
+        return $this->db->query("DELETE FROM locations WHERE id = $id") ? 1 : 0;
     }
 
     function save_job_position() {
@@ -1123,15 +1123,15 @@ class Action {
         if (empty($id)) {
             $save = $this->db->query("INSERT INTO job_positions SET $data");
             $id = $this->db->insert_id;
-            $this->db->query("INSERT INTO equipment_location_positions SET job_position_id=$id, location_id=$location_id");
+            $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
             return 1;
         } else {
             $this->db->query("UPDATE job_positions SET $data WHERE id=$id");
-            $exists = $this->db->query("SELECT id FROM equipment_location_positions WHERE job_position_id=$id")->num_rows;
+            $exists = $this->db->query("SELECT id FROM location_positions WHERE job_position_id=$id")->num_rows;
             if ($exists > 0) {
-                $this->db->query("UPDATE equipment_location_positions SET location_id=$location_id WHERE job_position_id=$id");
+                $this->db->query("UPDATE location_positions SET location_id=$location_id WHERE job_position_id=$id");
             } else {
-                $this->db->query("INSERT INTO equipment_location_positions SET job_position_id=$id, location_id=$location_id");
+                $this->db->query("INSERT INTO location_positions SET job_position_id=$id, location_id=$location_id");
             }
             return 2;
         }
@@ -1140,7 +1140,7 @@ class Action {
     function delete_job_position() {
         extract($_POST);
         if (empty($id) || !is_numeric($id)) return 2;
-        $this->db->query("DELETE FROM equipment_location_positions WHERE job_position_id=$id");
+        $this->db->query("DELETE FROM location_positions WHERE job_position_id=$id");
         return $this->db->query("DELETE FROM job_positions WHERE id=$id") ? 1 : 2;
     }
 

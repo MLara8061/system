@@ -1,7 +1,7 @@
 <?php require_once 'config/config.php'; ?>
 <?php
 if(isset($_GET['id'])){
-  $qry = $conn->query("SELECT * FROM equipment_locations WHERE id=".$_GET['id']);
+  $qry = $conn->query("SELECT * FROM locations WHERE id=".$_GET['id']);
   foreach($qry->fetch_assoc() as $k => $v){
     $$k = $v;
   }
