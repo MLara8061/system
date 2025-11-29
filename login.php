@@ -14,6 +14,9 @@ if (isset($_SESSION['login_id']))
     <meta http-equiv="Expires" content="0">
     <title>Acceder | Sistema de Activos</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
