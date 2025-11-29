@@ -93,7 +93,7 @@ if (isset($_GET['id'])) {
 		}
 		
 		$.ajax({
-			url: 'ajax.php?action=save_department',
+			url: 'ajax_simple.php?action=save_department',
 			data: formData,
 			cache: false,
 			contentType: false,
