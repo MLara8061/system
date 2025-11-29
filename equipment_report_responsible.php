@@ -10,7 +10,7 @@ foreach ($qry as $k => $v) {
     $$k = $v;
 }
 
-$qry = $conn->query("SELECT d.*,p.name as responsible_position_name,l.name as location_name from equipment_delivery d inner join `responsible_positions` p on d.`responsible_position`=p.`id` inner join locations l on d.`location_id`=l.id  where equipment_id = " . $_GET['id'])->fetch_array();
+$qry = $conn->query("SELECT d.*,p.name as responsible_position_name,l.name as location_name from equipment_delivery d inner join `job_positions` p on d.`responsible_position`=p.`id` inner join locations l on d.`location_id`=l.id  where equipment_id = " . $_GET['id'])->fetch_array();
 foreach ($qry as $k => $v) {
     $$k = $v;
 }

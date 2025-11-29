@@ -1415,7 +1415,7 @@ class Action {
                 $position_id = 'NULL';
                 if (!empty($position_name)) {
                     $pos_escaped = $this->db->real_escape_string($position_name);
-                    $pos_query = $this->db->query("SELECT id FROM responsible_positions WHERE name LIKE '%$pos_escaped%' LIMIT 1");
+                    $pos_query = $this->db->query("SELECT id FROM job_positions WHERE name LIKE '%$pos_escaped%' LIMIT 1");
                     if ($pos_query && $pos_query->num_rows > 0) {
                         $position_id = $pos_query->fetch_assoc()['id'];
                     }

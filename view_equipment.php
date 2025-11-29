@@ -97,7 +97,7 @@ if (!empty($delivery['location_id'])) {
 
 $positionName = 'N/A';
 if (!empty($delivery['responsible_position'])) {
-    $positionRes = $conn->query('SELECT name FROM responsible_positions WHERE id = ' . (int)$delivery['responsible_position']);
+    $positionRes = $conn->query('SELECT name FROM job_positions WHERE id = ' . (int)$delivery['responsible_position']);
     if ($positionRes && $positionRes->num_rows > 0) {
         $positionName = $positionRes->fetch_assoc()['name'];
     }

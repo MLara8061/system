@@ -154,7 +154,7 @@ try {
 
     // Obtener cargos de responsables
     $cargos = [];
-    $query_cargos = $conn->query("SELECT name FROM responsible_positions ORDER BY name ASC");
+    $query_cargos = $conn->query("SELECT name FROM job_positions ORDER BY name ASC");
     if ($query_cargos) {
         while ($row = $query_cargos->fetch_assoc()) {
             $cargos[] = $row['name'];

@@ -326,6 +326,25 @@ if ($action == 'delete_job_position') {
     exit;
 }
 
+if ($action == 'get_job_positions_by_location') {
+    $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
+    if ($location_id > 0) {
+        $qry = $conn->query("SELECT j.id, j.name 
+                             FROM job_positions j 
+                             INNER JOIN location_positions lp ON lp.job_position_id = j.id 
+                             WHERE lp.location_id = $location_id 
+                             ORDER BY j.name ASC");
+        $positions = [];
+        while ($row = $qry->fetch_assoc()) {
+            $positions[] = $row;
+        }
+        echo json_encode($positions);
+    } else {
+        echo json_encode([]);
+    }
+    exit;
+}
+
 // ===================================
 // 13. INVENTARIO
 // ===================================

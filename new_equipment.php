@@ -162,7 +162,7 @@ $next_inventory = $row['Auto_increment'];
                             </div>
                             <div class="col-md-4">
                                 <label>Ubicación</label>
-                                <select name="location_id" class="custom-select select2" form="manage_equipment" required>
+                                <select name="location_id" id="location_id" class="custom-select select2" form="manage_equipment" required>
                                     <option value="">Seleccionar</option>
                                     <?php
                                     $locations = $conn->query("SELECT id,name FROM locations ORDER BY name ASC");
@@ -173,13 +173,8 @@ $next_inventory = $row['Auto_increment'];
                             </div>
                             <div class="col-md-4">
                                 <label>Cargo Responsable</label>
-                                <select name="responsible_position" class="custom-select select2" form="manage_equipment">
-                                    <option value="">Seleccionar</option>
-                                    <?php
-                                    $positions = $conn->query("SELECT * FROM responsible_positions ORDER BY name ASC");
-                                    while ($row = $positions->fetch_assoc()): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
-                                    <?php endwhile; ?>
+                                <select name="responsible_position" id="responsible_position" class="custom-select select2" form="manage_equipment">
+                                    <option value="">Seleccionar ubicación primero</option>
                                 </select>
                             </div>
                         </div>
@@ -326,6 +321,40 @@ $next_inventory = $row['Auto_increment'];
             allowClear: true,
             dropdownAutoWidth: true,
             maximumInputLength: 0
+        });
+
+        // Filtrado en cascada: Cargar cargos según ubicación seleccionada
+        $('#location_id').on('change', function(){
+            var location_id = $(this).val();
+            var $responsiblePosition = $('#responsible_position');
+            
+            // Limpiar y deshabilitar select de cargo
+            $responsiblePosition.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
+            
+            if(location_id){
+                $.ajax({
+                    url: 'ajax.php?action=get_job_positions_by_location',
+                    method: 'POST',
+                    data: { location_id: location_id },
+                    dataType: 'json',
+                    success: function(positions){
+                        $responsiblePosition.empty().append('<option value="">Seleccionar cargo</option>');
+                        if(positions.length > 0){
+                            $.each(positions, function(index, position){
+                                $responsiblePosition.append('<option value="'+ position.id +'">'+ position.name.toUpperCase() +'</option>');
+                            });
+                            $responsiblePosition.prop('disabled', false);
+                        } else {
+                            $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
+                        }
+                    },
+                    error: function(){
+                        $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
+                    }
+                });
+            } else {
+                $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>');
+            }
         });
     });
 
