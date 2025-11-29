@@ -280,115 +280,129 @@ class Action {
 
     // ================== DEPARTAMENTOS ==================
     function save_department() {
-        // No usar extract() para evitar conflictos
-        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-        $name = isset($_POST['name']) ? $this->db->real_escape_string($_POST['name']) : '';
-        $locations = isset($_POST['locations']) ? $_POST['locations'] : [];
-        $positions = isset($_POST['positions']) ? $_POST['positions'] : [];
-        
-        // Log para debugging
-        error_log("DEBUG save_department: id=$id, name=$name");
-        error_log("DEBUG save_department: locations = " . print_r($locations, true));
-        error_log("DEBUG save_department: positions = " . print_r($positions, true));
-        
-        // Validar nombre
-        if(empty($name)) {
-            error_log("ERROR: Name is empty");
-            return 0;
-        }
-        
-        // Verificar si el nombre ya existe
-        $check = $this->db->query("SELECT * FROM departments WHERE name='$name' ".($id > 0 ? "AND id != $id" : ''))->num_rows;
-        if ($check > 0) {
-            error_log("ERROR: Department name already exists");
-            return 2;
-        }
-
-        // Guardar departamento
-        if($id == 0) {
-            $query = "INSERT INTO departments SET name='$name'";
-            error_log("DEBUG: Executing INSERT: $query");
-            $save = $this->db->query($query);
-            if(!$save) {
-                error_log("ERROR save_department INSERT: " . $this->db->error);
+        try {
+            // No usar extract() para evitar conflictos
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $name = isset($_POST['name']) ? $this->db->real_escape_string($_POST['name']) : '';
+            $locations = isset($_POST['locations']) ? $_POST['locations'] : [];
+            $positions = isset($_POST['positions']) ? $_POST['positions'] : [];
+            
+            // Log para debugging
+            error_log("DEBUG save_department: id=$id, name=$name");
+            error_log("DEBUG save_department: locations = " . print_r($locations, true));
+            error_log("DEBUG save_department: positions = " . print_r($positions, true));
+            
+            // Validar nombre
+            if(empty($name)) {
+                error_log("ERROR: Name is empty");
                 return 0;
-            }
-            $id = $this->db->insert_id;
-            error_log("DEBUG: New department ID = $id");
-        } else {
-            $query = "UPDATE departments SET name='$name' WHERE id = $id";
-            error_log("DEBUG: Executing UPDATE: $query");
-            $save = $this->db->query($query);
-            if(!$save) {
-                error_log("ERROR save_department UPDATE: " . $this->db->error);
-                return 0;
-            }
-        }
-        
-        if($save && $id > 0) {
-            // Actualizar relaciones con ubicaciones
-            if(is_array($locations) && count($locations) > 0) {
-                error_log("DEBUG: Processing " . count($locations) . " locations");
-                
-                // Quitar el departamento de ubicaciones que ya no están seleccionadas
-                $query = "UPDATE locations SET department_id = NULL WHERE department_id = $id";
-                error_log("DEBUG: Clearing locations: $query");
-                $update = $this->db->query($query);
-                if(!$update) {
-                    error_log("ERROR clearing locations: " . $this->db->error);
-                }
-                
-                // Asignar el departamento a las ubicaciones seleccionadas
-                foreach($locations as $location_id) {
-                    $location_id = intval($location_id);
-                    if($location_id > 0) {
-                        $query = "UPDATE locations SET department_id = $id WHERE id = $location_id";
-                        error_log("DEBUG: Assigning location $location_id: $query");
-                        $update = $this->db->query($query);
-                        if(!$update) {
-                            error_log("ERROR updating location $location_id: " . $this->db->error);
-                        }
-                    }
-                }
-            } else {
-                // Si no hay ubicaciones seleccionadas, quitar todas las asignaciones
-                error_log("DEBUG: No locations selected, clearing all");
-                $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
             }
             
-            // Actualizar relaciones con puestos
-            if(is_array($positions) && count($positions) > 0) {
-                error_log("DEBUG: Processing " . count($positions) . " positions");
-                
-                // Quitar el departamento de puestos que ya no están seleccionados
-                $query = "UPDATE job_positions SET department_id = NULL WHERE department_id = $id";
-                error_log("DEBUG: Clearing positions: $query");
-                $update = $this->db->query($query);
-                if(!$update) {
-                    error_log("ERROR clearing positions: " . $this->db->error);
+            // Verificar si el nombre ya existe
+            $check_query = "SELECT * FROM departments WHERE name='$name' ".($id > 0 ? "AND id != $id" : '');
+            error_log("DEBUG: Check query = $check_query");
+            $check_result = $this->db->query($check_query);
+            if(!$check_result) {
+                error_log("ERROR in check query: " . $this->db->error);
+                return 0;
+            }
+            $check = $check_result->num_rows;
+            if ($check > 0) {
+                error_log("ERROR: Department name already exists");
+                return 2;
+            }
+
+            // Guardar departamento
+            if($id == 0) {
+                $query = "INSERT INTO departments SET name='$name'";
+                error_log("DEBUG: Executing INSERT: $query");
+                $save = $this->db->query($query);
+                if(!$save) {
+                    error_log("ERROR save_department INSERT: " . $this->db->error);
+                    return 0;
                 }
-                
-                // Asignar el departamento a los puestos seleccionados
-                foreach($positions as $position_id) {
-                    $position_id = intval($position_id);
-                    if($position_id > 0) {
-                        $query = "UPDATE job_positions SET department_id = $id WHERE id = $position_id";
-                        error_log("DEBUG: Assigning position $position_id: $query");
-                        $update = $this->db->query($query);
-                        if(!$update) {
-                            error_log("ERROR updating position $position_id: " . $this->db->error);
+                $id = $this->db->insert_id;
+                error_log("DEBUG: New department ID = $id");
+            } else {
+                $query = "UPDATE departments SET name='$name' WHERE id = $id";
+                error_log("DEBUG: Executing UPDATE: $query");
+                $save = $this->db->query($query);
+                if(!$save) {
+                    error_log("ERROR save_department UPDATE: " . $this->db->error);
+                    return 0;
+                }
+            }
+            
+            if($save && $id > 0) {
+                // Actualizar relaciones con ubicaciones
+                if(is_array($locations) && count($locations) > 0) {
+                    error_log("DEBUG: Processing " . count($locations) . " locations");
+                    
+                    // Quitar el departamento de ubicaciones que ya no están seleccionadas
+                    $query = "UPDATE locations SET department_id = NULL WHERE department_id = $id";
+                    error_log("DEBUG: Clearing locations: $query");
+                    $update = $this->db->query($query);
+                    if(!$update) {
+                        error_log("ERROR clearing locations: " . $this->db->error);
+                    }
+                    
+                    // Asignar el departamento a las ubicaciones seleccionadas
+                    foreach($locations as $location_id) {
+                        $location_id = intval($location_id);
+                        if($location_id > 0) {
+                            $query = "UPDATE locations SET department_id = $id WHERE id = $location_id";
+                            error_log("DEBUG: Assigning location $location_id: $query");
+                            $update = $this->db->query($query);
+                            if(!$update) {
+                                error_log("ERROR updating location $location_id: " . $this->db->error);
+                            }
                         }
                     }
+                } else {
+                    // Si no hay ubicaciones seleccionadas, quitar todas las asignaciones
+                    error_log("DEBUG: No locations selected, clearing all");
+                    $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
                 }
-            } else {
-                // Si no hay puestos seleccionados, quitar todas las asignaciones
-                error_log("DEBUG: No positions selected, clearing all");
-                $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
+                
+                // Actualizar relaciones con puestos
+                if(is_array($positions) && count($positions) > 0) {
+                    error_log("DEBUG: Processing " . count($positions) . " positions");
+                    
+                    // Quitar el departamento de puestos que ya no están seleccionados
+                    $query = "UPDATE job_positions SET department_id = NULL WHERE department_id = $id";
+                    error_log("DEBUG: Clearing positions: $query");
+                    $update = $this->db->query($query);
+                    if(!$update) {
+                        error_log("ERROR clearing positions: " . $this->db->error);
+                    }
+                    
+                    // Asignar el departamento a los puestos seleccionados
+                    foreach($positions as $position_id) {
+                        $position_id = intval($position_id);
+                        if($position_id > 0) {
+                            $query = "UPDATE job_positions SET department_id = $id WHERE id = $position_id";
+                            error_log("DEBUG: Assigning position $position_id: $query");
+                            $update = $this->db->query($query);
+                            if(!$update) {
+                                error_log("ERROR updating position $position_id: " . $this->db->error);
+                            }
+                        }
+                    }
+                } else {
+                    // Si no hay puestos seleccionados, quitar todas las asignaciones
+                    error_log("DEBUG: No positions selected, clearing all");
+                    $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
+                }
             }
+            
+            error_log("DEBUG save_department: Returning success");
+            return 1;
+            
+        } catch (Exception $e) {
+            error_log("EXCEPTION in save_department: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return 0;
         }
-        
-        error_log("DEBUG save_department: Returning success");
-        return 1;
     }
 
     function delete_department() {
