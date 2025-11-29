@@ -1,6 +1,6 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // No mostrar errores al usuario
+ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 // Asegurar que la sesión esté iniciada antes de incluir admin_class
@@ -8,6 +8,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// Iniciar buffer
 ob_start();
 
 try {
@@ -17,14 +18,12 @@ try {
     ob_end_clean();
     error_log("ERROR initializing admin_class: " . $e->getMessage());
     http_response_code(500);
-    echo "ERROR: " . $e->getMessage();
-    exit;
+    die("ERROR");
 } catch (Error $e) {
     ob_end_clean();
     error_log("FATAL ERROR initializing admin_class: " . $e->getMessage());
     http_response_code(500);
-    echo "ERROR: " . $e->getMessage();
-    exit;
+    die("ERROR");
 }
 
 // === OBTENER ACCIÓN DE FORMA SEGURA ===
@@ -34,9 +33,14 @@ $action = $_REQUEST['action'] ?? '';
 // 1. LOGIN / LOGOUT
 // ===================================
 if ($action == 'login') {
-    ob_end_clean(); // Limpiar buffer antes de responder
-    $result = $crud->login();
-    echo $result;
+    ob_end_clean(); // Limpiar cualquier output previo
+    try {
+        $result = $crud->login();
+        echo $result;
+    } catch (Exception $e) {
+        error_log("LOGIN ERROR: " . $e->getMessage());
+        echo "2";
+    }
     exit;
 }
 
