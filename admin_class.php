@@ -8,7 +8,7 @@ class Action {
     private $db;
 
     public function __construct() {
-        ob_start();
+        // No iniciar buffer aquí, ya que ajax.php lo maneja
         require_once 'config/config.php';
         $this->db = $conn;
     }
@@ -17,7 +17,7 @@ class Action {
         if ($this->db) {
             $this->db->close();
         }
-        ob_end_flush();
+        // No hacer flush automático, ajax.php maneja el buffer
     }
 
     function getDb() {
