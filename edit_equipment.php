@@ -545,6 +545,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
         // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2
         $('#department_id').on('select2:select change', function(){
             var department_id = $(this).val();
+            console.log('Departamento seleccionado:', department_id);
             var $locationSelect = $('#location_id');
             var $positionSelect = $('#responsible_position');
             
@@ -559,6 +560,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     data: { department_id: department_id },
                     dataType: 'json',
                     success: function(locations){
+                        console.log('Ubicaciones recibidas:', locations);
                         $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
@@ -568,10 +570,15 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                         } else {
                             $locationSelect.append('<option value="">No hay ubicaciones en este departamento</option>');
                         }
-                        // Reinicializar Select2 después de actualizar opciones
-                        $locationSelect.trigger('change.select2');
+                        // Destruir y reinicializar Select2
+                        $locationSelect.select2('destroy').select2({
+                            width: '100%',
+                            placeholder: 'Seleccionar ubicación',
+                            allowClear: true
+                        });
                     },
-                    error: function(){
+                    error: function(xhr, status, error){
+                        console.error('Error al cargar ubicaciones:', error);
                         $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
                     }
                 });
@@ -605,8 +612,12 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                         } else {
                             $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
                         }
-                        // Reinicializar Select2 después de actualizar opciones
-                        $responsiblePosition.trigger('change.select2');
+                        // Destruir y reinicializar Select2
+                        $responsiblePosition.select2('destroy').select2({
+                            width: '100%',
+                            placeholder: 'Seleccionar cargo',
+                            allowClear: true
+                        });
                     },
                     error: function(){
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
