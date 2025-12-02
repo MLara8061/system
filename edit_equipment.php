@@ -532,6 +532,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
     });
 
     $(function(){
+        // Inicializar Select2
         $('.select2').select2({ 
             width: '100%', 
             placeholder: 'Seleccionar', 
@@ -541,7 +542,8 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
         });
         
         // CASCADA 1: Cargar ubicaciones cuando se selecciona un departamento
-        $('#department_id').on('change', function(){
+        // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2
+        $('#department_id').on('select2:select change', function(){
             var department_id = $(this).val();
             var $locationSelect = $('#location_id');
             var $positionSelect = $('#responsible_position');
@@ -566,6 +568,8 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                         } else {
                             $locationSelect.append('<option value="">No hay ubicaciones en este departamento</option>');
                         }
+                        // Reinicializar Select2 después de actualizar opciones
+                        $locationSelect.trigger('change.select2');
                     },
                     error: function(){
                         $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
@@ -577,7 +581,8 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
         });
         
         // CASCADA 2: Cargar cargos cuando se selecciona una ubicación
-        $('#location_id').on('change', function(){
+        // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2
+        $('#location_id').on('select2:select change', function(){
             var location_id = $(this).val();
             var $responsiblePosition = $('#responsible_position');
             
@@ -600,6 +605,8 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                         } else {
                             $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
                         }
+                        // Reinicializar Select2 después de actualizar opciones
+                        $responsiblePosition.trigger('change.select2');
                     },
                     error: function(){
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
