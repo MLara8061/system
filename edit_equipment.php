@@ -30,6 +30,34 @@ if ($qry->num_rows > 0) $documents = $qry->fetch_assoc();
 
 $qry = $conn->query("SELECT * FROM equipment_power_specs WHERE equipment_id = $equipment_id ORDER BY id DESC LIMIT 1");
 if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
+
+if (!function_exists('format_date_input')) {
+    /**
+     * Normaliza fechas provenientes de la base de datos para inputs type="date".
+     */
+    function format_date_input($value)
+    {
+        if (!isset($value)) {
+            return '';
+        }
+
+        $value = trim((string)$value);
+        if ($value === '' || in_array($value, ['0000-00-00', '0000-00-00 00:00:00', '-0001-11-30'], true)) {
+            return '';
+        }
+
+        $timestamp = strtotime($value);
+        if ($timestamp === false || $timestamp <= 0) {
+            return '';
+        }
+
+        return date('Y-m-d', $timestamp);
+    }
+}
+
+$date_created_value = format_date_input($eq['date_created'] ?? null);
+$date_training_value = format_date_input($delivery['date_training'] ?? null);
+$date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? null);
 ?>
 
 <div class="container-fluid">
@@ -117,7 +145,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Fecha Ingreso</label>
                                 <input type="date" name="date_created" class="form-control" 
-                                       required value="<?= !empty($eq['date_created']) && $eq['date_created'] != '0000-00-00' ? date('Y-m-d', strtotime($eq['date_created'])) : '' ?>">
+                                        required value="<?= $date_created_value ?>">
                             </div>
                         </div>
 
@@ -285,7 +313,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             <div class="col-md-6">
                                 <label>Fecha Capacitación</label>
                                 <input type="date" name="date_training" class="form-control" form="manage_equipment" required 
-                                       value="<?= isset($delivery['date_training']) && !empty($delivery['date_training']) && $delivery['date_training'] != '0000-00-00' ? date('Y-m-d', strtotime($delivery['date_training'])) : '' ?>">
+                                        value="<?= $date_training_value ?>">
                             </div>
                         </div>
                     </div>
@@ -387,7 +415,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                     <div class="col-md-6">
                                         <label>Fecha Adquisición</label>
                                         <input type="date" name="date_adquisition" class="form-control" form="manage_equipment" 
-                                               value="<?= isset($safeguard['date_adquisition']) && !empty($safeguard['date_adquisition']) && $safeguard['date_adquisition'] != '0000-00-00' ? date('Y-m-d', strtotime($safeguard['date_adquisition'])) : '' ?>">
+                                                 value="<?= $date_acquisition_value ?>">
                                     </div>
                                 </div>
                             </div>
