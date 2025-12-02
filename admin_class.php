@@ -584,6 +584,9 @@ class Action {
         $data = "";
         $new = empty($id);
 
+        $this->ensure_equipment_delivery_fk();
+        $this->ensure_equipment_delivery_position_fk();
+
         $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
         foreach ($_POST as $k => $v) {
             if (!in_array($k, ['id']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
@@ -881,6 +884,246 @@ class Action {
             return false;
         }
         return true;
+    }
+
+    private function ensure_equipment_delivery_fk() {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+
+        try {
+            $dbNameRes = $this->db->query("SELECT DATABASE() AS db_name");
+            if (!$dbNameRes || $dbNameRes->num_rows === 0) {
+                return;
+            }
+            $dbName = $dbNameRes->fetch_assoc()['db_name'] ?? '';
+            if (empty($dbName)) {
+                return;
+            }
+            $dbNameEsc = $this->db->real_escape_string($dbName);
+
+            $kcuSql = "
+                SELECT CONSTRAINT_NAME, REFERENCED_TABLE_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = '$dbNameEsc'
+                  AND TABLE_NAME = 'equipment_delivery'
+                  AND COLUMN_NAME = 'department_id'
+                  AND REFERENCED_TABLE_NAME IS NOT NULL
+                LIMIT 1
+            ";
+            $kcuRes = $this->db->query($kcuSql);
+            if (!$kcuRes) {
+                error_log('ensure_equipment_delivery_fk: KEY_COLUMN_USAGE query failed: ' . $this->db->error);
+                return;
+            }
+
+            $constraintName = null;
+            $referencedTable = null;
+            if ($kcuRes->num_rows > 0) {
+                $row = $kcuRes->fetch_assoc();
+                $constraintName = $row['CONSTRAINT_NAME'] ?? null;
+                $referencedTable = $row['REFERENCED_TABLE_NAME'] ?? null;
+                if ($referencedTable === 'departments') {
+                    return;
+                }
+            }
+
+            $legacyTableExists = false;
+            $legacyCheck = $this->db->query("SHOW TABLES LIKE 'equipment_deparments'");
+            if ($legacyCheck && $legacyCheck->num_rows > 0) {
+                $legacyTableExists = true;
+            }
+
+            $missingSql = "
+                SELECT DISTINCT ed.department_id
+                FROM equipment_delivery ed
+                LEFT JOIN departments d ON d.id = ed.department_id
+                WHERE ed.department_id IS NOT NULL
+                  AND ed.department_id <> 0
+                  AND d.id IS NULL
+            ";
+            $missingRes = $this->db->query($missingSql);
+            if ($missingRes) {
+                while ($miss = $missingRes->fetch_assoc()) {
+                    $legacyId = (int)($miss['department_id'] ?? 0);
+                    if ($legacyId <= 0) {
+                        continue;
+                    }
+
+                    $newId = null;
+                    if ($legacyTableExists) {
+                        $legacyNameRes = $this->db->query("SELECT name FROM equipment_deparments WHERE id = $legacyId LIMIT 1");
+                        if ($legacyNameRes && $legacyNameRes->num_rows > 0) {
+                            $legacyName = trim($legacyNameRes->fetch_assoc()['name'] ?? '');
+                            if ($legacyName !== '') {
+                                $legacyNameEsc = $this->db->real_escape_string($legacyName);
+                                $matchRes = $this->db->query("SELECT id FROM departments WHERE LOWER(TRIM(name)) = LOWER('$legacyNameEsc') LIMIT 1");
+                                if ($matchRes && $matchRes->num_rows > 0) {
+                                    $newId = (int)$matchRes->fetch_assoc()['id'];
+                                }
+                            }
+                        }
+                    }
+
+                    if ($newId !== null) {
+                        if (!$this->db->query("UPDATE equipment_delivery SET department_id = $newId WHERE department_id = $legacyId")) {
+                            error_log('ensure_equipment_delivery_fk: failed to remap department_id ' . $legacyId . ': ' . $this->db->error);
+                        }
+                    } else {
+                        if (!$this->db->query("UPDATE equipment_delivery SET department_id = NULL WHERE department_id = $legacyId")) {
+                            error_log('ensure_equipment_delivery_fk: failed to nullify department_id ' . $legacyId . ': ' . $this->db->error);
+                        }
+                    }
+                }
+            }
+
+            if ($constraintName) {
+                try {
+                    $this->db->query("ALTER TABLE equipment_delivery DROP FOREIGN KEY `$constraintName`");
+                } catch (\mysqli_sql_exception $e) {
+                    error_log('ensure_equipment_delivery_fk: drop constraint failed: ' . $e->getMessage());
+                    return;
+                }
+            }
+
+            try {
+                $this->db->query("ALTER TABLE equipment_delivery ADD INDEX idx_equipment_delivery_department (department_id)");
+            } catch (\mysqli_sql_exception $e) {
+                if ($e->getCode() !== 1061) {
+                    error_log('ensure_equipment_delivery_fk: add index failed: ' . $e->getMessage());
+                }
+            }
+
+            try {
+                $this->db->query("ALTER TABLE equipment_delivery ADD CONSTRAINT `equipment_delivery_department_fk` FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) ON UPDATE CASCADE ON DELETE SET NULL");
+            } catch (\mysqli_sql_exception $e) {
+                error_log('ensure_equipment_delivery_fk: add constraint failed: ' . $e->getMessage());
+            }
+        } catch (\mysqli_sql_exception $e) {
+            error_log('ensure_equipment_delivery_fk: unexpected error: ' . $e->getMessage());
+        }
+    }
+
+    private function ensure_equipment_delivery_position_fk() {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+
+        try {
+            $dbNameRes = $this->db->query("SELECT DATABASE() AS db_name");
+            if (!$dbNameRes || $dbNameRes->num_rows === 0) {
+                return;
+            }
+            $dbName = $dbNameRes->fetch_assoc()['db_name'] ?? '';
+            if (empty($dbName)) {
+                return;
+            }
+            $dbNameEsc = $this->db->real_escape_string($dbName);
+
+            $kcuSql = "
+                SELECT CONSTRAINT_NAME, REFERENCED_TABLE_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = '$dbNameEsc'
+                  AND TABLE_NAME = 'equipment_delivery'
+                  AND COLUMN_NAME = 'responsible_position'
+                  AND REFERENCED_TABLE_NAME IS NOT NULL
+                LIMIT 1
+            ";
+            $kcuRes = $this->db->query($kcuSql);
+            if (!$kcuRes) {
+                error_log('ensure_equipment_delivery_position_fk: KEY_COLUMN_USAGE query failed: ' . $this->db->error);
+                return;
+            }
+
+            $constraintName = null;
+            $referencedTable = null;
+            if ($kcuRes->num_rows > 0) {
+                $row = $kcuRes->fetch_assoc();
+                $constraintName = $row['CONSTRAINT_NAME'] ?? null;
+                $referencedTable = $row['REFERENCED_TABLE_NAME'] ?? null;
+                if ($referencedTable === 'job_positions') {
+                    return;
+                }
+            }
+
+            $legacyTableExists = false;
+            $legacyCheck = $this->db->query("SHOW TABLES LIKE 'responsible_positions'");
+            if ($legacyCheck && $legacyCheck->num_rows > 0) {
+                $legacyTableExists = true;
+            }
+
+            $missingSql = "
+                SELECT DISTINCT ed.responsible_position
+                FROM equipment_delivery ed
+                LEFT JOIN job_positions jp ON jp.id = ed.responsible_position
+                WHERE ed.responsible_position IS NOT NULL
+                  AND ed.responsible_position <> 0
+                  AND jp.id IS NULL
+            ";
+            $missingRes = $this->db->query($missingSql);
+            if ($missingRes) {
+                while ($miss = $missingRes->fetch_assoc()) {
+                    $legacyId = (int)($miss['responsible_position'] ?? 0);
+                    if ($legacyId <= 0) {
+                        continue;
+                    }
+
+                    $newId = null;
+                    if ($legacyTableExists) {
+                        $legacyNameRes = $this->db->query("SELECT name FROM responsible_positions WHERE id = $legacyId LIMIT 1");
+                        if ($legacyNameRes && $legacyNameRes->num_rows > 0) {
+                            $legacyName = trim($legacyNameRes->fetch_assoc()['name'] ?? '');
+                            if ($legacyName !== '') {
+                                $legacyNameEsc = $this->db->real_escape_string($legacyName);
+                                $matchRes = $this->db->query("SELECT id FROM job_positions WHERE LOWER(TRIM(name)) = LOWER('$legacyNameEsc') LIMIT 1");
+                                if ($matchRes && $matchRes->num_rows > 0) {
+                                    $newId = (int)$matchRes->fetch_assoc()['id'];
+                                }
+                            }
+                        }
+                    }
+
+                    if ($newId !== null) {
+                        if (!$this->db->query("UPDATE equipment_delivery SET responsible_position = $newId WHERE responsible_position = $legacyId")) {
+                            error_log('ensure_equipment_delivery_position_fk: failed to remap responsible_position ' . $legacyId . ': ' . $this->db->error);
+                        }
+                    } else {
+                        if (!$this->db->query("UPDATE equipment_delivery SET responsible_position = NULL WHERE responsible_position = $legacyId")) {
+                            error_log('ensure_equipment_delivery_position_fk: failed to nullify responsible_position ' . $legacyId . ': ' . $this->db->error);
+                        }
+                    }
+                }
+            }
+
+            if ($constraintName) {
+                try {
+                    $this->db->query("ALTER TABLE equipment_delivery DROP FOREIGN KEY `$constraintName`");
+                } catch (\mysqli_sql_exception $e) {
+                    error_log('ensure_equipment_delivery_position_fk: drop constraint failed: ' . $e->getMessage());
+                    return;
+                }
+            }
+
+            try {
+                $this->db->query("ALTER TABLE equipment_delivery ADD INDEX idx_equipment_delivery_position (responsible_position)");
+            } catch (\mysqli_sql_exception $e) {
+                if ($e->getCode() !== 1061) {
+                    error_log('ensure_equipment_delivery_position_fk: add index failed: ' . $e->getMessage());
+                }
+            }
+
+            try {
+                $this->db->query("ALTER TABLE equipment_delivery ADD CONSTRAINT `equipment_delivery_position_fk` FOREIGN KEY (`responsible_position`) REFERENCES `job_positions`(`id`) ON UPDATE CASCADE ON DELETE SET NULL");
+            } catch (\mysqli_sql_exception $e) {
+                error_log('ensure_equipment_delivery_position_fk: add constraint failed: ' . $e->getMessage());
+            }
+        } catch (\mysqli_sql_exception $e) {
+            error_log('ensure_equipment_delivery_position_fk: unexpected error: ' . $e->getMessage());
+        }
     }
 
     private function generate_automatic_maintenance($equipment_id, $start_date, $period_id, $is_new = true) {
@@ -1577,6 +1820,9 @@ class Action {
         // Usar SimpleXLSX (librería ligera sin dependencias)
         require_once 'lib/simplexlsx-master/src/SimpleXLSX.php';
         
+        $this->ensure_equipment_delivery_fk();
+        $this->ensure_equipment_delivery_position_fk();
+
         if (!isset($_FILES['excel_file'])) {
             return json_encode(['status' => 0, 'msg' => 'No se recibió ningún archivo']);
         }
