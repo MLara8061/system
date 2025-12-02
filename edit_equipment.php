@@ -558,9 +558,12 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                     url: 'ajax.php?action=get_locations_by_department',
                     method: 'POST',
                     data: { department_id: department_id },
-                    dataType: 'json',
-                    success: function(locations){
-                        console.log('Ubicaciones recibidas:', locations);
+                    dataType: 'text', // Cambiar a text primero para ver la respuesta cruda
+                    success: function(response){
+                        console.log('Respuesta cruda del servidor:', response);
+                        try {
+                            var locations = JSON.parse(response);
+                            console.log('Ubicaciones recibidas:', locations);
                         $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
@@ -576,6 +579,11 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             placeholder: 'Seleccionar ubicación',
                             allowClear: true
                         });
+                        } catch(e) {
+                            console.error('Error parseando JSON:', e);
+                            console.error('Respuesta del servidor:', response);
+                            $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
+                        }
                     },
                     error: function(xhr, status, error){
                         console.error('Error al cargar ubicaciones:', error);
