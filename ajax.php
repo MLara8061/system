@@ -279,6 +279,9 @@ if ($action == 'get_job_positions_by_location') {
     ob_start();
     header('Content-Type: application/json');
     
+    // Incluir conexión a BD
+    require_once 'config/config.php';
+    
     error_log("DEBUG: get_job_positions_by_location called");
     $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
     error_log("DEBUG: location_id = " . $location_id);
@@ -334,6 +337,9 @@ if ($action == 'get_locations_by_department') {
     ob_start();
     header('Content-Type: application/json');
     
+    // Incluir conexión a BD
+    require_once 'config/config.php';
+    
     error_log("DEBUG get_locations_by_department: Called");
     
     try {
@@ -387,6 +393,9 @@ if ($action == 'get_positions_by_department') {
     if (ob_get_level()) ob_end_clean();
     ob_start();
     header('Content-Type: application/json');
+    
+    // Incluir conexión a BD
+    require_once 'config/config.php';
     
     $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
     
