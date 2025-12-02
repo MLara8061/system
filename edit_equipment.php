@@ -573,7 +573,6 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
         // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2
         $('#department_id').on('select2:select change', function(){
             var department_id = $(this).val();
-            console.log('Departamento seleccionado:', department_id);
             var $locationSelect = $('#location_id');
             var $positionSelect = $('#responsible_position');
             
@@ -588,7 +587,6 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     data: { department_id: department_id },
                     dataType: 'json',
                     success: function(locations){
-                        console.log('Ubicaciones recibidas:', locations);
                         $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
