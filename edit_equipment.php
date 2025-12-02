@@ -117,7 +117,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Fecha Ingreso</label>
                                 <input type="date" name="date_created" class="form-control" 
-                                       required value="<?= date('Y-m-d', strtotime($eq['date_created'])) ?>">
+                                       required value="<?= !empty($eq['date_created']) && $eq['date_created'] != '0000-00-00' ? date('Y-m-d', strtotime($eq['date_created'])) : '' ?>">
                             </div>
                         </div>
 
@@ -285,7 +285,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                             <div class="col-md-6">
                                 <label>Fecha Capacitación</label>
                                 <input type="date" name="date_training" class="form-control" form="manage_equipment" required 
-                                       value="<?= isset($delivery['date_training']) ? date('Y-m-d', strtotime($delivery['date_training'])) : '' ?>">
+                                       value="<?= isset($delivery['date_training']) && !empty($delivery['date_training']) && $delivery['date_training'] != '0000-00-00' ? date('Y-m-d', strtotime($delivery['date_training'])) : '' ?>">
                             </div>
                         </div>
                     </div>
@@ -387,7 +387,7 @@ if ($qry->num_rows > 0) $power_spec = $qry->fetch_assoc();
                                     <div class="col-md-6">
                                         <label>Fecha Adquisición</label>
                                         <input type="date" name="date_adquisition" class="form-control" form="manage_equipment" 
-                                               value="<?= isset($safeguard['date_adquisition']) ? date('Y-m-d', strtotime($safeguard['date_adquisition'])) : '' ?>">
+                                               value="<?= isset($safeguard['date_adquisition']) && !empty($safeguard['date_adquisition']) && $safeguard['date_adquisition'] != '0000-00-00' ? date('Y-m-d', strtotime($safeguard['date_adquisition'])) : '' ?>">
                                     </div>
                                 </div>
                             </div>
