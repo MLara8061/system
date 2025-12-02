@@ -274,6 +274,11 @@ if ($action == 'delete_job_position') {
 }
 
 if ($action == 'get_job_positions_by_location') {
+    // Limpiar cualquier salida previa y establecer header JSON
+    if (ob_get_level()) ob_end_clean();
+    ob_start();
+    header('Content-Type: application/json');
+    
     error_log("DEBUG: get_job_positions_by_location called");
     $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
     error_log("DEBUG: location_id = " . $location_id);
@@ -324,6 +329,11 @@ if ($action == 'get_job_positions_by_location') {
 }
 
 if ($action == 'get_locations_by_department') {
+    // Limpiar cualquier salida previa y establecer header JSON
+    if (ob_get_level()) ob_end_clean();
+    ob_start();
+    header('Content-Type: application/json');
+    
     error_log("DEBUG get_locations_by_department: Called");
     
     try {
@@ -373,6 +383,11 @@ if ($action == 'get_locations_by_department') {
 }
 
 if ($action == 'get_positions_by_department') {
+    // Limpiar cualquier salida previa y establecer header JSON
+    if (ob_get_level()) ob_end_clean();
+    ob_start();
+    header('Content-Type: application/json');
+    
     $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
     
     if ($department_id > 0) {
