@@ -282,6 +282,14 @@ if ($action == 'get_job_positions_by_location') {
     // Incluir conexión a BD
     require_once 'config/config.php';
     global $conn;
+    if (!$conn) {
+        if (isset($crud) && method_exists($crud, 'getDb')) {
+            $conn = $crud->getDb();
+        }
+        if (!$conn && function_exists('db')) {
+            $conn = db();
+        }
+    }
     
     error_log("DEBUG: get_job_positions_by_location called");
     $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
@@ -341,6 +349,14 @@ if ($action == 'get_locations_by_department') {
     // Incluir conexión a BD
     require_once 'config/config.php';
     global $conn;
+    if (!$conn) {
+        if (isset($crud) && method_exists($crud, 'getDb')) {
+            $conn = $crud->getDb();
+        }
+        if (!$conn && function_exists('db')) {
+            $conn = db();
+        }
+    }
     
     error_log("DEBUG get_locations_by_department: Called");
     
@@ -399,6 +415,14 @@ if ($action == 'get_positions_by_department') {
     // Incluir conexión a BD
     require_once 'config/config.php';
     global $conn;
+    if (!$conn) {
+        if (isset($crud) && method_exists($crud, 'getDb')) {
+            $conn = $crud->getDb();
+        }
+        if (!$conn && function_exists('db')) {
+            $conn = db();
+        }
+    }
     
     $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
     
