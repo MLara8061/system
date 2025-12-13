@@ -98,38 +98,19 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         SELECT 
                             e.*,
                             s.empresa as supplier_name,
-                            DATEDIFF(CURDATE(), IFNULL(e.purchase_date, e.date_created)) AS antiguedad_dias,
-                            COALESCE(m.fecha_programada, e.date_created) AS ultimo_mtto,
-                            DATE_ADD(
-                                COALESCE(m.fecha_programada, e.date_created),
-                                INTERVAL COALESCE(mp.days_interval, 0) DAY
-                            ) AS proximo_mtto,
-                            DATEDIFF(
-                                DATE_ADD(
-                                    COALESCE(m.fecha_programada, e.date_created),
-                                    INTERVAL COALESCE(mp.days_interval, 0) DAY
-                                ),
-                                CURDATE()
-                            ) AS dias_restantes
+                            DATEDIFF(CURDATE(), IFNULL(e.purchase_date, e.date_created)) AS antiguedad_dias
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id 
-                        LEFT JOIN maintenance_periods mp ON e.mandate_period_id = mp.id
-                        LEFT JOIN (
-                            SELECT equipo_id, MAX(fecha_programada) as fecha_programada
-                            FROM mantenimientos
-                            WHERE estatus = 'completado'
-                            GROUP BY equipo_id
-                        ) m ON e.id = m.equipo_id
                         LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
                         WHERE u.id IS NULL
                         ORDER BY e.id DESC
                     ");
                     while ($row = $qry->fetch_assoc()) :
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
-                        $proximo = $row['proximo_mtto'] ? date('d/m/Y', strtotime($row['proximo_mtto'])) : 'Sin periodo';
-                        $ultimo = $row['ultimo_mtto'] ? date('d/m/Y', strtotime($row['ultimo_mtto'])) : 'Sin registro';
+                        $proximo = 'Sin periodo';
+                        $ultimo = 'Sin registro';
                         $antiguedad = abs($row['antiguedad_dias']) . ' días';
-                        $dias_restantes = $row['dias_restantes'];
+                        $dias_restantes = 999;
                     ?>
                         <tr>
                             <!-- IMAGEN -->
