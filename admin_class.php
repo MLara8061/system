@@ -218,12 +218,28 @@ class Action {
     function delete_user()
     {
         extract($_POST);
-        $delete = $this->db->query("DELETE FROM users WHERE id = $id");
-        if ($delete) {
-            $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
-            return 1;
+        try {
+            $id = (int)$id;
+            if ($id <= 0) return 0;
+            
+            // Usar PDO si está disponible, sino mysqli legacy
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ?");
+                $stmt->execute([$id]);
+                $deleted = $stmt->rowCount() > 0;
+            } else {
+                $deleted = $this->db->query("DELETE FROM users WHERE id = $id");
+            }
+            
+            if ($deleted) {
+                $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
+                return 1;
+            }
+            return 0;
+        } catch (Exception $e) {
+            error_log("DELETE_USER ERROR: " . $e->getMessage());
+            return 0;
         }
-        return 0;
     }
 
     function check_username()
@@ -240,27 +256,53 @@ class Action {
 
     function upload_avatar()
     {
-        extract($_POST);
-        $id = $id ?? 0;
-        if ($_SESSION['login_id'] != $id && $_SESSION['login_type'] != 1) return;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return '';
+            
+            // Verificar permisos
+            if ($_SESSION['login_id'] != $id && $_SESSION['login_type'] != 1) return '';
 
-        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] != 0) return;
+            if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] != 0) return '';
 
-        $fname = 'avatar_' . $id . '_' . time() . '.jpg';
-        $path = 'assets/avatars/' . $fname;
+            $fname = 'avatar_' . $id . '_' . time() . '.jpg';
+            $path = 'assets/avatars/' . $fname;
 
-        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $path)) {
-            $old = $this->db->query("SELECT avatar FROM users WHERE id = $id")->fetch_assoc()['avatar'];
-            if ($old && $old != 'default-avatar.png' && file_exists('assets/avatars/' . $old)) {
-                unlink('assets/avatars/' . $old);
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $path)) {
+                // Obtener avatar anterior
+                $old_avatar = null;
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT avatar FROM users WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $result = $stmt->fetch();
+                    $old_avatar = $result['avatar'] ?? null;
+                } else {
+                    $result = $this->db->query("SELECT avatar FROM users WHERE id = $id")->fetch_assoc();
+                    $old_avatar = $result['avatar'] ?? null;
+                }
+                
+                // Eliminar avatar anterior si existe
+                if ($old_avatar && $old_avatar != 'default-avatar.png' && file_exists('assets/avatars/' . $old_avatar)) {
+                    unlink('assets/avatars/' . $old_avatar);
+                }
+
+                // Actualizar avatar en BD
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("UPDATE users SET avatar = ? WHERE id = ?");
+                    $stmt->execute([$fname, $id]);
+                } else {
+                    $this->db->query("UPDATE users SET avatar = '$fname' WHERE id = $id");
+                }
+                
+                $_SESSION['login_avatar'] = $fname;
+                return 'assets/avatars/' . $fname;
             }
-
-            $this->db->query("UPDATE users SET avatar = '$fname' WHERE id = $id");
-            $_SESSION['login_avatar'] = $fname;
-
-            return 'assets/avatars/' . $fname;
+            return '';
+        } catch (Exception $e) {
+            error_log("UPLOAD_AVATAR ERROR: " . $e->getMessage());
+            return '';
         }
-        return '';
     }
 
     // ================== PÁGINA (IMÁGENES) ==================
@@ -716,30 +758,53 @@ class Action {
 
     function delete_equipment()
     {
-        extract($_POST);
-        if (empty($id) || !is_numeric($id)) return 2;
+        try {
+            extract($_POST);
+            if (empty($id) || !is_numeric($id)) return 2;
+            
+            $id = (int)$id;
+            $tables = [
+                'equipment_control_documents',
+                'equipment_reception',
+                'equipment_delivery',
+                'equipment_safeguard',
+                'equipment_revision',
+                'equipment_unsubscribe',
+                'equipment_power_specs',
+                'mantenimientos'
+            ];
 
-        $tables = [
-            'equipment_control_documents',
-            'equipment_reception',
-            'equipment_delivery',
-            'equipment_safeguard',
-            'equipment_revision',
-            'equipment_unsubscribe',
-            'equipment_power_specs',
-            'mantenimientos'
-        ];
-
-        foreach ($tables as $table) {
-            if ($table === 'mantenimientos') {
-                $this->db->query("DELETE FROM $table WHERE equipo_id = $id");
+            // Usar PDO si disponible
+            if ($this->pdo) {
+                foreach ($tables as $table) {
+                    if ($table === 'mantenimientos') {
+                        $stmt = $this->pdo->prepare("DELETE FROM $table WHERE equipo_id = ?");
+                    } else {
+                        $stmt = $this->pdo->prepare("DELETE FROM $table WHERE equipment_id = ?");
+                    }
+                    $stmt->execute([$id]);
+                }
+                
+                $stmt = $this->pdo->prepare("DELETE FROM equipments WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 2;
             } else {
-                $this->db->query("DELETE FROM $table WHERE equipment_id = $id");
-            }
-        }
+                // Fallback a mysqli
+                foreach ($tables as $table) {
+                    if ($table === 'mantenimientos') {
+                        $this->db->query("DELETE FROM $table WHERE equipo_id = $id");
+                    } else {
+                        $this->db->query("DELETE FROM $table WHERE equipment_id = $id");
+                    }
+                }
 
-        $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
-        return $delete ? 1 : 2;
+                $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
+                return $delete ? 1 : 2;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_EQUIPMENT ERROR: " . $e->getMessage());
+            return 2;
+        }
     }
 
     function save_equipment_unsubscribe()
