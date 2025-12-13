@@ -3,9 +3,25 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Asegurar que la sesión esté iniciada antes de incluir admin_class
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+// Cargar sesión hardened
+require_once 'config/session.php';
+
+// Validar sesión activa
+if (!isset($_SESSION['login_id'])) {
+    ob_start();
+    http_response_code(401);
+    echo json_encode(['status' => 0, 'msg' => 'Sesión expirada']);
+    ob_end_flush();
+    exit;
+}
+
+// Validar timeout
+if (!validate_session()) {
+    ob_start();
+    http_response_code(401);
+    echo json_encode(['status' => 0, 'msg' => 'Sesión expirada por inactividad']);
+    ob_end_flush();
+    exit;
 }
 
 // Iniciar buffer

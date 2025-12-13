@@ -6,9 +6,19 @@ ini_set('display_errors', 1);
 // Configurar zona horaria de México
 date_default_timezone_set('America/Cancun');
 
-session_start();
+// Cargar sesión hardened
+require_once 'config/session.php';
 define('ACCESS', true);
 require_once 'config/config.php';
+
+// Validar sesión
+if (!isset($_SESSION['login_id'])) {
+    die("Acceso denegado: No autenticado");
+}
+
+if (!validate_session()) {
+    die("Sesión expirada");
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Invalid access.");

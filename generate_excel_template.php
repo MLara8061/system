@@ -8,11 +8,18 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Verificar sesión
-session_start();
+// Cargar sesión hardened
+require_once __DIR__ . '/config/session.php';
+
+// Validar sesión y timeout
 if (!isset($_SESSION['login_id'])) {
     http_response_code(403);
     die('Acceso no autorizado');
+}
+
+if (!validate_session()) {
+    http_response_code(401);
+    die('Sesión expirada');
 }
 
 // Incluir configuración y conexión a base de datos

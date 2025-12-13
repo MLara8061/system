@@ -1,6 +1,10 @@
 <?php
-// Evitar inicio de sesión - este es un archivo público
-session_start(); // Iniciar pero no validar
+// Página pública para reportar problemas con equipos
+// Iniciar sesión básica sin validación de usuario autenticado
+if (session_status() == PHP_SESSION_NONE) {
+    require_once 'config/session.php';
+}
+
 define('ACCESS', true);
 require_once 'config/config.php';
 

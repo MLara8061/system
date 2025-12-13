@@ -4,9 +4,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Iniciar sesión
+// Iniciar sesión hardened
 if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+    require_once 'config/session.php';
 }
 
 // Verificar que sea POST

@@ -1,6 +1,7 @@
 <?php
+// Cargar sesión hardened (si no está en contexto de directa )
 if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+    require_once __DIR__ . '/config/session.php';
 }
 ini_set('display_errors', 1);
 
