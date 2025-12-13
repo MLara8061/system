@@ -7,7 +7,7 @@
 // Mapeo de páginas legadas a nuevas rutas
 $ROUTE_MAP = [
     // Dashboard
-    'home' => 'app/views/dashboard/home.php',
+    'home' => 'app/views/pages/home.php',
     
     // Usuarios
     'user_list' => 'app/views/dashboard/users/list.php',
@@ -19,7 +19,7 @@ $ROUTE_MAP = [
     'equipment_list' => 'app/views/dashboard/equipment/list.php',
     'new_equipment' => 'app/views/dashboard/equipment/new.php',
     'edit_equipment' => 'app/views/dashboard/equipment/edit.php',
-    'view_equipment' => 'app/views/dashboard/equipment/view.php',
+    'view_equipment' => 'app/views/pages/view_equipment.php',
     'equipment_public' => 'app/views/dashboard/equipment/public.php',
     'equipment_report_sistem_list' => 'app/views/dashboard/equipment/report_sistem_list.php',
     'equipment_report_revision_month' => 'app/views/dashboard/equipment/report_revision_month.php',
@@ -51,7 +51,7 @@ $ROUTE_MAP = [
     'ticket_list' => 'app/views/dashboard/tickets/list.php',
     'new_ticket' => 'app/views/dashboard/tickets/new.php',
     'edit_ticket' => 'app/views/dashboard/tickets/edit.php',
-    'view_ticket' => 'app/views/dashboard/tickets/view.php',
+    'view_ticket' => 'app/views/pages/view_ticket.php',
     
     // Herramientas
     'tools_list' => 'app/views/dashboard/equipment/tools_list.php',
@@ -68,8 +68,8 @@ $ROUTE_MAP = [
     'equipment_report_sistem_update' => 'app/views/dashboard/equipment/report_sistem_update.php',
     
     // Configuración
-    'profile' => 'app/views/dashboard/settings/profile.php',
-    'activity_log' => 'app/views/dashboard/settings/activity_log.php',
+    'profile' => 'app/views/pages/profile.php',
+    'activity_log' => 'app/views/pages/activity_log.php',
     'department_list' => 'app/views/dashboard/settings/departments.php',
     'manage_department' => 'app/views/dashboard/settings/manage_department.php',
     'manage_category' => 'app/views/dashboard/settings/manage_category.php',
@@ -93,6 +93,7 @@ $ROUTE_MAP = [
     'calendar' => 'app/views/dashboard/calendar.php',
     'manage_inventory' => 'app/views/dashboard/inventory/manage.php',
     'inventory_list' => 'app/views/dashboard/inventory/list.php',
+    'view_inventory' => 'app/views/pages/view_inventory.php',
     'descargar_manual' => 'app/views/dashboard/descargar_manual.php',
     'check_structure' => 'app/views/dashboard/check_structure.php',
 ];
