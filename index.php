@@ -3,22 +3,23 @@
 <?php 
 // Constante para permitir includes de vistas
 define('ALLOW_DIRECT_ACCESS', true);
+define('ROOT', __DIR__);
 
 // Cargar sesión hardened
-require_once 'config/session.php';
+require_once ROOT . '/config/session.php';
 
 // Validar sesión activa y timeout
 if (!isset($_SESSION['login_id'])) {
-  header('location:login.php');
+  header('location: app/views/auth/login.php');
   exit();
 }
 
 // Validar timeout de sesión (30 minutos inactividad)
 if (!validate_session()) {
-  header('location:logout.php?timeout=1');
+  header('location: app/views/auth/logout.php?timeout=1');
   exit();
 }
-include 'header.php';
+include ROOT . '/app/views/layouts/header.php';
 ?>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -26,8 +27,8 @@ include 'header.php';
     <div class="spinner" aria-hidden="true"></div>
   </div>
   <div class="wrapper">
-    <?php include 'topbar.php' ?>
-    <?php include 'sidebar.php' ?>
+    <?php include ROOT . '/app/views/layouts/topbar.php' ?>
+    <?php include ROOT . '/app/views/layouts/sidebar.php' ?>
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
@@ -205,7 +206,7 @@ if (in_array($page, $allowed_pages) && file_exists($page . '.php')) {
   <!-- REQUIRED SCRIPTS -->
   <!-- jQuery -->
   <!-- Bootstrap -->
-  <?php include 'footer.php' ?>
+  <?php include ROOT . '/app/views/layouts/footer.php' ?>
 </body>
 
 </html>
