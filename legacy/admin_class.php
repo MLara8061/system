@@ -205,7 +205,7 @@ class Action {
         $save = $stmt->execute($params);
 
         if (!$save) {
-            error_log("Error execute: " . $stmt->error);
+            error_log("Error execute: " . implode(", ", $stmt->errorInfo()));
             return 0;
         }
 
