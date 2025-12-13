@@ -1,10 +1,10 @@
-<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/db.php'; ?>
 
 <?php
 // Obtener próximo número de inventario
-$result = $conn->query("SHOW TABLE STATUS LIKE 'equipments'");
-$row = $result->fetch_assoc();
-$next_inventory = $row['Auto_increment'];
+$stmt = $pdo->query("SHOW TABLE STATUS LIKE 'equipments'");
+$row = $stmt->fetch();
+$next_inventory = $row['Auto_increment'] ?? 1;
 ?>
 
 <div class="container-fluid">
@@ -103,10 +103,10 @@ $next_inventory = $row['Auto_increment'];
                             <select name="supplier_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $suppliers = $conn->query("SELECT id,empresa FROM suppliers WHERE estado=1 ORDER BY empresa ASC");
-                                while ($row = $suppliers->fetch_assoc()): ?>
+                                $suppliers = $pdo->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC");
+                                foreach ($suppliers as $row): ?>
                                     <option value="<?= $row['id'] ?>"><?= ucwords($row['empresa']) ?></option>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             </select>
                         </div>
 
@@ -117,10 +117,10 @@ $next_inventory = $row['Auto_increment'];
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $types = $conn->query("SELECT id,name FROM acquisition_type ORDER BY name ASC");
-                                    while ($row = $types->fetch_assoc()): ?>
+                                    $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC");
+                                    foreach ($types as $row): ?>
                                         <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
-                                    <?php endwhile; ?>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -128,10 +128,10 @@ $next_inventory = $row['Auto_increment'];
                                 <select name="mandate_period_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $periods = $conn->query("SELECT id,name FROM maintenance_periods ORDER BY id ASC");
-                                    while ($row = $periods->fetch_assoc()): ?>
+                                    $periods = $pdo->query("SELECT id, name FROM maintenance_periods ORDER BY id ASC");
+                                    foreach ($periods as $row): ?>
                                         <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
-                                    <?php endwhile; ?>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
@@ -154,10 +154,10 @@ $next_inventory = $row['Auto_increment'];
                                 <select name="department_id" id="department_id" class="custom-select select2" form="manage_equipment" required>
                                     <option value="">Seleccionar departamento</option>
                                     <?php
-                                    $departments = $conn->query("SELECT * FROM departments ORDER BY name ASC");
-                                    while ($row = $departments->fetch_assoc()): ?>
+                                    $departments = $pdo->query("SELECT id, name FROM departments ORDER BY name ASC");
+                                    foreach ($departments as $row): ?>
                                         <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
-                                    <?php endwhile; ?>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-md-4">

@@ -1,8 +1,13 @@
 <?php 
-require_once 'config/config.php';
-$id = $_GET['id'] ?? 0;
+require_once 'config/db.php';
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $is_edit = $id > 0;
-$user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_assoc() : [];
+$user = [];
+if ($is_edit) {
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE id = :id');
+    $stmt->execute([':id' => $id]);
+    $user = $stmt->fetch() ?: [];
+}
 ?>
 
 <div class="container-fluid">

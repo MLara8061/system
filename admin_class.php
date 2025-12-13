@@ -5,12 +5,17 @@ if (session_status() == PHP_SESSION_NONE) {
 ini_set('display_errors', 1);
 
 class Action {
-    private $db;
+    private $db; // mysqli legacy
+    private $pdo; // PDO nuevo
 
     public function __construct() {
         // No iniciar buffer aquí, ya que ajax.php lo maneja
+        // Mantener compatibilidad con código existente (mysqli)
         require_once 'config/config.php';
-        $this->db = $conn;
+        $this->db = isset($conn) ? $conn : null;
+        // Nueva conexión segura con PDO
+        require_once 'config/db.php';
+        $this->pdo = isset($pdo) ? $pdo : null;
     }
 
     function __destruct() {
@@ -36,19 +41,12 @@ class Action {
                 return 2;
             }
             
-            // Escapar entrada para prevenir SQL injection
-            $username = $this->db->real_escape_string($username);
-            
-            // Buscar usuario por username solamente
-            $qry = $this->db->query("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = '" . $username . "'");
+            // Buscar usuario por username (PDO preparado)
+            $stmt = $this->pdo->prepare("SELECT *, CONCAT(firstname,' ',lastname) as name FROM users WHERE username = :username LIMIT 1");
+            $stmt->execute([':username' => $username]);
+            $user = $stmt->fetch();
 
-            if (!$qry) {
-                error_log("LOGIN ERROR: Query failed - " . $this->db->error);
-                return 2;
-            }
-
-            if ($qry->num_rows > 0) {
-                $user = $qry->fetch_array();
+            if ($user) {
                 
                 // Verificar contraseña (soportar MD5 legacy y bcrypt moderno)
                 $password_valid = false;
@@ -149,46 +147,58 @@ class Action {
         $role = (int)($role ?? 2);
         if (!in_array($role, [1, 2])) $role = 2;
 
-        $original = $id > 0 ? $this->db->query("SELECT username FROM users WHERE id = $id")->fetch_assoc()['username'] ?? '' : '';
+        $original = '';
+        if ($id > 0) {
+            $stmt = $this->pdo->prepare('SELECT username FROM users WHERE id = :id');
+            $stmt->execute([':id' => (int)$id]);
+            $original = $stmt->fetch()['username'] ?? '';
+        }
         if ($username !== $original) {
-            $chk = $this->db->query("SELECT id FROM users WHERE username = '$username' AND id != $id")->num_rows;
+            $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = :username AND id != :id');
+            $stmt->execute([':username' => $username, ':id' => (int)$id]);
+            $chk = $stmt->rowCount();
             if ($chk > 0) {
                 error_log("Username duplicado: $username");
                 return 2;
             }
         }
 
-        $data = "firstname = ?, middlename = ?, lastname = ?, username = ?, role = ?";
-        $params = [$firstname, $middlename ?? '', $lastname, $username, $role];
-        $types = "ssssi";
-
-        if (!empty($password)) {
-            $params[] = password_hash($password, PASSWORD_DEFAULT);
-            $data .= ", password = ?";
-            $types .= "s";
-        }
-
+        // Construir SQL con PDO
         if ($id == 0) {
             if (empty($password)) {
                 error_log("Contraseña requerida para nuevo usuario");
                 return 4;
             }
-            $sql = "INSERT INTO users SET $data, date_created = NOW()";
+            $sql = 'INSERT INTO users (firstname, middlename, lastname, username, role, password, date_created) VALUES (:firstname, :middlename, :lastname, :username, :role, :password, NOW())';
+            $params = [
+                ':firstname' => $firstname,
+                ':middlename' => $middlename ?? '',
+                ':lastname' => $lastname,
+                ':username' => $username,
+                ':role' => $role,
+                ':password' => password_hash($password, PASSWORD_DEFAULT)
+            ];
         } else {
-            $sql = "UPDATE users SET $data WHERE id = ?";
-            $params[] = $id;
-            $types .= "i";
+            $base = 'UPDATE users SET firstname = :firstname, middlename = :middlename, lastname = :lastname, username = :username, role = :role';
+            if (!empty($password)) {
+                $base .= ', password = :password';
+            }
+            $sql = $base . ' WHERE id = :id';
+            $params = [
+                ':firstname' => $firstname,
+                ':middlename' => $middlename ?? '',
+                ':lastname' => $lastname,
+                ':username' => $username,
+                ':role' => $role,
+                ':id' => (int)$id
+            ];
+            if (!empty($password)) {
+                $params[':password'] = password_hash($password, PASSWORD_DEFAULT);
+            }
         }
 
-        error_log("Preparando SQL: $sql con types: $types");
-        $stmt = $this->db->prepare($sql);
-        if (!$stmt) {
-            error_log("Error prepare: " . $this->db->error);
-            return 0;
-        }
-        
-        $stmt->bind_param($types, ...$params);
-        $save = $stmt->execute();
+        $stmt = $this->pdo->prepare($sql);
+        $save = $stmt->execute($params);
 
         if (!$save) {
             error_log("Error execute: " . $stmt->error);
@@ -196,7 +206,7 @@ class Action {
         }
 
         if ($save) {
-            $new_id = $id == 0 ? $this->db->insert_id : $id;
+            $new_id = $id == 0 ? (int)$this->pdo->lastInsertId() : (int)$id;
             $action = $id == 0 ? "Añadió usuario" : "Editó usuario ID: $new_id";
             $this->log_activity($action, 'users', $new_id);
             error_log("Usuario guardado exitosamente: $new_id");
@@ -223,11 +233,9 @@ class Action {
         $username = trim($username ?? '');
 
         if (empty($username)) return 0;
-
-        $stmt = $this->db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
-        $stmt->bind_param("si", $username, $id);
-        $stmt->execute();
-        return $stmt->get_result()->num_rows > 0 ? 1 : 0;
+        $stmt = $this->pdo->prepare('SELECT id FROM users WHERE username = :username AND id != :id');
+        $stmt->execute([':username' => $username, ':id' => (int)$id]);
+        return $stmt->rowCount() > 0 ? 1 : 0;
     }
 
     function upload_avatar()
