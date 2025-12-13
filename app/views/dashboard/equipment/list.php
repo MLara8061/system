@@ -98,7 +98,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         SELECT 
                             e.*,
                             s.empresa as supplier_name,
-                            DATEDIFF(CURDATE(), e.date_created) AS antiguedad_dias,
+                            DATEDIFF(CURDATE(), e.purchase_date) AS antiguedad_dias,
                             COALESCE(
                                 (SELECT fecha_programada 
                                  FROM mantenimientos m 
@@ -146,7 +146,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                         $proximo = $row['proximo_mtto'] ? date('d/m/Y', strtotime($row['proximo_mtto'])) : 'Sin periodo';
                         $ultimo = $row['ultimo_mtto'] ? date('d/m/Y', strtotime($row['ultimo_mtto'])) : 'Sin registro';
-                        $antiguedad = $row['antiguedad_dias'] . ' días';
+                        $antiguedad = abs($row['antiguedad_dias']) . ' días';
                         $dias_restantes = $row['dias_restantes'];
                     ?>
                         <tr>
