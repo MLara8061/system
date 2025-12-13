@@ -3,6 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Permitir acceso directo a este archivo
+define('ALLOW_DIRECT_ACCESS', true);
+define('ACCESS', true); // Permitir que config.php se cargue
+
 echo "<h1>Sistema de Diagnóstico</h1>";
 
 define('ROOT', __DIR__);
@@ -10,10 +14,10 @@ echo "<p>ROOT: " . ROOT . "</p>";
 
 echo "<h2>Test 1: Load config.php</h2>";
 try {
-    require_once ROOT . '/config/config.php';
-    echo "<p style='color:green'>✓ config.php loaded successfully</p>";
+    require_once ROOT . '/config/db_connect.php';
+    echo "<p style='color:green'>✓ db_connect.php loaded successfully</p>";
 } catch (Exception $e) {
-    echo "<p style='color:red'>✗ Error loading config.php: " . $e->getMessage() . "</p>";
+    echo "<p style='color:red'>✗ Error loading db_connect.php: " . $e->getMessage() . "</p>";
     exit;
 }
 
