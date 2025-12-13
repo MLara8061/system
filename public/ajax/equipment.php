@@ -49,11 +49,11 @@ if (!validate_session()) {
     exit;
 }
 
-// Cargar Model y Controller
-require_once ROOT . '/app/models/Equipment.php';
+// Cargar Controller
+require_once ROOT . '/app/controllers/EquipmentController.php';
 
 try {
-    $equipmentModel = new Equipment();
+    $equipmentController = new EquipmentController();
     $action = $_GET['action'] ?? $_POST['action'] ?? null;
     
     // Sanitar acción
@@ -77,40 +77,7 @@ try {
                 exit;
             }
             
-            // Validar entrada
-            $required = ['name', 'category_id', 'purchase_price'];
-            foreach ($required as $field) {
-                if (empty($_POST[$field])) {
-                    http_response_code(400);
-                    echo json_encode([
-                        'success' => false,
-                        'message' => "Campo requerido: {$field}"
-                    ]);
-                    exit;
-                }
-            }
-            
-            // Crear equipo
-            $data = [
-                'name' => $_POST['name'],
-                'serial_number' => $_POST['serial_number'] ?? null,
-                'category_id' => (int)$_POST['category_id'],
-                'supplier_id' => $_POST['supplier_id'] ?? null,
-                'location_id' => $_POST['location_id'] ?? null,
-                'purchase_price' => (float)$_POST['purchase_price'],
-                'purchase_date' => $_POST['purchase_date'] ?? date('Y-m-d'),
-                'warranty_expiry' => $_POST['warranty_expiry'] ?? null,
-                'status' => $_POST['status'] ?? 'active',
-                'notes' => $_POST['notes'] ?? null,
-                'created_by' => $_SESSION['login_id']
-            ];
-            
-            $id = $equipmentModel->save($data);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Equipo creado exitosamente',
-                'data' => ['id' => $id, 'asset_tag' => $equipmentModel->getById($id)['asset_tag'] ?? null]
-            ]);
+            echo json_encode($equipmentController->create($_POST));
             break;
         
         // UPDATE - Actualizar equipo
@@ -122,33 +89,13 @@ try {
             }
             
             $id = $_POST['id'] ?? null;
-            if (!$id || !$equipmentModel->getById($id)) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Equipo no encontrado']);
+            if (!$id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID requerido']);
                 exit;
             }
             
-            $data = [
-                'name' => $_POST['name'] ?? null,
-                'serial_number' => $_POST['serial_number'] ?? null,
-                'category_id' => $_POST['category_id'] ?? null,
-                'supplier_id' => $_POST['supplier_id'] ?? null,
-                'location_id' => $_POST['location_id'] ?? null,
-                'purchase_price' => $_POST['purchase_price'] ?? null,
-                'warranty_expiry' => $_POST['warranty_expiry'] ?? null,
-                'status' => $_POST['status'] ?? null,
-                'notes' => $_POST['notes'] ?? null,
-                'updated_by' => $_SESSION['login_id']
-            ];
-            
-            // Remover campos nulos
-            $data = array_filter($data, fn($v) => $v !== null);
-            
-            $equipmentModel->update($id, $data);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Equipo actualizado exitosamente'
-            ]);
+            echo json_encode($equipmentController->update($id, $_POST));
             break;
         
         // DELETE - Eliminar equipo
@@ -160,17 +107,13 @@ try {
             }
             
             $id = $_POST['id'] ?? null;
-            if (!$id || !$equipmentModel->getById($id)) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Equipo no encontrado']);
+            if (!$id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID requerido']);
                 exit;
             }
             
-            $equipmentModel->delete($id);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Equipo eliminado exitosamente'
-            ]);
+            echo json_encode($equipmentController->delete($id));
             break;
         
         // GET - Obtener un equipo con relaciones
@@ -188,17 +131,7 @@ try {
                 exit;
             }
             
-            $equipment = $equipmentModel->getWithRelations($id);
-            if (!$equipment) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Equipo no encontrado']);
-                exit;
-            }
-            
-            echo json_encode([
-                'success' => true,
-                'data' => $equipment
-            ]);
+            echo json_encode($equipmentController->get($id));
             break;
         
         // LIST - Listar equipos con filtros opcionales
@@ -218,11 +151,7 @@ try {
             
             $filters = array_filter($filters, fn($v) => $v !== null);
             
-            $equipment = $equipmentModel->listWithFilters($filters);
-            echo json_encode([
-                'success' => true,
-                'data' => $equipment
-            ]);
+            echo json_encode($equipmentController->list($filters));
             break;
         
         // SEARCH - Buscar equipos
@@ -243,11 +172,7 @@ try {
                 exit;
             }
             
-            $results = $equipmentModel->search($q);
-            echo json_encode([
-                'success' => true,
-                'data' => $results
-            ]);
+            echo json_encode($equipmentController->search($q));
             break;
         
         // LIST BY CATEGORY - Equipos por categoría
@@ -265,11 +190,7 @@ try {
                 exit;
             }
             
-            $results = $equipmentModel->getByCategory($categoryId);
-            echo json_encode([
-                'success' => true,
-                'data' => $results
-            ]);
+            echo json_encode($equipmentController->list(['category_id' => $categoryId]));
             break;
         
         // STATISTICS - Estadísticas de equipos
@@ -280,11 +201,7 @@ try {
                 exit;
             }
             
-            $stats = $equipmentModel->getStatistics();
-            echo json_encode([
-                'success' => true,
-                'data' => $stats
-            ]);
+            echo json_encode($equipmentController->getStatistics());
             break;
         
         // CHANGE STATUS - Cambiar estado
@@ -307,17 +224,7 @@ try {
                 exit;
             }
             
-            if (!$equipmentModel->getById($id)) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Equipo no encontrado']);
-                exit;
-            }
-            
-            $equipmentModel->changeStatus($id, $status);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Estado actualizado'
-            ]);
+            echo json_encode($equipmentController->changeStatus($id, $status));
             break;
         
         // ASSIGN TO USER - Asignar a usuario
@@ -337,17 +244,7 @@ try {
                 exit;
             }
             
-            if (!$equipmentModel->getById($id)) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Equipo no encontrado']);
-                exit;
-            }
-            
-            $equipmentModel->assignToUser($id, $userId);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Equipo asignado'
-            ]);
+            echo json_encode($equipmentController->assignToUser($id, $userId));
             break;
         
         default:
