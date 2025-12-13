@@ -60,8 +60,8 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            // Usar endpoint en raíz (ajax.php) que está en whitelist y permite público
-            events: './ajax.php?action=get_mantenimientos',
+            // Usar endpoint legacy que está en whitelist
+            events: 'ajax.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
             },

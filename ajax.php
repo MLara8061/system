@@ -34,7 +34,7 @@ if (!$isPublicAction) {
 ob_start();
 
 try {
-    include 'admin_class.php';
+    include 'legacy/admin_class.php';
     $crud = new Action();
 } catch (Exception $e) {
     ob_end_clean();

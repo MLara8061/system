@@ -2,7 +2,31 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'config/config.php';
+// Cargar variables de entorno
+$env_file = __DIR__ . '/config/.env';
+if (file_exists($env_file)) {
+    $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (trim($line) === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') === false) continue;
+        [$key, $value] = array_map('trim', explode('=', $line, 2));
+        $value = trim($value, '"\'');
+        putenv("$key=$value");
+        $_ENV[$key] = $value;
+    }
+}
+
+// Conexión directa
+$host = getenv('DB_HOST') ?: 'localhost';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: '';
+$name = getenv('DB_NAME') ?: 'equipment_db';
+
+$conn = new mysqli($host, $user, $pass, $name);
+
+if ($conn->connect_error) {
+    die("<h1>Error de conexión:</h1><p>" . $conn->connect_error . "</p>");
+}
 
 echo "<h1>Diagnóstico de Vistas</h1>";
 
