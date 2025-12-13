@@ -94,17 +94,22 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                 </thead>
                 <tbody>
                     <?php
+                    // Simple query to list equipment
                     $qry = $conn->query("
                         SELECT 
                             e.*,
-                            s.empresa as supplier_name,
+                            IFNULL(s.empresa, 'Sin Proveedor') as supplier_name,
                             DATEDIFF(CURDATE(), IFNULL(e.purchase_date, e.date_created)) AS antiguedad_dias
                         FROM equipments e 
-                        LEFT JOIN suppliers s ON e.supplier_id = s.id 
-                        LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
-                        WHERE u.id IS NULL
+                        LEFT JOIN suppliers s ON e.supplier_id = s.id
                         ORDER BY e.id DESC
+                        LIMIT 500
                     ");
+                    
+                    if (!$qry) {
+                        die('Error de consulta: ' . $conn->error);
+                    }
+                    
                     while ($row = $qry->fetch_assoc()) :
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                         $proximo = 'Sin periodo';
