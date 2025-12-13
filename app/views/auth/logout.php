@@ -9,7 +9,8 @@ require_once ROOT . '/config/session.php';
 // Destruir sesión de forma segura
 destroy_session();
 
-// Redirigir al login
-header("location: app/views/auth/login.php");
+// Redirigir al login (ruta relativa desde raíz)
+header("location: ../../index.php?page=login");
 exit;
+
 
