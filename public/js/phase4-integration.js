@@ -14,7 +14,7 @@ var UserAPI = {
      */
     create: function(formData) {
         return $.ajax({
-            url: '/public/ajax/user.php?action=create',
+            url: './ajax/user.php?action=create',
             type: 'POST',
             data: formData,
             dataType: 'json'
@@ -27,7 +27,7 @@ var UserAPI = {
     update: function(userId, formData) {
         formData.id = userId;
         return $.ajax({
-            url: '/public/ajax/user.php?action=update',
+            url: './ajax/user.php?action=update',
             type: 'POST',
             data: formData,
             dataType: 'json'
@@ -39,7 +39,7 @@ var UserAPI = {
      */
     get: function(userId) {
         return $.ajax({
-            url: '/public/ajax/user.php?action=get&id=' + userId,
+            url: './ajax/user.php?action=get&id=' + userId,
             type: 'GET',
             dataType: 'json'
         });
@@ -49,7 +49,7 @@ var UserAPI = {
      * Listar usuarios
      */
     list: function(role) {
-        var url = '/public/ajax/user.php?action=list';
+        var url = './ajax/user.php?action=list';
         if (role) url += '&role=' + role;
         
         return $.ajax({
@@ -64,7 +64,7 @@ var UserAPI = {
      */
     search: function(query) {
         return $.ajax({
-            url: '/public/ajax/user.php?action=search&q=' + encodeURIComponent(query),
+            url: './ajax/user.php?action=search&q=' + encodeURIComponent(query),
             type: 'GET',
             dataType: 'json'
         });
@@ -75,7 +75,7 @@ var UserAPI = {
      */
     changePassword: function(userId, oldPassword, newPassword) {
         return $.ajax({
-            url: '/public/ajax/user.php?action=change_password',
+            url: './ajax/user.php?action=change_password',
             type: 'POST',
             data: {
                 id: userId,
@@ -95,7 +95,7 @@ var UserAPI = {
         }
         
         return $.ajax({
-            url: '/public/ajax/user.php?action=delete',
+            url: './ajax/user.php?action=delete',
             type: 'POST',
             data: { id: userId },
             dataType: 'json'
@@ -154,7 +154,7 @@ var EquipmentAPI = {
      */
     create: function(formData) {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=create',
+            url: './ajax/equipment.php?action=create',
             type: 'POST',
             data: formData,
             dataType: 'json'
@@ -167,7 +167,7 @@ var EquipmentAPI = {
     update: function(equipmentId, formData) {
         formData.id = equipmentId;
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=update',
+            url: './ajax/equipment.php?action=update',
             type: 'POST',
             data: formData,
             dataType: 'json'
@@ -179,7 +179,7 @@ var EquipmentAPI = {
      */
     get: function(equipmentId) {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=get&id=' + equipmentId,
+            url: './ajax/equipment.php?action=get&id=' + equipmentId,
             type: 'GET',
             dataType: 'json'
         });
@@ -189,7 +189,7 @@ var EquipmentAPI = {
      * Listar equipos con filtros opcionales
      */
     list: function(filters) {
-        var url = '/public/ajax/equipment.php?action=list';
+        var url = './ajax/equipment.php?action=list';
         if (filters) {
             if (filters.status) url += '&status=' + filters.status;
             if (filters.category_id) url += '&category_id=' + filters.category_id;
@@ -209,7 +209,7 @@ var EquipmentAPI = {
      */
     search: function(query) {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=search&q=' + encodeURIComponent(query),
+            url: './ajax/equipment.php?action=search&q=' + encodeURIComponent(query),
             type: 'GET',
             dataType: 'json'
         });
@@ -220,7 +220,7 @@ var EquipmentAPI = {
      */
     getStatistics: function() {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=statistics',
+            url: './ajax/equipment.php?action=statistics',
             type: 'GET',
             dataType: 'json'
         });
@@ -231,7 +231,7 @@ var EquipmentAPI = {
      */
     changeStatus: function(equipmentId, newStatus) {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=change_status',
+            url: './ajax/equipment.php?action=change_status',
             type: 'POST',
             data: {
                 id: equipmentId,
@@ -246,7 +246,7 @@ var EquipmentAPI = {
      */
     assignToUser: function(equipmentId, userId) {
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=assign_to_user',
+            url: './ajax/equipment.php?action=assign_to_user',
             type: 'POST',
             data: {
                 id: equipmentId,
@@ -265,7 +265,7 @@ var EquipmentAPI = {
         }
         
         return $.ajax({
-            url: '/public/ajax/equipment.php?action=delete',
+            url: './ajax/equipment.php?action=delete',
             type: 'POST',
             data: { id: equipmentId },
             dataType: 'json'
