@@ -368,14 +368,27 @@ try {
 
 <script>
     $(document).ready(function() {
-        $('#list').DataTable({
+        console.log('Inicializando DataTable de equipos...');
+        
+        var table = $('#list').DataTable({
             language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
             responsive: true,
             autoWidth: false,
             pageLength: 25,
             deferRender: true,
-            columnDefs: [{ orderable: false, targets: [0,4,5,6,7,8,9] }]
+            columnDefs: [{ orderable: false, targets: [0,4,5,6,7,8,9] }],
+            initComplete: function() {
+                console.log('DataTable inicializada completamente');
+                // Asegurar que se oculte el overlay
+                if (typeof end_load === 'function') {
+                    end_load();
+                }
+                // Forzar ocultar overlay por ID también
+                $('#page-loading-indicator').addClass('is-hidden');
+            }
         });
+        
+        console.log('DataTable configurada:', table);
 
         $(document).on('click', '.view-qr', function() {
             const id = $(this).data('id');

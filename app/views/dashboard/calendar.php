@@ -60,8 +60,8 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            // Usar ruta relativa al subdirectorio para Hostinger
-            events: './public/ajax/action.php?action=get_mantenimientos',
+            // Usar endpoint en raíz (ajax.php) que está en whitelist y permite público
+            events: './ajax.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
             },
@@ -70,6 +70,8 @@
             }
         });
         calendar.render();
+        // Asegurar ocultar overlay tras renderizar
+        if (typeof end_load === 'function') { end_load(); }
 
         // BOTÓN NUEVO
         $('#btn-new').click(() => openModal());

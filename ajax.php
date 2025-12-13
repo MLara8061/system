@@ -3,18 +3,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Definir ROOT
-if (!defined('ROOT')) {
-    define('ROOT', dirname(dirname(dirname(__FILE__))));
-}
-
 // Cargar sesión hardened
-require_once ROOT . '/config/session.php';
+require_once 'config/session.php';
 
 // Determinar acción antes de validar sesión para permitir públicas específicas
 $requestedAction = $_REQUEST['action'] ?? '';
-
-// Para el calendario, permitir obtener eventos sin sesión
 $isPublicAction = in_array($requestedAction, ['get_mantenimientos'], true);
 
 if (!$isPublicAction) {
@@ -41,7 +34,7 @@ if (!$isPublicAction) {
 ob_start();
 
 try {
-    include ROOT . '/admin_class.php';
+    include 'admin_class.php';
     $crud = new Action();
 } catch (Exception $e) {
     ob_end_clean();

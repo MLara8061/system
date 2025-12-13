@@ -1824,6 +1824,15 @@ class Action {
 
     // ================== MANTENIMIENTOS ==================
     function get_mantenimientos() {
+        // Verificar que la tabla mantenimientos existe
+        $check_table = $this->db->query("SHOW TABLES LIKE 'mantenimientos'");
+        if (!$check_table || $check_table->num_rows == 0) {
+            error_log("ERROR: Tabla 'mantenimientos' no existe");
+            header('Content-Type: application/json');
+            echo json_encode([]);
+            exit;
+        }
+        
         $startParam = $_GET['start'] ?? date('Y-m-01');
         $endParam = $_GET['end'] ?? date('Y-m-d', strtotime('+12 months'));
 
@@ -1860,7 +1869,16 @@ class Action {
                   ORDER BY m.fecha_programada";
 
         $events = [];
-        if ($qry = $this->db->query($sql)) {
+        $qry = $this->db->query($sql);
+        
+        if (!$qry) {
+            error_log("ERROR en query mantenimientos: " . $this->db->error);
+            header('Content-Type: application/json');
+            echo json_encode([]);
+            exit;
+        }
+        
+        if ($qry) {
             while ($row = $qry->fetch_assoc()) {
                 $title = $row['name'];
                 $description = trim((string)($row['descripcion'] ?? ''));
