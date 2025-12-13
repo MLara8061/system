@@ -10,7 +10,7 @@ require_once ROOT . '/config/session.php';
 require_once ROOT . '/config/config.php'; 
 
 if (isset($_SESSION['login_id']))
-    header("location: /index.php?page=home");
+    header("location: ../../index.php?page=home");
 ?>
 <head>
     <meta charset="utf-8">
@@ -472,7 +472,7 @@ if (isset($_SESSION['login_id']))
             }
 
             try {
-                const response = await fetch('/public/ajax/login.php', {
+                const response = await fetch('../../public/ajax/login.php', {
                     method: 'POST',
                     body: new FormData(this)
                 });
@@ -492,7 +492,7 @@ if (isset($_SESSION['login_id']))
                     btn.style.background = 'var(--success)';
                     
                     setTimeout(() => {
-                        location.href = 'index.php?page=home';
+                        location.href = '../../index.php?page=home';
                     }, 500);
                 } else {
                     // Login fallido

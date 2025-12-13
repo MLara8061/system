@@ -10,6 +10,6 @@ require_once ROOT . '/config/session.php';
 destroy_session();
 
 // Redirigir al login
-header("location: /app/views/auth/login.php");
+header("location: app/views/auth/login.php");
 exit;
 
