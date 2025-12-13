@@ -2,7 +2,7 @@
 // Cargador sencillo de variables desde .env
 // Formato esperado: CLAVE=valor
 
-function load_env($path = __DIR__ . '/../.env') {
+function load_env($path = __DIR__ . '/.env') {
     if (!file_exists($path)) {
         return;
     }

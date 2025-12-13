@@ -17,5 +17,9 @@ try {
     $pdo = new PDO($dsn, $DB_USER, $DB_PASS, $options);
 } catch (Throwable $e) {
     http_response_code(500);
+    error_log('PDO Connection Error: ' . $e->getMessage());
+    if (php_sapi_name() === 'cli' || (defined('ENVIRONMENT') && ENVIRONMENT === 'local')) {
+        die('Error de conexión PDO: ' . $e->getMessage());
+    }
     die('Error de conexión a la base de datos.');
 }
