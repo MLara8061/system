@@ -1,18 +1,53 @@
 <?php 
+// DEBUG: Mostrar que el archivo se está cargando
+error_log("=== EQUIPMENT LIST STARTED ===");
+
 // La conexión $conn debe estar disponible desde index.php
-// Si no, cargar config.php
 if (!isset($conn)) {
+    error_log("Connection not found, loading config.php");
     $root = dirname(dirname(dirname(__DIR__)));
     require_once $root . '/config/config.php';
 }
-?>
 
-<?php
+error_log("=== ABOUT TO EXECUTE QUERIES ===");
+
 // Datos para las tarjetas - simplificado
-$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments")->fetch_assoc()['total'] ?? 0;
-$costo_total = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments")->fetch_assoc()['total'] ?? 0;
-$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1")->fetch_assoc()['total'] ?? 0;
-$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2")->fetch_assoc()['total'] ?? 0;
+try {
+    $total_equipos = 0;
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $total_equipos = $row['total'] ?? 0;
+        error_log("Total equipos: " . $total_equipos);
+    } else {
+        error_log("Query error: " . $conn->error);
+    }
+    
+    $costo_total = 0;
+    $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $costo_total = $row['total'] ?? 0;
+    }
+    
+    $preventivos = 0;
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $preventivos = $row['total'] ?? 0;
+    }
+    
+    $correctivos = 0;
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $correctivos = $row['total'] ?? 0;
+    }
+    
+    error_log("=== QUERIES COMPLETED ===");
+} catch (Exception $e) {
+    error_log("Exception in equipment list: " . $e->getMessage());
+}
 ?>
 
 <!-- Tarjetas de resumen de Equipos -->
