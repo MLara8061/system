@@ -160,10 +160,10 @@ try {
                             <td class="text-center">
                                 <?php
                                     $imgSrc = $row['image'] ?? '';
-                                    $imgFile = __DIR__ . '/' . ltrim($imgSrc, '/');
-                                    if (!empty($imgSrc) && file_exists($imgFile)): ?>
+                                    if (!empty($imgSrc)) : ?>
                                         <img src="<?php echo $imgSrc; ?>"
                                             class="rounded shadow-sm"
+                                            loading="lazy"
                                             style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;">
                                     <?php else: ?>
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center"
@@ -372,6 +372,8 @@ try {
             language: { url: "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json" },
             responsive: true,
             autoWidth: false,
+            pageLength: 25,
+            deferRender: true,
             columnDefs: [{ orderable: false, targets: [0,4,5,6,7,8,9] }]
         });
 
