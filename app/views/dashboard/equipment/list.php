@@ -1,11 +1,11 @@
 <?php require_once 'config/config.php'; ?>
 
 <?php
-// Datos para las tarjetas
-$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL")->fetch_assoc()['total'];
-$costo_total = $conn->query("SELECT SUM(e.amount) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL")->fetch_assoc()['total'];
-$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 1")->fetch_assoc()['total'];
-$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 2")->fetch_assoc()['total'];
+// Datos para las tarjetas - simplificado
+$total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments")->fetch_assoc()['total'] ?? 0;
+$costo_total = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments")->fetch_assoc()['total'] ?? 0;
+$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1")->fetch_assoc()['total'] ?? 0;
+$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2")->fetch_assoc()['total'] ?? 0;
 ?>
 
 <!-- Tarjetas de resumen de Equipos -->
