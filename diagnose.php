@@ -14,10 +14,18 @@ echo "<p>ROOT: " . ROOT . "</p>";
 
 echo "<h2>Test 1: Load config.php</h2>";
 try {
-    require_once ROOT . '/config/db_connect.php';
-    echo "<p style='color:green'>✓ db_connect.php loaded successfully</p>";
+    // Necesario cargar .env primero
+    $env_file = ROOT . '/config/.env';
+    if (!file_exists($env_file)) {
+        die("<p style='color:red'>✗ .env not found at: " . $env_file . "</p>");
+    }
+    echo "<p>.env found at: " . $env_file . "</p>";
+    
+    require_once ROOT . '/config/config.php';
+    echo "<p style='color:green'>✓ config.php loaded successfully</p>";
 } catch (Exception $e) {
-    echo "<p style='color:red'>✗ Error loading db_connect.php: " . $e->getMessage() . "</p>";
+    echo "<p style='color:red'>✗ Error loading config.php: " . $e->getMessage() . "</p>";
+    echo "<pre>" . $e->getTraceAsString() . "</pre>";
     exit;
 }
 
