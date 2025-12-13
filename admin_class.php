@@ -323,49 +323,183 @@ class Action {
 
     // ================== CLIENTES / STAFF ==================
     function save_customer() {
-        extract($_POST);
-        $data = "";
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id','cpass']) && !is_numeric($k)) {
-                if ($k == 'password') $v = md5($v);
-                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+        try {
+            extract($_POST);
+            $id = isset($id) ? (int)$id : 0;
+            $email = trim($email ?? '');
+            
+            if (empty($email)) return 0;
+            
+            // Construir datos seguros
+            $allowed_fields = ['name', 'phone', 'email', 'address', 'city', 'country', 'website', 'password'];
+            $data = [];
+            
+            foreach ($allowed_fields as $field) {
+                if (isset($_POST[$field]) && !is_numeric($field)) {
+                    $value = trim($_POST[$field]);
+                    if ($field === 'password' && !empty($value)) {
+                        $value = md5($value);
+                    }
+                    $data[$field] = $value;
+                }
             }
+            
+            if (empty($data)) return 0;
+            
+            // Verificar email duplicado
+            if ($this->pdo) {
+                $check_query = "SELECT id FROM customers WHERE email = ?";
+                $check_params = [$email];
+                if ($id > 0) {
+                    $check_query .= " AND id != ?";
+                    $check_params[] = $id;
+                }
+                $stmt = $this->pdo->prepare($check_query);
+                $stmt->execute($check_params);
+                if ($stmt->rowCount() > 0) return 2;
+                
+                // Insert o Update
+                if ($id > 0) {
+                    $fields = implode(', ', array_map(fn($k) => "$k = ?", array_keys($data)));
+                    $stmt = $this->pdo->prepare("UPDATE customers SET $fields WHERE id = ?");
+                    $values = array_merge(array_values($data), [$id]);
+                    $stmt->execute($values);
+                } else {
+                    $fields = implode(', ', array_keys($data));
+                    $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                    $stmt = $this->pdo->prepare("INSERT INTO customers ($fields) VALUES ($placeholders)");
+                    $stmt->execute(array_values($data));
+                }
+                return 1;
+            } else {
+                // Fallback a mysqli
+                $check = $this->db->query("SELECT * FROM customers WHERE email='" . $this->db->real_escape_string($email) . "' " . ($id > 0 ? "AND id != $id" : ''))->num_rows;
+                if ($check > 0) return 2;
+                
+                $set_parts = [];
+                foreach ($data as $k => $v) {
+                    $set_parts[] = "$k='" . $this->db->real_escape_string($v) . "'";
+                }
+                $set_sql = implode(', ', $set_parts);
+                
+                $save = $id > 0
+                    ? $this->db->query("UPDATE customers SET $set_sql WHERE id = $id")
+                    : $this->db->query("INSERT INTO customers SET $set_sql");
+                return $save ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("SAVE_CUSTOMER ERROR: " . $e->getMessage());
+            return 0;
         }
-        $check = $this->db->query("SELECT * FROM customers WHERE email='$email' ".(!empty($id) ? "AND id != $id" : ''))->num_rows;
-        if ($check > 0) return 2;
-
-        $save = empty($id)
-            ? $this->db->query("INSERT INTO customers SET $data")
-            : $this->db->query("UPDATE customers SET $data WHERE id = $id");
-        return $save ? 1 : 0;
     }
 
     function delete_customer() {
-        extract($_POST);
-        return $this->db->query("DELETE FROM customers WHERE id = $id") ? 1 : 0;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM customers WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 0;
+            } else {
+                return $this->db->query("DELETE FROM customers WHERE id = $id") ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_CUSTOMER ERROR: " . $e->getMessage());
+            return 0;
+        }
     }
 
     function save_staff() {
-        extract($_POST);
-        $data = "";
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id','cpass']) && !is_numeric($k)) {
-                if ($k == 'password') $v = md5($v);
-                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+        try {
+            extract($_POST);
+            $id = isset($id) ? (int)$id : 0;
+            $email = trim($email ?? '');
+            
+            if (empty($email)) return 0;
+            
+            // Construir datos seguros
+            $allowed_fields = ['firstname', 'lastname', 'phone', 'email', 'address', 'city', 'country', 'password', 'job_position'];
+            $data = [];
+            
+            foreach ($allowed_fields as $field) {
+                if (isset($_POST[$field]) && !is_numeric($field)) {
+                    $value = trim($_POST[$field]);
+                    if ($field === 'password' && !empty($value)) {
+                        $value = md5($value);
+                    }
+                    $data[$field] = $value;
+                }
             }
+            
+            if (empty($data)) return 0;
+            
+            // Verificar email duplicado
+            if ($this->pdo) {
+                $check_query = "SELECT id FROM staff WHERE email = ?";
+                $check_params = [$email];
+                if ($id > 0) {
+                    $check_query .= " AND id != ?";
+                    $check_params[] = $id;
+                }
+                $stmt = $this->pdo->prepare($check_query);
+                $stmt->execute($check_params);
+                if ($stmt->rowCount() > 0) return 2;
+                
+                // Insert o Update
+                if ($id > 0) {
+                    $fields = implode(', ', array_map(fn($k) => "$k = ?", array_keys($data)));
+                    $stmt = $this->pdo->prepare("UPDATE staff SET $fields WHERE id = ?");
+                    $values = array_merge(array_values($data), [$id]);
+                    $stmt->execute($values);
+                } else {
+                    $fields = implode(', ', array_keys($data));
+                    $placeholders = implode(', ', array_fill(0, count($data), '?'));
+                    $stmt = $this->pdo->prepare("INSERT INTO staff ($fields) VALUES ($placeholders)");
+                    $stmt->execute(array_values($data));
+                }
+                return 1;
+            } else {
+                // Fallback a mysqli
+                $check = $this->db->query("SELECT * FROM staff WHERE email='" . $this->db->real_escape_string($email) . "' " . ($id > 0 ? "AND id != $id" : ''))->num_rows;
+                if ($check > 0) return 2;
+                
+                $set_parts = [];
+                foreach ($data as $k => $v) {
+                    $set_parts[] = "$k='" . $this->db->real_escape_string($v) . "'";
+                }
+                $set_sql = implode(', ', $set_parts);
+                
+                $save = $id > 0
+                    ? $this->db->query("UPDATE staff SET $set_sql WHERE id = $id")
+                    : $this->db->query("INSERT INTO staff SET $set_sql");
+                return $save ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("SAVE_STAFF ERROR: " . $e->getMessage());
+            return 0;
         }
-        $check = $this->db->query("SELECT * FROM staff WHERE email='$email' ".(!empty($id) ? "AND id != $id" : ''))->num_rows;
-        if ($check > 0) return 2;
-
-        $save = empty($id)
-            ? $this->db->query("INSERT INTO staff SET $data")
-            : $this->db->query("UPDATE staff SET $data WHERE id = $id");
-        return $save ? 1 : 0;
     }
 
     function delete_staff() {
-        extract($_POST);
-        return $this->db->query("DELETE FROM staff WHERE id = $id") ? 1 : 0;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM staff WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 0;
+            } else {
+                return $this->db->query("DELETE FROM staff WHERE id = $id") ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_STAFF ERROR: " . $e->getMessage());
+            return 0;
+        }
     }
 
     // ================== DEPARTAMENTOS ==================
@@ -530,8 +664,22 @@ class Action {
     }
 
     function delete_ticket() {
-        extract($_POST);
-        return $this->db->query("DELETE FROM tickets WHERE id = $id") ? 1 : 0;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM tickets WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 0;
+            } else {
+                return $this->db->query("DELETE FROM tickets WHERE id = $id") ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_TICKET ERROR: " . $e->getMessage());
+            return 0;
+        }
     }
 
     // Ticket público (sin autenticación) para reportes de QR
@@ -624,8 +772,22 @@ class Action {
     }
 
     function delete_comment() {
-        extract($_POST);
-        return $this->db->query("DELETE FROM comments WHERE id = $id") ? 1 : 0;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM comments WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 0;
+            } else {
+                return $this->db->query("DELETE FROM comments WHERE id = $id") ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_COMMENT ERROR: " . $e->getMessage());
+            return 0;
+        }
     }
 
     // ================== EQUIPOS (COMPLETO) ==================
@@ -1771,10 +1933,22 @@ class Action {
     }
 
     function delete_supplier() {
-        extract($_POST);
-        $id = (int)$id;
-        if (empty($id)) return 0;
-        return $this->db->query("DELETE FROM suppliers WHERE id = $id") ? 1 : 0;
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("DELETE FROM suppliers WHERE id = ?");
+                $stmt->execute([$id]);
+                return $stmt->rowCount() > 0 ? 1 : 0;
+            } else {
+                return $this->db->query("DELETE FROM suppliers WHERE id = $id") ? 1 : 0;
+            }
+        } catch (Exception $e) {
+            error_log("DELETE_SUPPLIER ERROR: " . $e->getMessage());
+            return 0;
+        }
     }
 
     // ================== UTILIDADES ==================
