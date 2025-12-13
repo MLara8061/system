@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
     // === CONFIGURACIÓN DE COOKIES SEGURAS ===
     $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
               (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
-              php_uname('s') === 'Linux' && env('ENVIRONMENT') === 'production';
+              php_uname('s') === 'Linux' && getenv('ENVIRONMENT') === 'production';
     
     session_set_cookie_params([
         'lifetime' => 1800,  // 30 minutos

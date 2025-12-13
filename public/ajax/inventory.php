@@ -29,7 +29,11 @@ try {
     
     switch ($a) {
         case 'create':
-            ($_SERVER['REQUEST_METHOD'] === 'POST') ? echo json_encode($c->create($_POST)) : http_response_code(405);
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                echo json_encode($c->create($_POST));
+            } else {
+                http_response_code(405);
+            }
             break;
         case 'update':
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); break; }

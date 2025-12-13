@@ -126,6 +126,15 @@ class DataStore {
     }
     
     /**
+     * save - Alias para insert (wrapper para compatibilidad)
+     * @param array $data Datos a guardar
+     * @return int|false
+     */
+    public function save($data) {
+        return $this->insert($data);
+    }
+    
+    /**
      * Actualizar registro
      * @param array $data Datos a actualizar
      * @param int $id ID del registro
