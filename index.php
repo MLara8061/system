@@ -4,9 +4,18 @@
 // Constante para permitir includes de vistas
 define('ALLOW_DIRECT_ACCESS', true);
 
-session_start();
+// Cargar sesión hardened
+require_once 'config/session.php';
+
+// Validar sesión activa y timeout
 if (!isset($_SESSION['login_id'])) {
   header('location:login.php');
+  exit();
+}
+
+// Validar timeout de sesión (30 minutos inactividad)
+if (!validate_session()) {
+  header('location:logout.php?timeout=1');
   exit();
 }
 include 'header.php';

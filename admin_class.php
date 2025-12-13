@@ -78,6 +78,9 @@ class Action {
 
                 $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
 
+                // Regenerar session ID después de autenticación (prevenir Session Fixation)
+                regenerate_session_id();
+
                 // Log activity solo si login_id existe
                 if (isset($_SESSION['login_id'])) {
                     $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);

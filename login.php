@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <?php
-session_start();
+require_once 'config/session.php';
 require_once 'config/config.php'; 
 if (isset($_SESSION['login_id']))
     header("location:index.php?page=home");
