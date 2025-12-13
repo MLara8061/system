@@ -8,35 +8,6 @@
 <script src="assets/plugins/summernote/summernote-bs4.min.js"></script>
 
 <script>
-// Router de AJAX - Mapea rutas legadas a nuevas ubicaciones
-(function() {
-    // Interceptar jQuery AJAX calls
-    var originalAjax = $.ajax;
-    $.ajax = function(options) {
-        if (typeof options.url === 'string') {
-            // Reescribir rutas legadas
-            options.url = options.url
-                .replace(/^ajax\.php/, '/public/ajax/action.php')
-                .replace(/^\.\/ajax\.php/, '/public/ajax/action.php')
-                .replace(/ajax\.php/, '/public/ajax/action.php');
-        }
-        return originalAjax.apply(this, arguments);
-    };
-    
-    // Copiar métodos originales
-    $.each(['get', 'post', 'put', 'delete'], function(i, method) {
-        $[method] = function(url, data, callback) {
-            url = url
-                .replace(/^ajax\.php/, '/public/ajax/action.php')
-                .replace(/^\.\/ajax\.php/, '/public/ajax/action.php')
-                .replace(/ajax\.php/, '/public/ajax/action.php');
-            return originalAjax({ method: method.toUpperCase(), url: url, data: data, success: callback });
-        };
-    });
-})();
-</script>
-
-<script>
 (function($){
     var loaderSelector = '#page-loading-indicator';
     var hiddenClass = 'is-hidden';
