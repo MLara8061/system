@@ -26,6 +26,6 @@ if (isset($_SESSION['login_id'])) {
 // Destruir sesión de forma segura
 destroy_session();
 
-// Redirigir al login
-header('Location: ' . ROOT . '/index.php?page=login', true, 302);
+// Redirigir al login con ruta relativa
+header('Location: ../../index.php?page=login', true, 302);
 exit;
