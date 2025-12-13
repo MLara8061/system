@@ -60,7 +60,8 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            events: 'ajax.php?action=get_mantenimientos',
+            // Usar ruta relativa al subdirectorio para Hostinger
+            events: './public/ajax/action.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
             },
