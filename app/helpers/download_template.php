@@ -6,13 +6,16 @@
 
 // Verificar sesión activa
 if (!defined('ALLOW_DIRECT_ACCESS')) {
-    require_once 'config/session.php';
+    if (!defined('ROOT')) {
+        define('ROOT', dirname(dirname(dirname(__DIR__))));
+    }
+    require_once ROOT . '/config/session.php';
     if (!isset($_SESSION['login_id'])) {
-        header('Location: login.php');
+        header('Location: ' . ROOT . '/app/views/auth/login.php');
         exit;
     }
     if (!validate_session()) {
-        header('Location: logout.php?timeout=1');
+        header('Location: ' . ROOT . '/app/views/auth/logout.php?timeout=1');
         exit;
     }
 }
