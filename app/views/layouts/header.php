@@ -6,13 +6,12 @@
   header('X-Content-Type-Options: nosniff');
   header('X-Frame-Options: DENY');
   header('Referrer-Policy: strict-origin-when-cross-origin');
-  // CSP mínima (ajusta orígenes según tus recursos)
-  header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; font-src 'self' https:; connect-src 'self' https:");
+  // CSP permisiva (incluye CDN y recursos externos)
+  header("Content-Security-Policy: default-src 'self' https:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; font-src 'self' https:; connect-src 'self' https:");
   ob_start();
   $title = isset($_GET['page']) ? ucwords(str_replace("_", ' ', $_GET['page'])) : "Home";
   ?>
-  <title><?php echo $title ?> | Sistema de Soporte Técnico en PHP y MySQL dvhg  2024
-  </title>
+  <title><?php echo $title ?> | Sistema de Soporte Técnico</title>
   <?php ob_end_flush() ?>
 
   <!-- Favicon -->
@@ -106,6 +105,35 @@
     font-weight: 600 !important;
   }
 
+  #page-loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  #page-loading-indicator.is-hidden {
+    display: none;
+  }
+
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
-  
 </head>
