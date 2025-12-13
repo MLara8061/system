@@ -5,6 +5,9 @@
 define('ALLOW_DIRECT_ACCESS', true);
 define('ROOT', __DIR__);
 
+// Cargar configuración base
+require_once ROOT . '/config/config.php';
+
 // Cargar sesión hardened
 require_once ROOT . '/config/session.php';
 

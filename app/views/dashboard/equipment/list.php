@@ -1,4 +1,11 @@
-<?php require_once 'config/config.php'; ?>
+<?php 
+// La conexión $conn debe estar disponible desde index.php
+// Si no, cargar config.php
+if (!isset($conn)) {
+    $root = dirname(dirname(dirname(__DIR__)));
+    require_once $root . '/config/config.php';
+}
+?>
 
 <?php
 // Datos para las tarjetas - simplificado
