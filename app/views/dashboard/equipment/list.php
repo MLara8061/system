@@ -3,11 +3,7 @@
 error_log("=== EQUIPMENT LIST STARTED ===");
 
 // La conexión $conn debe estar disponible desde index.php
-if (!isset($conn)) {
-    error_log("Connection not found, loading config.php");
-    $root = dirname(dirname(dirname(__DIR__)));
-    require_once $root . '/config/config.php';
-}
+// NO intentar cargar config.php aquí, index.php ya lo hizo
 
 error_log("=== ABOUT TO EXECUTE QUERIES ===");
 
