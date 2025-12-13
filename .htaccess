@@ -1,8 +1,17 @@
-# Bloquear acceso a archivos sensibles en la raíz
+# Apache Configuration con seguridad y routing
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /
+  
   # Bloquear archivos .env en cualquier ruta
   RewriteRule \.env$ - [F,L]
+  
+  # Proteger directorios sensibles
+  RewriteRule ^config/\.env$ - [F,L]
+  RewriteRule ^logs/ - [F,L]
+  RewriteRule ^database/ - [F,L]
+  RewriteRule ^tests/ - [F,L]
+  RewriteRule ^\.git - [F,L]
 </IfModule>
 
 # Alternativa sin mod_rewrite
@@ -26,3 +35,58 @@
     Require all granted
   </FilesMatch>
 </Directory>
+# Permitir acceso a nuevas rutas organizadas
+<Directory "app/views">
+  <FilesMatch "\.php$">
+    Require all granted
+  </FilesMatch>
+</Directory>
+
+<Directory "app/helpers">
+  <FilesMatch "\.php$">
+    Require all granted
+  </FilesMatch>
+</Directory>
+
+<Directory "public/ajax">
+  <FilesMatch "\.php$">
+    Require all granted
+  </FilesMatch>
+</Directory>
+
+# Headers de seguridad adicionales
+<IfModule mod_headers.c>
+    # Prevenir MIME sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Prevenir clickjacking
+    Header set X-Frame-Options "DENY"
+    
+    # XSS Protection
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Permissions Policy
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Compresión Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache Control para assets estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Deshabilitar listado de directorios
+Options -Indexes

@@ -63,6 +63,10 @@ $ROUTE_MAP = [
     'new_accesories' => 'app/views/dashboard/equipment/new_accesories.php',
     'edit_accesories' => 'app/views/dashboard/equipment/edit_accesories.php',
     
+    // Equipment adicionales
+    'equipment_report_sistem_add' => 'app/views/dashboard/equipment/report_sistem_add.php',
+    'equipment_report_sistem_update' => 'app/views/dashboard/equipment/report_sistem_update.php',
+    
     // Configuración
     'profile' => 'app/views/dashboard/settings/profile.php',
     'activity_log' => 'app/views/dashboard/settings/activity_log.php',
