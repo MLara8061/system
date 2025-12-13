@@ -792,119 +792,284 @@ class Action {
 
     // ================== EQUIPOS (COMPLETO) ==================
     function save_equipment() {
-        extract($_POST);
-        $data = "";
-        $new = empty($id);
+        try {
+            extract($_POST);
+            $id = isset($id) ? (int)$id : 0;
+            $new = empty($id);
 
-        $this->ensure_equipment_delivery_fk();
-        $this->ensure_equipment_delivery_position_fk();
+            $this->ensure_equipment_delivery_fk();
+            $this->ensure_equipment_delivery_position_fk();
 
-        $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id']) && !is_numeric($k) && in_array($k, $array_cols_equipment)) {
-                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
-            }
-        }
-
-        $save = $new
-            ? $this->db->query("INSERT INTO equipments SET $data")
-            : $this->db->query("UPDATE equipments SET $data WHERE id = $id");
-        if (!$save) return 2;
-
-        $id = $new ? $this->db->insert_id : $id;
-        $_POST['equipment_id'] = $id;
-
-        // === RECEPTION, DELIVERY, SAFEGUARD ===
-        foreach ([
-            'equipment_reception' => ['state','comments'],
-            'equipment_delivery' => ['department_id','location_id','responsible_name','responsible_position','date_training'],
-            'equipment_safeguard' => ['warranty_time','date_adquisition']
-        ] as $table => $fields) {
-            $data = $this->build_data($_POST, $fields);
-            $this->save_or_update($table, $data, $id, $new);
-        }
-
-        // === DOCUMENTOS ===
-        $doc_fields = ['invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'];
-        $data = $this->build_data($_POST, $doc_fields);
-        foreach ($_FILES as $k => $file) {
-            if (!empty($file['tmp_name']) && in_array($k, $doc_fields)) {
-                $dest = 'uploads/' . $file['name'];
-                if (move_uploaded_file($file['tmp_name'], $dest)) {
-                    $data .= ", $k='$dest' ";
+            // === EQUIPOS ===
+            $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
+            $equipment_data = [];
+            foreach ($array_cols_equipment as $field) {
+                if (isset($_POST[$field])) {
+                    $equipment_data[$field] = $_POST[$field];
                 }
             }
-        }
-        $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id=$id")->num_rows > 0;
-        $this->save_or_update('equipment_control_documents', $data, $id, !$exists);
 
-        // === ELIMINAR DOCUMENTOS ===
-        foreach ($doc_fields as $field) {
-            if (!empty($_POST["delete_$field"]) && $_POST["delete_$field"] == '1') {
-                $qry = $this->db->query("SELECT $field FROM equipment_control_documents WHERE equipment_id = $id");
-                $old = $qry->fetch_array()[$field] ?? '';
-                if ($old && file_exists($old)) unlink($old);
-                $this->db->query("UPDATE equipment_control_documents SET $field = NULL WHERE equipment_id = $id");
-            }
-        }
+            if (empty($equipment_data)) return 2;
 
-        // === IMAGEN ===
-        $upload_dir = "uploads/equipment/";
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-        if (!empty($_FILES['equipment_image']['tmp_name'])) {
-            $file = $_FILES['equipment_image'];
-            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $valid_ext = ['jpg','jpeg','png','gif'];
-            if (!in_array($ext, $valid_ext)) return 3;
-            if ($file['size'] > 5*1024*1024) return 4;
-
-            $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
-            if ($old_img && file_exists($old_img)) unlink($old_img);
-
-            $filename = $id.'_'.time().'.'.$ext;
-            $dest = $upload_dir.$filename;
-            if (move_uploaded_file($file['tmp_name'], $dest)) {
-                $this->db->query("UPDATE equipments SET image='$dest' WHERE id=$id");
-            }
-        }
-
-        if (!empty($_POST['delete_image']) && $_POST['delete_image']=='1') {
-            $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
-            if ($old_img && file_exists($old_img)) unlink($old_img);
-            $this->db->query("UPDATE equipments SET image=NULL WHERE id=$id");
-        }
-
-        // === CONSUMO ELÉCTRICO ===
-        if (!empty($voltage) && !empty($amperage)) {
-            $voltage = floatval($voltage);
-            $amperage = floatval($amperage);
-            $frequency_hz = !empty($frequency_hz) ? floatval($frequency_hz) : 60.00;
-            $power_w = round($voltage * $amperage, 2);
-            $notes = $new ? 'Registro inicial' : 'Actualización';
-
-            $exists = $this->db->query("SELECT id FROM equipment_power_specs WHERE equipment_id = $id")->num_rows > 0;
-            if ($exists) {
-                $this->db->query("UPDATE equipment_power_specs SET voltage=$voltage, amperage=$amperage, frequency_hz=$frequency_hz, power_w=$power_w, notes='$notes' WHERE equipment_id=$id");
+            // Insert o Update equipments con PDO
+            if ($this->pdo) {
+                if ($new) {
+                    $fields = implode(', ', array_keys($equipment_data));
+                    $placeholders = implode(', ', array_fill(0, count($equipment_data), '?'));
+                    $stmt = $this->pdo->prepare("INSERT INTO equipments ($fields) VALUES ($placeholders)");
+                    $stmt->execute(array_values($equipment_data));
+                    $id = $this->pdo->lastInsertId();
+                } else {
+                    $set_parts = array_map(fn($k) => "$k = ?", array_keys($equipment_data));
+                    $stmt = $this->pdo->prepare("UPDATE equipments SET " . implode(', ', $set_parts) . " WHERE id = ?");
+                    $values = array_merge(array_values($equipment_data), [$id]);
+                    $stmt->execute($values);
+                }
             } else {
-                $this->db->query("INSERT INTO equipment_power_specs (equipment_id, voltage, amperage, frequency_hz, power_w, notes) VALUES ($id, $voltage, $amperage, $frequency_hz, $power_w, '$notes')");
+                // Fallback a mysqli
+                $data = "";
+                foreach ($equipment_data as $k => $v) {
+                    $v = $this->db->real_escape_string($v);
+                    $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+                }
+                $save = $new
+                    ? $this->db->query("INSERT INTO equipments SET $data")
+                    : $this->db->query("UPDATE equipments SET $data WHERE id = $id");
+                if (!$save) return 2;
+                $id = $new ? $this->db->insert_id : $id;
             }
-        }
 
-        // === MANTENIMIENTO AUTOMÁTICO ===
-        if (!empty($mandate_period_id)) {
-            $update_maintenance = $new;
-            if (!$new) {
-                $old = $this->db->query("SELECT date_created, mandate_period_id FROM equipments WHERE id = $id")->fetch_assoc();
-                if ($old['date_created'] != $date_created || $old['mandate_period_id'] != $mandate_period_id) {
-                    $update_maintenance = true;
+            $_POST['equipment_id'] = $id;
+
+            // === RECEPTION, DELIVERY, SAFEGUARD ===
+            foreach ([
+                'equipment_reception' => ['state','comments'],
+                'equipment_delivery' => ['department_id','location_id','responsible_name','responsible_position','date_training'],
+                'equipment_safeguard' => ['warranty_time','date_adquisition']
+            ] as $table => $fields) {
+                $this->save_or_update_pdo($table, $_POST, $fields, $id, $new);
+            }
+
+            // === DOCUMENTOS ===
+            $doc_fields = ['invoice','bailment_file','contract_file','usermanual_file','fast_guide_file','datasheet_file','servicemanual_file'];
+            $doc_data = [];
+            foreach ($doc_fields as $field) {
+                if (isset($_POST[$field])) {
+                    $doc_data[$field] = $_POST[$field];
                 }
             }
-            if ($update_maintenance) {
-                $this->generate_automatic_maintenance($id, $date_created, $mandate_period_id, false);
+            
+            // Procesar uploads de documentos
+            foreach ($_FILES as $k => $file) {
+                if (!empty($file['tmp_name']) && in_array($k, $doc_fields)) {
+                    $dest = 'uploads/' . $file['name'];
+                    if (move_uploaded_file($file['tmp_name'], $dest)) {
+                        $doc_data[$k] = $dest;
+                    }
+                }
             }
-        }
 
-        return 1;
+            // Verificar si existe documento y actualizar
+            if (!empty($doc_data)) {
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT id FROM equipment_control_documents WHERE equipment_id = ?");
+                    $stmt->execute([$id]);
+                    $exists = $stmt->rowCount() > 0;
+                } else {
+                    $exists = $this->db->query("SELECT id FROM equipment_control_documents WHERE equipment_id=$id")->num_rows > 0;
+                }
+                $this->save_or_update_pdo('equipment_control_documents', $doc_data, array_keys($doc_data), $id, !$exists);
+            }
+
+            // === ELIMINAR DOCUMENTOS ===
+            foreach ($doc_fields as $field) {
+                if (!empty($_POST["delete_$field"]) && $_POST["delete_$field"] == '1') {
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("SELECT $field FROM equipment_control_documents WHERE equipment_id = ?");
+                        $stmt->execute([$id]);
+                        $result = $stmt->fetch();
+                        $old = $result[$field] ?? '';
+                    } else {
+                        $qry = $this->db->query("SELECT $field FROM equipment_control_documents WHERE equipment_id = $id");
+                        $old = $qry->fetch_array()[$field] ?? '';
+                    }
+                    if ($old && file_exists($old)) unlink($old);
+                    
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("UPDATE equipment_control_documents SET $field = NULL WHERE equipment_id = ?");
+                        $stmt->execute([$id]);
+                    } else {
+                        $this->db->query("UPDATE equipment_control_documents SET $field = NULL WHERE equipment_id = $id");
+                    }
+                }
+            }
+
+            // === IMAGEN ===
+            $upload_dir = "uploads/equipment/";
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            if (!empty($_FILES['equipment_image']['tmp_name'])) {
+                $file = $_FILES['equipment_image'];
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $valid_ext = ['jpg','jpeg','png','gif'];
+                if (!in_array($ext, $valid_ext)) return 3;
+                if ($file['size'] > 5*1024*1024) return 4;
+
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT image FROM equipments WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $result = $stmt->fetch();
+                    $old_img = $result['image'] ?? '';
+                } else {
+                    $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
+                }
+                
+                if ($old_img && file_exists($old_img)) unlink($old_img);
+
+                $filename = $id.'_'.time().'.'.$ext;
+                $dest = $upload_dir.$filename;
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("UPDATE equipments SET image = ? WHERE id = ?");
+                        $stmt->execute([$dest, $id]);
+                    } else {
+                        $this->db->query("UPDATE equipments SET image='$dest' WHERE id=$id");
+                    }
+                }
+            }
+
+            if (!empty($_POST['delete_image']) && $_POST['delete_image']=='1') {
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT image FROM equipments WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $result = $stmt->fetch();
+                    $old_img = $result['image'] ?? '';
+                } else {
+                    $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
+                }
+                if ($old_img && file_exists($old_img)) unlink($old_img);
+                
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("UPDATE equipments SET image = NULL WHERE id = ?");
+                    $stmt->execute([$id]);
+                } else {
+                    $this->db->query("UPDATE equipments SET image=NULL WHERE id=$id");
+                }
+            }
+
+            // === CONSUMO ELÉCTRICO ===
+            if (!empty($voltage) && !empty($amperage)) {
+                $voltage = floatval($voltage);
+                $amperage = floatval($amperage);
+                $frequency_hz = !empty($frequency_hz) ? floatval($frequency_hz) : 60.00;
+                $power_w = round($voltage * $amperage, 2);
+                $notes = $new ? 'Registro inicial' : 'Actualización';
+
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT id FROM equipment_power_specs WHERE equipment_id = ?");
+                    $stmt->execute([$id]);
+                    $exists = $stmt->rowCount() > 0;
+                } else {
+                    $exists = $this->db->query("SELECT id FROM equipment_power_specs WHERE equipment_id = $id")->num_rows > 0;
+                }
+                
+                if ($exists) {
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("UPDATE equipment_power_specs SET voltage=?, amperage=?, frequency_hz=?, power_w=?, notes=? WHERE equipment_id=?");
+                        $stmt->execute([$voltage, $amperage, $frequency_hz, $power_w, $notes, $id]);
+                    } else {
+                        $this->db->query("UPDATE equipment_power_specs SET voltage=$voltage, amperage=$amperage, frequency_hz=$frequency_hz, power_w=$power_w, notes='$notes' WHERE equipment_id=$id");
+                    }
+                } else {
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("INSERT INTO equipment_power_specs (equipment_id, voltage, amperage, frequency_hz, power_w, notes) VALUES (?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$id, $voltage, $amperage, $frequency_hz, $power_w, $notes]);
+                    } else {
+                        $this->db->query("INSERT INTO equipment_power_specs (equipment_id, voltage, amperage, frequency_hz, power_w, notes) VALUES ($id, $voltage, $amperage, $frequency_hz, $power_w, '$notes')");
+                    }
+                }
+            }
+
+            // === MANTENIMIENTO AUTOMÁTICO ===
+            if (!empty($mandate_period_id)) {
+                $update_maintenance = $new;
+                if (!$new) {
+                    if ($this->pdo) {
+                        $stmt = $this->pdo->prepare("SELECT date_created, mandate_period_id FROM equipments WHERE id = ?");
+                        $stmt->execute([$id]);
+                        $old = $stmt->fetch();
+                    } else {
+                        $old = $this->db->query("SELECT date_created, mandate_period_id FROM equipments WHERE id = $id")->fetch_assoc();
+                    }
+                    if ($old['date_created'] != $date_created || $old['mandate_period_id'] != $mandate_period_id) {
+                        $update_maintenance = true;
+                    }
+                }
+                if ($update_maintenance) {
+                    $this->generate_automatic_maintenance($id, $date_created, $mandate_period_id, false);
+                }
+            }
+
+            return 1;
+        } catch (Exception $e) {
+            error_log("SAVE_EQUIPMENT ERROR: " . $e->getMessage());
+            return 2;
+        }
+    }
+    
+    // Helper para save_or_update con PDO
+    private function save_or_update_pdo($table, $data, $allowed, $equipment_id, $is_new) {
+        try {
+            $filtered_data = [];
+            foreach ($allowed as $field) {
+                if (isset($data[$field]) && !is_numeric($field)) {
+                    $filtered_data[$field] = $data[$field];
+                }
+            }
+            
+            if (empty($filtered_data)) return true;
+            
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("SELECT id FROM $table WHERE equipment_id = ?");
+                $stmt->execute([$equipment_id]);
+                $exists = $stmt->rowCount() > 0;
+                
+                if ($exists) {
+                    $set_parts = array_map(fn($k) => "$k = ?", array_keys($filtered_data));
+                    $stmt = $this->pdo->prepare("UPDATE $table SET " . implode(', ', $set_parts) . " WHERE equipment_id = ?");
+                    $values = array_merge(array_values($filtered_data), [$equipment_id]);
+                    $stmt->execute($values);
+                } else {
+                    $filtered_data['equipment_id'] = $equipment_id;
+                    $fields = implode(', ', array_keys($filtered_data));
+                    $placeholders = implode(', ', array_fill(0, count($filtered_data), '?'));
+                    $stmt = $this->pdo->prepare("INSERT INTO $table ($fields) VALUES ($placeholders)");
+                    $stmt->execute(array_values($filtered_data));
+                }
+                return true;
+            } else {
+                // Fallback a mysqli
+                $data_str = "";
+                foreach ($filtered_data as $k => $v) {
+                    $v = $this->db->real_escape_string($v);
+                    $data_str .= empty($data_str) ? " $k='$v' " : ", $k='$v' ";
+                }
+                
+                $exists = $this->db->query("SELECT id FROM $table WHERE equipment_id = $equipment_id LIMIT 1")->num_rows > 0;
+                $sql = $exists
+                    ? "UPDATE $table SET $data_str WHERE equipment_id = $equipment_id"
+                    : "INSERT INTO $table SET $data_str, equipment_id = $equipment_id";
+                
+                $result = $this->db->query($sql);
+                if (!$result) {
+                    error_log("ERROR en $table: " . $this->db->error . " | SQL: $sql");
+                    return false;
+                }
+                return true;
+            }
+        } catch (Exception $e) {
+            error_log("SAVE_OR_UPDATE_PDO ERROR: " . $e->getMessage());
+            return false;
+        }
     }
 
     function delete_equipment_image()
