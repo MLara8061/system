@@ -79,12 +79,39 @@ if ($check_table && $check_table->num_rows > 0) {
     echo "✗ Tabla 'mantenimientos' NO existe<br>";
 }
 
-// 3. Verificar query de equipos
-echo "<h2>3. Query de lista de equipos</h2>";
+// 3. Verificar estructura de tabla equipments
+echo "<h2>3. Estructura de tabla equipments</h2>";
+$cols = $conn->query("SHOW COLUMNS FROM equipments");
+echo "<table border='1' cellpadding='5'>";
+echo "<tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th></tr>";
+while($col = $cols->fetch_assoc()) {
+    echo "<tr>";
+    echo "<td>{$col['Field']}</td>";
+    echo "<td>{$col['Type']}</td>";
+    echo "<td>{$col['Null']}</td>";
+    echo "<td>{$col['Key']}</td>";
+    echo "</tr>";
+}
+echo "</table>";
+
+// 4. Verificar query de equipos con nombres correctos
+echo "<h2>4. Query de lista de equipos</h2>";
 $start_time = microtime(true);
 
+// Detectar nombre correcto de fecha de compra
+$date_column = 'date_acquired'; // valor por defecto
+$cols_result = $conn->query("SHOW COLUMNS FROM equipments LIKE '%date%'");
+while($col = $cols_result->fetch_assoc()) {
+    if (stripos($col['Field'], 'purchase') !== false || stripos($col['Field'], 'acquired') !== false) {
+        $date_column = $col['Field'];
+        break;
+    }
+}
+
+echo "<strong>Columna de fecha detectada:</strong> $date_column<br>";
+
 $sql = "SELECT e.*, d.name as dept_name, l.name as loc_name, j.name as job_name, 
-        COALESCE(ABS(DATEDIFF(CURDATE(), e.purchase_date)), 0) as dias_antiguedad
+        COALESCE(ABS(DATEDIFF(CURDATE(), e.$date_column)), 0) as dias_antiguedad
         FROM equipments e
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN locations l ON e.location_id = l.id
@@ -92,7 +119,7 @@ $sql = "SELECT e.*, d.name as dept_name, l.name as loc_name, j.name as job_name,
         LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
         WHERE u.id IS NULL
         ORDER BY e.id DESC
-        LIMIT 500";
+        LIMIT 10";
 
 echo "<strong>SQL:</strong><br><pre>" . htmlspecialchars($sql) . "</pre>";
 
@@ -113,8 +140,8 @@ if ($qry) {
     echo "✗ Error en query: " . $conn->error . "<br>";
 }
 
-// 4. Test endpoint get_mantenimientos
-echo "<h2>4. Test get_mantenimientos</h2>";
+// 5. Test endpoint get_mantenimientos
+echo "<h2>5. Test get_mantenimientos</h2>";
 $start = date('Y-m-01');
 $end = date('Y-m-d', strtotime('+12 months'));
 
@@ -160,8 +187,8 @@ if ($qry_mant) {
     echo "✗ Error en query mantenimientos: " . $conn->error . "<br>";
 }
 
-// 5. Verificar llamada AJAX directa
-echo "<h2>5. Test llamada directa a get_mantenimientos</h2>";
+// 6. Verificar llamada AJAX directa
+echo "<h2>6. Test llamada directa a get_mantenimientos</h2>";
 echo "<a href='ajax.php?action=get_mantenimientos' target='_blank'>Ver respuesta JSON</a><br>";
 
 echo "<h2>Diagnóstico completado</h2>";
