@@ -98,39 +98,15 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         SELECT 
                             e.*,
                             s.empresa as supplier_name,
-                            DATEDIFF(CURDATE(), e.purchase_date) AS antiguedad_dias,
-                            COALESCE(
-                                (SELECT fecha_programada 
-                                 FROM mantenimientos m 
-                                 WHERE m.equipo_id = e.id 
-                                   AND m.estatus = 'completado' 
-                                 ORDER BY fecha_programada DESC 
-                                 LIMIT 1),
-                                e.date_created
-                            ) AS ultimo_mtto,
+                            DATEDIFF(CURDATE(), IFNULL(e.purchase_date, e.date_created)) AS antiguedad_dias,
+                            COALESCE(m.fecha_programada, e.date_created) AS ultimo_mtto,
                             DATE_ADD(
-                                COALESCE(
-                                    (SELECT fecha_programada 
-                                     FROM mantenimientos m 
-                                     WHERE m.equipo_id = e.id 
-                                       AND m.estatus = 'completado' 
-                                     ORDER BY fecha_programada DESC 
-                                     LIMIT 1),
-                                    e.date_created
-                                ),
+                                COALESCE(m.fecha_programada, e.date_created),
                                 INTERVAL COALESCE(mp.days_interval, 0) DAY
                             ) AS proximo_mtto,
                             DATEDIFF(
                                 DATE_ADD(
-                                    COALESCE(
-                                        (SELECT fecha_programada 
-                                         FROM mantenimientos m 
-                                         WHERE m.equipo_id = e.id 
-                                           AND m.estatus = 'completado' 
-                                         ORDER BY fecha_programada DESC 
-                                         LIMIT 1),
-                                        e.date_created
-                                    ),
+                                    COALESCE(m.fecha_programada, e.date_created),
                                     INTERVAL COALESCE(mp.days_interval, 0) DAY
                                 ),
                                 CURDATE()
@@ -138,6 +114,12 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id 
                         LEFT JOIN maintenance_periods mp ON e.mandate_period_id = mp.id
+                        LEFT JOIN (
+                            SELECT equipo_id, MAX(fecha_programada) as fecha_programada
+                            FROM mantenimientos
+                            WHERE estatus = 'completado'
+                            GROUP BY equipo_id
+                        ) m ON e.id = m.equipo_id
                         LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
                         WHERE u.id IS NULL
                         ORDER BY e.id DESC
