@@ -1,20 +1,35 @@
 <?php
-define('ACCESS', true);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Cargar variables de entorno
+// Cargar variables de entorno directamente
 $env_file = __DIR__ . '/config/.env';
 if (file_exists($env_file)) {
     $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (trim($line) === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') === false) continue;
         list($key, $value) = array_map('trim', explode('=', $line, 2));
-        if (!empty($key)) putenv("$key=$value");
+        if (!empty($key)) {
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
     }
 }
 
-require_once __DIR__ . '/config/config.php';
+// Conectar a la base de datos directamente
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? '';
+$dbname = $_ENV['DB_NAME'] ?? 'equipment_system';
+
+$conn = new mysqli($host, $user, $pass, $dbname);
+
+if ($conn->connect_error) {
+    die("<h1>Error de conexión</h1><p>" . $conn->connect_error . "</p>");
+}
+
+$conn->set_charset('utf8mb4');
 
 echo "<h1>Estructura de Base de Datos</h1>";
 
