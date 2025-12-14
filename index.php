@@ -5,6 +5,19 @@
 define('ALLOW_DIRECT_ACCESS', true);
 define('ROOT', __DIR__);
 
+// === VERIFICAR MODO MANTENIMIENTO ===
+$maintenanceConfig = require ROOT . '/maintenance_config.php';
+if ($maintenanceConfig['maintenance_enabled']) {
+    // Verificar si la IP está en la lista de permitidas
+    $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isAllowedIP = in_array($userIP, $maintenanceConfig['allowed_ips']);
+    
+    if (!$isAllowedIP) {
+        header('Location: /maintenance.php');
+        exit();
+    }
+}
+
 // Cargar configuración base
 require_once ROOT . '/config/config.php';
 
