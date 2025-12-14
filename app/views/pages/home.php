@@ -196,26 +196,49 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
 <div class="row mb-3">
     <div class="col-12">
         <div class="card">
-            <div class="card-body p-2 p-md-3">
+            <div class="card-body p-2">
                 <div class="row align-items-center">
-                    <div class="col-12 col-md-auto mb-2 mb-md-0 text-center text-md-left">
-                        <i class="fas fa-filter mr-2"></i>
-                        <strong>Período:</strong>
+                    <div class="col-12 col-sm-auto mb-2 mb-sm-0 text-center text-sm-left">
+                        <small><i class="fas fa-filter mr-1"></i><strong>Período:</strong></small>
                     </div>
-                    <div class="col-12 col-md">
-                        <div class="btn-group btn-group-sm w-100 w-md-auto d-flex flex-column flex-sm-row" role="group">
-                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
-                                <i class="fas fa-calendar-alt d-none d-sm-inline"></i> <span class="d-inline d-sm-none">📅</span> 6 Meses
+                    <div class="col-12 col-sm">
+                        <!-- Desktop: botones normales en fila -->
+                        <div class="btn-group btn-group-sm d-none d-sm-flex" role="group" style="font-size: 0.8rem;">
+                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                                <i class="fas fa-calendar-alt"></i> 6m
                             </button>
-                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
-                                <i class="fas fa-calendar d-none d-sm-inline"></i> <span class="d-inline d-sm-none">📅</span> 12 Meses
+                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                                <i class="fas fa-calendar"></i> 12m
                             </button>
-                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
-                                <i class="fas fa-calendar-check d-none d-sm-inline"></i> <span class="d-inline d-sm-none">✓</span> Este Año
+                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                                <i class="fas fa-calendar-check"></i> Año
                             </button>
-                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
-                                <i class="fas fa-infinity d-none d-sm-inline"></i> <span class="d-inline d-sm-none">∞</span> Todo
+                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                                <i class="fas fa-infinity"></i> Todo
                             </button>
+                        </div>
+                        <!-- Móvil: 2 botones por fila -->
+                        <div class="row d-sm-none" style="font-size: 0.75rem;">
+                            <div class="col-6 pr-1 mb-1">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-block py-1 <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                                    📅 6m
+                                </button>
+                            </div>
+                            <div class="col-6 pl-1 mb-1">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-block py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                                    📅 12m
+                                </button>
+                            </div>
+                            <div class="col-6 pr-1">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-block py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                                    ✓ Año
+                                </button>
+                            </div>
+                            <div class="col-6 pl-1">
+                                <button type="button" class="btn btn-outline-primary btn-sm btn-block py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                                    ∞ Todo
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
