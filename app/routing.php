@@ -96,6 +96,7 @@ $ROUTE_MAP = [
     'view_inventory' => 'app/views/pages/view_inventory.php',
     'descargar_manual' => 'app/views/dashboard/descargar_manual.php',
     'check_structure' => 'app/views/dashboard/check_structure.php',
+    'db_diagnostic' => 'app/views/pages/db_diagnostic.php',
 ];
 
 /**
