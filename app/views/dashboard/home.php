@@ -4,16 +4,22 @@
 <?php
 require_once 'config/config.php';
 
+// Debug trace: escribir pasos al cargar la página (temporal)
+$traceFile = realpath(__DIR__ . '/../../..') . DIRECTORY_SEPARATOR . 'home_trace.log';
+file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: start\n", FILE_APPEND);
+
 // Obtener usuario logueado y su sucursal activa
 $user_id = $_SESSION['login_id'] ?? 0;
 $user_branch = null;
 if ($user_id) {
     $user_query = $conn->query("SELECT u.*, b.name as branch_name FROM users u LEFT JOIN branches b ON u.active_branch_id = b.id WHERE u.id = $user_id");
     $user_branch = $user_query->fetch_assoc();
+  file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: fetched user_branch: " . json_encode($user_branch) . "\n", FILE_APPEND);
 }
 
 // Obtener todas las sucursales activas
 $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: fetched branches\n", FILE_APPEND);
 
 // Total de Equipos (filtrado por sucursal si aplica)
 $branch_filter = $user_branch && $user_branch['active_branch_id'] ? "AND e.branch_id = " . $user_branch['active_branch_id'] : "";
@@ -22,6 +28,7 @@ $total_equipos = 0;
 if ($result) {
     $row = $result->fetch_assoc();
     $total_equipos = $row ? $row['total'] : 0;
+  file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: total_equipos={$total_equipos}\n", FILE_APPEND);
 }
 
 // Total de Equipos EPP (filtrado por sucursal)
@@ -46,6 +53,7 @@ $result = $conn->query("SELECT SUM(e.amount) AS total FROM equipments e LEFT JOI
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_equipos = $row && $row['total'] ? $row['total'] : 0;
+  file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: valor_total_equipos={$valor_total_equipos}\n", FILE_APPEND);
 }
 
 // Valor Total de Equipos EPP (filtrado)
@@ -66,6 +74,7 @@ if ($result) {
 
 // Valor Total de Activos
 $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_herramientas;
+file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: total_valor_activos={$total_valor_activos}\n", FILE_APPEND);
 ?>
 
 
