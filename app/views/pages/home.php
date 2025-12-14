@@ -196,25 +196,27 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
 <div class="row mb-3">
     <div class="col-12">
         <div class="card">
-            <div class="card-body p-2">
-                <div class="d-flex align-items-center justify-content-between flex-wrap">
-                    <div class="mb-2 mb-md-0">
+            <div class="card-body p-2 p-md-3">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-auto mb-2 mb-md-0 text-center text-md-left">
                         <i class="fas fa-filter mr-2"></i>
-                        <strong>Período de datos:</strong>
+                        <strong>Período:</strong>
                     </div>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
-                            <i class="fas fa-calendar-alt"></i> 6 Meses
-                        </button>
-                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
-                            <i class="fas fa-calendar"></i> 12 Meses
-                        </button>
-                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
-                            <i class="fas fa-calendar-check"></i> Este Año
-                        </button>
-                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
-                            <i class="fas fa-infinity"></i> Todo
-                        </button>
+                    <div class="col-12 col-md">
+                        <div class="btn-group btn-group-sm w-100 w-md-auto d-flex flex-column flex-sm-row" role="group">
+                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                                <i class="fas fa-calendar-alt d-none d-sm-inline"></i> <span class="d-inline d-sm-none">📅</span> 6 Meses
+                            </button>
+                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                                <i class="fas fa-calendar d-none d-sm-inline"></i> <span class="d-inline d-sm-none">📅</span> 12 Meses
+                            </button>
+                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                                <i class="fas fa-calendar-check d-none d-sm-inline"></i> <span class="d-inline d-sm-none">✓</span> Este Año
+                            </button>
+                            <button type="button" class="btn btn-outline-primary mb-1 mb-sm-0 <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                                <i class="fas fa-infinity d-none d-sm-inline"></i> <span class="d-inline d-sm-none">∞</span> Todo
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
