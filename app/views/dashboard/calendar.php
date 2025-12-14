@@ -218,6 +218,8 @@
                     $('#maintenanceModal').modal('hide');
                     // RECARGAR PÁGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
+                } else if (resp === '-1') {
+                    alert_toast('⚠ Esta fecha ya tiene el máximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');
                 } else {
                     console.error('Respuesta inesperada:', resp);
                     alert_toast('Error al guardar', 'error');

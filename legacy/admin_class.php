@@ -1654,9 +1654,33 @@ class Action {
                     continue;
                 }
 
+                // Validar límite de eventos por día antes de insertar
+                if (!$this->can_add_maintenance_on_date($candidateStr)) {
+                    continue; // Saltar esta fecha si ya tiene demasiados eventos
+                }
+
                 $this->db->query("INSERT INTO mantenimientos (equipo_id, fecha_programada, hora_programada, tipo_mantenimiento, descripcion, estatus, created_at) VALUES ({$eq['id']}, '$candidateStr', NULL, 'Preventivo', 'Mantenimiento automático', 'pendiente', NOW())");
             }
         }
+    }
+
+    /**
+     * Valida si se puede agregar un mantenimiento en la fecha especificada
+     * Límite configurable para evitar sobrecarga del calendario
+     */
+    private function can_add_maintenance_on_date($fecha) {
+        // Cargar límite desde configuración
+        $config_file = __DIR__ . '/../config/maintenance_limits.php';
+        $config = file_exists($config_file) ? include($config_file) : [];
+        $max_events_per_day = $config['max_events_per_day'] ?? 20;
+        
+        $count_query = $this->db->query("SELECT COUNT(*) as total FROM mantenimientos WHERE fecha_programada = '" . $this->db->real_escape_string($fecha) . "'");
+        
+        if ($count_query && $row = $count_query->fetch_assoc()) {
+            return $row['total'] < $max_events_per_day;
+        }
+        
+        return true; // Si hay error, permitir (fail-safe)
     }
 
     private function detect_equipment_status_column() {
@@ -1948,6 +1972,11 @@ class Action {
 
         if ($equipo_id <= 0 || empty($fecha_programada)) {
             return 0;
+        }
+
+        // Validar límite de eventos por día (solo para nuevos registros)
+        if ($id <= 0 && !$this->can_add_maintenance_on_date($fecha_programada)) {
+            return -1; // Código especial para indicar límite excedido
         }
 
         $allowedTypes = [
