@@ -6,8 +6,8 @@
 
 // Mapeo de páginas legadas a nuevas rutas
 $ROUTE_MAP = [
-    // Dashboard
-    'home' => 'app/views/pages/home.php',
+    // Dashboard (usar nueva vista dashboard con selector de sucursal)
+    'home' => 'app/views/dashboard/home.php',
     
     // Usuarios
     'user_list' => 'app/views/dashboard/users/list.php',
