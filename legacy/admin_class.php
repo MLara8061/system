@@ -1871,7 +1871,9 @@ class Action {
             $endDate = (clone $startDate)->modify('+12 months');
         }
 
-        $this->ensure_maintenance_schedule($startDate, $endDate);
+        // DESACTIVADO: Regeneración automática causaba sobrecarga del calendario
+        // Solo se debe ejecutar manualmente o al crear/editar equipos
+        // $this->ensure_maintenance_schedule($startDate, $endDate);
 
         $statusColumn = $this->detect_equipment_status_column();
         $statusSelect = $statusColumn ? "e.`$statusColumn` AS status_value" : "NULL AS status_value";

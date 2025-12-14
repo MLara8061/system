@@ -110,21 +110,46 @@ if (!empty($found_files)) {
 echo "<h2>5. Funciones de Generación Automática</h2>";
 echo "<p>Buscando funciones que generan mantenimientos automáticamente...</p>";
 
-$generate_functions = [
+$search_patterns = [
     'generate_preventive_maintenances',
     'auto_generate_maintenances', 
     'create_automatic_maintenances',
     'schedule_maintenances'
 ];
 
-echo "<ul>";
-foreach ($generate_functions as $func) {
-    $found = shell_exec("cd " . escapeshellarg(__DIR__) . " && grep -r \"function $func\" --include=\"*.php\" 2>nul");
-    if ($found) {
-        echo "<li style='color: orange;'>⚠ Encontrada: <strong>$func</strong><pre>" . htmlspecialchars($found) . "</pre></li>";
+// Buscar en archivos PHP manualmente
+function search_in_files($dir, $patterns) {
+    $results = [];
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+    
+    foreach ($files as $file) {
+        if ($file->isFile() && $file->getExtension() === 'php') {
+            $content = file_get_contents($file->getPathname());
+            foreach ($patterns as $pattern) {
+                if (stripos($content, $pattern) !== false) {
+                    $results[] = [
+                        'file' => str_replace($dir . DIRECTORY_SEPARATOR, '', $file->getPathname()),
+                        'pattern' => $pattern
+                    ];
+                }
+            }
+        }
     }
+    return $results;
 }
-echo "</ul>";
+
+$found = search_in_files(__DIR__, $search_patterns);
+if (!empty($found)) {
+    echo "<ul>";
+    foreach ($found as $item) {
+        echo "<li style='color: orange;'>⚠ <strong>{$item['pattern']}</strong> encontrado en: <code>{$item['file']}</code></li>";
+    }
+    echo "</ul>";
+} else {
+    echo "<p style='color: green;'>✓ No se encontraron funciones de generación automática</p>";
+}
 
 // 6. Verificar cuándo fueron creados los registros problemáticos
 echo "<h2>6. Análisis de Registros Recreados</h2>";
@@ -156,14 +181,25 @@ if ($recent && $recent->num_rows > 0) {
     echo "<p style='background: #e7f3ff; padding: 10px;'>💡 <strong>Pista:</strong> Si ves muchos registros creados en la misma fecha/hora, probablemente hay un proceso automático ejecutándose.</p>";
 }
 
-// 7. Verificar si hay algún proceso que llame a generate_preventive_maintenances en login/home
-echo "<h2>7. Verificar Llamadas en Archivos Principales</h2>";
-$main_files = ['index.php', 'home.php', 'login.php', 'ajax.php'];
-foreach ($main_files as $file) {
-    if (file_exists(__DIR__ . '/' . $file)) {
-        $content = file_get_contents(__DIR__ . '/' . $file);
-        if (strpos($content, 'generate_preventive_maintenances') !== false) {
-            echo "<p style='color: red;'>❌ <strong>$file</strong> llama a generate_preventive_maintenances()</p>";
+// 7. Verificar get_mantenimientos y ensure_maintenance_schedule
+echo "<h2>7. Verificar Generación Automática en get_mantenimientos()</h2>";
+
+$admin_class_file = __DIR__ . '/legacy/admin_class.php';
+if (file_exists($admin_class_file)) {
+    $content = file_get_contents($admin_class_file);
+    
+    // Buscar si ensure_maintenance_schedule está activo en get_mantenimientos
+    if (preg_match('/function get_mantenimientos.*?\{(.*?)\}/s', $content, $match)) {
+        $func_content = $match[1];
+        
+        if (preg_match('/^\s*\/\/.*ensure_maintenance_schedule/m', $func_content)) {
+            echo "<p style='color: green;'>✓ <strong>ensure_maintenance_schedule</strong> está desactivado (comentado)</p>";
+        } elseif (strpos($func_content, 'ensure_maintenance_schedule') !== false) {
+            echo "<p style='color: red;'>❌ <strong>get_mantenimientos()</strong> llama a <code>ensure_maintenance_schedule()</code></p>";
+            echo "<p style='background: #fff3cd; padding: 10px;'>⚠ <strong>PROBLEMA ENCONTRADO:</strong> Cada vez que alguien abre el calendario, se regeneran automáticamente todos los mantenimientos.</p>";
+            echo "<p><strong>Solución:</strong> Comentar la línea <code>\$this->ensure_maintenance_schedule(\$startDate, \$endDate);</code> en <code>legacy/admin_class.php</code></p>";
+        } else {
+            echo "<p style='color: green;'>✓ No se encontró llamada a ensure_maintenance_schedule</p>";
         }
     }
 }
