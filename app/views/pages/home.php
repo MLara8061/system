@@ -193,6 +193,35 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     <!-- /.row -->
 
 <!-- Gráficas de Servicios de Mantenimiento -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="mb-2 mb-md-0">
+                        <i class="fas fa-filter mr-2"></i>
+                        <strong>Período de datos:</strong>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                            <i class="fas fa-calendar-alt"></i> 6 Meses
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                            <i class="fas fa-calendar"></i> 12 Meses
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                            <i class="fas fa-calendar-check"></i> Este Año
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                            <i class="fas fa-infinity"></i> Todo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row mb-4">
     <!-- Gráfica de Tipo de Servicio -->
     <div class="col-md-6">
@@ -200,6 +229,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             <div class="card-header">
                 <h5 class="card-title">
                     <i class="fas fa-chart-pie mr-2"></i>Reportes por Tipo de Servicio
+                    <small class="text-muted">(<?php echo $period_label; ?>)</small>
                 </h5>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
@@ -220,6 +250,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             <div class="card-header">
                 <h5 class="card-title">
                     <i class="fas fa-chart-line mr-2"></i>Reportes Mensuales por Tipo de Ejecución
+                    <small class="text-muted">(<?php echo $period_label; ?>)</small>
                 </h5>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
@@ -577,63 +608,109 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     // ============================================
 
     <?php
-    // Consultar distribución por tipo de servicio (últimos 12 meses)
+    // Determinar período seleccionado
+    $period = $_GET['period'] ?? '6m';
+    $period_label = '';
+    $months_count = 6;
+    
+    switch ($period) {
+        case '6m':
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+            break;
+        case '12m':
+            $start_service = date('Y-m-01', strtotime('-11 months'));
+            $period_label = 'Últimos 12 meses';
+            $months_count = 12;
+            break;
+        case 'year':
+            $start_service = date('Y-01-01');
+            $period_label = 'Este año (' . date('Y') . ')';
+            $months_count = (int)date('m');
+            break;
+        case 'all':
+            $start_service = '2000-01-01'; // Fecha muy antigua para obtener todos
+            $period_label = 'Todos los registros';
+            $months_count = 24; // Mostrar hasta 2 años de meses
+            break;
+        default:
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+    }
+    
+    // Consultar distribución por tipo de servicio
     $service_types = [];
     $service_counts = [];
-    $start_service = date('Y-m-01', strtotime('-11 months'));
     
     $service_query = $conn->query("
         SELECT service_type, COUNT(*) as total 
         FROM maintenance_reports 
-        WHERE report_date >= '{$start_service}'
+        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
         GROUP BY service_type 
         ORDER BY total DESC
     ");
     
-    while ($row = $service_query->fetch_assoc()) {
-        $service_types[] = $row['service_type'] ?: 'Sin especificar';
-        $service_counts[] = (int)$row['total'];
+    if ($service_query) {
+        while ($row = $service_query->fetch_assoc()) {
+            $service_types[] = $row['service_type'] ?: 'Sin especificar';
+            $service_counts[] = (int)$row['total'];
+        }
     }
 
-    // Consultar reportes mensuales por tipo de ejecución (últimos 12 meses)
+    // Consultar reportes mensuales por tipo de ejecución (según período seleccionado)
     $exec_months = [];
-    for ($i = 11; $i >= 0; $i--) {
+    for ($i = $months_count - 1; $i >= 0; $i--) {
         $exec_months[] = date('Y-m', strtotime("-{$i} months"));
     }
 
     // Arrays para cada tipo de ejecución
-    $mp_data = array_fill(0, 12, 0);  // MP (Preventivo)
-    $mc_data = array_fill(0, 12, 0);  // MC (Correctivo)
+    $mp_data = array_fill(0, $months_count, 0);  // MP (Preventivo)
+    $mc_data = array_fill(0, $months_count, 0);  // MC (Correctivo)
     
     $exec_query = $conn->query("
         SELECT 
-            DATE_FORMAT(report_date, '%Y-%m') as month,
-            execution_type,
+            DATE_FORMAT(STR_TO_DATE(report_date, '%Y-%m-%d'), '%Y-%m') as month,
+            service_type,
             COUNT(*) as total
         FROM maintenance_reports
-        WHERE report_date >= '{$start_service}'
-        GROUP BY month, execution_type
+        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
+        GROUP BY month, service_type
         ORDER BY month ASC
     ");
 
     $exec_map = [];
-    while ($row = $exec_query->fetch_assoc()) {
-        $exec_map[$row['month']][$row['execution_type']] = (int)$row['total'];
+    if ($exec_query) {
+        while ($row = $exec_query->fetch_assoc()) {
+            if ($row['month']) {
+                $exec_map[$row['month']][$row['service_type']] = (int)$row['total'];
+            }
+        }
     }
 
     foreach ($exec_months as $idx => $month) {
         if (isset($exec_map[$month])) {
-            $mp_data[$idx] = $exec_map[$month]['Preventivo'] ?? 0;
-            $mc_data[$idx] = $exec_map[$month]['Correctivo'] ?? 0;
+            $mp_data[$idx] = $exec_map[$month]['MP'] ?? 0;
+            $mc_data[$idx] = $exec_map[$month]['MC'] ?? 0;
         }
     }
 
     $exec_categories = array_map(function($m) { return $m . '-01'; }, $exec_months);
+    
+    // Validar que haya datos para las gráficas
+    if (empty($service_types)) {
+        $service_types = ['Sin datos'];
+        $service_counts = [0];
+    }
     ?>
 
     // Gráfica 1: Distribución por Tipo de Servicio (Donut)
     const serviceTypes = <?php echo json_encode($service_types); ?>;
     const serviceCounts = <?php echo json_encode($service_counts); ?>;
+
+    console.log('Service Types:', serviceTypes);
+    console.log('Service Counts:', serviceCounts);
 
     const serviceTypeChartOptions = {
         series: serviceCounts,
@@ -680,16 +757,26 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         }
     };
 
-    const serviceTypeChart = new ApexCharts(
-        document.querySelector('#service-type-chart'), 
-        serviceTypeChartOptions
-    );
-    serviceTypeChart.render();
+    if (document.querySelector('#service-type-chart')) {
+        const serviceTypeChart = new ApexCharts(
+            document.querySelector('#service-type-chart'), 
+            serviceTypeChartOptions
+        );
+        serviceTypeChart.render().catch(err => {
+            console.error('Error renderizando gráfica de tipo de servicio:', err);
+        });
+    } else {
+        console.error('Elemento #service-type-chart no encontrado');
+    }
 
     // Gráfica 2: Reportes Mensuales por Tipo de Ejecución (Línea)
     const execCategories = <?php echo json_encode($exec_categories); ?>;
     const mpData = <?php echo json_encode($mp_data); ?>;
     const mcData = <?php echo json_encode($mc_data); ?>;
+
+    console.log('Exec Categories:', execCategories);
+    console.log('MP Data:', mpData);
+    console.log('MC Data:', mcData);
 
     const executionMonthlyOptions = {
         series: [
@@ -769,12 +856,29 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         }
     };
 
-    const executionMonthlyChart = new ApexCharts(
-        document.querySelector('#execution-monthly-chart'),
-        executionMonthlyOptions
-    );
-    executionMonthlyChart.render();
+    if (document.querySelector('#execution-monthly-chart')) {
+        const executionMonthlyChart = new ApexCharts(
+            document.querySelector('#execution-monthly-chart'),
+            executionMonthlyOptions
+        );
+        executionMonthlyChart.render().catch(err => {
+            console.error('Error renderizando gráfica de ejecución mensual:', err);
+        });
+    } else {
+        console.error('Elemento #execution-monthly-chart no encontrado');
+    }
   </script>
+  
+  <script>
+    // Función para cambiar el período de las gráficas
+    function changePeriod(period) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('period', period);
+      url.searchParams.set('page', 'home'); // Mantener la página
+      window.location.href = url.toString();
+    }
+  </script>
+  
   <!--end::Script-->
   
 
