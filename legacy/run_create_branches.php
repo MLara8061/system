@@ -7,10 +7,6 @@ echo "<h2>Ejecutando migración: Crear tabla branches y agregar branch_id</h2>";
 $errors = [];
 $success = [];
 
-function column_exists($conn, $table, $column) {
-    $sql = "SELECT COUNT(*) as c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" . $conn->real_escape_string($conn->query("SELECT DATABASE()')->fetch_row()[0]) . "' AND TABLE_NAME = '" . $conn->real_escape_string($table) . "' AND COLUMN_NAME = '" . $conn->real_escape_string($column) . "'";
-}
-
 // 1. Crear tabla branches
 $sql = "CREATE TABLE IF NOT EXISTS `branches` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
