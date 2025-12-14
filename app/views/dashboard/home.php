@@ -585,14 +585,16 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     $service_query = $conn->query("
         SELECT service_type, COUNT(*) as total 
         FROM maintenance_reports 
-        WHERE report_date >= '{$start_service}'
+        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
         GROUP BY service_type 
         ORDER BY total DESC
     ");
     
-    while ($row = $service_query->fetch_assoc()) {
-        $service_types[] = $row['service_type'] ?: 'Sin especificar';
-        $service_counts[] = (int)$row['total'];
+    if ($service_query) {
+        while ($row = $service_query->fetch_assoc()) {
+            $service_types[] = $row['service_type'] ?: 'Sin especificar';
+            $service_counts[] = (int)$row['total'];
+        }
     }
 
     // Consultar reportes mensuales por tipo de ejecución (últimos 12 meses)
@@ -607,33 +609,46 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     
     $exec_query = $conn->query("
         SELECT 
-            DATE_FORMAT(report_date, '%Y-%m') as month,
-            execution_type,
+            DATE_FORMAT(STR_TO_DATE(report_date, '%Y-%m-%d'), '%Y-%m') as month,
+            service_type,
             COUNT(*) as total
         FROM maintenance_reports
-        WHERE report_date >= '{$start_service}'
-        GROUP BY month, execution_type
+        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
+        GROUP BY month, service_type
         ORDER BY month ASC
     ");
 
     $exec_map = [];
-    while ($row = $exec_query->fetch_assoc()) {
-        $exec_map[$row['month']][$row['execution_type']] = (int)$row['total'];
+    if ($exec_query) {
+        while ($row = $exec_query->fetch_assoc()) {
+            if ($row['month']) {
+                $exec_map[$row['month']][$row['service_type']] = (int)$row['total'];
+            }
+        }
     }
 
     foreach ($exec_months as $idx => $month) {
         if (isset($exec_map[$month])) {
-            $mp_data[$idx] = $exec_map[$month]['Preventivo'] ?? 0;
-            $mc_data[$idx] = $exec_map[$month]['Correctivo'] ?? 0;
+            $mp_data[$idx] = $exec_map[$month]['MP'] ?? 0;
+            $mc_data[$idx] = $exec_map[$month]['MC'] ?? 0;
         }
     }
 
     $exec_categories = array_map(function($m) { return $m . '-01'; }, $exec_months);
+    
+    // Validar que haya datos para las gráficas
+    if (empty($service_types)) {
+        $service_types = ['Sin datos'];
+        $service_counts = [0];
+    }
     ?>
 
     // Gráfica 1: Distribución por Tipo de Servicio (Donut)
     const serviceTypes = <?php echo json_encode($service_types); ?>;
     const serviceCounts = <?php echo json_encode($service_counts); ?>;
+
+    console.log('Service Types:', serviceTypes);
+    console.log('Service Counts:', serviceCounts);
 
     const serviceTypeChartOptions = {
         series: serviceCounts,
@@ -680,16 +695,26 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         }
     };
 
-    const serviceTypeChart = new ApexCharts(
-        document.querySelector('#service-type-chart'), 
-        serviceTypeChartOptions
-    );
-    serviceTypeChart.render();
+    if (document.querySelector('#service-type-chart')) {
+        const serviceTypeChart = new ApexCharts(
+            document.querySelector('#service-type-chart'), 
+            serviceTypeChartOptions
+        );
+        serviceTypeChart.render().catch(err => {
+            console.error('Error renderizando gráfica de tipo de servicio:', err);
+        });
+    } else {
+        console.error('Elemento #service-type-chart no encontrado');
+    }
 
     // Gráfica 2: Reportes Mensuales por Tipo de Ejecución (Línea)
     const execCategories = <?php echo json_encode($exec_categories); ?>;
     const mpData = <?php echo json_encode($mp_data); ?>;
     const mcData = <?php echo json_encode($mc_data); ?>;
+
+    console.log('Exec Categories:', execCategories);
+    console.log('MP Data:', mpData);
+    console.log('MC Data:', mcData);
 
     const executionMonthlyOptions = {
         series: [
@@ -769,11 +794,17 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         }
     };
 
-    const executionMonthlyChart = new ApexCharts(
-        document.querySelector('#execution-monthly-chart'),
-        executionMonthlyOptions
-    );
-    executionMonthlyChart.render();
+    if (document.querySelector('#execution-monthly-chart')) {
+        const executionMonthlyChart = new ApexCharts(
+            document.querySelector('#execution-monthly-chart'),
+            executionMonthlyOptions
+        );
+        executionMonthlyChart.render().catch(err => {
+            console.error('Error renderizando gráfica de ejecución mensual:', err);
+        });
+    } else {
+        console.error('Elemento #execution-monthly-chart no encontrado');
+    }
   </script>
   <!--end::Script-->
   
