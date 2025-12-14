@@ -35,14 +35,14 @@ $target_date = $_GET['date'] ?? '2025-12-25';
 $year_month = substr($target_date, 0, 7); // 2025-12
 
 // 1. Mostrar distribución general
-echo "<h2>1. Distribución de Mantenimientos - Diciembre 2025</h2>";
+echo "<h2>1. Distribución de Mantenimientos - 2025-2026</h2>";
 $distribution = $conn->query("
     SELECT DATE(fecha_programada) as fecha, COUNT(*) as total
     FROM mantenimientos 
-    WHERE fecha_programada BETWEEN '2025-12-01' AND '2025-12-31'
+    WHERE fecha_programada BETWEEN '2025-01-01' AND '2026-12-31'
     GROUP BY DATE(fecha_programada)
     ORDER BY total DESC
-    LIMIT 20
+    LIMIT 50
 ");
 
 echo "<table border='1' cellpadding='5' style='border-collapse: collapse;'>";
