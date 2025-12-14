@@ -203,17 +203,17 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                     </div>
                     <div class="col-12 col-sm">
                         <!-- Desktop: botones normales en fila -->
-                        <div class="btn-group btn-group-sm d-none d-sm-flex" role="group" style="font-size: 0.8rem;">
-                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
-                                <i class="fas fa-calendar-alt"></i> 6m
+                        <div class="btn-group btn-group-sm d-none d-sm-flex" role="group">
+                            <button type="button" class="btn btn-outline-primary <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                                <i class="fas fa-calendar-alt"></i> 6 Meses
                             </button>
-                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
-                                <i class="fas fa-calendar"></i> 12m
+                            <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                                <i class="fas fa-calendar"></i> 12 Meses
                             </button>
-                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
-                                <i class="fas fa-calendar-check"></i> Año
+                            <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                                <i class="fas fa-calendar-check"></i> Este Año
                             </button>
-                            <button type="button" class="btn btn-outline-primary px-2 py-1 <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                            <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
                                 <i class="fas fa-infinity"></i> Todo
                             </button>
                         </div>
