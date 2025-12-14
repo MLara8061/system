@@ -4,7 +4,13 @@
 
 USE system_db;
 
--- Add clave column as unique varchar
+-- First, assign unique claves to existing rows
+SET @row_number = 0;
+UPDATE services_category
+SET clave = CONCAT('CAT_', LPAD((@row_number:=@row_number + 1), 3, '0'))
+WHERE clave IS NULL OR clave = '';
+
+-- Now add the column with unique constraint
 ALTER TABLE services_category
 ADD COLUMN clave VARCHAR(50) UNIQUE NOT NULL AFTER category;
 
