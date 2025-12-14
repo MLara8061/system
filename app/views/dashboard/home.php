@@ -4,49 +4,61 @@
 <?php
 require_once 'config/config.php';
 
-// Total de Equipos
-$result = $conn->query("SELECT COUNT(*) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL");
+// Obtener usuario logueado y su sucursal activa
+$user_id = $_SESSION['login_id'] ?? 0;
+$user_branch = null;
+if ($user_id) {
+    $user_query = $conn->query("SELECT u.*, b.name as branch_name FROM users u LEFT JOIN branches b ON u.active_branch_id = b.id WHERE u.id = $user_id");
+    $user_branch = $user_query->fetch_assoc();
+}
+
+// Obtener todas las sucursales activas
+$branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+
+// Total de Equipos (filtrado por sucursal si aplica)
+$branch_filter = $user_branch && $user_branch['active_branch_id'] ? "AND e.branch_id = " . $user_branch['active_branch_id'] : "";
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL $branch_filter");
 $total_equipos = 0;
 if ($result) {
     $row = $result->fetch_assoc();
     $total_equipos = $row ? $row['total'] : 0;
 }
 
-// Total de Equipos EPP
-$result = $conn->query("SELECT COUNT(*) AS total FROM accessories");
+// Total de Equipos EPP (filtrado por sucursal)
+$result = $conn->query("SELECT COUNT(*) AS total FROM accessories WHERE 1=1 $branch_filter");
 $total_epp = 0;
 if ($result) {
     $row = $result->fetch_assoc();
     $total_epp = $row ? $row['total'] : 0;
 }
 
-// Total de Herramientas
-$result = $conn->query("SELECT COUNT(*) AS total FROM tools");
+// Total de Herramientas (filtrado por sucursal)
+$result = $conn->query("SELECT COUNT(*) AS total FROM tools WHERE 1=1 $branch_filter");
 $total_herramientas = 0;
 if ($result) {
     $row = $result->fetch_assoc();
     $total_herramientas = $row ? $row['total'] : 0;
 }
 
-// Valor Total de Equipos
+// Valor Total de Equipos (filtrado)
 $valor_total_equipos = 0;
-$result = $conn->query("SELECT SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL");
+$result = $conn->query("SELECT SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL $branch_filter");
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_equipos = $row && $row['total'] ? $row['total'] : 0;
 }
 
-// Valor Total de Equipos EPP
+// Valor Total de Equipos EPP (filtrado)
 $valor_total_epp = 0;
-$result = $conn->query("SELECT SUM(cost) AS total FROM accessories");
+$result = $conn->query("SELECT SUM(cost) AS total FROM accessories WHERE 1=1 $branch_filter");
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_epp = $row && $row['total'] ? $row['total'] : 0;
 }
 
-// Valor Total de Herramientas
+// Valor Total de Herramientas (filtrado)
 $valor_total_herramientas = 0;
-$result = $conn->query("SELECT SUM(costo) AS total FROM tools");
+$result = $conn->query("SELECT SUM(costo) AS total FROM tools WHERE 1=1 $branch_filter");
 if ($result) {
     $row = $result->fetch_assoc();
     $valor_total_herramientas = $row && $row['total'] ? $row['total'] : 0;
@@ -132,7 +144,23 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         <!--begin::Container-->
         <div class="container-fluid">
           <!--begin::Row-->
-
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h3 class="mb-0">Dashboard</h3>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-center justify-content-end">
+                <label class="mr-2 font-weight-bold">Sucursal Activa:</label>
+                <select id="branch_selector" class="form-control form-control-sm" style="width: 200px;">
+                  <?php while ($branch = $branches->fetch_assoc()): ?>
+                    <option value="<?= $branch['id'] ?>" <?= $user_branch && $user_branch['active_branch_id'] == $branch['id'] ? 'selected' : '' ?>>
+                      <?= $branch['name'] ?>
+                    </option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+          </div>
           <!--end::Row-->
         </div>
         <!--end::Container-->
@@ -878,6 +906,30 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     } else {
         console.error('Elemento #execution-monthly-chart no encontrado');
     }
+
+    // Selector de sucursal
+    $('#branch_selector').on('change', function(){
+        var branch_id = $(this).val();
+        if(branch_id){
+            $.ajax({
+                url: 'ajax.php?action=update_user_branch',
+                method: 'POST',
+                data: { branch_id: branch_id },
+                dataType: 'json',
+                success: function(data){
+                    if(data.success){
+                        alert_toast('Sucursal cambiada correctamente', 'success');
+                        location.reload(); // Recargar para actualizar datos
+                    } else {
+                        alert_toast('Error al cambiar sucursal', 'error');
+                    }
+                },
+                error: function(){
+                    alert_toast('Error de conexión', 'error');
+                }
+            });
+        }
+    });
   </script>
   <!--end::Script-->
   

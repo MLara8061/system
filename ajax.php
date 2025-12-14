@@ -95,6 +95,23 @@ if ($action == 'check_username') {
     exit;
 }
 
+if ($action == 'update_user_branch') {
+    header('Content-Type: application/json; charset=utf-8');
+    $branch_id = intval($_POST['branch_id'] ?? 0);
+    $user_id = $_SESSION['login_id'];
+    if ($branch_id > 0 && $user_id > 0) {
+        $result = $crud->db->query("UPDATE users SET active_branch_id = $branch_id WHERE id = $user_id");
+        if ($result) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Error updating branch']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
+    }
+    exit;
+}
+
 if ($action == 'upload_avatar') {
     echo $crud->upload_avatar();
     exit;
