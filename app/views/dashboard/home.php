@@ -193,6 +193,35 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     <!-- /.row -->
 
 <!-- Gráficas de Servicios de Mantenimiento -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="mb-2 mb-md-0">
+                        <i class="fas fa-filter mr-2"></i>
+                        <strong>Período de datos:</strong>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary <?php echo (!isset($_GET['period']) || $_GET['period'] == '6m') ? 'active' : ''; ?>" onclick="changePeriod('6m')">
+                            <i class="fas fa-calendar-alt"></i> 6 Meses
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == '12m') ? 'active' : ''; ?>" onclick="changePeriod('12m')">
+                            <i class="fas fa-calendar"></i> 12 Meses
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'year') ? 'active' : ''; ?>" onclick="changePeriod('year')">
+                            <i class="fas fa-calendar-check"></i> Este Año
+                        </button>
+                        <button type="button" class="btn btn-outline-primary <?php echo (isset($_GET['period']) && $_GET['period'] == 'all') ? 'active' : ''; ?>" onclick="changePeriod('all')">
+                            <i class="fas fa-infinity"></i> Todo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row mb-4">
     <!-- Gráfica de Tipo de Servicio -->
     <div class="col-md-6">
@@ -200,6 +229,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             <div class="card-header">
                 <h5 class="card-title">
                     <i class="fas fa-chart-pie mr-2"></i>Reportes por Tipo de Servicio
+                    <small class="text-muted">(<?php echo $period_label; ?>)</small>
                 </h5>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
@@ -220,6 +250,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             <div class="card-header">
                 <h5 class="card-title">
                     <i class="fas fa-chart-line mr-2"></i>Reportes Mensuales por Tipo de Ejecución
+                    <small class="text-muted">(<?php echo $period_label; ?>)</small>
                 </h5>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
@@ -432,6 +463,17 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     });
   </script>
   <!--end::OverlayScrollbars Configure-->
+  
+  <script>
+    // Función para cambiar el período de las gráficas
+    function changePeriod(period) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('period', period);
+      url.searchParams.set('page', 'home'); // Mantener la página
+      window.location.href = url.toString();
+    }
+  </script>
+  
   <!-- OPTIONAL SCRIPTS -->
   <!-- apexcharts -->
   <script
@@ -577,10 +619,41 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     // ============================================
 
     <?php
-    // Consultar distribución por tipo de servicio (últimos 12 meses)
+    // Determinar período seleccionado
+    $period = $_GET['period'] ?? '6m';
+    $period_label = '';
+    $months_count = 6;
+    
+    switch ($period) {
+        case '6m':
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+            break;
+        case '12m':
+            $start_service = date('Y-m-01', strtotime('-11 months'));
+            $period_label = 'Últimos 12 meses';
+            $months_count = 12;
+            break;
+        case 'year':
+            $start_service = date('Y-01-01');
+            $period_label = 'Este año (' . date('Y') . ')';
+            $months_count = (int)date('m');
+            break;
+        case 'all':
+            $start_service = '2000-01-01'; // Fecha muy antigua para obtener todos
+            $period_label = 'Todos los registros';
+            $months_count = 24; // Mostrar hasta 2 años de meses
+            break;
+        default:
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+    }
+    
+    // Consultar distribución por tipo de servicio
     $service_types = [];
     $service_counts = [];
-    $start_service = date('Y-m-01', strtotime('-11 months'));
     
     $service_query = $conn->query("
         SELECT service_type, COUNT(*) as total 
@@ -597,15 +670,15 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
         }
     }
 
-    // Consultar reportes mensuales por tipo de ejecución (últimos 12 meses)
+    // Consultar reportes mensuales por tipo de ejecución (según período seleccionado)
     $exec_months = [];
-    for ($i = 11; $i >= 0; $i--) {
+    for ($i = $months_count - 1; $i >= 0; $i--) {
         $exec_months[] = date('Y-m', strtotime("-{$i} months"));
     }
 
     // Arrays para cada tipo de ejecución
-    $mp_data = array_fill(0, 12, 0);  // MP (Preventivo)
-    $mc_data = array_fill(0, 12, 0);  // MC (Correctivo)
+    $mp_data = array_fill(0, $months_count, 0);  // MP (Preventivo)
+    $mc_data = array_fill(0, $months_count, 0);  // MC (Correctivo)
     
     $exec_query = $conn->query("
         SELECT 
