@@ -94,10 +94,10 @@ if ($equipment_name && $inventory) {
 								<select class="custom-select custom-select-sm select2" name="service_id" id="service_id" required>
 									<option value="">Seleccione un servicio</option>
 									<?php 
-									$service = $conn->query("SELECT s.*,c.category FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
+									$service = $conn->query("SELECT s.*,c.category, c.clave FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
 									while($row = $service->fetch_assoc()):
 									?>
-										<option value="<?php echo $row['id'] ?>" <?php echo isset($service_id) && $service_id == $row['id'] ? "selected" : "" ?>>[<?php echo $row['category'] ?>] - <?php echo $row['service'] ?> Servicio</option>
+										<option value="<?php echo $row['id'] ?>" <?php echo isset($service_id) && $service_id == $row['id'] ? "selected" : "" ?>>[<?php echo $row['clave'] ?> - <?php echo $row['category'] ?>] - <?php echo $row['service'] ?> Servicio</option>
 									<?php endwhile; ?>
 								</select>
 							</div>

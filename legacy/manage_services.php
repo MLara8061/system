@@ -28,7 +28,7 @@ if(isset($_GET['id'])){
 				$category = $conn->query("SELECT * FROM `services_category` order by `category` asc ");
 				while($row = $category->fetch_assoc()):
 				?>
-					<option value="<?php echo $row['id'] ?>" <?php echo isset($category_id) && $category_id == $row['id'] ? "selected" : "" ?>><?php echo $row['category'] ?></option>
+					<option value="<?php echo $row['id'] ?>" <?php echo isset($category_id) && $category_id == $row['id'] ? "selected" : "" ?>><?php echo $row['clave'] ?> - <?php echo $row['category'] ?></option>
 				<?php endwhile; ?>
 			</select>
 		</div>

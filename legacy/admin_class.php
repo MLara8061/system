@@ -2636,7 +2636,13 @@ class Action {
         }
         $chk = $this->db->query("SELECT * FROM `services_category` where category = '{$category}' " . (!empty($id) ? " and id != {$id}" : ""));
         if ($chk->num_rows > 0) {
-            return json_encode(['status' => 'duplicate']);
+            return json_encode(['status' => 'duplicate_category']);
+        }
+        if (!empty($_POST['clave'])) {
+            $chk_clave = $this->db->query("SELECT * FROM `services_category` where clave = '{$_POST['clave']}' " . (!empty($id) ? " and id != {$id}" : ""));
+            if ($chk_clave->num_rows > 0) {
+                return json_encode(['status' => 'duplicate_clave']);
+            }
         }
         if (empty($id)) {
             $sql = "INSERT INTO `services_category` set $data ";

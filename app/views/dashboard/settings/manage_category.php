@@ -18,6 +18,11 @@ if(isset($_GET['id'])){
 			<input type="text" class="form-control form-control-sm" name="category" id="category" value="<?php echo isset($category) ? $category : "" ?>" required>
 		</div>
 		<div class="form-group">
+			<label for="clave" class="control-label">Clave (Inmutable)</label>
+			<input type="text" class="form-control form-control-sm" name="clave" id="clave" value="<?php echo isset($clave) ? $clave : "" ?>" <?php echo isset($_GET['id']) ? 'readonly' : 'required' ?>>
+			<small class="text-muted">La clave es única e inmutable una vez creada.</small>
+		</div>
+		<div class="form-group">
 			<label for="description" class="control-label">Descripción</label>
 			<textarea type="text" style="resize: none" class="form-control" rows="3" name="description" id="description"  required><?php echo isset($description) ? $description : "" ?></textarea>
 		</div>
@@ -57,13 +62,18 @@ if(isset($_GET['id'])){
 						$('.modal').modal('hide');
 						end_loader()
 						load_data();
-					}else if(!!resp.status && resp.status =='duplicate'){
-						$('#manage-category').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Categoría ingresada existe actualmente</b></div></div>');
+					}else if(!!resp.status && resp.status =='duplicate_category'){
+						$('#manage-category').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Categoría ingresada ya existe</b></div></div>');
 						$('#category').addClass('border-danger');
 						$('#category').focus();
 						end_loader();
+					}else if(!!resp.status && resp.status =='duplicate_clave'){
+						$('#manage-category').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Clave ingresada ya existe</b></div></div>');
+						$('#clave').addClass('border-danger');
+						$('#clave').focus();
+						end_loader();
 					}else{
-						alert_toast("A occurrido un erro","error");
+						alert_toast("A ocurrido un error","error");
 						end_loader();
 					}
 				}
