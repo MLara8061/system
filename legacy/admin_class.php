@@ -909,7 +909,7 @@ class Action {
             }
 
             // === IMAGEN ===
-            $upload_dir = "uploads/equipment/";
+            $upload_dir = "uploads/";
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
             if (!empty($_FILES['equipment_image']['tmp_name'])) {
                 $file = $_FILES['equipment_image'];
