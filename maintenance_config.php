@@ -22,6 +22,9 @@ return [
         // '::1',
     ],
     
+    // Token secreto para autorizar registro de IPs (cambiar por valor seguro)
+    'admin_token' => 'change-me-20251213T0000',
+    
     // Rutas que no requieren mantenimiento (login, logout, etc.)
     'exempt_routes' => [
         '/maintenance.php',
