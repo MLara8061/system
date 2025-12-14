@@ -1,5 +1,19 @@
 <?php
-require_once 'config/config.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Cargar variables de entorno
+$env_file = __DIR__ . '/config/.env';
+if (file_exists($env_file)) {
+    $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (trim($line) === '' || $line[0] === '#') continue;
+        list($key, $value) = array_map('trim', explode('=', $line, 2));
+        if (!empty($key)) putenv("$key=$value");
+    }
+}
+
+require_once __DIR__ . '/config/config.php';
 
 echo "<h1>Estructura de Base de Datos</h1>";
 
