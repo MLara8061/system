@@ -647,7 +647,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     $service_query = $conn->query("
         SELECT service_type, COUNT(*) as total 
         FROM maintenance_reports 
-        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
+        WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'
         GROUP BY service_type 
         ORDER BY total DESC
     ");
@@ -671,11 +671,11 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     
     $exec_query = $conn->query("
         SELECT 
-            DATE_FORMAT(STR_TO_DATE(report_date, '%Y-%m-%d'), '%Y-%m') as month,
+            DATE_FORMAT(STR_TO_DATE(report_date, '%d/%m/%Y'), '%Y-%m') as month,
             service_type,
             COUNT(*) as total
         FROM maintenance_reports
-        WHERE STR_TO_DATE(report_date, '%Y-%m-%d') >= '{$start_service}'
+        WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'
         GROUP BY month, service_type
         ORDER BY month ASC
     ");
