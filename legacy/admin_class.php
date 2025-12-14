@@ -794,6 +794,32 @@ class Action {
         }
     }
 
+    // ================== INVENTARIO CON PREFIJOS ==================
+    function get_next_inventory_number($branch_id) {
+        try {
+            $stmt = $this->pdo->prepare("SELECT prefix, current_number FROM inventory_config WHERE branch_id = ? LIMIT 1");
+            $stmt->execute([$branch_id]);
+            $config = $stmt->fetch();
+
+            if (!$config) {
+                throw new Exception("No se encontró configuración de inventario para la sucursal $branch_id");
+            }
+
+            $prefix = $config['prefix'];
+            $current = $config['current_number'] + 1;
+
+            // Actualizar current_number
+            $update_stmt = $this->pdo->prepare("UPDATE inventory_config SET current_number = ? WHERE branch_id = ?");
+            $update_stmt->execute([$current, $branch_id]);
+
+            // Generar número: PREFIX-001
+            return $prefix . '-' . str_pad($current, 3, '0', STR_PAD_LEFT);
+        } catch (Exception $e) {
+            error_log("GET_NEXT_INVENTORY_NUMBER ERROR: " . $e->getMessage());
+            return false;
+        }
+    }
+
     // ================== EQUIPOS (COMPLETO) ==================
     function save_equipment() {
         try {
@@ -805,11 +831,21 @@ class Action {
             $this->ensure_equipment_delivery_position_fk();
 
             // === EQUIPOS ===
-            $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory'];
+            $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory','branch_id'];
             $equipment_data = [];
             foreach ($array_cols_equipment as $field) {
                 if (isset($_POST[$field])) {
                     $equipment_data[$field] = $_POST[$field];
+                }
+            }
+
+            // Generar number_inventory si no se proporciona y hay branch_id
+            if (empty($equipment_data['number_inventory']) && !empty($equipment_data['branch_id'])) {
+                $generated_number = $this->get_next_inventory_number($equipment_data['branch_id']);
+                if ($generated_number) {
+                    $equipment_data['number_inventory'] = $generated_number;
+                } else {
+                    return 2; // Error generando número
                 }
             }
 
@@ -1754,10 +1790,20 @@ class Action {
     function save_accessory() {
         extract($_POST);
         $data = "";
-        $allowed = ['name','type','brand','model','serial','cost','acquisition_date','acquisition_type_id','area_id','status','observations','inventory_number'];
+        $allowed = ['name','type','brand','model','serial','cost','acquisition_date','acquisition_type_id','area_id','status','observations','inventory_number','branch_id','numero_parte'];
         foreach ($allowed as $k) {
             if (isset($_POST[$k])) {
                 $data .= empty($data) ? " `$k` = '".addslashes($_POST[$k])."' " : ", `$k` = '".addslashes($_POST[$k])."' ";
+            }
+        }
+
+        // Generar inventory_number si no se proporciona y hay branch_id
+        if (empty($_POST['inventory_number']) && !empty($_POST['branch_id'])) {
+            $generated_number = $this->get_next_inventory_number($_POST['branch_id']);
+            if ($generated_number) {
+                $data .= ", `inventory_number` = '$generated_number' ";
+            } else {
+                return 0; // Error generando número
             }
         }
 
