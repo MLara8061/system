@@ -1,6 +1,8 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+set_time_limit(300);
+ini_set('memory_limit', '256M');
 
 // Cargar variables de entorno
 $env_file = __DIR__ . '/config/.env';
@@ -165,12 +167,32 @@ if ($total_target > 0) {
         
     } else {
         echo "<h2>3. Ejecutando Eliminación...</h2>";
+        echo "<p>Procesando $total_target registros...</p>";
         
-        $delete_query = "DELETE FROM mantenimientos WHERE fecha_programada = '$target_date'";
-        $result = $conn->query($delete_query);
+        // Eliminación en lotes para grandes cantidades
+        $deleted = 0;
+        $batch_size = 1000;
+        $max_iterations = ceil($total_target / $batch_size);
         
-        if ($result) {
-            $deleted = $conn->affected_rows;
+        for ($i = 0; $i < $max_iterations; $i++) {
+            $delete_query = "DELETE FROM mantenimientos WHERE fecha_programada = '$target_date' LIMIT $batch_size";
+            $result = $conn->query($delete_query);
+            
+            if ($result) {
+                $deleted += $conn->affected_rows;
+                echo "<p>Lote " . ($i + 1) . ": " . $conn->affected_rows . " registros eliminados (Total: $deleted)</p>";
+                flush();
+            } else {
+                echo "<p style='color: red;'>Error en lote " . ($i + 1) . ": " . $conn->error . "</p>";
+                break;
+            }
+            
+            if ($conn->affected_rows == 0) {
+                break; // No hay más registros
+            }
+        }
+        
+        if ($deleted > 0) {
             
             echo "<div style='margin: 20px 0; padding: 20px; background: #d4edda; border: 2px solid #28a745; border-radius: 5px;'>";
             echo "<p style='color: green; font-size: 20px;'><strong>✓ Eliminación Exitosa</strong></p>";
