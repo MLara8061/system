@@ -2,16 +2,31 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  
+
   # Bloquear archivos .env en cualquier ruta
   RewriteRule \.env$ - [F,L]
-  
+
   # Proteger directorios sensibles
   RewriteRule ^config/\.env$ - [F,L]
   RewriteRule ^logs/ - [F,L]
   RewriteRule ^database/ - [F,L]
   RewriteRule ^tests/ - [F,L]
   RewriteRule ^\.git - [F,L]
+
+  # Permitir acceso directo a la página de mantenimiento y a assets
+  RewriteCond %{REQUEST_URI} ^/maintenance\.php$ [OR]
+  RewriteCond %{REQUEST_URI} ^/maintenance_config\.php$ [OR]
+  RewriteCond %{REQUEST_URI} ^/assets/ [OR]
+  RewriteCond %{REQUEST_URI} ^/public/ [OR]
+  RewriteCond %{REQUEST_URI} ^/uploads/ [OR]
+  RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$ [NC]
+  RewriteRule ^ - [L]
+
+  # Redirigir TODAS las demás peticiones al index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [L,QSA]
+
 </IfModule>
 
 # Alternativa sin mod_rewrite
