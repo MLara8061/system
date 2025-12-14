@@ -7,13 +7,13 @@ if (!defined('ROOT')) {
 }
 
 // === VERIFICAR MODO MANTENIMIENTO PRIMERO ===
-$maintenanceConfig = require ROOT . '/maintenance_config.php';
+$maintenanceConfig = require ROOT . '/config/maintenance_config.php';
 if ($maintenanceConfig['maintenance_enabled']) {
     $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
     $isAllowedIP = in_array($userIP, $maintenanceConfig['allowed_ips']);
     
     if (!$isAllowedIP) {
-        require ROOT . '/maintenance.php';
+        require ROOT . '/components/maintenance.php';
         exit();
     }
 }

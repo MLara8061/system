@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$cfgPath = __DIR__ . '/maintenance_config.php';
+$cfgPath = __DIR__ . '/../config/maintenance_config.php';
 if (!file_exists($cfgPath)) {
     http_response_code(500);
     echo "Configuración de mantenimiento no encontrada.";
@@ -29,7 +29,7 @@ if (empty($ip)) {
 if (!in_array($ip, $config['allowed_ips'])) {
     $config['allowed_ips'][] = $ip;
     // Reescribir el archivo de configuración
-    $export = "<?php\n" . "return " . var_export($config, true) . ";\n";
+    $export = "<?php\n/**\n * Configuración de Modo Mantenimiento\n * \n * Para ACTIVAR mantenimiento: cambiar \$maintenance_enabled = true\n * Para DESACTIVAR: cambiar \$maintenance_enabled = false\n */\n\nreturn " . var_export($config, true) . ";\n";
     if (file_put_contents($cfgPath, $export) === false) {
         http_response_code(500);
         echo "No se pudo actualizar la configuración.";

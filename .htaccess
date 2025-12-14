@@ -14,8 +14,8 @@
   RewriteRule ^\.git - [F,L]
 
   # Permitir acceso directo a la página de mantenimiento y a assets
-  RewriteCond %{REQUEST_URI} ^/maintenance\.php$ [OR]
-  RewriteCond %{REQUEST_URI} ^/maintenance_config\.php$ [OR]
+  RewriteCond %{REQUEST_URI} ^/components/maintenance\.php$ [OR]
+  RewriteCond %{REQUEST_URI} ^/config/maintenance_config\.php$ [OR]
   RewriteCond %{REQUEST_URI} ^/assets/ [OR]
   RewriteCond %{REQUEST_URI} ^/public/ [OR]
   RewriteCond %{REQUEST_URI} ^/uploads/ [OR]

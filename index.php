@@ -2,7 +2,7 @@
 <html lang="en">
 <?php 
 // === VERIFICAR MODO MANTENIMIENTO PRIMERO ===
-$maintenanceConfig = require __DIR__ . '/maintenance_config.php';
+$maintenanceConfig = require __DIR__ . '/config/maintenance_config.php';
 if ($maintenanceConfig['maintenance_enabled']) {
     // Verificar si la IP está en la lista de permitidas
     $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
@@ -10,7 +10,7 @@ if ($maintenanceConfig['maintenance_enabled']) {
     
     if (!$isAllowedIP) {
         // Cargar directamente la página de mantenimiento
-        require __DIR__ . '/maintenance.php';
+        require __DIR__ . '/components/maintenance.php';
         exit();
     }
 }
