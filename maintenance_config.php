@@ -8,7 +8,7 @@
 
 return [
     // ACTIVAR/DESACTIVAR modo mantenimiento
-    'maintenance_enabled' => true, // Cambiar a true para activar
+    'maintenance_enabled' => false, // Cambiar a true para activar
     
     // Fecha y hora de finalización (lunes 16 dic 2025, 8:00am)
     'end_datetime' => '2025-12-16 08:00:00',
