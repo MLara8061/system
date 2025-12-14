@@ -6,6 +6,18 @@ if (!defined('ROOT')) {
     define('ROOT', dirname(dirname(dirname(__DIR__))));
 }
 
+// === VERIFICAR MODO MANTENIMIENTO PRIMERO ===
+$maintenanceConfig = require ROOT . '/maintenance_config.php';
+if ($maintenanceConfig['maintenance_enabled']) {
+    $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isAllowedIP = in_array($userIP, $maintenanceConfig['allowed_ips']);
+    
+    if (!$isAllowedIP) {
+        require ROOT . '/maintenance.php';
+        exit();
+    }
+}
+
 require_once ROOT . '/config/session.php';
 require_once ROOT . '/config/config.php'; 
 

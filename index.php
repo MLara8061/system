@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php 
-// Constante para permitir includes de vistas
-define('ALLOW_DIRECT_ACCESS', true);
-define('ROOT', __DIR__);
-
-// === VERIFICAR MODO MANTENIMIENTO ===
-$maintenanceConfig = require ROOT . '/maintenance_config.php';
+// === VERIFICAR MODO MANTENIMIENTO PRIMERO ===
+$maintenanceConfig = require __DIR__ . '/maintenance_config.php';
 if ($maintenanceConfig['maintenance_enabled']) {
     // Verificar si la IP está en la lista de permitidas
     $userIP = $_SERVER['REMOTE_ADDR'] ?? '';
     $isAllowedIP = in_array($userIP, $maintenanceConfig['allowed_ips']);
     
     if (!$isAllowedIP) {
-        header('Location: /maintenance.php');
+        // Cargar directamente la página de mantenimiento
+        require __DIR__ . '/maintenance.php';
         exit();
     }
 }
+
+// Constante para permitir includes de vistas
+define('ALLOW_DIRECT_ACCESS', true);
+define('ROOT', __DIR__);
 
 // Cargar configuración base
 require_once ROOT . '/config/config.php';
