@@ -18,8 +18,15 @@ if ($user_id) {
 }
 
 // Obtener todas las sucursales activas
+file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: before branches query\n", FILE_APPEND);
 $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
-file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: fetched branches\n", FILE_APPEND);
+if ($branches === false) {
+  file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: branches query FAILED: " . ($conn->error ?? 'unknown') . "\n", FILE_APPEND);
+  // stop further processing to avoid fatal errors
+  exit;
+} else {
+  file_put_contents($traceFile, "[".date('Y-m-d H:i:s')."] HOME LOAD: fetched branches OK\n", FILE_APPEND);
+}
 
 // Total de Equipos (filtrado por sucursal si aplica)
 $branch_filter = $user_branch && $user_branch['active_branch_id'] ? "AND e.branch_id = " . $user_branch['active_branch_id'] : "";
