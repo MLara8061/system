@@ -183,5 +183,25 @@ if ($qry_mant) {
 echo "<h2>6. Test llamada directa a get_mantenimientos</h2>";
 echo "<a href='ajax.php?action=get_mantenimientos' target='_blank'>Ver respuesta JSON</a><br>";
 
+// 7. Verificar rutas de imágenes
+echo "<h2>7. Rutas de imágenes en equipments</h2>";
+$img_check = $conn->query("SELECT id, name, image FROM equipments WHERE image IS NOT NULL AND image != '' LIMIT 5");
+if ($img_check) {
+    echo "<table border='1' cellpadding='5'>";
+    echo "<tr><th>ID</th><th>Nombre</th><th>Ruta en BD</th><th>Ruta Completa</th></tr>";
+    while($row = $img_check->fetch_assoc()) {
+        $full_path = 'uploads/' . basename($row['image']);
+        echo "<tr>";
+        echo "<td>{$row['id']}</td>";
+        echo "<td>{$row['name']}</td>";
+        echo "<td>{$row['image']}</td>";
+        echo "<td>$full_path</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+} else {
+    echo "Error: " . $conn->error;
+}
+
 echo "<h2>Diagnóstico completado</h2>";
 ?>

@@ -160,17 +160,27 @@ try {
                             <td class="text-center">
                                 <?php
                                     $imgSrc = $row['image'] ?? '';
-                                    if (!empty($imgSrc)) : ?>
-                                        <img src="<?php echo $imgSrc; ?>"
+                                    if (!empty($imgSrc)) {
+                                        // Corregir ruta: si ya tiene uploads/, usarla; si no, extraer nombre y agregar uploads/
+                                        if (strpos($imgSrc, 'uploads/') === 0) {
+                                            $finalSrc = $imgSrc;
+                                        } elseif (strpos($imgSrc, '/uploads/') !== false) {
+                                            $finalSrc = 'uploads/' . basename($imgSrc);
+                                        } else {
+                                            $finalSrc = 'uploads/' . basename($imgSrc);
+                                        }
+                                    ?>
+                                        <img src="<?php echo htmlspecialchars($finalSrc); ?>"
                                             class="rounded shadow-sm"
                                             loading="lazy"
-                                            style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;">
-                                    <?php else: ?>
+                                            style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;"
+                                            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-light rounded d-flex align-items-center justify-content-center\' style=\'width: 45px; height: 45px; border: 1px dashed #ccc;\'><i class=\'fas fa-camera text-muted\'></i></div>';">
+                                    <?php } else { ?>
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center"
                                         style="width: 45px; height: 45px; border: 1px dashed #ccc;">
                                         <i class="fas fa-camera text-muted"></i>
                                     </div>
-                                <?php endif; ?>
+                                <?php } ?>
                             </td>
 
                             <!-- EQUIPO -->
