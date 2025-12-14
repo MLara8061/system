@@ -18,6 +18,7 @@ return [
     
     // IPs permitidas durante mantenimiento (sin restricción)
     'allowed_ips' => [
+        '192.168.100.26',
         // '127.0.0.1',
         // '::1',
     ],
