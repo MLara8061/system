@@ -10,7 +10,7 @@ $success = [];
 // Crear tabla inventory_config
 $sql1 = "CREATE TABLE IF NOT EXISTS inventory_config (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    branch_id INT NOT NULL,
+    branch_id INT UNSIGNED NOT NULL,
     prefix VARCHAR(10) NOT NULL,
     current_number INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

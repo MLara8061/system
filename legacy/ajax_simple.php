@@ -7,6 +7,7 @@ ini_set('log_errors', 1);
 
 try {
     require_once 'config/config.php';
+    require_once 'admin_class.php';
     
     $action = $_REQUEST['action'] ?? '';
     error_log("SIMPLE AJAX: action = $action");
@@ -118,6 +119,18 @@ try {
             echo json_encode($positions);
         } else {
             echo json_encode([]);
+        }
+    }
+    else if ($action == 'get_next_inventory_number') {
+        $branch_id = isset($_POST['branch_id']) ? intval($_POST['branch_id']) : 0;
+        error_log("SIMPLE AJAX: branch_id = $branch_id");
+        
+        if ($branch_id > 0) {
+            $admin = new Action();
+            $number = $admin->get_next_inventory_number($branch_id);
+            echo json_encode(['success' => true, 'number' => $number]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Branch ID requerido']);
         }
     }
     else {

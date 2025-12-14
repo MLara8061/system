@@ -27,7 +27,7 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === basename(__FILE__)) {
     exit('Acceso denegado.');
 }
 
-define('ACCESS', true);
+if (!defined('ACCESS')) define('ACCESS', true);
 
 // === RUTAS ABSOLUTAS ===
 define('CONFIG_PATH', __DIR__ . '/');
@@ -37,22 +37,31 @@ define('PUBLIC_PATH', ROOT_PATH . 'public/');
 // === CARGAR .env (CON DEPURACIÓN) ===
 $env_file = CONFIG_PATH . '.env';
 if (!file_exists($env_file)) {
-    die("ERROR: .env NO encontrado en: $env_file");
+    // Permitir ejecución en CLI aunque falte .env; en entornos web abortar.
+    if (php_sapi_name() !== 'cli') {
+        die("ERROR: .env NO encontrado en: $env_file");
+    }
+    // si estamos en CLI, continuamos esperando que las variables de entorno
+    // estén definidas en el entorno del proceso o por otros medios.
 }
 
-$lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-foreach ($lines as $line) {
-    $line = trim($line);
-    if ($line === '' || $line[0] === '#') continue;
-    if (!str_contains($line, '=')) continue;
+if (file_exists($env_file)) {
+    $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (!str_contains($line, '=')) continue;
 
-    [$key, $value] = array_map('trim', explode('=', $line, 2));
-    // Quitar comillas envolventes si existen
-    if ((str_starts_with($value, '"') && str_ends_with($value, '"')) || (str_starts_with($value, "'") && str_ends_with($value, "'"))) {
-        $value = substr($value, 1, -1);
+        [$key, $value] = array_map('trim', explode('=', $line, 2));
+        // Quitar comillas envolventes si existen
+        if ((str_starts_with($value, '"') && str_ends_with($value, '"')) || (str_starts_with($value, "'") && str_ends_with($value, "'"))) {
+            $value = substr($value, 1, -1);
+        }
+        @putenv("$key=$value");
+        $_ENV[$key] = $value;
     }
-    @putenv("$key=$value");
-    $_ENV[$key] = $value;
+} else {
+    // No .env presente: en CLI permitimos continuar, en web se habría detenido arriba.
 }
 
 // === DETECTAR ENTORNO (MEJORADO) ===
@@ -77,17 +86,24 @@ $db_config = [
         'host' => getenv('DB_HOST') ?: 'localhost',
         'user' => getenv('DB_USER') ?: 'root',
         'pass' => getenv('DB_PASS') ?: '',
-        'name' => getenv('DB_NAME') ?: die('ERROR: Define DB_NAME=system en .env (local)'),
+        'name' => getenv('DB_NAME') ?: null,
     ],
     'production' => [
-        'host' => getenv('DB_HOST_PROD') ?: die('ERROR: Define DB_HOST_PROD en .env'),
-        'user' => getenv('DB_USER_PROD') ?: die('ERROR: Define DB_USER_PROD en .env'),
-        'pass' => getenv('DB_PASS_PROD') ?: die('ERROR: Define DB_PASS_PROD en .env'),
-        'name' => getenv('DB_NAME_PROD') ?: die('ERROR: Define DB_NAME_PROD en .env'),
+        'host' => getenv('DB_HOST_PROD') ?: null,
+        'user' => getenv('DB_USER_PROD') ?: null,
+        'pass' => getenv('DB_PASS_PROD') ?: null,
+        'name' => getenv('DB_NAME_PROD') ?: null,
     ]
 ];
 
 $cfg = $db_config[ENVIRONMENT];
+// Validar configuración según entorno
+if (ENVIRONMENT === 'local') {
+    if (empty($cfg['name'])) die('ERROR: Define DB_NAME en .env (local)');
+} else {
+    if (empty($cfg['host']) || empty($cfg['user']) || empty($cfg['name'])) die('ERROR: Define DB_HOST_PROD, DB_USER_PROD y DB_NAME_PROD en .env');
+}
+
 define('DB_CONFIG', $cfg);
 
 // === CARGAR CONEXIÓN ===

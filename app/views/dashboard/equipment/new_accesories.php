@@ -1,9 +1,9 @@
 <?php require_once 'config/config.php'; ?>
 
 <?php
-$result = $conn->query("SHOW TABLE STATUS LIKE 'accessories'");
-$row = $result->fetch_assoc();
-$siguiente_inventario = $row['Auto_increment'];
+// Obtener sucursales
+$branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+// Próximo número de inventario se generará dinámicamente
 ?>
 
 <div class="container-fluid">
@@ -37,11 +37,22 @@ $siguiente_inventario = $row['Auto_increment'];
                                     placeholder="Nombre del Accesorio">
                             </div>
                             <div class="col-md-4">
-                                <span class="badge badge-primary font-weight-bold p-2" style="font-size: 1.1rem;">
-                                    #<?= $siguiente_inventario ?>
+                                <span class="badge badge-primary font-weight-bold p-2" id="inventory_badge" style="font-size: 1.1rem;">
+                                    Seleccionar sucursal
                                 </span>
-                                <input type="hidden" name="numero_inventario" value="<?= $siguiente_inventario ?>">
+                                <input type="hidden" name="numero_inventario" id="numero_inventario" value="">
                             </div>
+                        </div>
+
+                        <!-- SUCURSAL -->
+                        <div class="mb-3">
+                            <label class="font-weight-bold text-dark">Sucursal</label>
+                            <select name="branch_id" id="branch_id" class="custom-select select2" required>
+                                <option value="">Seleccionar sucursal</option>
+                                <?php while ($branch = $branches->fetch_assoc()): ?>
+                                    <option value="<?= $branch['id'] ?>"><?= ucwords($branch['name']) ?></option>
+                                <?php endwhile; ?>
+                            </select>
                         </div>
 
                         <!-- TIPO + ESTATUS -->
@@ -97,6 +108,18 @@ $siguiente_inventario = $row['Auto_increment'];
                                 <label class="font-weight-bold text-dark">Fecha Adquisición</label>
                                 <input type="date" name="fecha_adquisicion" class="form-control" required
                                     value="<?= date('Y-m-d') ?>">
+                            </div>
+                        </div>
+
+                        <!-- INVENTARIO ANTERIOR Y NÚMERO DE PARTE -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Inventario Anterior</label>
+                                <input type="text" name="inventario_anterior" class="form-control" placeholder="Número de inventario anterior">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Número de Parte</label>
+                                <input type="text" name="numero_parte" class="form-control" placeholder="Número de parte">
                             </div>
                         </div>
 
@@ -212,6 +235,33 @@ $siguiente_inventario = $row['Auto_increment'];
             width: '100%',
             placeholder: 'Seleccionar',
             allowClear: true
+        });
+
+        // Generar número de inventario cuando se selecciona sucursal
+        $('#branch_id').on('change', function(){
+            var branch_id = $(this).val();
+            if(branch_id){
+                $.ajax({
+                    url: 'ajax_simple.php?action=get_next_inventory_number',
+                    method: 'POST',
+                    data: { branch_id: branch_id },
+                    dataType: 'json',
+                    success: function(data){
+                        if(data.success){
+                            $('#inventory_badge').text('#' + data.number);
+                            $('#numero_inventario').val(data.number);
+                        } else {
+                            alert_toast('Error al generar número de inventario', 'error');
+                        }
+                    },
+                    error: function(){
+                        alert_toast('Error de conexión', 'error');
+                    }
+                });
+            } else {
+                $('#inventory_badge').text('Seleccionar sucursal');
+                $('#numero_inventario').val('');
+            }
         });
     });
 

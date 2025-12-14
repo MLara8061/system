@@ -1,6 +1,6 @@
 <?php
 if (!defined('ACCESS')) define('ACCESS', true);
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 echo "<h2>Ejecutando asignación: asignar sucursal por defecto y agregar active_branch_id a users</h2>";
 
