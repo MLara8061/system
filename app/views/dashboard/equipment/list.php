@@ -137,7 +137,7 @@ try {
                         SELECT 
                             e.*,
                             IFNULL(s.empresa, 'Sin Proveedor') as supplier_name,
-                            DATEDIFF(CURDATE(), IFNULL(e.purchase_date, e.date_created)) AS antiguedad_dias
+                            DATEDIFF(CURDATE(), e.date_created) AS antiguedad_dias
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id
                         ORDER BY e.id DESC

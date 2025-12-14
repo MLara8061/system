@@ -94,28 +94,20 @@ while($col = $cols->fetch_assoc()) {
 }
 echo "</table>";
 
-// 4. Verificar query de equipos con nombres correctos
+// 4. Verificar query de equipos con estructura real
 echo "<h2>4. Query de lista de equipos</h2>";
 $start_time = microtime(true);
 
-// Detectar nombre correcto de fecha de compra
-$date_column = 'date_acquired'; // valor por defecto
-$cols_result = $conn->query("SHOW COLUMNS FROM equipments LIKE '%date%'");
-while($col = $cols_result->fetch_assoc()) {
-    if (stripos($col['Field'], 'purchase') !== false || stripos($col['Field'], 'acquired') !== false) {
-        $date_column = $col['Field'];
-        break;
-    }
-}
+// Usar date_created que es la única columna de fecha que existe
+$date_column = 'date_created';
 
-echo "<strong>Columna de fecha detectada:</strong> $date_column<br>";
+echo "<strong>Columna de fecha usada:</strong> $date_column<br>";
 
-$sql = "SELECT e.*, d.name as dept_name, l.name as loc_name, j.name as job_name, 
-        COALESCE(ABS(DATEDIFF(CURDATE(), e.$date_column)), 0) as dias_antiguedad
+$sql = "SELECT e.*, 
+        IFNULL(s.empresa, 'Sin Proveedor') as supplier_name,
+        DATEDIFF(CURDATE(), e.$date_column) AS antiguedad_dias
         FROM equipments e
-        LEFT JOIN departments d ON e.department_id = d.id
-        LEFT JOIN locations l ON e.location_id = l.id
-        LEFT JOIN job_positions j ON e.job_position_id = j.id
+        LEFT JOIN suppliers s ON e.supplier_id = s.id
         LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id
         WHERE u.id IS NULL
         ORDER BY e.id DESC
