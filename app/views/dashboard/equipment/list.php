@@ -161,9 +161,9 @@ try {
                         <th>Detalles</th>
                         <th>Proveedor</th>
                         <th>Estado</th>
-                        <th>PrÃ³ximo Mtto.</th> <!-- NUEVA -->
-                        <th>Ãšltimo Mtto.</th> <!-- NUEVA -->
-                        <th>AntigÃ¼edad</th> <!-- NUEVA -->
+                        <th>Próximo Mtto.</th> <!-- NUEVA -->
+                        <th>Último Mtto.</th> <!-- NUEVA -->
+                        <th>Antigüedad</th> <!-- NUEVA -->
                         <th style="width: 60px;">QR</th>
                         <th style="width: 80px;">Acciones</th>
                     </tr>
@@ -192,7 +192,7 @@ try {
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                         $proximo = 'Sin periodo';
                         $ultimo = 'Sin registro';
-                        $antiguedad = abs($row['antiguedad_dias']) . ' dÃ­as';
+                        $antiguedad = abs($row['antiguedad_dias']) . ' días';
                         $dias_restantes = 999;
                     ?>
                         <tr>
@@ -304,7 +304,7 @@ try {
                                     </strong>
                                     <br>
                                     <small class="text-muted">
-                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes dÃ­as" : "Vencido hace " . abs($dias_restantes) . " dÃ­as"; ?>
+                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes días" : "Vencido hace " . abs($dias_restantes) . " días"; ?>
                                     </small>
                                 </div>
                             </td>

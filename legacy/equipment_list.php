@@ -88,9 +88,9 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         <th>Detalles</th>
                         <th>Proveedor</th>
                         <th>Estado</th>
-                        <th>PrÃ³ximo Mtto.</th> <!-- NUEVA -->
-                        <th>Ãšltimo Mtto.</th> <!-- NUEVA -->
-                        <th>AntigÃ¼edad</th> <!-- NUEVA -->
+                        <th>Próximo Mtto.</th> <!-- NUEVA -->
+                        <th>Último Mtto.</th> <!-- NUEVA -->
+                        <th>Antigüedad</th> <!-- NUEVA -->
                         <th style="width: 60px;">QR</th>
                         <th style="width: 80px;">Acciones</th>
                     </tr>
@@ -149,7 +149,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                         $proximo = $row['proximo_mtto'] ? date('d/m/Y', strtotime($row['proximo_mtto'])) : 'Sin periodo';
                         $ultimo = $row['ultimo_mtto'] ? date('d/m/Y', strtotime($row['ultimo_mtto'])) : 'Sin registro';
-                        $antiguedad = $row['antiguedad_dias'] . ' dÃ­as';
+                        $antiguedad = $row['antiguedad_dias'] . ' días';
                         $dias_restantes = $row['dias_restantes'];
                     ?>
                         <tr>
@@ -242,7 +242,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                                     </strong>
                                     <br>
                                     <small class="text-muted">
-                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes dÃ­as" : "Vencido hace " . abs($dias_restantes) . " dÃ­as"; ?>
+                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes días" : "Vencido hace " . abs($dias_restantes) . " días"; ?>
                                     </small>
                                 </div>
                             </td>
