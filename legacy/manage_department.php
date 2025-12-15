@@ -28,8 +28,8 @@ if (isset($_GET['id'])) {
 }
 ?>
 <div class="container-fluid">
-	<div id="msg"></div>
-	<form action="" id="manage-department">
+	<div id="department-msg"></div>
+	<form action="" id="manage-department-form">
 		<input type="hidden" name="id" value="<?php echo $department_id ?>">
 		
 		<div class="form-group">
@@ -70,27 +70,21 @@ if (isset($_GET['id'])) {
 </div>
 <script>
 	$(function(){
-		$('.select2').select2({
+		$('#manage-department-form .select2').select2({
 			placeholder: 'Seleccionar...',
 			allowClear: true,
 			width: '100%'
 		});
 	});
-	
-	$('#manage-department').submit(function(e) {
+
+	$(document).off('submit', '#manage-department-form').on('submit', '#manage-department-form', function(e) {
 		e.preventDefault()
-		$('input').removeClass("border-danger")
+		$(this).find('input').removeClass("border-danger")
 		start_load()
-		$('#msg').html('')
+		$('#department-msg').html('')
 		
 		// Preparar FormData
 		var formData = new FormData($(this)[0]);
-		
-		// Verificar que los selects múltiples se envíen correctamente
-		console.log('Form data being sent:');
-		for (var pair of formData.entries()) {
-			console.log(pair[0]+ ': ' + pair[1]);
-		}
 		
 		$.ajax({
 			url: 'ajax_simple.php?action=save_department',
@@ -101,25 +95,24 @@ if (isset($_GET['id'])) {
 			method: 'POST',
 			type: 'POST',
 			success: function(resp) {
-				console.log('Response:', resp);
 				if (resp == 1) {
 					alert_toast('Datos guardados correctamente', "success");
 					setTimeout(function() {
 						location.replace('index.php?page=department_list')
 					}, 750)
 				} else if (resp == 2) {
-					$('#msg').html("<div class='alert alert-danger'>Departamento ya existe</div>");
-					$('[name="name"]').addClass("border-danger")
+					$('#department-msg').html("<div class='alert alert-danger'>Departamento ya existe</div>");
+					$('#manage-department-form').find('[name="name"]').addClass("border-danger")
 					end_load()
 				} else {
-					$('#msg').html("<div class='alert alert-danger'>Error al guardar: " + resp + "</div>");
+					$('#department-msg').html("<div class='alert alert-danger'>Error al guardar: " + resp + "</div>");
 					end_load()
 				}
 			},
 			error: function(xhr, status, error) {
 				console.error('AJAX Error:', status, error);
 				console.error('Response:', xhr.responseText);
-				$('#msg').html("<div class='alert alert-danger'>Error del servidor. Revisa la consola.</div>");
+				$('#department-msg').html("<div class='alert alert-danger'>Error del servidor. Revisa la consola.</div>");
 				end_load()
 			}
 		})
