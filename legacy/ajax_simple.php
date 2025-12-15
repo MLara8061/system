@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
+@session_start();
 
 try {
     require_once __DIR__ . '/../config/config.php';
@@ -11,6 +12,36 @@ try {
     
     $action = $_REQUEST['action'] ?? '';
     error_log("SIMPLE AJAX: action = $action");
+
+    // Diagnóstico (solo admin logueado): devuelve DB actual y usuario MySQL
+    if ($action === 'diag_connection') {
+        $login_type = isset($_SESSION['login_type']) ? (int)$_SESSION['login_type'] : 0;
+        if ($login_type !== 1) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Forbidden']);
+            exit;
+        }
+
+        $dbName = null;
+        $dbUser = null;
+        try {
+            $r = @$conn->query('SELECT DATABASE() AS db, USER() AS usr');
+            if ($r && $r->num_rows > 0) {
+                $row = $r->fetch_assoc();
+                $dbName = $row['db'] ?? null;
+                $dbUser = $row['usr'] ?? null;
+            }
+        } catch (Throwable $e) {
+            // ignore
+        }
+
+        echo json_encode([
+            'success' => true,
+            'db' => $dbName,
+            'user' => $dbUser,
+        ]);
+        exit;
+    }
     
     if ($action == 'save_department') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
@@ -98,6 +129,16 @@ try {
                 }
             } else {
                 error_log('SIMPLE AJAX get_locations_by_department query error: ' . $conn->error);
+            }
+
+            // Si el filtro por department_id devuelve vacío (datos incompletos), fallback a listar todo
+            if ($has_department_id && empty($locations)) {
+                $qry = $conn->query("SELECT l.id, l.name FROM locations l ORDER BY l.name ASC");
+                if ($qry) {
+                    while ($row = $qry->fetch_assoc()) {
+                        $locations[] = $row;
+                    }
+                }
             }
         } catch (Throwable $e) {
             error_log('SIMPLE AJAX get_locations_by_department throwable: ' . $e->getMessage());
