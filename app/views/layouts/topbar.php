@@ -2,6 +2,48 @@
 // Partial de Navbar superior (sin duplicar <html>, <head> ni scripts)
 ?>
 
+<?php
+$is_admin = (int)($_SESSION['login_type'] ?? 0) === 1;
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+$branches = [];
+$branch_name = '';
+
+if (isset($conn) && $conn instanceof mysqli) {
+  $has_active = false;
+  $col = @$conn->query("SHOW COLUMNS FROM branches LIKE 'active'");
+  if ($col && $col->num_rows > 0) {
+    $has_active = true;
+  }
+
+  $branches_sql = "SELECT id, name" . ($has_active ? ", active" : "") . " FROM branches ORDER BY name ASC";
+  $res = @$conn->query($branches_sql);
+  if ($res instanceof mysqli_result) {
+    while ($row = $res->fetch_assoc()) {
+      $active = $has_active ? (int)($row['active'] ?? 1) : 1;
+      if ($active !== 1) continue;
+      $bid = (int)($row['id'] ?? 0);
+      $bname = (string)($row['name'] ?? '');
+      if ($bid <= 0 || $bname === '') continue;
+      $branches[] = ['id' => $bid, 'name' => $bname];
+      if ($active_bid > 0 && $bid === $active_bid) {
+        $branch_name = $bname;
+      }
+    }
+    $res->free();
+  }
+}
+
+if ($branch_name === '' && $active_bid > 0) {
+  foreach ($branches as $b) {
+    if ((int)$b['id'] === $active_bid) {
+      $branch_name = (string)$b['name'];
+      break;
+    }
+  }
+}
+?>
+
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
   <!-- Left navbar links -->
   <ul class="navbar-nav">
@@ -14,6 +56,25 @@
 
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto user-menu">
+    <!-- Selector de Sucursal (global) -->
+    <li class="nav-item d-flex align-items-center mr-2">
+      <span class="text-muted small mr-2 font-weight-bold d-none d-lg-inline">Sucursal:</span>
+      <?php if ($is_admin): ?>
+        <select id="global_branch_selector" class="form-control form-control-sm" style="width: 220px;">
+          <option value="0" <?= $active_bid === 0 ? 'selected' : '' ?>>Todas</option>
+          <?php foreach ($branches as $b): ?>
+            <option value="<?= (int)$b['id'] ?>" <?= $active_bid === (int)$b['id'] ? 'selected' : '' ?>>
+              <?= htmlspecialchars($b['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      <?php else: ?>
+        <select class="form-control form-control-sm" style="width: 220px;" disabled>
+          <option selected><?= htmlspecialchars($branch_name !== '' ? $branch_name : 'Sucursal asignada') ?></option>
+        </select>
+      <?php endif; ?>
+    </li>
+
     <!-- Search -->
     <li class="nav-item">
       <a class="nav-link" data-widget="navbar-search" href="#" role="button">
@@ -109,3 +170,39 @@
     } catch(_) {}
   });
 </script>
+
+<?php if ($is_admin): ?>
+<script>
+  $(function () {
+    var $sel = $('#global_branch_selector');
+    if (!$sel.length) return;
+
+    $sel.on('change', function () {
+      var branch_id = $(this).val();
+      if (branch_id === null || branch_id === undefined) return;
+
+      $.ajax({
+        url: 'ajax.php?action=update_user_branch',
+        method: 'POST',
+        data: { branch_id: branch_id },
+        dataType: 'json',
+        success: function (data) {
+          if (data && data.success) {
+            if (typeof alert_toast === 'function') {
+              alert_toast('Sucursal cambiada correctamente', 'success');
+              setTimeout(function(){ location.reload(); }, 300);
+            } else {
+              location.reload();
+            }
+          } else {
+            if (typeof alert_toast === 'function') alert_toast('Error al cambiar sucursal', 'error');
+          }
+        },
+        error: function () {
+          if (typeof alert_toast === 'function') alert_toast('Error de conexión', 'error');
+        }
+      });
+    });
+  });
+</script>
+<?php endif; ?>
