@@ -3,19 +3,11 @@
 $traceFile = ROOT . '/home_trace.log';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: start\n", FILE_APPEND);
 
-// Helper function para queries que se cuelgan con query()
-function safe_query($conn, $sql) {
-    if ($conn->real_query($sql)) {
-        return $conn->store_result();
-    }
-    return false;
-}
-
 $user_id = $_SESSION['login_id'] ?? 0;
 $user_branch = null;
 if ($user_id) {
     // Sin JOIN a branches (causa timeout)
-    $user_query = safe_query($conn, "SELECT * FROM users WHERE id = {$user_id}");
+    $user_query = $conn->query("SELECT * FROM users WHERE id = {$user_id}");
     $user_branch = $user_query ? $user_query->fetch_assoc() : null;
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . '] HOME LOAD: fetched user_branch: ' . json_encode($user_branch) . "\n", FILE_APPEND);
 }
@@ -34,7 +26,8 @@ $branch_filter = '';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter disabled (troubleshooting)\n", FILE_APPEND);
 
 $total_equipos = 0;
-$result = safe_query($conn, "SELECT COUNT(*) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_filter}");
+// Simplificado: sin JOIN que causa timeout
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipments");
 if ($result && ($row = $result->fetch_assoc())) {
     $total_equipos = (int)($row['total'] ?? 0);
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_equipos={$total_equipos}\n", FILE_APPEND);
@@ -49,7 +42,8 @@ $total_herramientas = ($result_herramientas && $row = $result_herramientas->fetc
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: EPP={$total_epp}, Herramientas={$total_herramientas}\n", FILE_APPEND);
 
 $valor_total_equipos = 0;
-$result = safe_query($conn, "SELECT SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_filter}");
+// Simplificado: sin JOIN que causa timeout
+$result = $conn->query("SELECT SUM(amount) AS total FROM equipments");
 if ($result && ($row = $result->fetch_assoc())) {
     $valor_total_equipos = (float)($row['total'] ?? 0);
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: valor_total_equipos={$valor_total_equipos}\n", FILE_APPEND);
