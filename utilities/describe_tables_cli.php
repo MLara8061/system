@@ -4,7 +4,7 @@
 
 require_once __DIR__ . '/../config/config.php';
 
-$tables = ['equipments', 'maintenance_reports', 'tools', 'accessories'];
+$tables = ['equipments', 'maintenance_reports', 'tools', 'accessories', 'suppliers'];
 
 echo "=== DESCRIBE TABLES ===\n";
 foreach ($tables as $table) {
