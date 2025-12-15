@@ -906,6 +906,18 @@ class Action {
         return $res && $res->num_rows > 0;
     }
 
+    private function index_exists_local($table, $index_name) {
+        if (!$this->db) return false;
+        $table_esc = $this->db->real_escape_string($table);
+        $idx_esc = $this->db->real_escape_string($index_name);
+        try {
+            $res = $this->db->query("SHOW INDEX FROM `{$table_esc}` WHERE Key_name = '{$idx_esc}'");
+            return $res && $res->num_rows > 0;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
     private function ensure_equipment_categories_schema() {
         if (!$this->db) return;
         if ($this->table_exists_local('equipment_categories')) return;
@@ -976,9 +988,18 @@ class Action {
         if ($this->table_exists_local('acquisition_type') && !$this->column_exists_local('acquisition_type', 'active')) {
             @$this->db->query("ALTER TABLE `acquisition_type` ADD COLUMN `active` TINYINT(1) NOT NULL DEFAULT 1 AFTER `code`");
         }
-        // Índice único para code si existe (ignorar error si ya está)
-        if ($this->table_exists_local('acquisition_type') && $this->column_exists_local('acquisition_type', 'code')) {
-            @$this->db->query("ALTER TABLE `acquisition_type` ADD UNIQUE KEY `uniq_acquisition_type_code` (`code`)");
+        // Índice único para code (solo si no existe; evita fatal por 'Duplicate key name')
+        if (
+            $this->table_exists_local('acquisition_type') &&
+            $this->column_exists_local('acquisition_type', 'code') &&
+            !$this->index_exists_local('acquisition_type', 'uniq_acquisition_type_code')
+        ) {
+            try {
+                $this->db->query("ALTER TABLE `acquisition_type` ADD UNIQUE KEY `uniq_acquisition_type_code` (`code`)");
+            } catch (Throwable $e) {
+                // Ignorar errores de carrera/duplicado (p.ej. ya existe con otro nombre)
+                error_log('ensure_acquisition_type_schema index create warning: ' . $e->getMessage());
+            }
         }
     }
 
