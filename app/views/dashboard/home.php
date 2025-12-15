@@ -12,13 +12,19 @@ if ($user_id) {
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . '] HOME LOAD: fetched user_branch: ' . json_encode($user_branch) . "\n", FILE_APPEND);
 }
 
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: skip branches query (workaround)\n", FILE_APPEND);
-// WORKAROUND: La query a branches se cuelga por un bug desconocido. 
-// Como solo hay 1 branch, creamos un resultset falso
-$branches = false;
-// Datos estáticos basados en la única branch existente
-$branches_data = [['id' => 1, 'name' => 'Sede Principal']];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using static branches data\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: fetching branches\n", FILE_APPEND);
+$branches_data = [];
+$branches_result = $conn->query("SELECT id, name FROM branches ORDER BY id ASC");
+if ($branches_result) {
+  while ($row = $branches_result->fetch_assoc()) {
+    $branches_data[] = ['id' => (int)$row['id'], 'name' => $row['name']];
+  }
+}
+if (empty($branches_data)) {
+  // Fallback si la tabla está vacía o falla el query
+  $branches_data = [['id' => 1, 'name' => 'Sede Principal']];
+}
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branches loaded (" . count($branches_data) . ")\n", FILE_APPEND);
 
 // TEMPORAL: Desactivar filtro de sucursal hasta verificar que branch_id existe en todas las tablas
 $active_branch_id = (int)($user_branch['active_branch_id'] ?? 0);
