@@ -1,9 +1,16 @@
 <?php require_once 'config/db.php'; ?>
 
 <?php
-// Obtener sucursales
-$branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
-// Próximo número de inventario se generará dinámicamente con JavaScript
+// Obtener sucursales (robusto: evitar fatal y loader infinito si falla DB)
+$branches = [];
+try {
+    if (isset($pdo) && $pdo) {
+        $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC")
+            ->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) {
+    $branches = [];
+}
 ?>
 
 <div class="container-fluid">
@@ -35,7 +42,7 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                             <select name="branch_id" id="branch_id" class="custom-select select2" required>
                                 <option value="">Seleccionar sucursal</option>
                                 <?php foreach ($branches as $branch): ?>
-                                    <option value="<?= $branch['id'] ?>"><?= ucwords($branch['name']) ?></option>
+                                    <option value="<?= htmlspecialchars((string)($branch['id'] ?? '')) ?>"><?= ucwords((string)($branch['name'] ?? '')) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -99,24 +106,12 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                                 <select name="equipment_category_id" id="equipment_category_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    // Asegurar tabla (instalaciones nuevas)
-                                    try {
-                                        $pdo->exec("CREATE TABLE IF NOT EXISTS `equipment_categories` (
-                                            `id` INT NOT NULL AUTO_INCREMENT,
-                                            `clave` VARCHAR(3) NOT NULL,
-                                            `description` VARCHAR(255) NOT NULL,
-                                            `active` TINYINT(1) NOT NULL DEFAULT 1,
-                                            `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-                                            PRIMARY KEY (`id`),
-                                            UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
-                                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                                    } catch (Exception $e) {
-                                        // no-op
-                                    }
-
                                     $cats = [];
                                     try {
-                                        $cats = $pdo->query("SELECT id, clave, description FROM equipment_categories WHERE active = 1 ORDER BY clave ASC")->fetchAll(PDO::FETCH_ASSOC);
+                                        if (isset($pdo) && $pdo) {
+                                            $cats = $pdo->query("SELECT id, clave, description FROM equipment_categories WHERE active = 1 ORDER BY clave ASC")
+                                                ->fetchAll(PDO::FETCH_ASSOC);
+                                        }
                                     } catch (Exception $e) {
                                         $cats = [];
                                     }
@@ -152,12 +147,20 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                         <!-- PROVEEDOR -->
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Proveedor</label>
-                            <select name="supplier_id" class="custom-select select2" required>
+                                <select name="supplier_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $suppliers = $pdo->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC");
+                                $suppliers = [];
+                                try {
+                                    if (isset($pdo) && $pdo) {
+                                        $suppliers = $pdo->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC")
+                                            ->fetchAll(PDO::FETCH_ASSOC);
+                                    }
+                                } catch (Exception $e) {
+                                    $suppliers = [];
+                                }
                                 foreach ($suppliers as $row): ?>
-                                    <option value="<?= $row['id'] ?>"><?= ucwords($row['empresa']) ?></option>
+                                    <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['empresa'] ?? '')) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -169,9 +172,17 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC");
+                                    $types = [];
+                                    try {
+                                        if (isset($pdo) && $pdo) {
+                                            $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC")
+                                                ->fetchAll(PDO::FETCH_ASSOC);
+                                        }
+                                    } catch (Exception $e) {
+                                        $types = [];
+                                    }
                                     foreach ($types as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -180,9 +191,17 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                                 <select name="mandate_period_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $periods = $pdo->query("SELECT id, name FROM maintenance_periods ORDER BY id ASC");
+                                    $periods = [];
+                                    try {
+                                        if (isset($pdo) && $pdo) {
+                                            $periods = $pdo->query("SELECT id, name FROM maintenance_periods ORDER BY id ASC")
+                                                ->fetchAll(PDO::FETCH_ASSOC);
+                                        }
+                                    } catch (Exception $e) {
+                                        $periods = [];
+                                    }
                                     foreach ($periods as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -206,9 +225,17 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                                 <select name="department_id" id="department_id" class="custom-select select2" form="manage_equipment" required>
                                     <option value="">Seleccionar departamento</option>
                                     <?php
-                                    $departments = $pdo->query("SELECT id, name FROM departments ORDER BY name ASC");
+                                    $departments = [];
+                                    try {
+                                        if (isset($pdo) && $pdo) {
+                                            $departments = $pdo->query("SELECT id, name FROM departments ORDER BY name ASC")
+                                                ->fetchAll(PDO::FETCH_ASSOC);
+                                        }
+                                    } catch (Exception $e) {
+                                        $departments = [];
+                                    }
                                     foreach ($departments as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -507,6 +534,17 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
+            },
+            error: function(xhr){
+                var msg = 'Error al guardar el equipo';
+                try {
+                    if (xhr && xhr.responseText) {
+                        msg += ': ' + String(xhr.responseText).trim();
+                    }
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
                 end_load();
             }
         });

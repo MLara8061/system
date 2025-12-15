@@ -2,9 +2,16 @@
 
 <?php
 // Obtener próximo número de inventario
-$stmt = $pdo->query("SHOW TABLE STATUS LIKE 'equipments'");
-$row = $stmt->fetch();
-$next_inventory = $row['Auto_increment'] ?? 1;
+$next_inventory = 1;
+try {
+    if (isset($pdo) && $pdo) {
+        $stmt = $pdo->query("SHOW TABLE STATUS LIKE 'equipments'");
+        $row = $stmt ? $stmt->fetch() : null;
+        $next_inventory = $row['Auto_increment'] ?? 1;
+    }
+} catch (Exception $e) {
+    $next_inventory = 1;
+}
 ?>
 
 <div class="container-fluid">
@@ -103,9 +110,17 @@ $next_inventory = $row['Auto_increment'] ?? 1;
                             <select name="supplier_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
-                                $suppliers = $pdo->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC");
+                                $suppliers = [];
+                                try {
+                                    if (isset($pdo) && $pdo) {
+                                        $suppliers = $pdo->query("SELECT id, empresa FROM suppliers WHERE estado = 1 ORDER BY empresa ASC")
+                                            ->fetchAll(PDO::FETCH_ASSOC);
+                                    }
+                                } catch (Exception $e) {
+                                    $suppliers = [];
+                                }
                                 foreach ($suppliers as $row): ?>
-                                    <option value="<?= $row['id'] ?>"><?= ucwords($row['empresa']) ?></option>
+                                    <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['empresa'] ?? '')) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -117,9 +132,17 @@ $next_inventory = $row['Auto_increment'] ?? 1;
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC");
-                                    foreach ($types as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        $types = [];
+                                        try {
+                                            if (isset($pdo) && $pdo) {
+                                                $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC")
+                                                    ->fetchAll(PDO::FETCH_ASSOC);
+                                            }
+                                        } catch (Exception $e) {
+                                            $types = [];
+                                        }
+                                        foreach ($types as $row): ?>
+                                            <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -128,9 +151,17 @@ $next_inventory = $row['Auto_increment'] ?? 1;
                                 <select name="mandate_period_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $periods = $pdo->query("SELECT id, name FROM maintenance_periods ORDER BY id ASC");
-                                    foreach ($periods as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        $periods = [];
+                                        try {
+                                            if (isset($pdo) && $pdo) {
+                                                $periods = $pdo->query("SELECT id, name FROM maintenance_periods ORDER BY id ASC")
+                                                    ->fetchAll(PDO::FETCH_ASSOC);
+                                            }
+                                        } catch (Exception $e) {
+                                            $periods = [];
+                                        }
+                                        foreach ($periods as $row): ?>
+                                            <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -154,9 +185,17 @@ $next_inventory = $row['Auto_increment'] ?? 1;
                                 <select name="department_id" id="department_id" class="custom-select select2" form="manage_equipment" required>
                                     <option value="">Seleccionar departamento</option>
                                     <?php
-                                    $departments = $pdo->query("SELECT id, name FROM departments ORDER BY name ASC");
-                                    foreach ($departments as $row): ?>
-                                        <option value="<?= $row['id'] ?>"><?= ucwords($row['name']) ?></option>
+                                        $departments = [];
+                                        try {
+                                            if (isset($pdo) && $pdo) {
+                                                $departments = $pdo->query("SELECT id, name FROM departments ORDER BY name ASC")
+                                                    ->fetchAll(PDO::FETCH_ASSOC);
+                                            }
+                                        } catch (Exception $e) {
+                                            $departments = [];
+                                        }
+                                        foreach ($departments as $row): ?>
+                                            <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -407,6 +446,17 @@ $next_inventory = $row['Auto_increment'] ?? 1;
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
+            },
+            error: function(xhr){
+                var msg = 'Error al guardar el equipo';
+                try {
+                    if (xhr && xhr.responseText) {
+                        msg += ': ' + String(xhr.responseText).trim();
+                    }
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
                 end_load();
             }
         });
