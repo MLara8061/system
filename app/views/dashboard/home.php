@@ -24,6 +24,7 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using st
 $active_branch_id = (int)($user_branch['active_branch_id'] ?? 0);
 $branch_where = $active_branch_id ? " WHERE branch_id = {$active_branch_id}" : '';
 $branch_and = $active_branch_id ? " AND branch_id = {$active_branch_id}" : '';
+$equip_alias_where = $active_branch_id ? " WHERE e.branch_id = {$active_branch_id}" : '';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter enabled (active_branch_id={$active_branch_id})\n", FILE_APPEND);
 
 $total_equipos = 0;
@@ -159,9 +160,27 @@ $categories = array_map(function ($m) { return $m . '-01'; }, $months);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series real loaded\n", FILE_APPEND);
 
 // Pie chart: datos de ejemplo (JOIN a suppliers causa timeout)
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart dummy\n", FILE_APPEND);
-$pie_labels = ['Proveedor A', 'Proveedor B', 'Proveedor C', 'Sin Proveedor'];
-$pie_values = [85, 65, 45, 57];
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart real\n", FILE_APPEND);
+$pie_labels = [];
+$pie_values = [];
+$pie_query = "SELECT COALESCE(s.empresa, 'Sin Proveedor') AS supplier, COUNT(1) AS cnt\n"
+  . "FROM equipments e\n"
+  . "LEFT JOIN suppliers s ON e.supplier_id = s.id\n"
+  . ($equip_alias_where ? $equip_alias_where . "\n" : "")
+  . "GROUP BY supplier\n"
+  . "ORDER BY cnt DESC\n"
+  . "LIMIT 6";
+$pie_result = $conn->query($pie_query);
+if ($pie_result) {
+  while ($row = $pie_result->fetch_assoc()) {
+    $pie_labels[] = $row['supplier'];
+    $pie_values[] = (int)($row['cnt'] ?? 0);
+  }
+}
+if (empty($pie_labels)) {
+  $pie_labels = ['Sin datos'];
+  $pie_values = [0];
+}
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart ready\n", FILE_APPEND);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting HTML output\n", FILE_APPEND);
 ?>
@@ -348,14 +367,17 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
             </thead>
             <tbody>
               <?php
-              // Equipos recientes: query simple sin JOIN
+                // Equipos recientes: incluir proveedor
               file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: recent equipments\n", FILE_APPEND);
-              $recent_query = "SELECT id, number_inventory, name, amount, revision FROM equipments ORDER BY id DESC LIMIT 5";
+                $recent_query = "SELECT e.id, e.number_inventory, e.name, e.amount, e.revision, COALESCE(s.empresa, 'Sin Proveedor') AS supplier "
+                  . "FROM equipments e "
+                  . "LEFT JOIN suppliers s ON e.supplier_id = s.id "
+                  . ($equip_alias_where ? $equip_alias_where . " " : "")
+                  . "ORDER BY e.id DESC LIMIT 5";
               $recent_result = $conn->query($recent_query);
               $recent_data = [];
               if ($recent_result) {
                   while ($row = $recent_result->fetch_assoc()) {
-                      $row['supplier'] = 'N/A'; // Sin JOIN a suppliers
                       $recent_data[] = $row;
                   }
               }
@@ -402,13 +424,33 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
       <div class="card-footer p-0">
         <ul class="nav nav-pills flex-column">
           <?php
-          // Top suppliers: datos de ejemplo (GROUP BY causa timeout)
-          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers dummy\n", FILE_APPEND);
-          $top_suppliers_data = [
-              ['supplier' => 'Proveedor A', 'cnt' => 85, 'pct' => 33.7],
-              ['supplier' => 'Proveedor B', 'cnt' => 65, 'pct' => 25.8],
-              ['supplier' => 'Proveedor C', 'cnt' => 45, 'pct' => 17.8]
-          ];
+            // Top suppliers: datos reales
+            file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers real\n", FILE_APPEND);
+            $top_suppliers_data = [];
+            $top_query = "SELECT COALESCE(s.empresa, 'Sin Proveedor') AS supplier, COUNT(1) AS cnt\n"
+              . "FROM equipments e\n"
+              . "LEFT JOIN suppliers s ON e.supplier_id = s.id\n"
+              . ($equip_alias_where ? $equip_alias_where . "\n" : "")
+              . "GROUP BY supplier\n"
+              . "ORDER BY cnt DESC\n"
+              . "LIMIT 3";
+            $top_result = $conn->query($top_query);
+            if ($top_result) {
+              while ($row = $top_result->fetch_assoc()) {
+                $cnt = (int)($row['cnt'] ?? 0);
+                $pct = $total_equipos > 0 ? round(($cnt * 100.0) / $total_equipos, 1) : 0.0;
+                $top_suppliers_data[] = [
+                  'supplier' => $row['supplier'],
+                  'cnt' => $cnt,
+                  'pct' => $pct,
+                ];
+              }
+            }
+            if (empty($top_suppliers_data)) {
+              $top_suppliers_data = [
+                ['supplier' => 'Sin datos', 'cnt' => 0, 'pct' => 0.0],
+              ];
+            }
           file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers ready\n", FILE_APPEND);
           foreach ($top_suppliers_data as $sup): ?>
             <li class="nav-item">
