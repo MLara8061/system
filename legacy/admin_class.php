@@ -1,7 +1,7 @@
 <?php
-// Cargar sesión hardened (si no está en contexto de directa )
+// Cargar sesión hardened
 if (session_status() == PHP_SESSION_NONE) {
-    require_once __DIR__ . '/config/session.php';
+    require_once __DIR__ . '/../config/session.php';
 }
 ini_set('display_errors', 1);
 
@@ -12,10 +12,10 @@ class Action {
     public function __construct() {
         // No iniciar buffer aquí, ya que ajax.php lo maneja
         // Mantener compatibilidad con código existente (mysqli)
-        require_once 'config/config.php';
+        require_once __DIR__ . '/../config/config.php';
         $this->db = isset($conn) ? $conn : null;
         // Nueva conexión segura con PDO
-        require_once 'config/db.php';
+        require_once __DIR__ . '/../config/db.php';
         $this->pdo = isset($pdo) ? $pdo : null;
     }
 

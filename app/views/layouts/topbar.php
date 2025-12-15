@@ -154,7 +154,7 @@ if ($branch_name === '' && $active_bid > 0) {
 <script>
   // Dejar que AdminLTE maneje el pushmenu nativamente
   $(function(){
-    // Solo logs para depuraciÃ³n (opcional, puedes eliminar despuÃ©s)
+    // Solo logs para depuración (opcional, puedes eliminar después)
     const log = (...args) => { if (window.console) console.log('[Sidebar]', ...args); };
     
     // Observer para depurar cambios en clases del body
@@ -199,7 +199,7 @@ if ($branch_name === '' && $active_bid > 0) {
           }
         },
         error: function () {
-          if (typeof alert_toast === 'function') alert_toast('Error de conexiÃ³n', 'error');
+          if (typeof alert_toast === 'function') alert_toast('Error de conexión', 'error');
         }
       });
     });

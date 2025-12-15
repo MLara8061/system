@@ -81,6 +81,94 @@ if ($action == 'logout') {
 // ===================================
 // 2. USUARIOS
 // ===================================
+if ($action == 'update_user_branch') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $loginType = (int)($_SESSION['login_type'] ?? 0);
+    if ($loginType !== 1) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'msg' => 'Sin permisos']);
+        exit;
+    }
+
+    $branch_id = isset($_POST['branch_id']) ? (int)$_POST['branch_id'] : null;
+    if ($branch_id === null) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'msg' => 'branch_id requerido']);
+        exit;
+    }
+
+    // 0 = Todas (solo admin)
+    if ($branch_id !== 0) {
+        if ($branch_id < 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'msg' => 'branch_id inválido']);
+            exit;
+        }
+
+        $db = $crud->getDb();
+        if (!($db instanceof mysqli)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'msg' => 'DB no disponible']);
+            exit;
+        }
+
+        $has_active = false;
+        $col = @$db->query("SHOW COLUMNS FROM branches LIKE 'active'");
+        if ($col && $col->num_rows > 0) {
+            $has_active = true;
+        }
+
+        $sql = 'SELECT id' . ($has_active ? ', active' : '') . ' FROM branches WHERE id = ? LIMIT 1';
+        $stmt = $db->prepare($sql);
+        if (!$stmt) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'msg' => 'Error preparando consulta']);
+            exit;
+        }
+        $stmt->bind_param('i', $branch_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $row = $res ? $res->fetch_assoc() : null;
+        $stmt->close();
+
+        if (!$row) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'msg' => 'Sucursal no existe']);
+            exit;
+        }
+        if ($has_active && (int)($row['active'] ?? 1) !== 1) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'msg' => 'Sucursal inactiva']);
+            exit;
+        }
+    }
+
+    $_SESSION['login_active_branch_id'] = $branch_id;
+
+    // Persistir preferencia si la columna existe (no bloquea el flujo si falla)
+    try {
+        $db = $crud->getDb();
+        $user_id = (int)($_SESSION['login_id'] ?? 0);
+        if (($db instanceof mysqli) && $user_id > 0) {
+            $col = @$db->query("SHOW COLUMNS FROM users LIKE 'active_branch_id'");
+            if ($col && $col->num_rows > 0) {
+                $stmt = $db->prepare('UPDATE users SET active_branch_id = ? WHERE id = ?');
+                if ($stmt) {
+                    $stmt->bind_param('ii', $branch_id, $user_id);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('update_user_branch persistence error: ' . $e->getMessage());
+    }
+
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 if ($action == 'save_user') {
     error_log("=== AJAX save_user ===");
     error_log("POST data: " . json_encode($_POST));
