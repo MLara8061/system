@@ -207,11 +207,11 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                                 <div>
                                     <?php if ($row['revision'] == 1): ?>
                                         <span class="badge badge-success">
-                                            <i class="fas fa-check mr-1"></i> Con RevisiÃ³n
+                                            <i class="fas fa-check mr-1"></i> Con Revisión
                                         </span>
                                     <?php else: ?>
                                         <span class="badge badge-warning">
-                                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin RevisiÃ³n
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin Revisión
                                         </span>
                                     <?php endif ?>
                                     <br>
@@ -222,7 +222,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                                 </div>
                             </td>
 
-                            <!-- PRÃ“XIMO MTTO. -->
+                            <!-- PRÓXIMO MTTO. -->
                             <td>
                                 <div>
                                     <strong>
@@ -247,14 +247,14 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                                 </div>
                             </td>
 
-                            <!-- ÃšLTIMO MTTO. -->
+                            <!-- ÚLTIMO MTTO. -->
                             <td>
                                 <div>
                                     <strong><?php echo $ultimo; ?></strong>
                                 </div>
                             </td>
 
-                            <!-- ANTIGÃœEDAD -->
+                            <!-- ANTIGÜEDAD -->
                             <td>
                                 <div>
                                     <strong><?php echo $antiguedad; ?></strong>
@@ -283,7 +283,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                                             <i class="fas fa-edit mr-2 text-secondary"></i> Editar
                                         </a>
                                         <a class="dropdown-item" href="./index.php?page=equipment_new_revision&id=<?php echo $row['id'] ?>">
-                                            <i class="fas fa-tools mr-2 text-success"></i> Nueva RevisiÃ³n
+                                            <i class="fas fa-tools mr-2 text-success"></i> Nueva Revisión
                                         </a>
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Reportes</h6>
@@ -320,9 +320,9 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                 </div>
                 <div class="col-sm-6 text-right">
                     <small class="text-muted">
-                        Con revisiÃ³n:
+                        Con revisión:
                         <span class="badge badge-success"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 1 {$branch_and_e}")->num_rows; ?></span>
-                        Sin revisiÃ³n:
+                        Sin revisión:
                         <span class="badge badge-warning"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 0 {$branch_and_e}")->num_rows; ?></span>
                     </small>
                 </div>
@@ -336,7 +336,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="qrModalLabel">CÃ³digo QR del Equipo</h5>
+                <h5 class="modal-title" id="qrModalLabel">Código QR del Equipo</h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
@@ -424,7 +424,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                 },
                 error: function() {
                     end_load();
-                    alert_toast("Error de conexiÃ³n", 'error');
+                    alert_toast("Error de conexión", 'error');
                 }
             });
         };
