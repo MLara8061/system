@@ -48,6 +48,10 @@ if ($id > 0) {
 </div>
 
 <script>
+	// Fallbacks por si el layout no define estos helpers
+	if (typeof window.start_loader !== 'function') window.start_loader = function() {};
+	if (typeof window.end_loader !== 'function') window.end_loader = function() {};
+
 	$('#manage_equipment_category [name="clave"]').on('input', function(){
 		this.value = this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
 	})

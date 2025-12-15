@@ -34,11 +34,16 @@
 </div>
 
 <script>
+	// Fallbacks por si el layout no define estos helpers (evita que truene toda la vista)
+	if (typeof window.start_loader !== 'function') window.start_loader = function() {};
+	if (typeof window.end_loader !== 'function') window.end_loader = function() {};
+
 	function load_data(){
 		if ( $.fn.DataTable.isDataTable('table') ) {
 			$('table').DataTable().destroy();
 			$('table tbody').html('')
 		}
+		start_loader();
 		$.ajax({
 			url:"ajax.php?action=load_equipment_category",
 			dataType: "json",
