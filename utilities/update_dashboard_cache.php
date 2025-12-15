@@ -9,7 +9,19 @@ ini_set('display_errors', 1);
 set_time_limit(300); // 5 minutos - cron tiene más tiempo
 
 define('ROOT', dirname(__DIR__));
-require_once ROOT . '/config/db_connect.php';
+
+// Conexión directa sin access_guard (cron no tiene sesión)
+require_once ROOT . '/config/env.php';
+$DB_HOST = getenv('DB_HOST') ?: 'localhost';
+$DB_USER = getenv('DB_USER') ?: 'u228864460_system';
+$DB_PASS = getenv('DB_PASS') ?: 'Mateo2019!';
+$DB_NAME = getenv('DB_NAME') ?: 'u228864460_system';
+
+$conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+if ($conn->connect_error) {
+    die("ERROR: Could not connect. " . $conn->connect_error);
+}
+$conn->set_charset('utf8mb4');
 
 $log_file = ROOT . '/cache_update.log';
 
