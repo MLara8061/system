@@ -37,8 +37,73 @@ while ($records && $row = $records->fetch_assoc()) {
 if ($records) {
     $records->free();
 }
+
+$total_bajas = count($rows);
+$equipos_unicos = 0;
+$bajas_mes = 0;
+$mantenimientos_asociados = 0;
+$uniqueEquip = [];
+$currentYm = date('Y-m');
+foreach ($rows as $r) {
+    $eid = (int)($r['equipment_id'] ?? 0);
+    if ($eid) {
+        $uniqueEquip[$eid] = true;
+    }
+    $mantenimientos_asociados += (int)($r['maintenance_total'] ?? 0);
+    $fecha = $r['date'] ?? '';
+    if ($fecha && strpos($fecha, $currentYm) === 0) {
+        $bajas_mes++;
+    }
+}
+$equipos_unicos = count($uniqueEquip);
 ?>
 <div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm" style="background:#fff;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-clipboard-list fa-2x text-primary mr-3"></i>
+                    <div>
+                        <h6>Total Bajas</h6>
+                        <h4><?php echo (int)$total_bajas; ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm" style="background:#fff;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-desktop fa-2x text-success mr-3"></i>
+                    <div>
+                        <h6>Equipos Únicos</h6>
+                        <h4><?php echo (int)$equipos_unicos; ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm" style="background:#fff;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-calendar-alt fa-2x text-info mr-3"></i>
+                    <div>
+                        <h6>Este Mes</h6>
+                        <h4><?php echo (int)$bajas_mes; ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm" style="background:#fff;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-file-alt fa-2x text-warning mr-3"></i>
+                    <div>
+                        <h6>Mantenimientos</h6>
+                        <h4><?php echo (int)$mantenimientos_asociados; ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
         <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between flex-wrap">
             <div class="mb-2 mb-md-0">

@@ -252,17 +252,17 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
           <i class="fas fa-filter mr-2"></i>
           <strong>Período de datos:</strong>
         </div>
-        <div class="btn-group btn-group-sm" role="group">
-          <button type="button" class="btn btn-outline-primary <?= $period === '6m' ? 'active' : '' ?>" onclick="changePeriod('6m')">
+        <div class="d-flex flex-wrap align-items-center">
+          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === '6m' ? 'active' : '' ?>" onclick="changePeriod('6m')">
             <i class="fas fa-calendar-alt"></i> 6 Meses
           </button>
-          <button type="button" class="btn btn-outline-primary <?= $period === '12m' ? 'active' : '' ?>" onclick="changePeriod('12m')">
+          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === '12m' ? 'active' : '' ?>" onclick="changePeriod('12m')">
             <i class="fas fa-calendar"></i> 12 Meses
           </button>
-          <button type="button" class="btn btn-outline-primary <?= $period === 'year' ? 'active' : '' ?>" onclick="changePeriod('year')">
+          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === 'year' ? 'active' : '' ?>" onclick="changePeriod('year')">
             <i class="fas fa-calendar-check"></i> Este Año
           </button>
-          <button type="button" class="btn btn-outline-primary <?= $period === 'all' ? 'active' : '' ?>" onclick="changePeriod('all')">
+          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === 'all' ? 'active' : '' ?>" onclick="changePeriod('all')">
             <i class="fas fa-infinity"></i> Todo
           </button>
         </div>

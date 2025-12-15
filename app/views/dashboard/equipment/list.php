@@ -10,6 +10,8 @@ error_log("=== ABOUT TO EXECUTE QUERIES ===");
 $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id') : '';
 $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
 
+$mr_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'mr') : '';
+
 // Datos para las tarjetas - simplificado
 try {
     $total_equipos = 0;
@@ -23,25 +25,33 @@ try {
     }
     
     $costo_total = 0;
-    $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments {$branch_where}");
+    // Compatibilidad: algunos entornos usan `amount`, otros `purchase_price`
+    $result = $conn->query("SELECT IFNULL(SUM(amount), 0) as total FROM equipments {$branch_where}");
+    if (!$result) {
+        $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments {$branch_where}");
+    }
     if ($result) {
         $row = $result->fetch_assoc();
         $costo_total = $row['total'] ?? 0;
     }
-    
-    $preventivos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1 {$branch_and}");
-    if ($result) {
-        $row = $result->fetch_assoc();
-        $preventivos = $row['total'] ?? 0;
-    }
-    
-    $correctivos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2 {$branch_and}");
-    if ($result) {
-        $row = $result->fetch_assoc();
-        $correctivos = $row['total'] ?? 0;
-    }
+
+    $countMaintenance = function (string $type) use ($conn, $mr_and) {
+        // Compatibilidad: `service_type` (nuevo) o `type` (viejo)
+        $q1 = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports mr WHERE mr.service_type='" . $conn->real_escape_string($type) . "'{$mr_and}");
+        if ($q1) {
+            $r = $q1->fetch_assoc();
+            return (int)($r['total'] ?? 0);
+        }
+        $q2 = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports mr WHERE mr.type='" . $conn->real_escape_string($type) . "'{$mr_and}");
+        if ($q2) {
+            $r = $q2->fetch_assoc();
+            return (int)($r['total'] ?? 0);
+        }
+        return 0;
+    };
+
+    $mp_total = $countMaintenance('MP');
+    $mc_total = $countMaintenance('MC');
     
     error_log("=== QUERIES COMPLETED ===");
 } catch (Exception $e) {
@@ -80,8 +90,8 @@ try {
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-tools fa-2x text-warning mr-3"></i>
                 <div>
-                    <h6>Mantenimientos Preventivos</h6>
-                    <h4><?php echo $preventivos; ?></h4>
+                    <h6>MP</h6>
+                    <h4><?php echo $mp_total; ?></h4>
                 </div>
             </div>
         </div>
@@ -92,8 +102,8 @@ try {
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
                 <div>
-                    <h6>Mantenimientos Correctivos</h6>
-                    <h4><?php echo $correctivos; ?></h4>
+                    <h6>MC</h6>
+                    <h4><?php echo $mc_total; ?></h4>
                 </div>
             </div>
         </div>

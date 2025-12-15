@@ -1,4 +1,34 @@
 <?php require_once 'config/config.php'; ?>
+<?php
+$where = '';
+if ($_SESSION['login_type'] == 2) {
+	$where .= " where t.department_id = {$_SESSION['login_department_id']} ";
+}
+if ($_SESSION['login_type'] == 3) {
+	$where .= " where t.customer_id = {$_SESSION['login_id']} ";
+}
+
+$ticketSummary = [
+	'total' => 0,
+	'abiertos' => 0,
+	'en_proceso' => 0,
+	'finalizados' => 0,
+];
+
+$sumRes = $conn->query("SELECT
+	COUNT(*) AS total,
+	SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS abiertos,
+	SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS en_proceso,
+	SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS finalizados
+FROM tickets t {$where}");
+
+if ($sumRes && ($row = $sumRes->fetch_assoc())) {
+	$ticketSummary['total'] = (int)($row['total'] ?? 0);
+	$ticketSummary['abiertos'] = (int)($row['abiertos'] ?? 0);
+	$ticketSummary['en_proceso'] = (int)($row['en_proceso'] ?? 0);
+	$ticketSummary['finalizados'] = (int)($row['finalizados'] ?? 0);
+}
+?>
 <div class="container-fluid">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
@@ -6,7 +36,54 @@
 				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte Técnico</h4>
 			</div>
 			<div class="card-body">
-				<div class="mb-3">
+				<div class="row mb-3">
+					<div class="col-md-3">
+						<div class="card shadow-sm" style="background:#fff;">
+							<div class="card-body d-flex align-items-center">
+								<i class="fas fa-clipboard-list fa-2x text-primary mr-3"></i>
+								<div>
+									<h6>Total</h6>
+									<h4><?php echo (int)$ticketSummary['total']; ?></h4>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card shadow-sm" style="background:#fff;">
+							<div class="card-body d-flex align-items-center">
+								<i class="fas fa-folder-open fa-2x text-info mr-3"></i>
+								<div>
+									<h6>Abiertos</h6>
+									<h4><?php echo (int)$ticketSummary['abiertos']; ?></h4>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card shadow-sm" style="background:#fff;">
+							<div class="card-body d-flex align-items-center">
+								<i class="fas fa-spinner fa-2x text-warning mr-3"></i>
+								<div>
+									<h6>En Proceso</h6>
+									<h4><?php echo (int)$ticketSummary['en_proceso']; ?></h4>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="card shadow-sm" style="background:#fff;">
+							<div class="card-body d-flex align-items-center">
+								<i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+								<div>
+									<h6>Finalizados</h6>
+									<h4><?php echo (int)$ticketSummary['finalizados']; ?></h4>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex justify-content-end mb-3">
 					<a href="./index.php?page=new_ticket" class="btn btn-primary btn-sm">
 						<i class="fas fa-plus"></i> Nuevo Ticket
 					</a>
@@ -37,11 +114,6 @@
 					<tbody>
 						<?php
 						$i = 1;
-						$where = '';
-						if ($_SESSION['login_type'] == 2)
-							$where .= " where t.department_id = {$_SESSION['login_department_id']} ";
-						if ($_SESSION['login_type'] == 3)
-							$where .= " where t.customer_id = {$_SESSION['login_id']} ";
 						$qry = $conn->query("SELECT t.* FROM tickets t $where order by unix_timestamp(t.date_created) desc");
 						while ($row = $qry->fetch_assoc()) :
 							$trans = get_html_translation_table(HTML_ENTITIES, ENT_QUOTES);

@@ -13,9 +13,70 @@ $reports = [];
 while ($row = $qry->fetch_assoc()) {
 	$reports[] = $row;
 }
+
+$total_reports = count($reports);
+$preventivos = 0;
+$correctivos = 0;
+$otros = 0;
+foreach ($reports as $r) {
+	$tipo = $r['tipo_servicio'] ?? '';
+	if ($tipo === 'Preventivo') {
+		$preventivos++;
+	} elseif ($tipo === 'Correctivo') {
+		$correctivos++;
+	} else {
+		$otros++;
+	}
+}
 ?>
 
 <div class="container-fluid">
+	<div class="row mb-4">
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-clipboard-list fa-2x text-primary mr-3"></i>
+					<div>
+						<h6>Total Reportes</h6>
+						<h4><?= (int)$total_reports ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-tools fa-2x text-success mr-3"></i>
+					<div>
+						<h6>Preventivos</h6>
+						<h4><?= (int)$preventivos ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
+					<div>
+						<h6>Correctivos</h6>
+						<h4><?= (int)$correctivos ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-layer-group fa-2x text-secondary mr-3"></i>
+					<div>
+						<h6>Otros</h6>
+						<h4><?= (int)$otros ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
 		<div class="card-header bg-white py-3">
 			<h4 class="mb-0 font-weight-bold text-dark">Reportes de Sistemas</h4>
