@@ -33,13 +33,13 @@ if (isset($_GET['id'])) {
 		<input type="hidden" name="id" value="<?php echo $department_id ?>">
 		
 		<div class="form-group">
-			<label for="" class="control-label">Nombre del Departamento</label>
-			<input type="text" class="form-control form-control-sm" name="name" value='<?php echo htmlspecialchars($name) ?>' required>
+			<label for="department-name" class="control-label">Nombre del Departamento</label>
+			<input type="text" class="form-control form-control-sm" id="department-name" name="name" value='<?php echo htmlspecialchars($name) ?>' required>
 		</div>
 		
 		<div class="form-group">
-			<label for="" class="control-label">Ubicaciones</label>
-			<select name="locations[]" class="form-control select2" multiple="multiple" style="width: 100%">
+			<label for="department-locations" class="control-label">Ubicaciones</label>
+			<select id="department-locations" name="locations[]" class="form-control select2" multiple="multiple" style="width: 100%">
 				<?php
 				$locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");
 				while($row = $locations->fetch_assoc()):
@@ -53,8 +53,8 @@ if (isset($_GET['id'])) {
 		</div>
 		
 		<div class="form-group">
-			<label for="" class="control-label">Puestos de Trabajo</label>
-			<select name="positions[]" class="form-control select2" multiple="multiple" style="width: 100%">
+			<label for="department-positions" class="control-label">Puestos de Trabajo</label>
+			<select id="department-positions" name="positions[]" class="form-control select2" multiple="multiple" style="width: 100%">
 				<?php
 				$positions = $conn->query("SELECT * FROM job_positions ORDER BY name ASC");
 				while($row = $positions->fetch_assoc()):
