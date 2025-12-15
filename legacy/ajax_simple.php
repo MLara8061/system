@@ -42,6 +42,133 @@ try {
         ]);
         exit;
     }
+
+    // Diagnóstico (solo admin): validar ubicaciones por departamento desde el contexto web
+    if ($action === 'diag_locations') {
+        $login_type = isset($_SESSION['login_type']) ? (int)$_SESSION['login_type'] : 0;
+        if ($login_type !== 1) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Forbidden']);
+            exit;
+        }
+
+        $department_id = isset($_REQUEST['department_id']) ? (int)$_REQUEST['department_id'] : 0;
+        $info = [
+            'success' => true,
+            'received' => [
+                'method' => $_SERVER['REQUEST_METHOD'] ?? null,
+                'department_id' => $department_id,
+            ],
+            'counts' => [
+                'locations_total' => 0,
+                'locations_in_department' => 0,
+            ],
+            'sample' => [],
+        ];
+
+        try {
+            $r = @$conn->query('SELECT COUNT(*) AS c FROM locations');
+            if ($r && ($row = $r->fetch_assoc())) {
+                $info['counts']['locations_total'] = (int)($row['c'] ?? 0);
+            }
+
+            if ($department_id > 0) {
+                $r = @$conn->query("SELECT COUNT(*) AS c FROM locations WHERE department_id = {$department_id}");
+                if ($r && ($row = $r->fetch_assoc())) {
+                    $info['counts']['locations_in_department'] = (int)($row['c'] ?? 0);
+                }
+
+                $r = @$conn->query("SELECT id, name, department_id FROM locations WHERE department_id = {$department_id} ORDER BY name ASC LIMIT 20");
+                if ($r) {
+                    while ($row = $r->fetch_assoc()) {
+                        $info['sample'][] = $row;
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            $info['success'] = false;
+            $info['error'] = $e->getMessage();
+        }
+
+        echo json_encode($info);
+        exit;
+    }
+
+    // Diagnóstico (solo admin): validar cargos por ubicación (y fallback por dept) desde el contexto web
+    if ($action === 'diag_positions') {
+        $login_type = isset($_SESSION['login_type']) ? (int)$_SESSION['login_type'] : 0;
+        if ($login_type !== 1) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Forbidden']);
+            exit;
+        }
+
+        $location_id = isset($_REQUEST['location_id']) ? (int)$_REQUEST['location_id'] : 0;
+        $info = [
+            'success' => true,
+            'received' => [
+                'method' => $_SERVER['REQUEST_METHOD'] ?? null,
+                'location_id' => $location_id,
+            ],
+            'resolved' => [
+                'department_id' => 0,
+            ],
+            'counts' => [
+                'positions_total' => 0,
+                'positions_in_location' => 0,
+                'positions_in_department' => 0,
+            ],
+            'sample' => [
+                'by_location' => [],
+                'by_department' => [],
+            ],
+        ];
+
+        try {
+            $r = @$conn->query('SELECT COUNT(*) AS c FROM job_positions');
+            if ($r && ($row = $r->fetch_assoc())) {
+                $info['counts']['positions_total'] = (int)($row['c'] ?? 0);
+            }
+
+            if ($location_id > 0) {
+                $r = @$conn->query("SELECT COUNT(*) AS c FROM job_positions WHERE location_id = {$location_id}");
+                if ($r && ($row = $r->fetch_assoc())) {
+                    $info['counts']['positions_in_location'] = (int)($row['c'] ?? 0);
+                }
+                $r = @$conn->query("SELECT id, name, location_id, department_id FROM job_positions WHERE location_id = {$location_id} ORDER BY name ASC LIMIT 20");
+                if ($r) {
+                    while ($row = $r->fetch_assoc()) {
+                        $info['sample']['by_location'][] = $row;
+                    }
+                }
+
+                $dq = @$conn->query("SELECT department_id FROM locations WHERE id = {$location_id} LIMIT 1");
+                if ($dq && $dq->num_rows > 0) {
+                    $info['resolved']['department_id'] = (int)($dq->fetch_assoc()['department_id'] ?? 0);
+                }
+
+                $dep_id = (int)$info['resolved']['department_id'];
+                if ($dep_id > 0) {
+                    $r = @$conn->query("SELECT COUNT(*) AS c FROM job_positions WHERE department_id = {$dep_id}");
+                    if ($r && ($row = $r->fetch_assoc())) {
+                        $info['counts']['positions_in_department'] = (int)($row['c'] ?? 0);
+                    }
+                    $r = @$conn->query("SELECT id, name, location_id, department_id FROM job_positions WHERE department_id = {$dep_id} ORDER BY name ASC LIMIT 20");
+                    if ($r) {
+                        while ($row = $r->fetch_assoc()) {
+                            $info['sample']['by_department'][] = $row;
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            $info['success'] = false;
+            $info['error'] = $e->getMessage();
+        }
+
+        echo json_encode($info);
+        exit;
+    }
     
     if ($action == 'save_department') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
