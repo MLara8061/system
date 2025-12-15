@@ -5,8 +5,22 @@
 $branches = [];
 try {
     if (isset($pdo) && $pdo) {
-        $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC")
-            ->fetchAll(PDO::FETCH_ASSOC);
+        $has_active = false;
+        try {
+            $col = $pdo->query("SHOW COLUMNS FROM branches LIKE 'active'");
+            $has_active = $col && $col->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $has_active = false;
+        }
+
+        $sql = "SELECT id, name FROM branches" . ($has_active ? " WHERE active = 1" : "") . " ORDER BY name ASC";
+        $branches = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fallback: si no hay activas (o active no está bien poblado), listar todas
+        if ($has_active && empty($branches)) {
+            $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name ASC")
+                ->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 } catch (Exception $e) {
     $branches = [];
