@@ -260,10 +260,10 @@ $has_label_data = ($label_suc !== '' || $label_prop !== '' || $label_cat !== '' 
                 </h5>
 
                 <?php if ($has_label_data): ?>
-                <div class="mt-3 p-2 rounded" style="background: rgba(255,255,255,0.90);">
+                <div class="mt-3 p-2 rounded text-dark" style="background: rgba(255,255,255,0.90);">
                     <div style="font-size: 0.85rem; line-height: 1.2; word-break: break-word;">
-                        <span class="text-muted">Etiqueta:</span>
-                        <b>
+                        <span class="text-dark">Etiqueta:</span>
+                        <b class="text-dark">
                             <?= htmlspecialchars($label_suc ?: 'N/A') ?>/<?= htmlspecialchars($label_prop ?: 'N/A') ?>/<?= htmlspecialchars($label_cat ?: 'N/A') ?>/<?= htmlspecialchars($label_ubi ?: 'N/A') ?>/<?= htmlspecialchars($label_con ?: 'N/A') ?>/<?= htmlspecialchars($label_ser ?: 'N/A') ?>
                         </b>
                     </div>
