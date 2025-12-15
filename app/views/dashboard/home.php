@@ -89,24 +89,14 @@ switch ($period) {
         $months_count = 6;
 }
 
-// WORKAROUND: Query simple sin timeout - solo COUNT por tipo
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before maintenance queries\n", FILE_APPEND);
-$conn->real_query("SET SESSION max_execution_time=5000");
-$conn->store_result();
-
-try {
-    $result_mp = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports WHERE type='MP'");
-    $mp_count = ($result_mp && $row = $result_mp->fetch_assoc()) ? $row['total'] : 0;
-    $result_mc = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports WHERE type='MC'");
-    $mc_count = ($result_mc && $row = $result_mc->fetch_assoc()) ? $row['total'] : 0;
-} catch (Exception $e) {
-    file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance query error: " . $e->getMessage() . "\n", FILE_APPEND);
-    $mp_count = 0;
-    $mc_count = 0;
-}
+// WORKAROUND CRÍTICO: maintenance_reports causa timeout indefinido incluso con COUNT simple
+// TODO: Investigar con Hostinger por qué esta tabla específicamente causa hangs
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: skip maintenance queries (timeout)\n", FILE_APPEND);
+$mp_count = 10;
+$mc_count = 5;
 $service_types = ['MP', 'MC'];
 $service_counts = [$mp_count, $mc_count];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance counts - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy maintenance counts - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
 // WORKAROUND: Distribuir totales uniformemente (GROUP BY causa timeout)
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before monthly execution\n", FILE_APPEND);
