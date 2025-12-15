@@ -25,14 +25,33 @@ try {
     }
     
     $costo_total = 0;
-    // Compatibilidad: algunos entornos usan `amount`, otros `purchase_price`
-    $result = $conn->query("SELECT IFNULL(SUM(amount), 0) as total FROM equipments {$branch_where}");
-    if (!$result) {
-        $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments {$branch_where}");
+    // Compatibilidad: algunos entornos usan `amount`, otros `purchase_price`.
+    // En mysqli con modo estricto, una columna inexistente puede lanzar excepción y romper el flujo.
+    $sum_column = null;
+    try {
+        $chk = @$conn->query("SHOW COLUMNS FROM `equipments` LIKE 'amount'");
+        if ($chk && $chk->num_rows > 0) $sum_column = 'amount';
+    } catch (Throwable $e) {
+        // no-op
     }
-    if ($result) {
-        $row = $result->fetch_assoc();
-        $costo_total = $row['total'] ?? 0;
+    if ($sum_column === null) {
+        try {
+            $chk = @$conn->query("SHOW COLUMNS FROM `equipments` LIKE 'purchase_price'");
+            if ($chk && $chk->num_rows > 0) $sum_column = 'purchase_price';
+        } catch (Throwable $e) {
+            // no-op
+        }
+    }
+    if ($sum_column !== null) {
+        try {
+            $result = $conn->query("SELECT IFNULL(SUM({$sum_column}), 0) as total FROM equipments {$branch_where}");
+            if ($result) {
+                $row = $result->fetch_assoc();
+                $costo_total = $row['total'] ?? 0;
+            }
+        } catch (Throwable $e) {
+            error_log('Costo total query failed: ' . $e->getMessage());
+        }
     }
 
     $countMaintenance = function (string $type) use ($conn, $mr_and) {
