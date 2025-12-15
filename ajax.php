@@ -261,6 +261,27 @@ if ($action == 'save_supplier') {
     exit;
 }
 
+// ===================================
+// 7.1 CATEGORÍAS DE EQUIPOS (CONFIG)
+// ===================================
+if ($action == 'load_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->load_equipment_category();
+    exit;
+}
+
+if ($action == 'save_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->save_equipment_category();
+    exit;
+}
+
+if ($action == 'delete_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->delete_equipment_category();
+    exit;
+}
+
 if ($action == 'delete_supplier') {
     echo $crud->delete_supplier();
     exit;

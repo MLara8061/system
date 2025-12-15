@@ -189,6 +189,13 @@
             </li>
 
             <li class="nav-item">
+              <a href="./index.php?page=equipment_categories" class="nav-link nav-equipment_categories tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Categorías de Equipos</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a href="#" class="nav-link nav-service">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Tickets <i class="right fas fa-angle-left"></i></p>

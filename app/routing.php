@@ -82,6 +82,10 @@ $ROUTE_MAP = [
     'manage_job_position' => 'app/views/dashboard/settings/manage_job_position.php',
     'branches' => 'app/views/dashboard/settings/branches.php',
     'manage_branch' => 'app/views/dashboard/settings/manage_branch.php',
+
+    // Categorías de Equipos (para prefijos de inventario/QR)
+    'equipment_categories' => 'app/views/dashboard/settings/equipment_categories.php',
+    'manage_equipment_category' => 'app/views/dashboard/settings/manage_equipment_category.php',
     
     // Reportes
     'report_form' => 'app/views/dashboard/reports/form.php',

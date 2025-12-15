@@ -19,7 +19,7 @@
   RewriteCond %{REQUEST_URI} ^/assets/ [OR]
   RewriteCond %{REQUEST_URI} ^/public/ [OR]
   RewriteCond %{REQUEST_URI} ^/uploads/ [OR]
-  RewriteCond %{REQUEST_URI} ^/system/legacy/ [OR]
+  RewriteCond %{REQUEST_URI} ^/(system/)?legacy/ [OR]
   RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$ [NC]
   RewriteRule ^ - [L]
 

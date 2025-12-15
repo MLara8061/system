@@ -891,25 +891,196 @@ class Action {
     }
 
     // ================== INVENTARIO CON PREFIJOS ==================
-    function get_next_inventory_number($branch_id) {
-        try {
-            $stmt = $this->pdo->prepare("SELECT prefix, current_number FROM inventory_config WHERE branch_id = ? LIMIT 1");
-            $stmt->execute([$branch_id]);
-            $config = $stmt->fetch();
+    private function table_exists_local($table) {
+        if (!$this->db) return false;
+        $table_esc = $this->db->real_escape_string($table);
+        $res = $this->db->query("SHOW TABLES LIKE '{$table_esc}'");
+        return $res && $res->num_rows > 0;
+    }
 
-            if (!$config) {
-                throw new Exception("No se encontró configuración de inventario para la sucursal $branch_id");
+    private function column_exists_local($table, $column) {
+        if (!$this->db) return false;
+        $table_esc = $this->db->real_escape_string($table);
+        $col_esc = $this->db->real_escape_string($column);
+        $res = $this->db->query("SHOW COLUMNS FROM `{$table_esc}` LIKE '{$col_esc}'");
+        return $res && $res->num_rows > 0;
+    }
+
+    private function ensure_equipment_categories_schema() {
+        if (!$this->db) return;
+        if ($this->table_exists_local('equipment_categories')) return;
+        $sql = "CREATE TABLE IF NOT EXISTS `equipment_categories` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `clave` VARCHAR(3) NOT NULL,
+            `description` VARCHAR(255) NOT NULL,
+            `active` TINYINT(1) NOT NULL DEFAULT 1,
+            `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        @$this->db->query($sql);
+    }
+
+    private function ensure_inventory_config_schema() {
+        if (!$this->db) return;
+        if (!$this->table_exists_local('inventory_config')) {
+            $sql = "CREATE TABLE IF NOT EXISTS `inventory_config` (
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `branch_id` INT NOT NULL,
+                `acquisition_type_id` INT NULL,
+                `equipment_category_id` INT NULL,
+                `prefix` VARCHAR(64) NOT NULL,
+                `current_number` INT NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            @$this->db->query($sql);
+            return;
+        }
+
+        if (!$this->column_exists_local('inventory_config', 'acquisition_type_id')) {
+            @$this->db->query("ALTER TABLE `inventory_config` ADD COLUMN `acquisition_type_id` INT NULL AFTER `branch_id`");
+        }
+        if (!$this->column_exists_local('inventory_config', 'equipment_category_id')) {
+            @$this->db->query("ALTER TABLE `inventory_config` ADD COLUMN `equipment_category_id` INT NULL AFTER `acquisition_type_id`");
+        }
+        // Asegurar índice único (si ya existe, ignorar error)
+        @$this->db->query("ALTER TABLE `inventory_config` ADD UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)");
+    }
+
+    private function ensure_acquisition_type_code_column() {
+        if (!$this->db) return;
+        if (!$this->table_exists_local('acquisition_type')) return;
+        if (!$this->column_exists_local('acquisition_type', 'code')) {
+            @$this->db->query("ALTER TABLE `acquisition_type` ADD COLUMN `code` VARCHAR(3) NULL AFTER `name`");
+        }
+    }
+
+    private function derive_acquisition_code($acquisition_type_id) {
+        if (!$this->db) return null;
+        $id = (int)$acquisition_type_id;
+        if ($id <= 0) return null;
+
+        $this->ensure_acquisition_type_code_column();
+        $has_code = $this->column_exists_local('acquisition_type', 'code');
+        $cols = $has_code ? 'id, name, code' : 'id, name';
+        $res = $this->db->query("SELECT {$cols} FROM acquisition_type WHERE id = {$id} LIMIT 1");
+        if (!$res || $res->num_rows === 0) return null;
+        $row = $res->fetch_assoc();
+
+        $code = strtoupper(trim($row['code'] ?? ''));
+        if ($code !== '') {
+            $code = preg_replace('/[^A-Z0-9]/', '', $code);
+            return substr($code, 0, 3);
+        }
+
+        $name = strtoupper(trim($row['name'] ?? ''));
+        $name = preg_replace('/[^A-Z0-9]/', '', $name);
+        return substr($name, 0, 3);
+    }
+
+    function get_next_inventory_number($branch_id, $acquisition_type_id = null, $equipment_category_id = null) {
+        try {
+            $branch_id = (int)$branch_id;
+            $acquisition_type_id = $acquisition_type_id !== null ? (int)$acquisition_type_id : null;
+            $equipment_category_id = $equipment_category_id !== null ? (int)$equipment_category_id : null;
+            if ($branch_id <= 0) return false;
+
+            // Prefijo base desde branches.code (3 caracteres)
+            $branch_code = null;
+            if ($this->db) {
+                $bq = $this->db->query("SELECT code FROM branches WHERE id = {$branch_id} LIMIT 1");
+                if ($bq && $bq->num_rows > 0) {
+                    $branch_code = strtoupper(trim(($bq->fetch_assoc()['code'] ?? '')));
+                    $branch_code = substr(preg_replace('/[^A-Z0-9]/', '', $branch_code), 0, 3);
+                }
+            }
+            if (!$branch_code) {
+                $branch_code = 'INV';
             }
 
-            $prefix = $config['prefix'];
-            $current = $config['current_number'] + 1;
+            // Si faltan partes del nuevo esquema, usar esquema anterior por sucursal (PREFIX-001)
+            if (empty($acquisition_type_id) || empty($equipment_category_id)) {
+                if ($this->pdo) {
+                    $stmt = $this->pdo->prepare("SELECT prefix, current_number FROM inventory_config WHERE branch_id = ? LIMIT 1");
+                    $stmt->execute([$branch_id]);
+                    $config = $stmt->fetch();
+                    if (!$config) {
+                        $ins = $this->pdo->prepare("INSERT INTO inventory_config (branch_id, prefix, current_number) VALUES (?, ?, 0)");
+                        $ins->execute([$branch_id, $branch_code]);
+                        $config = ['prefix' => $branch_code, 'current_number' => 0];
+                    }
+                    $prefix = $config['prefix'] ?: $branch_code;
+                    $current = ((int)$config['current_number']) + 1;
+                    $update_stmt = $this->pdo->prepare("UPDATE inventory_config SET current_number = ? WHERE branch_id = ?");
+                    $update_stmt->execute([$current, $branch_id]);
+                    return $prefix . '-' . str_pad((string)$current, 3, '0', STR_PAD_LEFT);
+                }
 
-            // Actualizar current_number
-            $update_stmt = $this->pdo->prepare("UPDATE inventory_config SET current_number = ? WHERE branch_id = ?");
-            $update_stmt->execute([$current, $branch_id]);
+                if ($this->db) {
+                    $prefix = $branch_code;
+                    $res = $this->db->query("SELECT id, prefix, current_number FROM inventory_config WHERE branch_id = {$branch_id} LIMIT 1");
+                    if (!$res || $res->num_rows === 0) {
+                        $this->db->query("INSERT INTO inventory_config (branch_id, prefix, current_number) VALUES ({$branch_id}, '{$this->db->real_escape_string($prefix)}', 0)");
+                        $current = 1;
+                        $this->db->query("UPDATE inventory_config SET current_number = {$current} WHERE branch_id = {$branch_id}");
+                        return $prefix . '-' . str_pad((string)$current, 3, '0', STR_PAD_LEFT);
+                    }
+                    $row = $res->fetch_assoc();
+                    $current = ((int)($row['current_number'] ?? 0)) + 1;
+                    $prefix = !empty($row['prefix']) ? $row['prefix'] : $prefix;
+                    $this->db->query("UPDATE inventory_config SET current_number = {$current} WHERE id = " . (int)$row['id']);
+                    return $prefix . '-' . str_pad((string)$current, 3, '0', STR_PAD_LEFT);
+                }
 
-            // Generar número: PREFIX-001
-            return $prefix . '-' . str_pad($current, 3, '0', STR_PAD_LEFT);
+                return false;
+            }
+
+            // Nuevo esquema: SUC(3)-PRO(3)-CAT(2/3)-0001 (consecutivo por combinación)
+            if (!$this->db) return false;
+            $this->ensure_inventory_config_schema();
+            $this->ensure_equipment_categories_schema();
+
+            $acq_code = $this->derive_acquisition_code($acquisition_type_id);
+            if (!$acq_code) return false;
+
+            $cq = $this->db->query("SELECT clave FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+            if (!$cq || $cq->num_rows === 0) return false;
+            $cat_code = strtoupper(trim(($cq->fetch_assoc()['clave'] ?? '')));
+            $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
+            if ($cat_code === '') return false;
+
+            $prefix = $branch_code . '-' . $acq_code . '-' . $cat_code;
+            $prefix_esc = $this->db->real_escape_string($prefix);
+            $b = (int)$branch_id;
+            $a = (int)$acquisition_type_id;
+            $c = (int)$equipment_category_id;
+
+            // Usar UPSERT para incrementar atómicamente
+            $ok = @$this->db->query(
+                "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
+                "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)\n" .
+                "ON DUPLICATE KEY UPDATE\n" .
+                "prefix = VALUES(prefix),\n" .
+                "current_number = LAST_INSERT_ID(current_number + 1)"
+            );
+
+            $n = $ok ? (int)$this->db->insert_id : 0;
+            if ($n <= 0) {
+                // Fallback sin índice único
+                $sel = $this->db->query("SELECT id, current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
+                if ($sel && $sel->num_rows > 0) {
+                    $r = $sel->fetch_assoc();
+                    $n = ((int)($r['current_number'] ?? 0)) + 1;
+                    $this->db->query("UPDATE inventory_config SET prefix = '{$prefix_esc}', current_number = {$n} WHERE id = " . (int)$r['id']);
+                } else {
+                    $this->db->query("INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)");
+                    $n = 1;
+                }
+            }
+
+            $seq = str_pad((string)$n, 4, '0', STR_PAD_LEFT);
+            return $prefix . '-' . $seq;
         } catch (Exception $e) {
             error_log("GET_NEXT_INVENTORY_NUMBER ERROR: " . $e->getMessage());
             return false;
@@ -949,8 +1120,21 @@ class Action {
             $this->ensure_equipment_delivery_fk();
             $this->ensure_equipment_delivery_position_fk();
 
+            // Asegurar columnas adicionales (sin romper entornos viejos)
+            if ($this->table_exists_local('equipments')) {
+                if (!$this->column_exists_local('equipments', 'inventario_anterior')) {
+                    @$this->db->query("ALTER TABLE `equipments` ADD COLUMN `inventario_anterior` VARCHAR(255) NULL AFTER `number_inventory`");
+                }
+                if (!$this->column_exists_local('equipments', 'numero_parte')) {
+                    @$this->db->query("ALTER TABLE `equipments` ADD COLUMN `numero_parte` VARCHAR(255) NULL AFTER `inventario_anterior`");
+                }
+                if (!$this->column_exists_local('equipments', 'equipment_category_id')) {
+                    @$this->db->query("ALTER TABLE `equipments` ADD COLUMN `equipment_category_id` INT NULL AFTER `discipline`");
+                }
+            }
+
             // === EQUIPOS ===
-            $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory','branch_id'];
+            $array_cols_equipment = ['serie','amount','date_created','name','brand','model','acquisition_type','mandate_period_id','characteristics','discipline','supplier_id','number_inventory','branch_id','inventario_anterior','numero_parte','equipment_category_id'];
             $equipment_data = [];
             foreach ($array_cols_equipment as $field) {
                 if (isset($_POST[$field])) {
@@ -958,9 +1142,24 @@ class Action {
                 }
             }
 
+            if ((empty($equipment_data['discipline']) || trim((string)$equipment_data['discipline']) === '') && !empty($equipment_data['equipment_category_id']) && $this->db) {
+                $cid = (int)$equipment_data['equipment_category_id'];
+                if ($cid > 0) {
+                    $this->ensure_equipment_categories_schema();
+                    $cq = $this->db->query("SELECT description FROM equipment_categories WHERE id = {$cid} LIMIT 1");
+                    if ($cq && $cq->num_rows > 0) {
+                        $equipment_data['discipline'] = $cq->fetch_assoc()['description'] ?? '';
+                    }
+                }
+            }
+
             // Generar number_inventory si no se proporciona y hay branch_id
             if (empty($equipment_data['number_inventory']) && !empty($equipment_data['branch_id'])) {
-                $generated_number = $this->get_next_inventory_number($equipment_data['branch_id']);
+                $generated_number = $this->get_next_inventory_number(
+                    $equipment_data['branch_id'],
+                    $equipment_data['acquisition_type'] ?? null,
+                    $equipment_data['equipment_category_id'] ?? null
+                );
                 if ($generated_number) {
                     $equipment_data['number_inventory'] = $generated_number;
                 } else {
@@ -3041,6 +3240,78 @@ class Action {
             $data[] = $row;
         }
         return json_encode(['status' => 'success', 'data' => $data]);
+    }
+
+    // ================== CATEGORÍAS DE EQUIPOS ==================
+    function load_equipment_category()
+    {
+        $this->ensure_equipment_categories_schema();
+        $data = array();
+        $qry = $this->db->query("SELECT id, clave, description FROM equipment_categories ORDER BY clave ASC");
+        if ($qry) {
+            while ($row = $qry->fetch_assoc()) {
+                $row['description'] = strip_tags(stripslashes($row['description']));
+                $data[] = $row;
+            }
+        }
+        return json_encode(['status' => 'success', 'data' => $data]);
+    }
+
+    function save_equipment_category()
+    {
+        $this->ensure_equipment_categories_schema();
+        $id = (int)($_POST['id'] ?? 0);
+        $clave = strtoupper(trim($_POST['clave'] ?? ''));
+        $clave = preg_replace('/[^A-Z0-9]/', '', $clave);
+        $description = trim($_POST['description'] ?? '');
+
+        if ($clave === '' || (strlen($clave) < 2 || strlen($clave) > 3) || $description === '') {
+            return json_encode(['status' => 'error']);
+        }
+
+        if ($id > 0) {
+            $current = $this->db->query("SELECT clave FROM equipment_categories WHERE id = {$id} LIMIT 1");
+            if (!$current || $current->num_rows === 0) {
+                return json_encode(['status' => 'error']);
+            }
+            $existing = $current->fetch_assoc()['clave'] ?? '';
+            if (strtoupper($existing) !== $clave) {
+                // CLAVE inmutable
+                return json_encode(['status' => 'error']);
+            }
+        } else {
+            $chk = $this->db->query("SELECT id FROM equipment_categories WHERE clave = '{$this->db->real_escape_string($clave)}' LIMIT 1");
+            if ($chk && $chk->num_rows > 0) {
+                return json_encode(['status' => 'duplicate_clave']);
+            }
+        }
+
+        $desc_esc = $this->db->real_escape_string($description);
+        $clave_esc = $this->db->real_escape_string($clave);
+
+        if ($id > 0) {
+            $sql = "UPDATE equipment_categories SET description = '{$desc_esc}' WHERE id = {$id}";
+        } else {
+            $sql = "INSERT INTO equipment_categories (clave, description) VALUES ('{$clave_esc}', '{$desc_esc}')";
+        }
+
+        $save = $this->db->query($sql);
+        if ($save) {
+            return json_encode(['status' => 'success']);
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    function delete_equipment_category()
+    {
+        $this->ensure_equipment_categories_schema();
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) return json_encode(['status' => 'error']);
+        $delete = $this->db->query("DELETE FROM equipment_categories WHERE id = {$id}");
+        if ($delete) {
+            return json_encode(['status' => 'success']);
+        }
+        return json_encode(['status' => 'error', 'error' => $this->db->error]);
     }
 
 }

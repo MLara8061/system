@@ -6,8 +6,8 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 try {
-    require_once 'config/config.php';
-    require_once 'admin_class.php';
+    require_once __DIR__ . '/../config/config.php';
+    require_once __DIR__ . '/admin_class.php';
     
     $action = $_REQUEST['action'] ?? '';
     error_log("SIMPLE AJAX: action = $action");
@@ -123,11 +123,17 @@ try {
     }
     else if ($action == 'get_next_inventory_number') {
         $branch_id = isset($_POST['branch_id']) ? intval($_POST['branch_id']) : 0;
+        $acquisition_type_id = isset($_POST['acquisition_type_id']) ? intval($_POST['acquisition_type_id']) : (isset($_POST['acquisition_type']) ? intval($_POST['acquisition_type']) : 0);
+        $equipment_category_id = isset($_POST['equipment_category_id']) ? intval($_POST['equipment_category_id']) : 0;
         error_log("SIMPLE AJAX: branch_id = $branch_id");
         
         if ($branch_id > 0) {
             $admin = new Action();
-            $number = $admin->get_next_inventory_number($branch_id);
+            $number = $admin->get_next_inventory_number(
+                $branch_id,
+                $acquisition_type_id > 0 ? $acquisition_type_id : null,
+                $equipment_category_id > 0 ? $equipment_category_id : null
+            );
             echo json_encode(['success' => true, 'number' => $number]);
         } else {
             echo json_encode(['success' => false, 'error' => 'Branch ID requerido']);

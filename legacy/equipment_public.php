@@ -3,7 +3,7 @@
 ini_set('display_errors', 0);
 error_reporting(0);
 
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 // === VALIDAR ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -50,6 +50,84 @@ if ($qry && $qry->num_rows > 0) $loc = $qry->fetch_assoc()['name'];
 $pos = 'N/A';
 $qry = $conn->query("SELECT name FROM job_positions WHERE id = " . intval($delivery['responsible_position'] ?? 0));
 if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
+
+// === DATOS DE ETIQUETA (desde QR o fallback) ===
+function qp_alnum_upper($key, $maxLen = 32) {
+    $v = $_GET[$key] ?? '';
+    $v = strtoupper(trim((string)$v));
+    $v = preg_replace('/[^A-Z0-9]/', '', $v);
+    return substr($v, 0, $maxLen);
+}
+
+function qp_text($key, $maxLen = 120) {
+    $v = trim((string)($_GET[$key] ?? ''));
+    $v = preg_replace('/\s+/', ' ', $v);
+    return mb_substr($v, 0, $maxLen);
+}
+
+function inv_sequence_4($number_inventory) {
+    $s = trim((string)$number_inventory);
+    if ($s === '') return '';
+    $parts = explode('-', $s);
+    $last = trim((string)end($parts));
+    if ($last === '' || !preg_match('/^[0-9]+$/', $last)) return '';
+    return str_pad($last, 4, '0', STR_PAD_LEFT);
+}
+
+$label_suc = qp_alnum_upper('suc', 3);
+$label_prop = qp_alnum_upper('prop', 3);
+$label_cat = qp_alnum_upper('cat', 3);
+$label_ubi = qp_text('ubi', 60);
+$label_con = qp_alnum_upper('con', 8);
+$label_ser = qp_text('ser', 60);
+
+// Fallbacks desde BD (cuando no vengan en el QR)
+if ($label_suc === '') {
+    $bq = $conn->query("SELECT code, name FROM branches WHERE id = " . intval($eq['branch_id'] ?? 0) . " LIMIT 1");
+    if ($bq && $bq->num_rows > 0) {
+        $b = $bq->fetch_assoc();
+        $label_suc = strtoupper(trim((string)($b['code'] ?? '')));
+        $label_suc = preg_replace('/[^A-Z0-9]/', '', $label_suc);
+        $label_suc = substr($label_suc !== '' ? $label_suc : preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string)($b['name'] ?? '')))), 0, 3);
+    }
+}
+
+if ($label_prop === '') {
+    $tq = $conn->query("SELECT name FROM acquisition_type WHERE id = " . intval($eq['acquisition_type'] ?? 0) . " LIMIT 1");
+    if ($tq && $tq->num_rows > 0) {
+        $name = strtoupper(trim((string)($tq->fetch_assoc()['name'] ?? '')));
+        if (strpos($name, 'COM') !== false) $label_prop = 'COM';
+        else if (strpos($name, 'PRO') !== false) $label_prop = 'PRO';
+        else {
+            $label_prop = preg_replace('/[^A-Z0-9]/', '', $name);
+            $label_prop = substr($label_prop, 0, 3);
+        }
+    }
+}
+
+if ($label_cat === '' && !empty($eq['equipment_category_id'])) {
+    // Si la columna no existe, este query fallará pero el error_reporting está en 0; no rompe.
+    $cq = @$conn->query("SELECT clave FROM equipment_categories WHERE id = " . intval($eq['equipment_category_id']) . " LIMIT 1");
+    if ($cq && $cq->num_rows > 0) {
+        $label_cat = strtoupper(trim((string)($cq->fetch_assoc()['clave'] ?? '')));
+        $label_cat = preg_replace('/[^A-Z0-9]/', '', $label_cat);
+        $label_cat = substr($label_cat, 0, 3);
+    }
+}
+
+if ($label_ubi === '') {
+    $label_ubi = ($loc !== 'N/A' ? $loc : ($dept !== 'N/A' ? $dept : ''));
+}
+
+if ($label_con === '') {
+    $label_con = inv_sequence_4($eq['number_inventory'] ?? '');
+}
+
+if ($label_ser === '') {
+    $label_ser = trim((string)($eq['serie'] ?? ''));
+}
+
+$has_label_data = ($label_suc !== '' || $label_prop !== '' || $label_cat !== '' || $label_ubi !== '' || $label_con !== '' || $label_ser !== '');
 ?>
 
 
@@ -180,6 +258,17 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
                         #<?= $eq['number_inventory'] ?>
                     </span>
                 </h5>
+
+                <?php if ($has_label_data): ?>
+                <div class="mt-3 p-2 rounded" style="background: rgba(255,255,255,0.90);">
+                    <div style="font-size: 0.85rem; line-height: 1.2; word-break: break-word;">
+                        <span class="text-muted">Etiqueta:</span>
+                        <b>
+                            <?= htmlspecialchars($label_suc ?: 'N/A') ?>/<?= htmlspecialchars($label_prop ?: 'N/A') ?>/<?= htmlspecialchars($label_cat ?: 'N/A') ?>/<?= htmlspecialchars($label_ubi ?: 'N/A') ?>/<?= htmlspecialchars($label_con ?: 'N/A') ?>/<?= htmlspecialchars($label_ser ?: 'N/A') ?>
+                        </b>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- === IMAGEN + INFO CLAVE === -->

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/lib/phpqrcode/qrlib.php';
+require_once __DIR__ . '/../lib/phpqrcode/qrlib.php';
 
 // Aseguramos que recibimos el parámetro "id"
 if (!isset($_GET['id'])) {
@@ -12,13 +12,13 @@ if ($id <= 0) {
 }
 
 // Ruta donde se guardarán los códigos QR
-$dir = __DIR__ . '/uploads/qrcodes/';
+$dir = __DIR__ . '/../uploads/qrcodes/';
 if (!file_exists($dir)) {
     mkdir($dir, 0777, true);
 }
 
 // URL que se codificará dentro del QR - usar URL base de configuración
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 // DEPURACIÓN: Mostrar valores si se pasa debug=1
 if (isset($_GET['debug'])) {
@@ -30,11 +30,7 @@ if (isset($_GET['debug'])) {
     echo "ENVIRONMENT: " . ENVIRONMENT . "\n";
     echo "BASE_URL: " . BASE_URL . "\n\n";
     
-    // Construir URL local
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $base_local = $protocol . $host . '/system';
-    echo "URL Local construida: " . $base_local . "/equipment_public.php?id=$id\n\n";
+    echo "URL (BASE_URL): " . BASE_URL . "/equipment_public.php?id=$id\n\n";
     
     // Verificar detección localhost
     $is_localhost = (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false || 
@@ -45,6 +41,91 @@ if (isset($_GET['debug'])) {
 
 // Usar siempre BASE_URL que ya detecta automáticamente el dominio correcto
 $url = BASE_URL . '/equipment_public.php?id=' . $id;
+
+// Enriquecer URL con datos visibles (sin romper si faltan tablas/columnas)
+function normalize_code_qr_legacy($value, $len = 3) {
+    $value = strtoupper(trim((string)$value));
+    $value = preg_replace('/[^A-Z0-9]/', '', $value);
+    return substr($value, 0, $len);
+}
+
+function derive_acq_code_qr_legacy($name) {
+    $name_u = strtoupper(trim((string)$name));
+    if ($name_u === '') return '';
+    if (strpos($name_u, 'COM') !== false) return 'COM';
+    if (strpos($name_u, 'PRO') !== false) return 'PRO';
+    return normalize_code_qr_legacy($name_u, 3);
+}
+
+function inventory_sequence_qr_legacy($number_inventory) {
+    $s = trim((string)$number_inventory);
+    if ($s === '') return '';
+    $parts = explode('-', $s);
+    $last = trim((string)end($parts));
+    if ($last === '' || !preg_match('/^[0-9]+$/', $last)) return '';
+    return str_pad($last, 4, '0', STR_PAD_LEFT);
+}
+
+$extra_qs = [];
+try {
+    if (isset($conn) && $conn) {
+        @$conn->query("CREATE TABLE IF NOT EXISTS `equipment_categories` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `clave` VARCHAR(3) NOT NULL,
+            `description` VARCHAR(255) NOT NULL,
+            `active` TINYINT(1) NOT NULL DEFAULT 1,
+            `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $sql = "
+        SELECT
+            e.number_inventory,
+            e.serie,
+            b.code AS branch_code,
+            b.name AS branch_name,
+            at.name AS acquisition_name,
+            ec.clave AS category_code,
+            l.name AS location_name,
+            d.name AS department_name
+        FROM equipments e
+        LEFT JOIN branches b ON b.id = e.branch_id
+        LEFT JOIN acquisition_type at ON at.id = e.acquisition_type
+        LEFT JOIN equipment_categories ec ON ec.id = e.equipment_category_id
+        LEFT JOIN equipment_delivery ed ON ed.equipment_id = e.id
+        LEFT JOIN locations l ON l.id = ed.location_id
+        LEFT JOIN departments d ON d.id = ed.department_id
+        WHERE e.id = {$id}
+        LIMIT 1";
+
+        $qry = @$conn->query($sql);
+        if ($qry && $qry->num_rows > 0) {
+            $row = $qry->fetch_assoc();
+            $suc = normalize_code_qr_legacy($row['branch_code'] ?? '', 3);
+            if ($suc === '') $suc = normalize_code_qr_legacy($row['branch_name'] ?? '', 3);
+            $prop = derive_acq_code_qr_legacy($row['acquisition_name'] ?? '');
+            $cat = normalize_code_qr_legacy($row['category_code'] ?? '', 3);
+            $ubi = trim((string)($row['location_name'] ?? ''));
+            if ($ubi === '') $ubi = trim((string)($row['department_name'] ?? ''));
+            $con = inventory_sequence_qr_legacy($row['number_inventory'] ?? '');
+            $ser = trim((string)($row['serie'] ?? ''));
+
+            if ($suc !== '') $extra_qs['suc'] = $suc;
+            if ($prop !== '') $extra_qs['prop'] = $prop;
+            if ($cat !== '') $extra_qs['cat'] = $cat;
+            if ($ubi !== '') $extra_qs['ubi'] = $ubi;
+            if ($con !== '') $extra_qs['con'] = $con;
+            if ($ser !== '') $extra_qs['ser'] = $ser;
+        }
+    }
+} catch (Exception $e) {
+    // no-op
+}
+
+if (!empty($extra_qs)) {
+    $url .= '&' . http_build_query($extra_qs);
+}
 
 // Nombre del archivo QR
 $filename = $dir . 'equipment_' . $id . '.png';

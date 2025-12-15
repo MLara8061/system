@@ -96,7 +96,37 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Categoría</label>
-                                <input type="text" name="discipline" class="form-control" required placeholder="Ej: Informática">
+                                <select name="equipment_category_id" id="equipment_category_id" class="custom-select select2" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php
+                                    // Asegurar tabla (instalaciones nuevas)
+                                    try {
+                                        $pdo->exec("CREATE TABLE IF NOT EXISTS `equipment_categories` (
+                                            `id` INT NOT NULL AUTO_INCREMENT,
+                                            `clave` VARCHAR(3) NOT NULL,
+                                            `description` VARCHAR(255) NOT NULL,
+                                            `active` TINYINT(1) NOT NULL DEFAULT 1,
+                                            `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                                            PRIMARY KEY (`id`),
+                                            UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
+                                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                                    } catch (Exception $e) {
+                                        // no-op
+                                    }
+
+                                    $cats = [];
+                                    try {
+                                        $cats = $pdo->query("SELECT id, clave, description FROM equipment_categories WHERE active = 1 ORDER BY clave ASC")->fetchAll(PDO::FETCH_ASSOC);
+                                    } catch (Exception $e) {
+                                        $cats = [];
+                                    }
+                                    foreach ($cats as $row): ?>
+                                        <option value="<?= $row['id'] ?>" data-desc="<?= htmlspecialchars($row['description'] ?? '') ?>">
+                                            <?= htmlspecialchars(($row['clave'] ?? '') . ' - ' . ($row['description'] ?? '')) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="hidden" name="discipline" id="discipline" value="">
                             </div>
                         </div>
 
@@ -341,30 +371,51 @@ $branches = $pdo->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY
         });
 
         // Generar número de inventario cuando se selecciona sucursal
-        $('#branch_id').on('change', function(){
-            var branch_id = $(this).val();
-            if(branch_id){
-                $.ajax({
-                    url: 'ajax_simple.php?action=get_next_inventory_number',
-                    method: 'POST',
-                    data: { branch_id: branch_id },
-                    dataType: 'json',
-                    success: function(data){
-                        if(data.success){
-                            $('#inventory_badge').text('#' + data.number);
-                            $('#number_inventory').val(data.number);
-                        } else {
-                            alert_toast('Error al generar número de inventario', 'error');
-                        }
-                    },
-                    error: function(){
-                        alert_toast('Error de conexión', 'error');
-                    }
-                });
-            } else {
+        function refresh_inventory_number(){
+            var branch_id = $('#branch_id').val();
+            var acquisition_type_id = $('[name="acquisition_type"]').val();
+            var equipment_category_id = $('#equipment_category_id').val();
+
+            if(!branch_id){
                 $('#inventory_badge').text('Seleccionar sucursal');
                 $('#number_inventory').val('');
+                return;
             }
+            if(!acquisition_type_id || !equipment_category_id){
+                $('#inventory_badge').text('Seleccionar tipo y categoría');
+                $('#number_inventory').val('');
+                return;
+            }
+
+            $.ajax({
+                url: 'ajax_simple.php?action=get_next_inventory_number',
+                method: 'POST',
+                data: {
+                    branch_id: branch_id,
+                    acquisition_type_id: acquisition_type_id,
+                    equipment_category_id: equipment_category_id
+                },
+                dataType: 'json',
+                success: function(data){
+                    if(data.success && data.number){
+                        $('#inventory_badge').text('#' + data.number);
+                        $('#number_inventory').val(data.number);
+                    } else {
+                        alert_toast('Error al generar número de inventario', 'error');
+                    }
+                },
+                error: function(){
+                    alert_toast('Error de conexión', 'error');
+                }
+            });
+        }
+
+        $('#branch_id').on('change', refresh_inventory_number);
+        $('[name="acquisition_type"]').on('change', refresh_inventory_number);
+        $('#equipment_category_id').on('change', function(){
+            var desc = $('#equipment_category_id option:selected').attr('data-desc') || '';
+            $('#discipline').val(desc);
+            refresh_inventory_number();
         });
 
         // CASCADA 1: Cargar ubicaciones cuando se selecciona un departamento
