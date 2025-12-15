@@ -212,7 +212,7 @@ if ($total_target > 0) {
             echo "<hr>";
             echo "<p style='font-size: 16px;'>";
             echo "<a href='?' style='padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;'>Ver Distribución Actualizada</a>";
-            echo "<a href='index.php?page=calendar' style='padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;'>Ver Calendario</a>";
+            echo "<a href='index.php?page=calendario' style='padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;'>Ver Calendario</a>";
             echo "</p>";
             
         } else {

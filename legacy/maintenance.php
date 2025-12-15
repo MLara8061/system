@@ -1,10 +1,10 @@
 <?php require_once 'config/config.php'; ?>
 
-<!-- Calendario de Mantenimientos -->
+<!-- Calendario -->
 <div class="col-lg-12">
     <div class="card card-primary">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-calendar-alt mr-2"></i>Calendario de Mantenimientos</h3>
+            <h3 class="card-title"><i class="fas fa-calendar-alt mr-2"></i>Calendario</h3>
         </div>
         <div class="card-body">
             <div id="calendar"></div>

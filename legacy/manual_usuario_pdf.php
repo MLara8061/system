@@ -286,13 +286,13 @@ $manual = [
     ],
     
     'inventario' => [
-        'title' => '8. Gestión de Inventario',
-        'content' => 'El módulo de inventario permite controlar artículos adicionales no clasificados como equipos, herramientas o accesorios.',
+        'title' => '8. Gestión de Insumos',
+        'content' => 'El módulo de insumos permite controlar artículos adicionales no clasificados como equipos, herramientas o accesorios.',
         'modules' => [
             [
                 'subtitle' => '8.1 Ingresar Artículo',
                 'steps' => [
-                    'Ir a "Inventario" > "Ingresar"',
+                    'Ir a "Insumos" > "Ingresar"',
                     'Completar datos del artículo',
                     'Guardar registro'
                 ]
@@ -300,7 +300,7 @@ $manual = [
             [
                 'subtitle' => '8.2 Consultar Inventario',
                 'steps' => [
-                    'Acceder a "Inventario" > "Todos"',
+                    'Acceder a "Insumos" > "Todos"',
                     'Ver listado completo',
                     'Realizar búsquedas y exportaciones'
                 ]
@@ -309,10 +309,10 @@ $manual = [
     ],
     
     'mantenimientos' => [
-        'title' => '9. Calendario de Mantenimientos',
-        'content' => 'El módulo de Mantenimientos permite programar y dar seguimiento a servicios preventivos y correctivos.',
+        'title' => '9. Calendario',
+        'content' => 'El módulo de Calendario permite programar y dar seguimiento a servicios preventivos y correctivos.',
         'steps' => [
-            'Acceder a "Mantenimientos" en el menú principal',
+            'Acceder a "Calendario" en el menú principal',
             'Ver el calendario mensual con todos los mantenimientos programados',
             'Los eventos se colorean según su tipo:',
             '  • <strong style="color:#28a745;">Verde:</strong> Mantenimiento preventivo',
@@ -985,8 +985,8 @@ $manual = [
                     <li><a href="#proveedores"><i class="fas fa-truck"></i> 5. Gestión de Proveedores</a></li>
                     <li><a href="#herramientas"><i class="fas fa-tools"></i> 6. Gestión de Herramientas</a></li>
                     <li><a href="#accesorios"><i class="fas fa-hard-hat"></i> 7. Gestión de Accesorios</a></li>
-                    <li><a href="#inventario"><i class="fas fa-boxes"></i> 8. Gestión de Inventario</a></li>
-                    <li><a href="#mantenimientos"><i class="fas fa-calendar-check"></i> 9. Calendario de Mantenimientos</a></li>
+                    <li><a href="#inventario"><i class="fas fa-boxes"></i> 8. Gestión de Insumos</a></li>
+                    <li><a href="#mantenimientos"><i class="fas fa-calendar-check"></i> 9. Calendario</a></li>
                     <li><a href="#tickets"><i class="fas fa-ticket-alt"></i> 10. Sistema de Tickets</a></li>
                     <li><a href="#reportes"><i class="fas fa-file-invoice"></i> 11. Generación de Reportes</a></li>
                     <li><a href="#admin"><i class="fas fa-cogs"></i> 12. Configuración (Administradores)</a></li>
@@ -1148,7 +1148,7 @@ $manual = [
                 <?php endforeach; ?>
             </div>
             
-            <!-- GESTIÓN DE INVENTARIO -->
+            <!-- GESTIÓN DE INSUMOS -->
             <div class="section" id="inventario">
                 <h2><?= htmlspecialchars($manual['inventario']['title']) ?></h2>
                 <p><?= $manual['inventario']['content'] ?></p>
@@ -1162,7 +1162,7 @@ $manual = [
                 <?php endforeach; ?>
             </div>
             
-            <!-- CALENDARIO DE MANTENIMIENTOS -->
+            <!-- CALENDARIO -->
             <div class="section" id="mantenimientos">
                 <h2><?= htmlspecialchars($manual['mantenimientos']['title']) ?></h2>
                 <p><?= $manual['mantenimientos']['content'] ?></p>

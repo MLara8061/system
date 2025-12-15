@@ -5,7 +5,7 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Calendario de Mantenimientos</h4>
+                    <h4 class="mb-0">Calendario</h4>
                     <div class="ml-auto">
                         <button class="btn btn-success btn-sm" id="btn-new">
                             <i class="fas fa-plus"></i> Nuevo

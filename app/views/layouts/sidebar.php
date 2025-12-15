@@ -122,7 +122,7 @@
         </li>
 
         <li class="nav-item">
-          <a href="index.php?page=calendar" class="nav-link nav-calendar">
+          <a href="index.php?page=calendario" class="nav-link nav-calendar nav-calendario">
             <i class="fas fa-calendar-alt nav-icon"></i>
             <p>Calendario</p>
           </a>

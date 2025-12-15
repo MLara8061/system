@@ -9,7 +9,20 @@
   // CSP permisiva (incluye CDN y recursos externos)
   header("Content-Security-Policy: default-src 'self' https:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; connect-src 'self' https:");
   ob_start();
-  $title = isset($_GET['page']) ? ucwords(str_replace("_", ' ', $_GET['page'])) : "Home";
+  $page = $_GET['page'] ?? null;
+  $TITLE_MAP = [
+    'insumos_list' => 'Insumos',
+    'manage_insumos' => 'Insumos',
+    'inventory_list' => 'Insumos',
+    'manage_inventory' => 'Insumos',
+    'calendario' => 'Calendario',
+    'calendar' => 'Calendario',
+  ];
+  if ($page && isset($TITLE_MAP[$page])) {
+    $title = $TITLE_MAP[$page];
+  } else {
+    $title = isset($_GET['page']) ? ucwords(str_replace("_", ' ', $_GET['page'])) : "Home";
+  }
   ?>
   <title><?php echo $title ?> | Sistema de Soporte Técnico</title>
   <?php ob_end_flush() ?>
