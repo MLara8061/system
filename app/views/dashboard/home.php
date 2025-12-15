@@ -3,6 +3,9 @@
 $traceFile = ROOT . '/home_trace.log';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: start\n", FILE_APPEND);
 
+// Cargar helper de caché
+require_once ROOT . '/app/helpers/cache_helper.php';
+
 // Helper function para queries que se cuelgan con query()
 function safe_query($conn, $sql) {
     if ($conn->real_query($sql)) {
@@ -89,14 +92,14 @@ switch ($period) {
         $months_count = 6;
 }
 
-// WORKAROUND CRÍTICO: maintenance_reports causa timeout indefinido incluso con COUNT simple
-// TODO: Investigar con Hostinger por qué esta tabla específicamente causa hangs
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: skip maintenance queries (timeout)\n", FILE_APPEND);
-$mp_count = 10;
-$mc_count = 5;
+// Obtener datos de mantenimiento desde caché (actualizado por cron)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading maintenance from cache\n", FILE_APPEND);
+$maintenance_data = get_cached_data($conn, 'maintenance_counts', ['MP' => 0, 'MC' => 0]);
+$mp_count = $maintenance_data['MP'] ?? 0;
+$mc_count = $maintenance_data['MC'] ?? 0;
 $service_types = ['MP', 'MC'];
 $service_counts = [$mp_count, $mc_count];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy maintenance counts - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance from cache - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
 // WORKAROUND: Distribuir totales uniformemente (GROUP BY causa timeout)
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before monthly execution\n", FILE_APPEND);
@@ -126,12 +129,12 @@ $sums = array_fill(0, 12, $total_val_year);
 $categories = array_map(function ($m) { return $m . '-01'; }, $months);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series (distributed) - eq/mes: $total_eq_year, val/mes: $total_val_year\n", FILE_APPEND);
 
-// WORKAROUND: GROUP BY en equipments+suppliers causa timeout
-// Usar distribución simple basada en total conocido
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before pie chart query\n", FILE_APPEND);
-$pie_labels = ['Proveedor Principal', 'Proveedor Secundario', 'Sin Proveedor'];
-$pie_values = [100, 80, 72];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy pie chart data (3 suppliers)\n", FILE_APPEND);
+// Obtener distribución de proveedores desde caché
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading pie chart from cache\n", FILE_APPEND);
+$pie_data = get_cached_data($conn, 'pie_suppliers', ['labels' => ['Sin Datos'], 'values' => [0]]);
+$pie_labels = $pie_data['labels'];
+$pie_values = $pie_data['values'];
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart from cache (" . count($pie_labels) . " suppliers)\n", FILE_APPEND);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting HTML output\n", FILE_APPEND);
 ?>
 
@@ -317,10 +320,10 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
             </thead>
             <tbody>
               <?php
-              // WORKAROUND: JOIN equipments+suppliers causa timeout
-              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: skip recent equipments query (timeout)\n", FILE_APPEND);
-              $recent_data = [];
-              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using empty recent equipments\n", FILE_APPEND);
+              // Obtener equipos recientes desde caché
+              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading recent equipments from cache\n", FILE_APPEND);
+              $recent_data = get_cached_data($conn, 'recent_equipments', []);
+              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: recent equipments from cache (" . count($recent_data) . ")\n", FILE_APPEND);
               foreach ($recent_data as $eq): ?>
                 <tr>
                   <td><a href="./index.php?page=edit_equipment&id=<?php echo $eq['id']; ?>" class="link-primary"><?php echo $eq['number_inventory']; ?></a></td>
@@ -363,14 +366,10 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
       <div class="card-footer p-0">
         <ul class="nav nav-pills flex-column">
           <?php
-          // WORKAROUND: GROUP BY + subconsulta causa timeout
-          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: skip top suppliers query (timeout)\n", FILE_APPEND);
-          $top_suppliers_data = [
-              ['supplier' => 'Proveedor Principal', 'cnt' => 100, 'pct' => 40.0],
-              ['supplier' => 'Proveedor Secundario', 'cnt' => 80, 'pct' => 32.0],
-              ['supplier' => 'Sin Proveedor', 'cnt' => 72, 'pct' => 28.0]
-          ];
-          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy top suppliers (3)\n", FILE_APPEND);
+          // Obtener top suppliers desde caché
+          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading top suppliers from cache\n", FILE_APPEND);
+          $top_suppliers_data = get_cached_data($conn, 'top_suppliers', []);
+          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers from cache (" . count($top_suppliers_data) . ")\n", FILE_APPEND);
           foreach ($top_suppliers_data as $sup): ?>
             <li class="nav-item">
               <a href="#" class="nav-link">
