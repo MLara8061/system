@@ -262,6 +262,27 @@ if ($action == 'save_supplier') {
 }
 
 // ===================================
+// 7.0 TIPOS DE ADQUISICIÓN (CONFIG)
+// ===================================
+if ($action == 'load_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->load_acquisition_type();
+    exit;
+}
+
+if ($action == 'save_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->save_acquisition_type();
+    exit;
+}
+
+if ($action == 'delete_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->delete_acquisition_type();
+    exit;
+}
+
+// ===================================
 // 7.1 CATEGORÍAS DE EQUIPOS (CONFIG)
 // ===================================
 if ($action == 'load_equipment_category') {

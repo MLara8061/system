@@ -83,6 +83,9 @@ $ROUTE_MAP = [
     'branches' => 'app/views/dashboard/settings/branches.php',
     'manage_branch' => 'app/views/dashboard/settings/manage_branch.php',
 
+    // Tipos de Adquisición (catálogo para prefijo de inventario)
+    'acquisition_types' => 'app/views/dashboard/settings/acquisition_types.php',
+
     // Categorías de Equipos (para prefijos de inventario/QR)
     'equipment_categories' => 'app/views/dashboard/settings/equipment_categories.php',
     'manage_equipment_category' => 'app/views/dashboard/settings/manage_equipment_category.php',

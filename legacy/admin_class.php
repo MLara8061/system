@@ -956,6 +956,32 @@ class Action {
         }
     }
 
+    private function ensure_acquisition_type_schema() {
+        if (!$this->db) return;
+
+        if (!$this->table_exists_local('acquisition_type')) {
+            $sql = "CREATE TABLE IF NOT EXISTS `acquisition_type` (
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `name` VARCHAR(255) NOT NULL,
+                `code` VARCHAR(3) NULL,
+                `active` TINYINT(1) NOT NULL DEFAULT 1,
+                `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            @$this->db->query($sql);
+        }
+
+        $this->ensure_acquisition_type_code_column();
+
+        if ($this->table_exists_local('acquisition_type') && !$this->column_exists_local('acquisition_type', 'active')) {
+            @$this->db->query("ALTER TABLE `acquisition_type` ADD COLUMN `active` TINYINT(1) NOT NULL DEFAULT 1 AFTER `code`");
+        }
+        // Índice único para code si existe (ignorar error si ya está)
+        if ($this->table_exists_local('acquisition_type') && $this->column_exists_local('acquisition_type', 'code')) {
+            @$this->db->query("ALTER TABLE `acquisition_type` ADD UNIQUE KEY `uniq_acquisition_type_code` (`code`)");
+        }
+    }
+
     private function derive_acquisition_code($acquisition_type_id) {
         if (!$this->db) return null;
         $id = (int)$acquisition_type_id;
@@ -1036,10 +1062,11 @@ class Action {
                 return false;
             }
 
-            // Nuevo esquema: SUC(3)-PRO(3)-CAT(2/3)-0001 (consecutivo por combinación)
+            // Nuevo esquema: SUC(3)+ADQ(2/3)+CAT(2/3)+001 (consecutivo por combinación)
             if (!$this->db) return false;
             $this->ensure_inventory_config_schema();
             $this->ensure_equipment_categories_schema();
+            $this->ensure_acquisition_type_schema();
 
             $acq_code = $this->derive_acquisition_code($acquisition_type_id);
             if (!$acq_code) return false;
@@ -1050,7 +1077,7 @@ class Action {
             $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
             if ($cat_code === '') return false;
 
-            $prefix = $branch_code . '-' . $acq_code . '-' . $cat_code;
+            $prefix = $branch_code . $acq_code . $cat_code;
             $prefix_esc = $this->db->real_escape_string($prefix);
             $b = (int)$branch_id;
             $a = (int)$acquisition_type_id;
@@ -1059,7 +1086,7 @@ class Action {
             // Usar UPSERT para incrementar atómicamente
             $ok = @$this->db->query(
                 "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
-                "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)\n" .
+                "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', LAST_INSERT_ID(1))\n" .
                 "ON DUPLICATE KEY UPDATE\n" .
                 "prefix = VALUES(prefix),\n" .
                 "current_number = LAST_INSERT_ID(current_number + 1)"
@@ -1079,12 +1106,119 @@ class Action {
                 }
             }
 
-            $seq = str_pad((string)$n, 4, '0', STR_PAD_LEFT);
-            return $prefix . '-' . $seq;
+            $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
+            return $prefix . '+' . $seq;
         } catch (Throwable $e) {
             error_log("GET_NEXT_INVENTORY_NUMBER ERROR: " . $e->getMessage());
             return false;
         }
+    }
+
+    // ================== TIPOS DE ADQUISICIÓN (CONFIG) ==================
+    function load_acquisition_type() {
+        $this->ensure_acquisition_type_schema();
+        $data = array();
+
+        if (!$this->db || !$this->table_exists_local('acquisition_type')) {
+            return json_encode(['status' => 'success', 'data' => $data]);
+        }
+
+        $has_code = $this->column_exists_local('acquisition_type', 'code');
+        $has_active = $this->column_exists_local('acquisition_type', 'active');
+        $cols = 'id, name' . ($has_code ? ', code' : '');
+        $where = $has_active ? 'WHERE active = 1' : '';
+        $order = $has_code ? 'ORDER BY code ASC, name ASC' : 'ORDER BY name ASC';
+        $qry = $this->db->query("SELECT {$cols} FROM acquisition_type {$where} {$order}");
+        if ($qry) {
+            while ($row = $qry->fetch_assoc()) {
+                $row['name'] = strip_tags(stripslashes($row['name'] ?? ''));
+                $row['code'] = strtoupper(trim($row['code'] ?? ''));
+                $data[] = $row;
+            }
+        }
+        return json_encode(['status' => 'success', 'data' => $data]);
+    }
+
+    function save_acquisition_type() {
+        $this->ensure_acquisition_type_schema();
+        if (!$this->db || !$this->table_exists_local('acquisition_type')) {
+            return json_encode(['status' => 'error']);
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        $code = strtoupper(trim($_POST['code'] ?? ''));
+        $code = preg_replace('/[^A-Z0-9]/', '', $code);
+        $name = trim($_POST['name'] ?? '');
+
+        if ($name === '' || $code === '' || strlen($code) < 2 || strlen($code) > 3) {
+            return json_encode(['status' => 'error']);
+        }
+
+        $has_code = $this->column_exists_local('acquisition_type', 'code');
+        if (!$has_code) {
+            $this->ensure_acquisition_type_code_column();
+        }
+
+        // Si es edición: code inmutable
+        if ($id > 0) {
+            $current = $this->db->query("SELECT code FROM acquisition_type WHERE id = {$id} LIMIT 1");
+            if (!$current || $current->num_rows === 0) {
+                return json_encode(['status' => 'error']);
+            }
+            $existing = strtoupper(trim($current->fetch_assoc()['code'] ?? ''));
+            if ($existing !== $code) {
+                return json_encode(['status' => 'error']);
+            }
+        } else {
+            $code_esc = $this->db->real_escape_string($code);
+            $chk = $this->db->query("SELECT id FROM acquisition_type WHERE code = '{$code_esc}' LIMIT 1");
+            if ($chk && $chk->num_rows > 0) {
+                return json_encode(['status' => 'duplicate_code']);
+            }
+        }
+
+        $code_esc = $this->db->real_escape_string($code);
+        $name_esc = $this->db->real_escape_string($name);
+
+        if ($id > 0) {
+            $sql = "UPDATE acquisition_type SET name = '{$name_esc}' WHERE id = {$id}";
+        } else {
+            $sql = "INSERT INTO acquisition_type (name, code, active) VALUES ('{$name_esc}', '{$code_esc}', 1)";
+        }
+
+        $save = $this->db->query($sql);
+        if ($save) {
+            return json_encode(['status' => 'success']);
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    function delete_acquisition_type() {
+        $this->ensure_acquisition_type_schema();
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) return json_encode(['status' => 'error']);
+
+        // Evitar eliminar si está en uso (equipos o inventario_config)
+        if ($this->db) {
+            if ($this->column_exists_local('equipment', 'acquisition_type') && $this->table_exists_local('equipment')) {
+                $chk = $this->db->query("SELECT id FROM equipment WHERE acquisition_type = {$id} LIMIT 1");
+                if ($chk && $chk->num_rows > 0) {
+                    return json_encode(['status' => 'in_use']);
+                }
+            }
+            if ($this->table_exists_local('inventory_config') && $this->column_exists_local('inventory_config', 'acquisition_type_id')) {
+                $chk2 = $this->db->query("SELECT id FROM inventory_config WHERE acquisition_type_id = {$id} LIMIT 1");
+                if ($chk2 && $chk2->num_rows > 0) {
+                    return json_encode(['status' => 'in_use']);
+                }
+            }
+        }
+
+        $delete = $this->db ? $this->db->query("DELETE FROM acquisition_type WHERE id = {$id}") : false;
+        if ($delete) {
+            return json_encode(['status' => 'success']);
+        }
+        return json_encode(['status' => 'error', 'error' => $this->db ? $this->db->error : '']);
     }
 
     // ================== EQUIPOS (COMPLETO) ==================

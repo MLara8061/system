@@ -189,9 +189,16 @@
             </li>
 
             <li class="nav-item">
+              <a href="./index.php?page=acquisition_types" class="nav-link nav-acquisition_types tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Tipo de Adquisición</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a href="./index.php?page=equipment_categories" class="nav-link nav-equipment_categories tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
-                <p>Categorías de Equipos</p>
+                <p>Categorías</p>
               </a>
             </li>
 

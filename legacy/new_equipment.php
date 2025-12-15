@@ -135,14 +135,39 @@ try {
                                         $types = [];
                                         try {
                                             if (isset($pdo) && $pdo) {
-                                                $types = $pdo->query("SELECT id, name FROM acquisition_type ORDER BY name ASC")
+                                                $hasCode = false;
+                                                $hasActive = false;
+                                                try {
+                                                    $c = $pdo->query("SHOW COLUMNS FROM acquisition_type LIKE 'code'");
+                                                    $hasCode = $c && $c->rowCount() > 0;
+                                                } catch (Exception $e) {
+                                                    $hasCode = false;
+                                                }
+                                                try {
+                                                    $c = $pdo->query("SHOW COLUMNS FROM acquisition_type LIKE 'active'");
+                                                    $hasActive = $c && $c->rowCount() > 0;
+                                                } catch (Exception $e) {
+                                                    $hasActive = false;
+                                                }
+
+                                                $cols = $hasCode ? 'id, name, code' : 'id, name';
+                                                $where = $hasActive ? 'WHERE active = 1' : '';
+                                                $order = $hasCode ? 'ORDER BY code ASC, name ASC' : 'ORDER BY name ASC';
+                                                $types = $pdo->query("SELECT {$cols} FROM acquisition_type {$where} {$order}")
                                                     ->fetchAll(PDO::FETCH_ASSOC);
                                             }
                                         } catch (Exception $e) {
                                             $types = [];
                                         }
                                         foreach ($types as $row): ?>
-                                            <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords((string)($row['name'] ?? '')) ?></option>
+                                            <?php
+                                                $label = (string)($row['name'] ?? '');
+                                                $code = strtoupper(trim((string)($row['code'] ?? '')));
+                                                if ($code !== '') {
+                                                    $label = $code . ' - ' . $label;
+                                                }
+                                            ?>
+                                            <option value="<?= htmlspecialchars((string)($row['id'] ?? '')) ?>"><?= ucwords($label) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
