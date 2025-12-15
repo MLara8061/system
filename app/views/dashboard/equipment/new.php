@@ -442,11 +442,20 @@ try {
                         $('#inventory_badge').text('#' + data.number);
                         $('#number_inventory').val(data.number);
                     } else {
-                        alert_toast('Error al generar número de inventario', 'error');
+                        var msg = (data && data.error) ? data.error : 'Error al generar número de inventario';
+                        $('#inventory_badge').text('Error');
+                        $('#number_inventory').val('');
+                        alert_toast(msg, 'error');
                     }
                 },
-                error: function(){
-                    alert_toast('Error de conexión', 'error');
+                error: function(xhr){
+                    var msg = 'Error de conexión';
+                    try {
+                        if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                    } catch (e) {}
+                    $('#inventory_badge').text('Error');
+                    $('#number_inventory').val('');
+                    alert_toast(msg, 'error');
                 }
             });
         }

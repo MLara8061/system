@@ -128,18 +128,48 @@ try {
         error_log("SIMPLE AJAX: branch_id = $branch_id");
         
         if ($branch_id > 0) {
+            if ($acquisition_type_id <= 0 || $equipment_category_id <= 0) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Selecciona tipo de adquisición y categoría para generar el número'
+                ]);
+                exit;
+            }
+
+            // Validaciones rápidas de existencia (evita fallos silenciosos)
+            try {
+                $chk = @$conn->query("SELECT id FROM branches WHERE id = {$branch_id} LIMIT 1");
+                if (!$chk || $chk->num_rows === 0) {
+                    echo json_encode(['success' => false, 'error' => 'Sucursal inválida']);
+                    exit;
+                }
+                $chk = @$conn->query("SELECT id FROM acquisition_type WHERE id = {$acquisition_type_id} LIMIT 1");
+                if (!$chk || $chk->num_rows === 0) {
+                    echo json_encode(['success' => false, 'error' => 'Tipo de adquisición inválido']);
+                    exit;
+                }
+                $chk = @$conn->query("SELECT id FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+                if (!$chk || $chk->num_rows === 0) {
+                    echo json_encode(['success' => false, 'error' => 'Categoría inválida']);
+                    exit;
+                }
+            } catch (Throwable $e) {
+                // Si falla la validación, continuamos al generador (que tiene sus propios try/catch)
+                error_log('SIMPLE AJAX validation throwable: ' . $e->getMessage());
+            }
+
             try {
                 $admin = new Action();
                 $number = $admin->get_next_inventory_number(
                     $branch_id,
-                    $acquisition_type_id > 0 ? $acquisition_type_id : null,
-                    $equipment_category_id > 0 ? $equipment_category_id : null
+                    $acquisition_type_id,
+                    $equipment_category_id
                 );
 
                 if (!$number) {
                     echo json_encode([
                         'success' => false,
-                        'error' => 'No se pudo generar el número de inventario'
+                        'error' => 'No se pudo generar el número de inventario (revisa que la sucursal tenga código y que la categoría tenga clave)'
                     ]);
                     exit;
                 }
