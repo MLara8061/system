@@ -13,9 +13,67 @@ $reports = [];
 while ($row = $qry->fetch_assoc()) {
 	$reports[] = $row;
 }
+
+// Resumen
+$total_reports = count($reports);
+$preventivos = 0;
+$correctivos = 0;
+foreach ($reports as $r) {
+    $tipo = strtolower(trim((string)($r['tipo_servicio'] ?? '')));
+    if ($tipo === 'preventivo') $preventivos++;
+    if ($tipo === 'correctivo') $correctivos++;
+}
+$otros = max(0, $total_reports - $preventivos - $correctivos);
 ?>
 
 <div class="container-fluid">
+	<div class="row mb-4">
+		<div class="col-md-3">
+			<div class="card shadow-sm border-0" style="border-radius: 12px;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-file-alt fa-2x text-primary mr-3"></i>
+					<div>
+						<h6 class="mb-0 text-muted">Total Reportes</h6>
+						<h4 class="mb-0"><?= (int)$total_reports ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm border-0" style="border-radius: 12px;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-tools fa-2x text-success mr-3"></i>
+					<div>
+						<h6 class="mb-0 text-muted">Preventivos</h6>
+						<h4 class="mb-0"><?= (int)$preventivos ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm border-0" style="border-radius: 12px;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
+					<div>
+						<h6 class="mb-0 text-muted">Correctivos</h6>
+						<h4 class="mb-0"><?= (int)$correctivos ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm border-0" style="border-radius: 12px;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-layer-group fa-2x text-secondary mr-3"></i>
+					<div>
+						<h6 class="mb-0 text-muted">Otros</h6>
+						<h4 class="mb-0"><?= (int)$otros ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
 		<div class="card-header bg-white py-3">
 			<h4 class="mb-0 font-weight-bold text-dark">Reportes de Sistemas</h4>

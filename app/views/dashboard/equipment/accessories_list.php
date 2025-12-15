@@ -8,6 +8,37 @@ $total_acc = $conn->query("SELECT COUNT(*) as total FROM accessories a {$branch_
 $activos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories a WHERE status = 'Activo' {$branch_and}")->fetch_assoc()['total'] ?? 0;
 $inactivos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories a WHERE status = 'Inactivo' {$branch_and}")->fetch_assoc()['total'] ?? 0;
 $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM accessories a {$branch_where}")->fetch_assoc()['total'];
+
+// Desglose por tipo (para tarjeta de Total)
+$type_breakdown_text = '';
+try {
+    $type_rows = [];
+    $type_qry = $conn->query("SELECT COALESCE(NULLIF(TRIM(a.type), ''), 'Sin tipo') as type_label, COUNT(*) as total FROM accessories a {$branch_where} GROUP BY COALESCE(NULLIF(TRIM(a.type), ''), 'Sin tipo') ORDER BY total DESC");
+    if ($type_qry) {
+        while ($r = $type_qry->fetch_assoc()) {
+            $type_rows[] = $r;
+        }
+    }
+    if (!empty($type_rows)) {
+        $max_show = 6;
+        $shown = 0;
+        $parts = [];
+        foreach ($type_rows as $r) {
+            if ($shown >= $max_show) break;
+            $label = (string)($r['type_label'] ?? '');
+            $qty = (int)($r['total'] ?? 0);
+            $parts[] = htmlspecialchars($label) . ': ' . $qty;
+            $shown++;
+        }
+        $extra = count($type_rows) - $shown;
+        if ($extra > 0) {
+            $parts[] = '+' . $extra . ' más';
+        }
+        $type_breakdown_text = implode(' · ', $parts);
+    }
+} catch (Throwable $e) {
+    // no-op
+}
 ?>
 
 <!-- Tarjetas de resumen -->
@@ -19,6 +50,11 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                 <div>
                     <h6 class="mb-0 text-muted">Total Accesorios</h6>
                     <h4 class="mb-0"><?= $total_acc ?></h4>
+                    <?php if (!empty($type_breakdown_text)): ?>
+                        <small class="text-muted d-block" style="line-height: 1.2;">
+                            <?= $type_breakdown_text ?>
+                        </small>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

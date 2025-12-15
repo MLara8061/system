@@ -109,7 +109,7 @@ try {
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-tools fa-2x text-warning mr-3"></i>
                 <div>
-                    <h6>MP</h6>
+                    <h6>Mantenimiento Preventivo</h6>
                     <h4><?php echo $mp_total; ?></h4>
                 </div>
             </div>
@@ -121,7 +121,7 @@ try {
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
                 <div>
-                    <h6>MC</h6>
+                    <h6>Mantenimiento Correctivo</h6>
                     <h4><?php echo $mc_total; ?></h4>
                 </div>
             </div>

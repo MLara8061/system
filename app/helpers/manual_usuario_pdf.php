@@ -4,7 +4,7 @@
  * Genera un PDF profesional con instrucciones detalladas paso a paso
  */
 
-require_once 'config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 // Configuración de encoding
 header('Content-Type: text/html; charset=UTF-8');

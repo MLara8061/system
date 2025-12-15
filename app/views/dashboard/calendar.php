@@ -1,5 +1,62 @@
 <?php require_once 'config/config.php'; ?>
 
+<?php
+// Tarjetas informativas (mes actual)
+$monthStart = date('Y-m-01');
+$monthEnd = date('Y-m-t');
+
+$calendar_summary = [
+    'total' => 0,
+    'completed' => 0,
+    'pending' => 0,
+    'preventivo' => 0,
+    'correctivo' => 0,
+    'next_date' => null,
+];
+
+try {
+    $branch_and_e = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+
+    $sql = "SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN LOWER(COALESCE(m.estatus,'')) = 'completado' THEN 1 ELSE 0 END) AS completed,
+            SUM(CASE WHEN LOWER(COALESCE(m.estatus,'')) <> 'completado' THEN 1 ELSE 0 END) AS pending,
+            SUM(CASE WHEN LOWER(COALESCE(m.tipo_mantenimiento,'')) = 'preventivo' THEN 1 ELSE 0 END) AS preventivo,
+            SUM(CASE WHEN LOWER(COALESCE(m.tipo_mantenimiento,'')) = 'correctivo' THEN 1 ELSE 0 END) AS correctivo
+        FROM mantenimientos m
+        JOIN equipments e ON m.equipo_id = e.id
+        WHERE m.fecha_programada BETWEEN '" . $conn->real_escape_string($monthStart) . "' AND '" . $conn->real_escape_string($monthEnd) . "'";
+    if (!empty($branch_and_e)) {
+        $sql .= $branch_and_e;
+    }
+    $q = $conn->query($sql);
+    if ($q) {
+        $r = $q->fetch_assoc();
+        $calendar_summary['total'] = (int)($r['total'] ?? 0);
+        $calendar_summary['completed'] = (int)($r['completed'] ?? 0);
+        $calendar_summary['pending'] = (int)($r['pending'] ?? 0);
+        $calendar_summary['preventivo'] = (int)($r['preventivo'] ?? 0);
+        $calendar_summary['correctivo'] = (int)($r['correctivo'] ?? 0);
+    }
+
+    $nextSql = "SELECT MIN(m.fecha_programada) AS next_date
+        FROM mantenimientos m
+        JOIN equipments e ON m.equipo_id = e.id
+        WHERE m.fecha_programada >= CURDATE()
+          AND LOWER(COALESCE(m.estatus,'')) <> 'completado'";
+    if (!empty($branch_and_e)) {
+        $nextSql .= $branch_and_e;
+    }
+    $nextQ = $conn->query($nextSql);
+    if ($nextQ) {
+        $nr = $nextQ->fetch_assoc();
+        $calendar_summary['next_date'] = $nr['next_date'] ?? null;
+    }
+} catch (Throwable $e) {
+    // no-op
+}
+?>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
@@ -13,6 +70,62 @@
                     </div>
                 </div>
                 <div class="card-body p-2">
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-calendar-check fa-2x text-primary mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Programados (mes)</h6>
+                                        <h4 class="mb-0"><?= (int)$calendar_summary['total'] ?></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Completados (mes)</h6>
+                                        <h4 class="mb-0"><?= (int)$calendar_summary['completed'] ?></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-hourglass-half fa-2x text-warning mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Pendientes (mes)</h6>
+                                        <h4 class="mb-0"><?= (int)$calendar_summary['pending'] ?></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                                <div class="card-body d-flex align-items-center">
+                                    <i class="fas fa-clock fa-2x text-info mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Próximo</h6>
+                                        <h4 class="mb-0">
+                                            <?php
+                                            if (!empty($calendar_summary['next_date'])) {
+                                                echo date('d/m/Y', strtotime($calendar_summary['next_date']));
+                                            } else {
+                                                echo '<span class="text-muted">-</span>';
+                                            }
+                                            ?>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="calendar" style="font-size: 0.9rem;"></div>
                 </div>
             </div>

@@ -2,7 +2,83 @@
 include 'header.php'; 
 require_once 'config/config.php';  // AÑADIDO: CONEXIÓN A LA BD
 ?>
+
+<?php
+// Tarjetas resumen
+$activity_summary = [
+    'total' => 0,
+    'today' => 0,
+    'last7' => 0,
+    'users7' => 0,
+];
+try {
+    $qTotal = $conn->query("SELECT COUNT(*) AS total FROM activity_log");
+    if ($qTotal) {
+        $activity_summary['total'] = (int)($qTotal->fetch_assoc()['total'] ?? 0);
+    }
+    $qToday = $conn->query("SELECT COUNT(*) AS total FROM activity_log WHERE DATE(created_at) = CURDATE()");
+    if ($qToday) {
+        $activity_summary['today'] = (int)($qToday->fetch_assoc()['total'] ?? 0);
+    }
+    $qLast7 = $conn->query("SELECT COUNT(*) AS total, COUNT(DISTINCT user_id) AS users FROM activity_log WHERE created_at >= (NOW() - INTERVAL 7 DAY)");
+    if ($qLast7) {
+        $r = $qLast7->fetch_assoc();
+        $activity_summary['last7'] = (int)($r['total'] ?? 0);
+        $activity_summary['users7'] = (int)($r['users'] ?? 0);
+    }
+} catch (Throwable $e) {
+    // no-op
+}
+?>
 <div class="col-lg-12">
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-list fa-2x text-primary mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Total Registros</h6>
+                        <h4 class="mb-0"><?= (int)$activity_summary['total'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-calendar-day fa-2x text-success mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Hoy</h6>
+                        <h4 class="mb-0"><?= (int)$activity_summary['today'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-history fa-2x text-warning mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Últimos 7 días</h6>
+                        <h4 class="mb-0"><?= (int)$activity_summary['last7'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-user-friends fa-2x text-info mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Usuarios (7 días)</h6>
+                        <h4 class="mb-0"><?= (int)$activity_summary['users7'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h5 class="card-title"><i class="fas fa-history"></i> Registro de Actividad</h5>
