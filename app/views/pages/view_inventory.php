@@ -1,5 +1,12 @@
 <?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
+require_once 'config/session.php';
+if (!validate_session()) {
+    header('location: app/views/auth/login.php');
+    exit();
+}
+?>
+<?php
 $id = $_GET['id'] ?? 0;
 $qry = $conn->query("SELECT * FROM inventory WHERE id = " . intval($id));
 if (!$qry || $qry->num_rows == 0) {

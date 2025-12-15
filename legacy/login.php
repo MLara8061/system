@@ -388,7 +388,7 @@ if (isset($_SESSION['login_id']))
         <!-- Header compacto -->
         <header class="login-header">
             <h1>Sistema de Activos</h1>
-            <p>Gestión eficiente de inventario</p>
+            <p>Gestión eficiente de activos e insumos</p>
         </header>
 
         <!-- Card del formulario -->

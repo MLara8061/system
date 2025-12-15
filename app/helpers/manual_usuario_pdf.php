@@ -167,7 +167,7 @@ $manual = [
                     'Automáticamente se abrirá el PDF del formato de baja',
                     'Imprimir o descargar el documento para archivo físico'
                 ],
-                'notes' => 'Una vez dado de baja, el equipo queda fuera del inventario activo pero se conserva su historial completo.'
+                'notes' => 'Una vez dado de baja, el equipo queda fuera de los activos pero se conserva su historial completo.'
             ],
             [
                 'subtitle' => '4.6 Consultar Bajas Registradas',
