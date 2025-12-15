@@ -12,6 +12,10 @@ if ($id <= 0) {
   die('ID inválido');
 }
 
+if (!isset($conn) || !$conn) {
+  die('Sin conexión a la base de datos');
+}
+
 // Asegurar tabla de categorías para evitar errores en instalaciones nuevas
 @$conn->query("CREATE TABLE IF NOT EXISTS `equipment_categories` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -22,6 +26,16 @@ if ($id <= 0) {
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+// La columna equipments.equipment_category_id puede no existir aún en instalaciones antiguas.
+// Si la referenciamos en un JOIN/SELECT y mysqli está en modo estricto, rompe con HTTP 500.
+$has_equipment_category_id = false;
+try {
+  $chk = @$conn->query("SHOW COLUMNS FROM `equipments` LIKE 'equipment_category_id'");
+  if ($chk && $chk->num_rows > 0) $has_equipment_category_id = true;
+} catch (Throwable $e) {
+  $has_equipment_category_id = false;
+}
 
 function normalize_code($value, $len = 3) {
   $value = strtoupper(trim((string)$value));
@@ -46,6 +60,13 @@ function inventory_sequence_from_number($number_inventory) {
   return str_pad($last, 4, '0', STR_PAD_LEFT);
 }
 
+$cat_select = 'NULL AS category_code, NULL AS category_desc';
+$cat_join = '';
+if ($has_equipment_category_id) {
+  $cat_select = 'ec.clave AS category_code, ec.description AS category_desc';
+  $cat_join = 'LEFT JOIN equipment_categories ec ON ec.id = e.equipment_category_id';
+}
+
 $sql = "
 SELECT
   e.id,
@@ -53,12 +74,10 @@ SELECT
   e.serie,
   e.branch_id,
   e.acquisition_type,
-  e.equipment_category_id,
   b.code AS branch_code,
   b.name AS branch_name,
   at.name AS acquisition_name,
-  ec.clave AS category_code,
-  ec.description AS category_desc,
+  {$cat_select},
   ed.location_id,
   ed.department_id,
   l.name AS location_name,
@@ -66,17 +85,24 @@ SELECT
 FROM equipments e
 LEFT JOIN branches b ON b.id = e.branch_id
 LEFT JOIN acquisition_type at ON at.id = e.acquisition_type
-LEFT JOIN equipment_categories ec ON ec.id = e.equipment_category_id
+{$cat_join}
 LEFT JOIN equipment_delivery ed ON ed.equipment_id = e.id
 LEFT JOIN locations l ON l.id = ed.location_id
 LEFT JOIN departments d ON d.id = ed.department_id
 WHERE e.id = {$id}
 LIMIT 1";
 
-$qry = $conn->query($sql);
+$qry = null;
+try {
+  $qry = $conn->query($sql);
+} catch (Throwable $e) {
+  $qry = null;
+}
+
 if (!$qry || $qry->num_rows === 0) {
   die('Equipo no encontrado');
 }
+
 $eq = $qry->fetch_assoc();
 
 // Generar URL usando BASE_URL de configuración
