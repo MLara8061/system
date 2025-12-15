@@ -128,13 +128,31 @@ try {
         error_log("SIMPLE AJAX: branch_id = $branch_id");
         
         if ($branch_id > 0) {
-            $admin = new Action();
-            $number = $admin->get_next_inventory_number(
-                $branch_id,
-                $acquisition_type_id > 0 ? $acquisition_type_id : null,
-                $equipment_category_id > 0 ? $equipment_category_id : null
-            );
-            echo json_encode(['success' => true, 'number' => $number]);
+            try {
+                $admin = new Action();
+                $number = $admin->get_next_inventory_number(
+                    $branch_id,
+                    $acquisition_type_id > 0 ? $acquisition_type_id : null,
+                    $equipment_category_id > 0 ? $equipment_category_id : null
+                );
+
+                if (!$number) {
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'No se pudo generar el número de inventario'
+                    ]);
+                    exit;
+                }
+
+                echo json_encode(['success' => true, 'number' => $number]);
+            } catch (Throwable $e) {
+                error_log("SIMPLE AJAX get_next_inventory_number THROWABLE: " . $e->getMessage());
+                http_response_code(200);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Error interno al generar el número de inventario'
+                ]);
+            }
         } else {
             echo json_encode(['success' => false, 'error' => 'Branch ID requerido']);
         }
@@ -143,8 +161,9 @@ try {
         echo json_encode(['error' => 'Acción no válida']);
     }
     
-} catch (Exception $e) {
-    error_log("SIMPLE AJAX ERROR: " . $e->getMessage());
-    echo json_encode(['error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("SIMPLE AJAX THROWABLE: " . $e->getMessage());
+    http_response_code(200);
+    echo json_encode(['success' => false, 'error' => 'Error interno']);
 }
 ?>
