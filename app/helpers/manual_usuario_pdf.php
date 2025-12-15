@@ -286,13 +286,13 @@ $manual = [
     ],
     
     'inventario' => [
-        'title' => '8. Gestión de Inventario',
-        'content' => 'El módulo de inventario permite controlar artículos adicionales no clasificados como equipos, herramientas o accesorios.',
+        'title' => '8. Gestión de Insumos',
+        'content' => 'El módulo de insumos permite controlar artículos adicionales no clasificados como equipos, herramientas o accesorios.',
         'modules' => [
             [
                 'subtitle' => '8.1 Ingresar Artículo',
                 'steps' => [
-                    'Ir a "Inventario" > "Ingresar"',
+                    'Ir a "Insumos" > "Ingresar"',
                     'Completar datos del artículo',
                     'Guardar registro'
                 ]
@@ -300,7 +300,7 @@ $manual = [
             [
                 'subtitle' => '8.2 Consultar Inventario',
                 'steps' => [
-                    'Acceder a "Inventario" > "Todos"',
+                    'Acceder a "Insumos" > "Todos"',
                     'Ver listado completo',
                     'Realizar búsquedas y exportaciones'
                 ]
@@ -309,10 +309,10 @@ $manual = [
     ],
     
     'mantenimientos' => [
-        'title' => '9. Calendario de Mantenimientos',
-        'content' => 'El módulo de Mantenimientos permite programar y dar seguimiento a servicios preventivos y correctivos.',
+        'title' => '9. Calendario',
+        'content' => 'El módulo de Calendario permite programar y dar seguimiento a servicios preventivos y correctivos.',
         'steps' => [
-            'Acceder a "Mantenimientos" en el menú principal',
+            'Acceder a "Calendario" en el menú principal',
             'Ver el calendario mensual con todos los mantenimientos programados',
             'Los eventos se colorean según su tipo:',
             '  • <strong style="color:#28a745;">Verde:</strong> Mantenimiento preventivo',

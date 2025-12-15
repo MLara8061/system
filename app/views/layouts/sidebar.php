@@ -109,13 +109,13 @@
         <li class="nav-item">
           <a href="#" class="nav-link nav-epp">
             <i class="nav-icon fas fa-store"></i>
-            <p>Inventario <i class="right fas fa-angle-left"></i></p>
+            <p>Insumos <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item"><a href="index.php?page=manage_inventory" class="nav-link nav-manage_inventory tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=manage_insumos" class="nav-link nav-manage_insumos tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Ingresar </p>
               </a></li>
-            <li class="nav-item"><a href="index.php?page=inventory_list" class="nav-link nav-inventory_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=insumos_list" class="nav-link nav-insumos_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos</p>
               </a></li>
           </ul>
@@ -124,7 +124,7 @@
         <li class="nav-item">
           <a href="index.php?page=calendar" class="nav-link nav-calendar">
             <i class="fas fa-calendar-alt nav-icon"></i>
-            <p>Mantenimientos</p>
+            <p>Calendario</p>
           </a>
         </li>
         

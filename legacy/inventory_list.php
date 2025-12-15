@@ -73,7 +73,7 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-header bg-white border-0">
             <div class="card-tools float-right">
-                <a href="index.php?page=manage_inventory" class="btn btn-tool btn-sm" title="Agregar Item">
+                <a href="index.php?page=manage_insumos" class="btn btn-tool btn-sm" title="Agregar ítem">
                     <i class="fas fa-plus text-secondary"></i>
                 </a>
                 <a href="#" class="btn btn-tool btn-sm" title="Exportar a Excel" id="export-excel">
@@ -233,7 +233,7 @@ $(document).ready(function() {
     $(document).on('click', '.delete-inventory', function() {
         const id = $(this).data('id');
         confirm_toast(
-            '¿Estás seguro de eliminar este ítem del inventario? Esta acción no se puede deshacer.',
+            '¿Estás seguro de eliminar este ítem de insumos? Esta acción no se puede deshacer.',
             function() { delete_inventory(id); }
         );
     });

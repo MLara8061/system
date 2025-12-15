@@ -93,7 +93,7 @@ $siguiente_id = $row['Auto_increment'];
                             <button type="submit" class="btn btn-primary btn-lg px-5">
                                 Guardar
                             </button>
-                            <a href="index.php?page=inventory_list" class="btn btn-secondary btn-lg px-5">
+                            <a href="index.php?page=insumos_list" class="btn btn-secondary btn-lg px-5">
                                 Cancelar
                             </a>
                         </div>
@@ -192,7 +192,7 @@ $siguiente_id = $row['Auto_increment'];
                 resp = resp.trim();
                 if (resp === '1') {
                     alert_toast('Ítem guardado correctamente', 'success');
-                    setTimeout(() => location.href = 'index.php?page=inventory_list', 1500);
+                    setTimeout(() => location.href = 'index.php?page=insumos_list', 1500);
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }

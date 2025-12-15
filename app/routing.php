@@ -96,9 +96,16 @@ $ROUTE_MAP = [
     'generate_excel_template' => 'app/helpers/generate_excel_template.php',
     
     // Otros
+    // Calendario (alias nuevo: "calendario")
     'calendar' => 'app/views/dashboard/calendar.php',
-    'manage_inventory' => 'app/views/dashboard/inventory/manage.php',
+    'calendario' => 'app/views/dashboard/calendar.php',
+
+    // Inventario (módulo) (alias nuevo: "insumos")
+    // Nota: el formulario legacy existe en legacy/manage_inventory.php
+    'manage_inventory' => 'legacy/manage_inventory.php',
     'inventory_list' => 'legacy/inventory_list.php',
+    'manage_insumos' => 'legacy/manage_inventory.php',
+    'insumos_list' => 'legacy/inventory_list.php',
     'view_inventory' => 'app/views/pages/view_inventory.php',
     'descargar_manual' => 'app/views/dashboard/descargar_manual.php',
     'check_structure' => 'app/views/dashboard/check_structure.php',
