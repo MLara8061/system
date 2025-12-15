@@ -59,7 +59,7 @@ if (isset($_GET['id'])) {
 		var formData = new FormData($(this)[0]);
 
 		$.ajax({
-			url: 'ajax.php?action=save_branch',
+			url: '/ajax.php?action=save_branch',
 			data: formData,
 			cache: false,
 			contentType: false,
@@ -70,7 +70,7 @@ if (isset($_GET['id'])) {
 				if (resp == 1) {
 					alert_toast('Datos guardados correctamente', "success");
 					setTimeout(function() {
-						location.replace('index.php?page=branches')
+						location.replace('/index.php?page=branches')
 					}, 750)
 				} else if (resp == 2) {
 					$('#msg').html("<div class='alert alert-danger'>El código ya existe</div>");
