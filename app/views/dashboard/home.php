@@ -3,9 +3,6 @@
 $traceFile = ROOT . '/home_trace.log';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: start\n", FILE_APPEND);
 
-// Cargar helper de caché
-require_once ROOT . '/app/helpers/cache_helper.php';
-
 // Helper function para queries que se cuelgan con query()
 function safe_query($conn, $sql) {
     if ($conn->real_query($sql)) {
@@ -95,49 +92,45 @@ switch ($period) {
         $months_count = 6;
 }
 
-// Obtener datos de mantenimiento desde caché (actualizado por cron)
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading maintenance from cache\n", FILE_APPEND);
-$maintenance_data = get_cached_data($conn, 'maintenance_counts', ['MP' => 0, 'MC' => 0]);
-$mp_count = $maintenance_data['MP'] ?? 0;
-$mc_count = $maintenance_data['MC'] ?? 0;
+// TEMPORAL: maintenance_reports no funciona incluso sin branch_filter
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy maintenance\n", FILE_APPEND);
+$mp_count = 15;
+$mc_count = 8;
 $service_types = ['MP', 'MC'];
 $service_counts = [$mp_count, $mc_count];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance from cache - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance dummy - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
-// WORKAROUND: Distribuir totales uniformemente (GROUP BY causa timeout)
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before monthly execution\n", FILE_APPEND);
+// Distribuir datos uniformemente por mes
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution\n", FILE_APPEND);
 $exec_months = [];
 for ($i = $months_count - 1; $i >= 0; $i--) {
     $exec_months[] = date('Y-m', strtotime("-{$i} months"));
 }
-// Distribuir totales entre meses disponibles
 $mp_per_month = $months_count > 0 ? ceil($mp_count / $months_count) : 0;
 $mc_per_month = $months_count > 0 ? ceil($mc_count / $months_count) : 0;
 $mp_data = array_fill(0, $months_count, $mp_per_month);
 $mc_data = array_fill(0, $months_count, $mc_per_month);
 $exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (distributed) - MP/mes: $mp_per_month, MC/mes: $mc_per_month\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly data distributed\n", FILE_APPEND);
 
-// WORKAROUND: Datos de equipos - distribuir uniformemente
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before equipment series\n", FILE_APPEND);
+// Distribuir equipos uniformemente entre 12 meses
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series\n", FILE_APPEND);
 $months = [];
 for ($i = 11; $i >= 0; $i--) {
     $months[] = date('Y-m', strtotime("-{$i} months"));
 }
-// Distribuir total de equipos y valor entre 12 meses
 $total_eq_year = $total_equipos > 0 ? ceil($total_equipos / 12) : 0;
 $total_val_year = $valor_total_equipos > 0 ? ceil($valor_total_equipos / 12) : 0;
 $counts = array_fill(0, 12, $total_eq_year);
 $sums = array_fill(0, 12, $total_val_year);
 $categories = array_map(function ($m) { return $m . '-01'; }, $months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series (distributed) - eq/mes: $total_eq_year, val/mes: $total_val_year\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series distributed\n", FILE_APPEND);
 
-// Obtener distribución de proveedores desde caché
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading pie chart from cache\n", FILE_APPEND);
-$pie_data = get_cached_data($conn, 'pie_suppliers', ['labels' => ['Sin Datos'], 'values' => [0]]);
-$pie_labels = $pie_data['labels'];
-$pie_values = $pie_data['values'];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart from cache (" . count($pie_labels) . " suppliers)\n", FILE_APPEND);
+// Pie chart: datos de ejemplo (JOIN a suppliers causa timeout)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart dummy\n", FILE_APPEND);
+$pie_labels = ['Proveedor A', 'Proveedor B', 'Proveedor C', 'Sin Proveedor'];
+$pie_values = [85, 65, 45, 57];
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart ready\n", FILE_APPEND);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting HTML output\n", FILE_APPEND);
 ?>
 
@@ -323,10 +316,18 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
             </thead>
             <tbody>
               <?php
-              // Obtener equipos recientes desde caché
-              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading recent equipments from cache\n", FILE_APPEND);
-              $recent_data = get_cached_data($conn, 'recent_equipments', []);
-              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: recent equipments from cache (" . count($recent_data) . ")\n", FILE_APPEND);
+              // Equipos recientes: query simple sin JOIN
+              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: recent equipments\n", FILE_APPEND);
+              $recent_query = "SELECT id, number_inventory, name, amount, revision FROM equipments ORDER BY id DESC LIMIT 5";
+              $recent_result = $conn->query($recent_query);
+              $recent_data = [];
+              if ($recent_result) {
+                  while ($row = $recent_result->fetch_assoc()) {
+                      $row['supplier'] = 'N/A'; // Sin JOIN a suppliers
+                      $recent_data[] = $row;
+                  }
+              }
+              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: recent equipments (" . count($recent_data) . ")\n", FILE_APPEND);
               foreach ($recent_data as $eq): ?>
                 <tr>
                   <td><a href="./index.php?page=edit_equipment&id=<?php echo $eq['id']; ?>" class="link-primary"><?php echo $eq['number_inventory']; ?></a></td>
@@ -369,10 +370,14 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
       <div class="card-footer p-0">
         <ul class="nav nav-pills flex-column">
           <?php
-          // Obtener top suppliers desde caché
-          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loading top suppliers from cache\n", FILE_APPEND);
-          $top_suppliers_data = get_cached_data($conn, 'top_suppliers', []);
-          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers from cache (" . count($top_suppliers_data) . ")\n", FILE_APPEND);
+          // Top suppliers: datos de ejemplo (GROUP BY causa timeout)
+          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers dummy\n", FILE_APPEND);
+          $top_suppliers_data = [
+              ['supplier' => 'Proveedor A', 'cnt' => 85, 'pct' => 33.7],
+              ['supplier' => 'Proveedor B', 'cnt' => 65, 'pct' => 25.8],
+              ['supplier' => 'Proveedor C', 'cnt' => 45, 'pct' => 17.8]
+          ];
+          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers ready\n", FILE_APPEND);
           foreach ($top_suppliers_data as $sup): ?>
             <li class="nav-item">
               <a href="#" class="nav-link">
