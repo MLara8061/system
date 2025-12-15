@@ -1159,29 +1159,46 @@ class Action {
             $this->ensure_acquisition_type_code_column();
         }
 
-        // Si es edición: code inmutable
+        // Duplicados por code (para crear o editar)
+        $code_esc = $this->db->real_escape_string($code);
+        if ($id > 0) {
+            $chk = $this->db->query("SELECT id FROM acquisition_type WHERE code = '{$code_esc}' AND id != {$id} LIMIT 1");
+        } else {
+            $chk = $this->db->query("SELECT id FROM acquisition_type WHERE code = '{$code_esc}' LIMIT 1");
+        }
+        if ($chk && $chk->num_rows > 0) {
+            return json_encode(['status' => 'duplicate_code']);
+        }
+
+        // Si se intenta CAMBIAR la clave y el tipo está en uso, bloquear
         if ($id > 0) {
             $current = $this->db->query("SELECT code FROM acquisition_type WHERE id = {$id} LIMIT 1");
             if (!$current || $current->num_rows === 0) {
                 return json_encode(['status' => 'error']);
             }
             $existing = strtoupper(trim($current->fetch_assoc()['code'] ?? ''));
-            if ($existing !== $code) {
-                return json_encode(['status' => 'error']);
-            }
-        } else {
-            $code_esc = $this->db->real_escape_string($code);
-            $chk = $this->db->query("SELECT id FROM acquisition_type WHERE code = '{$code_esc}' LIMIT 1");
-            if ($chk && $chk->num_rows > 0) {
-                return json_encode(['status' => 'duplicate_code']);
+            $isChangingCode = ($existing !== '' && $existing !== $code);
+            $isAddingCode = ($existing === '' && $code !== '');
+            if ($isChangingCode || $isAddingCode) {
+                $inUse = false;
+                if ($this->table_exists_local('inventory_config') && $this->column_exists_local('inventory_config', 'acquisition_type_id')) {
+                    $u = $this->db->query("SELECT id FROM inventory_config WHERE acquisition_type_id = {$id} LIMIT 1");
+                    if ($u && $u->num_rows > 0) $inUse = true;
+                }
+                if (!$inUse && $this->table_exists_local('equipment') && $this->column_exists_local('equipment', 'acquisition_type')) {
+                    $u = $this->db->query("SELECT id FROM equipment WHERE acquisition_type = {$id} LIMIT 1");
+                    if ($u && $u->num_rows > 0) $inUse = true;
+                }
+                if ($inUse && $isChangingCode) {
+                    return json_encode(['status' => 'in_use']);
+                }
             }
         }
 
-        $code_esc = $this->db->real_escape_string($code);
         $name_esc = $this->db->real_escape_string($name);
 
         if ($id > 0) {
-            $sql = "UPDATE acquisition_type SET name = '{$name_esc}' WHERE id = {$id}";
+            $sql = "UPDATE acquisition_type SET name = '{$name_esc}', code = '{$code_esc}' WHERE id = {$id}";
         } else {
             $sql = "INSERT INTO acquisition_type (name, code, active) VALUES ('{$name_esc}', '{$code_esc}', 1)";
         }

@@ -47,13 +47,7 @@ if ($id > 0) {
 
 		<div class="form-group">
 			<label class="control-label">CLAVE (2 o 3 caracteres)</label>
-			<?php if ($id > 0): ?>
-				<input type="text" class="form-control" value="<?php echo htmlspecialchars($code); ?>" disabled>
-				<input type="hidden" name="code" value="<?php echo htmlspecialchars($code); ?>">
-				<small class="text-muted">La CLAVE no se puede modificar.</small>
-			<?php else: ?>
-				<input type="text" name="code" class="form-control" required maxlength="3" placeholder="Ej: ADQ" value="<?php echo htmlspecialchars($code); ?>">
-			<?php endif; ?>
+			<input type="text" name="code" class="form-control" required maxlength="3" placeholder="Ej: ADQ" value="<?php echo htmlspecialchars($code); ?>">
 		</div>
 
 		<div class="form-group">
@@ -93,7 +87,7 @@ if ($id > 0) {
 					alert_toast('La CLAVE ya existe','warning');
 					end_loader();
 				}else if(resp && resp.status == 'in_use'){
-					alert_toast('No se puede modificar: está en uso','warning');
+					alert_toast('No se puede cambiar la CLAVE: está en uso','warning');
 					end_loader();
 				}else{
 					alert_toast('No se pudo guardar','error');
