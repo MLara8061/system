@@ -1,11 +1,11 @@
-<br>
+﻿<br>
 <div class="row">
 	<div class="container-fluid">
 		<div class="card card-outline card-primary">
 			<div class="card-header">
-				<h5 class="card-title">Categorías de Equipos (CLAVE + Descripción)</h5>
+				<h5 class="card-title">CategorÃ­as de Equipos (CLAVE + DescripciÃ³n)</h5>
 				<div class="card-tools">
-					<button class="btn btn-flat btn-primary btn-sm" type="button" id="new_data"><span class="fa fa-plus"></span> Nueva Categoría</button>
+					<button class="btn btn-flat btn-primary btn-sm" type="button" id="new_data"><span class="fa fa-plus"></span> Nueva CategorÃ­a</button>
 				</div>
 			</div>
 			<div class="card-body">
@@ -21,8 +21,8 @@
 							<tr>
 								<th>#</th>
 								<th>CLAVE</th>
-								<th>Descripción</th>
-								<th>Acción</th>
+								<th>DescripciÃ³n</th>
+								<th>AcciÃ³n</th>
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -45,7 +45,7 @@
 		}
 		start_loader();
 		$.ajax({
-			url:"ajax.php?action=load_equipment_category",
+			url:"public/ajax/action.php?action=load_equipment_category",
 			dataType: "json",
 			error: err=>{
 				console.log(err)
@@ -64,7 +64,7 @@
 							tr.append('<td><span class="truncate">'+data[k].description+'</span></td>')
 							tr.append('<td class="text-center"><div class="btn-group">'+
 								' <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">'+
-									'Acción'+
+									'AcciÃ³n'+
 									'<span class="sr-only">Toggle Dropdown</span>'+
 								'</button>'+
 								'<div class="dropdown-menu" role="menu" style="">'+
@@ -94,7 +94,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Equipo','manage_equipment_category.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar CategorÃ­a de Equipo','app/views/dashboard/settings/manage_equipment_category.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -103,7 +103,7 @@
 	function delete_data($id){
 		start_loader();
 		$.ajax({
-			url:"ajax.php?action=delete_equipment_category",
+			url:"public/ajax/action.php?action=delete_equipment_category",
 			method:'POST',
 			data:{id:$id},
 			dataType:'json',
@@ -114,7 +114,7 @@
 			},
 			success:function(resp){
 				if(!!resp.status && resp.status == 'success'){
-					alert_toast("Datos eliminados exitósamente.","success");
+					alert_toast("Datos eliminados exitÃ³samente.","success");
 					$('.modal').modal('hide');
 					end_loader();
 					load_data()
@@ -125,7 +125,8 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de equipo','manage_equipment_category.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categorÃ­a de equipo','app/views/dashboard/settings/manage_equipment_category.php')
 		})
 	})
 </script>
+

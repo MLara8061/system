@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config/config.php';
 
 // Asegurar tabla para evitar errores en instalaciones nuevas
@@ -41,8 +41,8 @@ if ($id > 0) {
 		</div>
 
 		<div class="form-group">
-			<label class="control-label">Descripción</label>
-			<input type="text" name="description" class="form-control" required placeholder="Ej: Equipo médico" value="<?php echo htmlspecialchars($description); ?>">
+			<label class="control-label">DescripciÃ³n</label>
+			<input type="text" name="description" class="form-control" required placeholder="Ej: Equipo mÃ©dico" value="<?php echo htmlspecialchars($description); ?>">
 		</div>
 	</form>
 </div>
@@ -60,7 +60,7 @@ if ($id > 0) {
 		e.preventDefault();
 		start_loader();
 		$.ajax({
-			url:'ajax.php?action=save_equipment_category',
+			url:'public/ajax/action.php?action=save_equipment_category',
 			method:'POST',
 			data: $(this).serialize(),
 			dataType:'json',
@@ -85,3 +85,4 @@ if ($id > 0) {
 		})
 	})
 </script>
+

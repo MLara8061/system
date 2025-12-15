@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $root = defined('ROOT') ? ROOT : realpath(__DIR__ . '/../../../../');
 require_once $root . '/config/config.php';
 ?>
@@ -29,7 +29,7 @@ if (isset($_GET['id'])) {
 		<input type="hidden" name="id" value="<?php echo $branch_id ?>">
 
 		<div class="form-group">
-			<label for="" class="control-label">Código</label>
+			<label for="" class="control-label">CÃ³digo</label>
 			<input type="text" class="form-control form-control-sm" name="code" value="<?php echo htmlspecialchars($code) ?>" required>
 			<small class="form-text text-muted">Ej: HAC</small>
 		</div>
@@ -59,7 +59,7 @@ if (isset($_GET['id'])) {
 		var formData = new FormData($(this)[0]);
 
 		$.ajax({
-			url: '/ajax.php?action=save_branch',
+			url: 'public/ajax/action.php?action=save_branch',
 			data: formData,
 			cache: false,
 			contentType: false,
@@ -73,7 +73,7 @@ if (isset($_GET['id'])) {
 						location.replace('/index.php?page=branches')
 					}, 750)
 				} else if (resp == 2) {
-					$('#msg').html("<div class='alert alert-danger'>El código ya existe</div>");
+					$('#msg').html("<div class='alert alert-danger'>El cÃ³digo ya existe</div>");
 					$('[name="code"]').addClass("border-danger")
 					end_load()
 				} else if (resp == 3) {
@@ -94,3 +94,4 @@ if (isset($_GET['id'])) {
 		})
 	})
 </script>
+

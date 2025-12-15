@@ -1,7 +1,7 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <?php
-// === NUEVOS CÁLCULOS SIN CANTIDAD ===
+// === NUEVOS CÃLCULOS SIN CANTIDAD ===
 $total_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools")->fetch_assoc()['total'];
 $activos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Activa'")->fetch_assoc()['total'];
 $inactivos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Inactiva'")->fetch_assoc()['total'];
@@ -83,7 +83,7 @@ $total_valor = $conn->query("SELECT SUM(costo) as total FROM tools")->fetch_asso
                         <th>Costo</th>
                         <th>Proveedor</th>
                         <th>Estatus</th>
-                        <th>Fecha Adquisición</th>
+                        <th>Fecha AdquisiciÃ³n</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -144,7 +144,7 @@ $(document).ready(function() {
             "sProcessing": "Procesando...",
             "sLengthMenu": "Mostrar _MENU_ registros",
             "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
+            "sEmptyTable": "NingÃºn dato disponible en esta tabla",
             "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
             "sInfoEmpty": "Mostrando 0 a 0 de 0 registros",
             "sInfoFiltered": "(filtrado de _MAX_ registros)",
@@ -152,7 +152,7 @@ $(document).ready(function() {
             "sLoadingRecords": "Cargando...",
             "oPaginate": {
                 "sFirst": "Primero",
-                "sLast": "Último",
+                "sLast": "Ãšltimo",
                 "sNext": "Siguiente",
                 "sPrevious": "Anterior"
             }
@@ -180,7 +180,7 @@ $(document).ready(function() {
             $(this).find('td').each(function(index) {
                 if (index < $(this).parent().find('td').length - 1) {
                     var cell = $(this);
-                    var text = cell.find('img').length > 0 ? 'Sí' :
+                    var text = cell.find('img').length > 0 ? 'SÃ­' :
                               cell.find('.badge').length > 0 ? cell.find('.badge').text().trim() :
                               cell.text().trim();
                     text = text.replace(/[$,]/g, '');
@@ -222,11 +222,11 @@ $(document).ready(function() {
     $(document).on('click', '.delete-tool', function() {
         const toolId = $(this).data('id');
         confirm_toast(
-            '¿Estás seguro de eliminar esta herramienta? Esta acción no se puede deshacer.',
+            'Â¿EstÃ¡s seguro de eliminar esta herramienta? Esta acciÃ³n no se puede deshacer.',
             function() {
                 start_load();
                 $.ajax({
-                    url: 'ajax.php?action=delete_tool',
+                    url: 'public/ajax/action.php?action=delete_tool',
                     method: 'POST',
                     data: { id: toolId },
                     success: function(resp) {
@@ -240,7 +240,7 @@ $(document).ready(function() {
                     },
                     error: function() {
                         end_load();
-                        alert_toast('Error de conexión', 'error');
+                        alert_toast('Error de conexiÃ³n', 'error');
                     }
                 });
             }

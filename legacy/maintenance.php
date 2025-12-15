@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <!-- Calendario -->
 <div class="col-lg-12">
@@ -30,13 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: 'ajax.php?action=get_maintenance_events', // Carga dinámica
+        events: 'public/ajax/action.php?action=get_maintenance_events', // Carga dinÃ¡mica
         eventClick: function(info) {
             alert('Mantenimiento: ' + info.event.title);
-            // Puedes abrir un modal aquí si lo deseas
+            // Puedes abrir un modal aquÃ­ si lo deseas
         }
     });
 
     calendar.render();
 });
 </script>
+

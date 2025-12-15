@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <?php
 // Tarjetas informativas (mes actual)
@@ -58,6 +58,61 @@ try {
 ?>
 
 <div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-calendar-check fa-2x text-primary mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Programados (mes)</h6>
+                        <h4 class="mb-0"><?= (int)$calendar_summary['total'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Completados (mes)</h6>
+                        <h4 class="mb-0"><?= (int)$calendar_summary['completed'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-hourglass-half fa-2x text-warning mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Pendientes (mes)</h6>
+                        <h4 class="mb-0"><?= (int)$calendar_summary['pending'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-clock fa-2x text-info mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">PrÃ³ximo</h6>
+                        <h4 class="mb-0">
+                            <?php
+                            if (!empty($calendar_summary['next_date'])) {
+                                echo date('d/m/Y', strtotime($calendar_summary['next_date']));
+                            } else {
+                                echo '<span class="text-muted">-</span>';
+                            }
+                            ?>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
@@ -70,62 +125,6 @@ try {
                     </div>
                 </div>
                 <div class="card-body p-2">
-
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                                <div class="card-body d-flex align-items-center">
-                                    <i class="fas fa-calendar-check fa-2x text-primary mr-3"></i>
-                                    <div>
-                                        <h6 class="mb-0 text-muted">Programados (mes)</h6>
-                                        <h4 class="mb-0"><?= (int)$calendar_summary['total'] ?></h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                                <div class="card-body d-flex align-items-center">
-                                    <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
-                                    <div>
-                                        <h6 class="mb-0 text-muted">Completados (mes)</h6>
-                                        <h4 class="mb-0"><?= (int)$calendar_summary['completed'] ?></h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                                <div class="card-body d-flex align-items-center">
-                                    <i class="fas fa-hourglass-half fa-2x text-warning mr-3"></i>
-                                    <div>
-                                        <h6 class="mb-0 text-muted">Pendientes (mes)</h6>
-                                        <h4 class="mb-0"><?= (int)$calendar_summary['pending'] ?></h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                                <div class="card-body d-flex align-items-center">
-                                    <i class="fas fa-clock fa-2x text-info mr-3"></i>
-                                    <div>
-                                        <h6 class="mb-0 text-muted">Próximo</h6>
-                                        <h4 class="mb-0">
-                                            <?php
-                                            if (!empty($calendar_summary['next_date'])) {
-                                                echo date('d/m/Y', strtotime($calendar_summary['next_date']));
-                                            } else {
-                                                echo '<span class="text-muted">-</span>';
-                                            }
-                                            ?>
-                                        </h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div id="calendar" style="font-size: 0.9rem;"></div>
                 </div>
             </div>
@@ -173,8 +172,8 @@ try {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            // Usar endpoint legacy que está en whitelist
-            events: 'ajax.php?action=get_mantenimientos',
+            // Usar endpoint legacy que estÃ¡ en whitelist
+            events: 'public/ajax/action.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
             },
@@ -186,7 +185,7 @@ try {
         // Asegurar ocultar overlay tras renderizar
         if (typeof end_load === 'function') { end_load(); }
 
-        // BOTÓN NUEVO
+        // BOTÃ“N NUEVO
         $('#btn-new').click(() => openModal());
     });
 
@@ -205,7 +204,7 @@ try {
         const hora = event.extendedProps.hora_programada || '';
         const fecha = event.startStr ? new Date(event.startStr).toLocaleDateString('es-MX') : '';
 
-        const message = `¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
+        const message = `Â¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
 
         const $modal = $('<div class="modal fade" tabindex="-1" role="dialog">\n' +
             '  <div class="modal-dialog" role="document">\n' +
@@ -232,7 +231,7 @@ try {
 
         $modal.on('click', '#confirm-complete', function() {
             start_load();
-            $.post('ajax.php?action=complete_maintenance', {
+            $.post('public/ajax/action.php?action=complete_maintenance', {
                 id: event.id
             }, function(resp) {
                 end_load();
@@ -247,7 +246,7 @@ try {
                 $modal.modal('hide');
             }).fail(function() {
                 end_load();
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
                 $modal.modal('hide');
             });
         });
@@ -301,7 +300,7 @@ try {
                         <input type="time" name="hora_programada" id="hora_programada" class="form-control form-control-sm">
                     </div>
                     <div class="form-group">
-                        <label>Descripción</label>
+                        <label>DescripciÃ³n</label>
                         <textarea name="descripcion" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                 </div>
@@ -321,7 +320,7 @@ try {
         start_load();
 
         $.ajax({
-            url: 'ajax.php?action=save_maintenance',
+            url: 'public/ajax/action.php?action=save_maintenance',
             method: 'POST',
             data: $(this).serialize(),
             success: function(resp) {
@@ -330,10 +329,10 @@ try {
                 if (resp === '1') {
                     alert_toast('Mantenimiento guardado', 'success');
                     $('#maintenanceModal').modal('hide');
-                    // RECARGAR PÁGINA PARA EVITAR ERRORES DE FULLCALENDAR
+                    // RECARGAR PÃGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
                 } else if (resp === '-1') {
-                    alert_toast('⚠ Esta fecha ya tiene el máximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');
+                    alert_toast('âš  Esta fecha ya tiene el mÃ¡ximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');
                 } else {
                     console.error('Respuesta inesperada:', resp);
                     alert_toast('Error al guardar', 'error');
@@ -342,7 +341,7 @@ try {
             error: function(xhr) {
                 end_load();
                 console.error('AJAX Error:', xhr.responseText);
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
             }
         });
     });

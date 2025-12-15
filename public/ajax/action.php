@@ -41,7 +41,7 @@ if (!$isPublicAction) {
 ob_start();
 
 try {
-    include ROOT . '/admin_class.php';
+    include ROOT . '/legacy/admin_class.php';
     $crud = new Action();
 } catch (Exception $e) {
     ob_end_clean();
@@ -433,6 +433,64 @@ if ($action == 'get_locations_by_department') {
         echo json_encode(['error' => $e->getMessage()]);
     }
     exit;
+}
+
+if ($action == 'get_next_inventory_number') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $branch_id = isset($_POST['branch_id']) ? (int)$_POST['branch_id'] : 0;
+    $acquisition_type_id = isset($_POST['acquisition_type_id']) ? (int)$_POST['acquisition_type_id'] : (isset($_POST['acquisition_type']) ? (int)$_POST['acquisition_type'] : 0);
+    $equipment_category_id = isset($_POST['equipment_category_id']) ? (int)$_POST['equipment_category_id'] : 0;
+
+    if ($branch_id <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Branch ID requerido']);
+        exit;
+    }
+
+    if ($acquisition_type_id <= 0 || $equipment_category_id <= 0) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Selecciona tipo de adquisición y categoría para generar el número'
+        ]);
+        exit;
+    }
+
+    try {
+        // Validaciones rápidas de existencia (evita fallos silenciosos)
+        if (isset($conn) && $conn) {
+            $chk = @$conn->query("SELECT id FROM branches WHERE id = {$branch_id} LIMIT 1");
+            if (!$chk || $chk->num_rows === 0) {
+                echo json_encode(['success' => false, 'error' => 'Sucursal inválida']);
+                exit;
+            }
+            $chk = @$conn->query("SELECT id FROM acquisition_type WHERE id = {$acquisition_type_id} LIMIT 1");
+            if (!$chk || $chk->num_rows === 0) {
+                echo json_encode(['success' => false, 'error' => 'Tipo de adquisición inválido']);
+                exit;
+            }
+            $chk = @$conn->query("SELECT id FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+            if (!$chk || $chk->num_rows === 0) {
+                echo json_encode(['success' => false, 'error' => 'Categoría inválida']);
+                exit;
+            }
+        }
+
+        $number = $crud->get_next_inventory_number($branch_id, $acquisition_type_id, $equipment_category_id);
+        if (!$number) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'No se pudo generar el número de inventario (revisa código de sucursal y clave de categoría)'
+            ]);
+            exit;
+        }
+
+        echo json_encode(['success' => true, 'number' => $number]);
+        exit;
+    } catch (Throwable $e) {
+        error_log('ACTION get_next_inventory_number THROWABLE: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Error interno al generar el número de inventario']);
+        exit;
+    }
 }
 
 if ($action == 'get_positions_by_department') {

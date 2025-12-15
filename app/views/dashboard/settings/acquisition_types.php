@@ -1,9 +1,9 @@
-<br>
+﻿<br>
 <div class="row">
 	<div class="container-fluid">
 		<div class="card card-outline card-primary">
 			<div class="card-header">
-				<h5 class="card-title">Tipos de Adquisición (CLAVE + Descripción)</h5>
+				<h5 class="card-title">Tipos de AdquisiciÃ³n (CLAVE + DescripciÃ³n)</h5>
 				<div class="card-tools">
 					<button class="btn btn-flat btn-primary btn-sm" type="button" id="new_data"><span class="fa fa-plus"></span> Nuevo Tipo</button>
 				</div>
@@ -21,8 +21,8 @@
 							<tr>
 								<th>#</th>
 								<th>CLAVE</th>
-								<th>Descripción</th>
-								<th>Acción</th>
+								<th>DescripciÃ³n</th>
+								<th>AcciÃ³n</th>
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -44,7 +44,7 @@
 		}
 		start_loader();
 		$.ajax({
-			url:"ajax.php?action=load_acquisition_type",
+			url:"public/ajax/action.php?action=load_acquisition_type",
 			dataType: "json",
 			error: err=>{
 				console.log(err)
@@ -63,7 +63,7 @@
 							tr.append('<td><span class="truncate">'+ (data[k].name || '') +'</span></td>')
 							tr.append('<td class="text-center"><div class="btn-group">'+
 								' <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">'+
-									'Acción'+
+									'AcciÃ³n'+
 									'<span class="sr-only">Toggle Dropdown</span>'+
 								'</button>'+
 								'<div class="dropdown-menu" role="menu" style="">'+
@@ -93,7 +93,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Tipo de Adquisición','manage_acquisition_type.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Tipo de AdquisiciÃ³n','app/views/dashboard/settings/manage_acquisition_type.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -103,7 +103,7 @@
 	function delete_data($id){
 		start_loader();
 		$.ajax({
-			url:"ajax.php?action=delete_acquisition_type",
+			url:"public/ajax/action.php?action=delete_acquisition_type",
 			method:'POST',
 			data:{id:$id},
 			dataType:'json',
@@ -114,12 +114,12 @@
 			},
 			success:function(resp){
 				if(!!resp.status && resp.status == 'success'){
-					alert_toast("Datos eliminados exitósamente.","success");
+					alert_toast("Datos eliminados exitÃ³samente.","success");
 					$('.modal').modal('hide');
 					end_loader();
 					load_data()
 				}else if(resp && resp.status == 'in_use'){
-					alert_toast("No se puede eliminar: está en uso","warning");
+					alert_toast("No se puede eliminar: estÃ¡ en uso","warning");
 					end_loader();
 				}
 			}
@@ -129,7 +129,8 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear un nuevo tipo de adquisición','manage_acquisition_type.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear un nuevo tipo de adquisiciÃ³n','app/views/dashboard/settings/manage_acquisition_type.php')
 		})
 	})
 </script>
+

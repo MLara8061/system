@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <?php
 // Filtro multi-sucursal (admin con branch_id=0 => sin filtro)
@@ -84,9 +84,9 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                         <th>Modelo</th>
                         <th>Serie</th>
                         <th>Inventario</th>
-                        <th>Área</th>
+                        <th>Ãrea</th>
                         <th>Costo</th>
-                        <th>Adquisición</th>
+                        <th>AdquisiciÃ³n</th>
                         <th>Fecha</th>
                         <th>Status</th>
                         <th class="text-center">Acciones</th>
@@ -125,7 +125,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                             <td><?= $row['model'] ?? '-' ?></td>
                             <td><?= $row['serial'] ?? '-' ?></td>
                             <td>#<?= $row['inventory_number'] ?></td>
-                            <td><?= ucwords($row['area_name'] ?? 'Sin área') ?></td>
+                            <td><?= ucwords($row['area_name'] ?? 'Sin Ã¡rea') ?></td>
                             <td>$<?= number_format($row['cost'], 2) ?></td>
                             <td><small><?= ucwords($row['acquisition_name'] ?? 'N/A') ?></small></td>
                             <td><small><?= date('d/m/Y', strtotime($row['acquisition_date'])) ?></small></td>
@@ -162,7 +162,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
 </div>
 
 <style>
-    /* SIN ANIMACIÓN */
+    /* SIN ANIMACIÃ“N */
     .card { transition: none !important; }
 
     /* SIN FONDO AZUL EN INVENTARIO */
@@ -190,17 +190,17 @@ $(document).ready(function() {
             { className: "text-center", targets: [0, 6, 11, 12] }
         ],
         info: false,         /* Ocultar "Mostrando 1 a X de Y entradas" */
-        lengthChange: false  /* Ocultar selector de filas por página */
+        lengthChange: false  /* Ocultar selector de filas por pÃ¡gina */
     });
 
     $('#export-excel').click(function(e) {
         e.preventDefault();
         let table = $('#accessory-table').DataTable();
         let data = table.rows({ search: 'applied' }).data();
-        let rows = [['Imagen','Nombre','Tipo','Marca','Modelo','Serie','Inventario','Área','Costo','Adquisición','Fecha','Status']];
+        let rows = [['Imagen','Nombre','Tipo','Marca','Modelo','Serie','Inventario','Ãrea','Costo','AdquisiciÃ³n','Fecha','Status']];
 
         data.each(function(row) {
-            let img = $(row[0]).find('img').length ? 'Sí' : 'No';
+            let img = $(row[0]).find('img').length ? 'SÃ­' : 'No';
             rows.push([
                 img,
                 $(row[1]).text(),
@@ -234,10 +234,10 @@ $(document).ready(function() {
     $(document).on('click', '.delete-accessory', function() {
         let id = $(this).data('id');
         confirm_toast(
-            '¿Estás seguro de eliminar este accesorio? Esta acción no se puede deshacer.',
+            'Â¿EstÃ¡s seguro de eliminar este accesorio? Esta acciÃ³n no se puede deshacer.',
             function() {
                 start_load();
-                $.post('ajax.php?action=delete_accessory', { id: id }, function(resp) {
+                $.post('public/ajax/action.php?action=delete_accessory', { id: id }, function(resp) {
                     end_load();
                     if (resp == 1) {
                         alert_toast('Accesorio eliminado correctamente', 'success');
@@ -247,7 +247,7 @@ $(document).ready(function() {
                     }
                 }).fail(function() {
                     end_load();
-                    alert_toast('Error de conexión', 'error');
+                    alert_toast('Error de conexiÃ³n', 'error');
                 });
             }
         );

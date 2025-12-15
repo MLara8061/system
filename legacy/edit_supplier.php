@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config/config.php';
 $id = $_GET['id'] ?? '';
 if (empty($id)) {
@@ -49,7 +49,7 @@ $supplier = $qry->fetch_assoc();
                             <label class="font-weight-bold text-dark">Sector</label>
                             <input type="text" name="sector" class="form-control" 
                                    value="<?= htmlspecialchars($supplier['sector'] ?? '') ?>" 
-                                   placeholder="Ej: Tecnología, Médico">
+                                   placeholder="Ej: TecnologÃ­a, MÃ©dico">
                         </div>
                     </div>
 
@@ -63,10 +63,10 @@ $supplier = $qry->fetch_assoc();
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">Teléfono</label>
+                            <label class="font-weight-bold text-dark">TelÃ©fono</label>
                             <input type="text" name="telefono" class="form-control solonumeros" maxlength="10" 
                                    value="<?= htmlspecialchars($supplier['telefono'] ?? '') ?>" 
-                                   placeholder="10 dígitos">
+                                   placeholder="10 dÃ­gitos">
                         </div>
 
                         <div class="form-group">
@@ -87,7 +87,7 @@ $supplier = $qry->fetch_assoc();
                         <div class="form-group">
                             <label class="font-weight-bold text-dark">Notas</label>
                             <textarea name="notas" class="form-control" rows="4" 
-                                      placeholder="Información adicional..."><?= htmlspecialchars($supplier['notas'] ?? '') ?></textarea>
+                                      placeholder="InformaciÃ³n adicional..."><?= htmlspecialchars($supplier['notas'] ?? '') ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -127,7 +127,7 @@ $supplier = $qry->fetch_assoc();
 </style>
 
 <script>
-    // Solo números
+    // Solo nÃºmeros
     $('.solonumeros').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
@@ -151,7 +151,7 @@ $supplier = $qry->fetch_assoc();
         });
     });
 
-    // Enviar edición
+    // Enviar ediciÃ³n
     $('#manage_supplier').submit(function(e) {
         e.preventDefault();
 
@@ -162,7 +162,7 @@ $supplier = $qry->fetch_assoc();
 
         start_load();
         $.ajax({
-            url: 'ajax.php?action=save_supplier',
+            url: 'public/ajax/action.php?action=save_supplier',
             data: new FormData(this),
             cache: false,
             contentType: false,
@@ -184,7 +184,7 @@ $supplier = $qry->fetch_assoc();
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
             }
         });
     });

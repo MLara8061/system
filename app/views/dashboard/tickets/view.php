@@ -1,8 +1,8 @@
-<?php define('ACCESS', true); require_once 'config/config.php'; ?>
+﻿<?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
-// Consulta adaptada para soportar tickets públicos (sin customer_id)
+// Consulta adaptada para soportar tickets pÃºblicos (sin customer_id)
 $qry = $conn->query("SELECT t.*, 
-    COALESCE(CONCAT(c.lastname,', ',c.firstname,' ',c.middlename), t.reporter_name, 'Cliente Público') as cname, 
+    COALESCE(CONCAT(c.lastname,', ',c.firstname,' ',c.middlename), t.reporter_name, 'Cliente PÃºblico') as cname, 
     COALESCE(d.name, 'Sin Departamento') as dname,
     t.is_public,
     t.reporter_email,
@@ -20,7 +20,7 @@ foreach ($qry as $k => $v) {
 	$$k = $v;
 }
 
-// Variables adicionales para tickets públicos
+// Variables adicionales para tickets pÃºblicos
 $is_public_ticket = isset($is_public) && $is_public == 1;
 ?>
 <style>
@@ -69,16 +69,16 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 					<h4 class="mb-0">
 						<i class="fas fa-ticket-alt"></i> Detalles del Ticket
 						<?php if ($is_public_ticket): ?>
-							<span class="badge badge-warning ml-2"><i class="fas fa-qrcode"></i> Reporte Público</span>
+							<span class="badge badge-warning ml-2"><i class="fas fa-qrcode"></i> Reporte PÃºblico</span>
 						<?php endif; ?>
 					</h4>
 				</div>
 				<div class="card-body">
 					<?php if ($is_public_ticket): ?>
-					<!-- Información adicional para tickets públicos -->
+					<!-- InformaciÃ³n adicional para tickets pÃºblicos -->
 					<div class="alert alert-info mb-3">
-						<h6 class="mb-2"><i class="fas fa-info-circle"></i> Ticket Público</h6>
-						<p class="mb-1"><strong>N° Ticket:</strong> <?php echo htmlspecialchars($ticket_number ?? 'N/A'); ?></p>
+						<h6 class="mb-2"><i class="fas fa-info-circle"></i> Ticket PÃºblico</h6>
+						<p class="mb-1"><strong>NÂ° Ticket:</strong> <?php echo htmlspecialchars($ticket_number ?? 'N/A'); ?></p>
 						<?php if (!empty($equipment_name)): ?>
 						<p class="mb-1"><strong>Equipo:</strong> <?php echo htmlspecialchars($equipment_name); ?> 
 							<?php if (!empty($number_inventory)): ?>
@@ -91,7 +91,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 						<p class="mb-1"><strong>Email:</strong> <?php echo htmlspecialchars($reporter_email); ?></p>
 						<?php endif; ?>
 						<?php if (!empty($reporter_phone)): ?>
-						<p class="mb-0"><strong>Teléfono:</strong> <?php echo htmlspecialchars($reporter_phone); ?></p>
+						<p class="mb-0"><strong>TelÃ©fono:</strong> <?php echo htmlspecialchars($reporter_phone); ?></p>
 						<?php endif; ?>
 					</div>
 					<?php endif; ?>
@@ -138,7 +138,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 						</div>
 						<hr>
 						<div class="bg-light p-3 rounded">
-							<label class="font-weight-bold"><i class="fas fa-align-left text-primary"></i> Descripción</label>
+							<label class="font-weight-bold"><i class="fas fa-align-left text-primary"></i> DescripciÃ³n</label>
 							<?php echo html_entity_decode($description) ?>
 						</div>
 						
@@ -205,7 +205,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 						else : ?>
 							<div class="text-center text-muted py-4">
 								<i class="fas fa-comment-slash fa-3x mb-2"></i>
-								<p>No hay comentarios aún</p>
+								<p>No hay comentarios aÃºn</p>
 							</div>
 						<?php endif; ?>
 					</div>
@@ -254,7 +254,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 		e.preventDefault()
 		start_load()
 		$.ajax({
-			url: 'ajax.php?action=save_comment',
+			url: 'public/ajax/action.php?action=save_comment',
 			data: new FormData($(this)[0]),
 			cache: false,
 			contentType: false,
@@ -272,13 +272,13 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 		})
 	})
 	$('.delete_comment').click(function() {
-		_conf("¿Deseas eliminar este comentario?", "delete_comment", [$(this).attr('data-id')])
+		_conf("Â¿Deseas eliminar este comentario?", "delete_comment", [$(this).attr('data-id')])
 	})
 
 	function delete_comment($id) {
 		start_load()
 		$.ajax({
-			url: 'ajax.php?action=delete_comment',
+			url: 'public/ajax/action.php?action=delete_comment',
 			method: 'POST',
 			data: {
 				id: $id

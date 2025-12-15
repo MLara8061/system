@@ -20,7 +20,7 @@
         <i class="fas fa-user-cog mr-2"></i> Mi Cuenta
       </a>
       <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="ajax.php?action=logout">
+      <a class="dropdown-item" href="./public/ajax/logout.php">
         <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
       </a>
     </div>
@@ -151,7 +151,7 @@
         </li>
         
         <li class="nav-item">
-          <a href="manual_usuario_pdf.php" target="_blank" class="nav-link">
+          <a href="app/helpers/manual_usuario_pdf.php" target="_blank" class="nav-link">
             <i class="fas fa-book nav-icon"></i>
             <p>Manual de Usuario</p>
           </a>

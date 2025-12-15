@@ -1,11 +1,11 @@
-<?php 
-// Incluir configuración y conexión a base de datos
+﻿<?php 
+// Incluir configuraciÃ³n y conexiÃ³n a base de datos
 if (file_exists(__DIR__ . '/config/config.php')) {
     require_once __DIR__ . '/config/config.php';
 } elseif (file_exists(__DIR__ . '/db_connect.php')) {
     include __DIR__ . '/db_connect.php';
 } else {
-    die('Error: No se encuentra el archivo de configuración');
+    die('Error: No se encuentra el archivo de configuraciÃ³n');
 }
 ?>
 
@@ -20,21 +20,21 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                     <strong><i class="fas fa-info-circle"></i> Instrucciones de uso:</strong>
                     <ol class="mt-3 mb-2">
                         <li><strong>Descarga la plantilla Excel</strong> con listas desplegables y validaciones pre-configuradas</li>
-                        <li><strong>Completa los datos</strong> de los equipos (las columnas amarillas tienen listas desplegables ▼)</li>
-                        <li><strong>Guarda el archivo</strong> y súbelo usando el formulario de abajo</li>
+                        <li><strong>Completa los datos</strong> de los equipos (las columnas amarillas tienen listas desplegables â–¼)</li>
+                        <li><strong>Guarda el archivo</strong> y sÃºbelo usando el formulario de abajo</li>
                     </ol>
                     
                     <div class="mt-3 p-3" style="background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
                         <strong><i class="fas fa-exclamation-triangle text-warning"></i> Campos obligatorios en el Excel:</strong>
                         <ul class="mb-2 mt-2">
-                            <li><strong>Serie</strong> - Número único del equipo</li>
+                            <li><strong>Serie</strong> - NÃºmero Ãºnico del equipo</li>
                             <li><strong>Nombre</strong> - Nombre descriptivo</li>
                             <li><strong>Modelo</strong> - Modelo del equipo</li>
-                            <li><strong>Tipo de Adquisición</strong> - Seleccionar de la lista desplegable (columna F, amarilla)</li>
+                            <li><strong>Tipo de AdquisiciÃ³n</strong> - Seleccionar de la lista desplegable (columna F, amarilla)</li>
                             <li><strong>Disciplina</strong> - Seleccionar de la lista desplegable (columna G, amarilla)</li>
                             <li><strong>Proveedor</strong> - Seleccionar de la lista desplegable (columna H, amarilla)</li>
                             <li><strong>Departamento</strong> - Seleccionar de la lista desplegable (columna N, amarilla)</li>
-                            <li><strong>Ubicación</strong> - Seleccionar de la lista desplegable (columna O, amarilla)</li>
+                            <li><strong>UbicaciÃ³n</strong> - Seleccionar de la lista desplegable (columna O, amarilla)</li>
                             <li><strong>Responsable</strong> - Nombre completo de la persona responsable</li>
                         </ul>
                     </div>
@@ -42,10 +42,10 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                     <div class="mt-3 p-3" style="background-color: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 5px;">
                         <strong><i class="fas fa-lightbulb text-info"></i> Datos adicionales que puedes incluir:</strong>
                         <ul class="mb-2 mt-2">
-                            <li><strong>Marca, Valor, Cantidad, Características</strong> - Información básica del equipo</li>
-                            <li><strong>Voltaje, Amperaje, Frecuencia</strong> - Especificaciones eléctricas (columnas K, L, M)</li>
+                            <li><strong>Marca, Valor, Cantidad, CaracterÃ­sticas</strong> - InformaciÃ³n bÃ¡sica del equipo</li>
+                            <li><strong>Voltaje, Amperaje, Frecuencia</strong> - Especificaciones elÃ©ctricas (columnas K, L, M)</li>
                             <li><strong>Cargo Responsable</strong> - Lista desplegable (columna Q, amarilla)</li>
-                            <li><strong>Fecha Capacitación, Factura, Garantía, Fecha Adquisición</strong> - Información adicional</li>
+                            <li><strong>Fecha CapacitaciÃ³n, Factura, GarantÃ­a, Fecha AdquisiciÃ³n</strong> - InformaciÃ³n adicional</li>
                         </ul>
                     </div>
                     
@@ -53,10 +53,10 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                         <strong><i class="fas fa-check-circle text-success"></i> Notas importantes:</strong>
                         <ul class="mb-0 mt-2">
                             <li>Las <strong>columnas amarillas (F, G, H, N, O, Q)</strong> tienen listas desplegables con datos de tu sistema</li>
-                            <li>Haz <strong>clic en la celda</strong> para ver la flecha del desplegable (▼)</li>
-                            <li>Las <strong>filas de ejemplo</strong> (EQ-001-2024, EQ-002-2024, EQ-003-2024) se omiten automáticamente</li>
-                            <li>Todos los equipos importados tendrán <strong>Mantenimiento Preventivo</strong> por defecto</li>
-                            <li>Si hay <strong>especificaciones eléctricas</strong> (voltaje y amperaje), la potencia se calcula automáticamente</li>
+                            <li>Haz <strong>clic en la celda</strong> para ver la flecha del desplegable (â–¼)</li>
+                            <li>Las <strong>filas de ejemplo</strong> (EQ-001-2024, EQ-002-2024, EQ-003-2024) se omiten automÃ¡ticamente</li>
+                            <li>Todos los equipos importados tendrÃ¡n <strong>Mantenimiento Preventivo</strong> por defecto</li>
+                            <li>Si hay <strong>especificaciones elÃ©ctricas</strong> (voltaje y amperaje), la potencia se calcula automÃ¡ticamente</li>
                             <li>La plantilla tiene <strong>21 columnas (A-U)</strong> con instrucciones al final del archivo</li>
                         </ul>
                     </div>
@@ -79,7 +79,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                         <div class="card shadow-sm" style="border-top: 3px solid #007bff;">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-truck text-primary"></i> Gestionar Proveedores</h5>
-                                <p class="card-text text-muted">Verifica que los proveedores estén registrados (opcional).</p>
+                                <p class="card-text text-muted">Verifica que los proveedores estÃ©n registrados (opcional).</p>
                                 <a href="index.php?page=suppliers" class="btn btn-primary btn-block">
                                     <i class="fas fa-list"></i> Ver Lista de Proveedores
                                 </a>
@@ -100,7 +100,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                                     <input type="file" name="excel_file" class="custom-file-input" id="excel_file" accept=".xlsx,.xls" required>
                                     <label class="custom-file-label" for="excel_file">Seleccionar archivo...</label>
                                 </div>
-                                <small class="form-text text-muted"><i class="fas fa-info-circle"></i> Formatos permitidos: .xlsx, .xls (máximo 10MB)</small>
+                                <small class="form-text text-muted"><i class="fas fa-info-circle"></i> Formatos permitidos: .xlsx, .xls (mÃ¡ximo 10MB)</small>
                             </div>
                             
                             <div class="form-group mt-3">
@@ -111,7 +111,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                                             <label class="custom-control-label" for="update_existing">
                                                 <strong><i class="fas fa-sync-alt text-info"></i> Actualizar equipos existentes</strong>
                                                 <br>
-                                                <small class="text-muted">Si está marcado, los equipos con series duplicadas se actualizarán con los nuevos datos del Excel. Si no está marcado, se omitirán y se reportarán como errores.</small>
+                                                <small class="text-muted">Si estÃ¡ marcado, los equipos con series duplicadas se actualizarÃ¡n con los nuevos datos del Excel. Si no estÃ¡ marcado, se omitirÃ¡n y se reportarÃ¡n como errores.</small>
                                             </label>
                                         </div>
                                     </div>
@@ -161,7 +161,7 @@ $('#upload-excel-form').submit(function(e) {
     var formData = new FormData(this);
     formData.append('action', 'upload_excel_equipment');
     
-    // Validar que se seleccionó un archivo
+    // Validar que se seleccionÃ³ un archivo
     if (!$('#excel_file')[0].files.length) {
         alert('Por favor selecciona un archivo Excel');
         return;
@@ -176,17 +176,17 @@ $('#upload-excel-form').submit(function(e) {
                 </div>
                 <div>
                     <strong><i class="fas fa-sync-alt"></i> Procesando archivo...</strong><br>
-                    <small>Esto puede tomar varios minutos dependiendo del tamaño del archivo. Por favor espere.</small>
+                    <small>Esto puede tomar varios minutos dependiendo del tamaÃ±o del archivo. Por favor espere.</small>
                 </div>
             </div>
         </div>
     `);
     
-    // Deshabilitar botón
+    // Deshabilitar botÃ³n
     $('#upload-excel-form button[type="submit"]').prop('disabled', true);
     
     $.ajax({
-        url: 'ajax.php',
+        url: 'public/ajax/action.php',
         method: 'POST',
         data: formData,
         processData: false,
@@ -238,7 +238,7 @@ $('#upload-excel-form').submit(function(e) {
                     $('#upload-excel-form')[0].reset();
                     $('.custom-file-label').text('Seleccionar archivo...');
                     
-                    // Recargar después de 4 segundos si no hubo errores
+                    // Recargar despuÃ©s de 4 segundos si no hubo errores
                     if (!data.errors || data.errors.length == 0) {
                         setTimeout(function() {
                             location.href = 'index.php?page=equipment_list';
@@ -263,14 +263,14 @@ $('#upload-excel-form').submit(function(e) {
                         <h5><i class="fas fa-times-circle"></i> Error al procesar la respuesta</h5>
                         <p>La respuesta del servidor no tiene el formato esperado.</p>
                         <details>
-                            <summary style="cursor: pointer;">Ver detalles técnicos</summary>
+                            <summary style="cursor: pointer;">Ver detalles tÃ©cnicos</summary>
                             <pre class="mt-2 p-2 bg-light" style="border-radius: 5px;">` + resp + `</pre>
                         </details>
                     </div>
                 `);
             }
             
-            // Rehabilitar botón
+            // Rehabilitar botÃ³n
             $('#upload-excel-form button[type="submit"]').prop('disabled', false);
         },
         error: function(xhr, status, error) {
@@ -278,15 +278,16 @@ $('#upload-excel-form').submit(function(e) {
             $('#upload-result').html(`
                 <div class="alert alert-danger alert-dismissible fade show shadow-sm" style="border-left: 4px solid #dc3545;">
                     <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <h5><i class="fas fa-times-circle"></i> Error de conexión</h5>
-                    <p>No se pudo conectar con el servidor. Por favor verifica tu conexión e intenta nuevamente.</p>
-                    <small class="text-muted">Error técnico: ` + error + `</small>
+                    <h5><i class="fas fa-times-circle"></i> Error de conexiÃ³n</h5>
+                    <p>No se pudo conectar con el servidor. Por favor verifica tu conexiÃ³n e intenta nuevamente.</p>
+                    <small class="text-muted">Error tÃ©cnico: ` + error + `</small>
                 </div>
             `);
             
-            // Rehabilitar botón
+            // Rehabilitar botÃ³n
             $('#upload-excel-form button[type="submit"]').prop('disabled', false);
         }
     });
 });
 </script>
+

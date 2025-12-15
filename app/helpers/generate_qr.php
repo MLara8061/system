@@ -1,5 +1,11 @@
 <?php
 $root = dirname(__DIR__, 2);
+require_once $root . '/config/session.php';
+if (!validate_session()) {
+    http_response_code(401);
+    exit;
+}
+
 require_once $root . '/lib/phpqrcode/qrlib.php';
 
 // Aseguramos que recibimos el parámetro "id"
@@ -103,27 +109,8 @@ try {
     // No-op: si falla, se mantiene QR con URL simple
 }
 
-// DEPURACIÓN: Mostrar valores si se pasa debug=1
-if (isset($_GET['debug'])) {
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "=== DEBUG GENERATE_QR.PHP ===\n\n";
-    echo "HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? 'NO DEFINIDO') . "\n";
-    echo "SERVER_NAME: " . ($_SERVER['SERVER_NAME'] ?? 'NO DEFINIDO') . "\n";
-    echo "HTTPS: " . ($_SERVER['HTTPS'] ?? 'NO DEFINIDO') . "\n";
-    echo "ENVIRONMENT: " . ENVIRONMENT . "\n";
-    echo "BASE_URL: " . BASE_URL . "\n\n";
-    
-    echo "URL (BASE_URL): " . BASE_URL . "/equipment_public.php?id=$id\n\n";
-    
-    // Verificar detección localhost
-    $is_localhost = (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false || 
-                     strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false);
-    echo "¿Es localhost? " . ($is_localhost ? 'SÍ' : 'NO') . "\n";
-    exit;
-}
-
 // Usar siempre BASE_URL que ya detecta automáticamente el dominio correcto
-$url = BASE_URL . '/equipment_public.php?id=' . $id;
+$url = BASE_URL . '/legacy/equipment_public.php?id=' . $id;
 if (!empty($extra_qs)) {
     $url .= '&' . http_build_query($extra_qs);
 }

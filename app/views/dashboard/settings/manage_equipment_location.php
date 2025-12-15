@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php
 $department_id = '';
 if(isset($_GET['id'])){
@@ -15,7 +15,7 @@ if(isset($_GET['id'])){
     <input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
     
     <div class="form-group">
-      <label class="control-label">Nombre de la Ubicación</label>
+      <label class="control-label">Nombre de la UbicaciÃ³n</label>
       <input type="text" name="name" class="form-control" required value="<?php echo isset($name) ? $name : '' ?>">
     </div>
     
@@ -32,7 +32,7 @@ if(isset($_GET['id'])){
           </option>
         <?php endwhile; ?>
       </select>
-      <small class="form-text text-muted">Opcional: Asigna esta ubicación a un departamento</small>
+      <small class="form-text text-muted">Opcional: Asigna esta ubicaciÃ³n a un departamento</small>
     </div>
   </form>
 </div>
@@ -42,7 +42,7 @@ if(isset($_GET['id'])){
     e.preventDefault();
     start_load();
     $.ajax({
-      url:'ajax.php?action=save_equipment_location',
+      url:'public/ajax/action.php?action=save_equipment_location',
       data: new FormData($(this)[0]),
       cache: false,
       contentType: false,
@@ -50,12 +50,12 @@ if(isset($_GET['id'])){
       method: 'POST',
       success:function(resp){
         if(resp == 1){
-          alert_toast("Ubicación agregada correctamente", 'success');
+          alert_toast("UbicaciÃ³n agregada correctamente", 'success');
           setTimeout(function(){
             location.reload();
           },1500);
         } else if(resp == 2){
-          alert_toast("Ubicación actualizada correctamente", 'success');
+          alert_toast("UbicaciÃ³n actualizada correctamente", 'success');
           setTimeout(function(){
             location.reload();
           },1500);
@@ -64,3 +64,4 @@ if(isset($_GET['id'])){
     });
   });
 </script>
+

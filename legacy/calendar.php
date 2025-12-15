@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <div class="container-fluid">
     <div class="row">
@@ -60,7 +60,7 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            events: 'ajax.php?action=get_mantenimientos',
+            events: 'public/ajax/action.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
             },
@@ -70,7 +70,7 @@
         });
         calendar.render();
 
-        // BOTÓN NUEVO
+        // BOTÃ“N NUEVO
         $('#btn-new').click(() => openModal());
     });
 
@@ -89,7 +89,7 @@
         const hora = event.extendedProps.hora_programada || '';
         const fecha = event.startStr ? new Date(event.startStr).toLocaleDateString('es-MX') : '';
 
-        const message = `¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
+        const message = `Â¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
 
         const $modal = $('<div class="modal fade" tabindex="-1" role="dialog">\n' +
             '  <div class="modal-dialog" role="document">\n' +
@@ -116,7 +116,7 @@
 
         $modal.on('click', '#confirm-complete', function() {
             start_load();
-            $.post('ajax.php?action=complete_maintenance', {
+            $.post('public/ajax/action.php?action=complete_maintenance', {
                 id: event.id
             }, function(resp) {
                 end_load();
@@ -131,7 +131,7 @@
                 $modal.modal('hide');
             }).fail(function() {
                 end_load();
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
                 $modal.modal('hide');
             });
         });
@@ -185,7 +185,7 @@
                         <input type="time" name="hora_programada" id="hora_programada" class="form-control form-control-sm">
                     </div>
                     <div class="form-group">
-                        <label>Descripción</label>
+                        <label>DescripciÃ³n</label>
                         <textarea name="descripcion" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                 </div>
@@ -205,7 +205,7 @@
         start_load();
 
         $.ajax({
-            url: 'ajax.php?action=save_maintenance',
+            url: 'public/ajax/action.php?action=save_maintenance',
             method: 'POST',
             data: $(this).serialize(),
             success: function(resp) {
@@ -214,7 +214,7 @@
                 if (resp === '1') {
                     alert_toast('Mantenimiento guardado', 'success');
                     $('#maintenanceModal').modal('hide');
-                    // RECARGAR PÁGINA PARA EVITAR ERRORES DE FULLCALENDAR
+                    // RECARGAR PÃGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
                 } else {
                     console.error('Respuesta inesperada:', resp);
@@ -224,7 +224,7 @@
             error: function(xhr) {
                 end_load();
                 console.error('AJAX Error:', xhr.responseText);
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
             }
         });
     });

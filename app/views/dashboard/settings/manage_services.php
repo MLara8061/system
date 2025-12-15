@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 require_once 'config/config.php';
 if(isset($_GET['id'])){
 	$qry = $conn->query("SELECT * FROM `services` where id = '{$_GET['id']}'");
@@ -21,7 +21,7 @@ if(isset($_GET['id'])){
 	<form action="" id="manage-service">
 		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
 		<div class="form-group">
-			<label for="category_id" class="control-label">Categoría</label>
+			<label for="category_id" class="control-label">CategorÃ­a</label>
 			<select class="custom-select custom-select-sm select2" name="category_id" id="category_id" required>
 				<option value="" readonly></option>
 				<?php 
@@ -37,7 +37,7 @@ if(isset($_GET['id'])){
 			<input type="text" class="form-control form-control-sm" name="service" id="service" value="<?php echo isset($service) ? $service : "" ?>" required>
 		</div>
 		<div class="form-group">
-			<label for="description" class="control-label">Descripción</label>
+			<label for="description" class="control-label">DescripciÃ³n</label>
 			<textarea type="text" style="resize: none" class="form-control" rows="3" name="description" id="description"  required><?php echo isset($description) ? $description : "" ?></textarea>
 		</div>
 		<div class="form-group">
@@ -88,7 +88,7 @@ if(isset($_GET['id'])){
 			}
 			//start_loader();
 			$.ajax({
-				url:"ajax.php?action=save_service",
+				url:"public/ajax/action.php?action=save_service",
 				dataType:'json',
 				data: new FormData($(this)[0]),
 		   		type: 'POST',
@@ -103,12 +103,12 @@ if(isset($_GET['id'])){
 				},
 				success:function(resp){
 					if(!!resp.status && resp.status =='success'){
-						alert_toast(" Datos guardados exitósamente","success");
+						alert_toast(" Datos guardados exitÃ³samente","success");
 						$('.modal').modal('hide');
 						//end_loader()
 						//load_data();
 					}else if(!!resp.status && resp.status =='duplicate'){
-						$('#manage-service').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Servicio ingresado exitósamente.</b></div></div>');
+						$('#manage-service').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Servicio ingresado exitÃ³samente.</b></div></div>');
 						$('#service').addClass('border-danger');
 						$('#service').focus();
 						//end_loader();

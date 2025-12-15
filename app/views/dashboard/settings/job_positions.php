@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <div class="col-lg-12">
   <div class="card card-outline card-primary">
     <div class="card-header">
@@ -14,8 +14,8 @@
           <tr>
             <th>#</th>
             <th>Puesto</th>
-            <th>Ubicación</th>
-            <th>Acción</th>
+            <th>UbicaciÃ³n</th>
+            <th>AcciÃ³n</th>
           </tr>
         </thead>
         <tbody>
@@ -34,7 +34,7 @@
               <td><b><?php echo ucwords($row['location_name'] ?? 'Sin asignar') ?></b></td>
               <td class="text-center">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-                  Acción
+                  AcciÃ³n
                 </button>
                 <div class="dropdown-menu">
                   <a class="dropdown-item edit_position" href="javascript:void(0)" data-id="<?php echo $row['job_id'] ?>">Editar</a>
@@ -63,14 +63,14 @@ $(document).ready(function() {
     });
 
     $('.delete_position').click(function() {
-        _conf("¿Deseas eliminar este puesto?", "delete_position", [$(this).attr('data-id')]);
+        _conf("Â¿Deseas eliminar este puesto?", "delete_position", [$(this).attr('data-id')]);
     });
 });
 
 function delete_position(id) {
     start_load();
     $.ajax({
-        url: 'ajax.php?action=delete_job_position',
+        url: 'public/ajax/action.php?action=delete_job_position',
         method: 'POST',
         data: { id: id },
         success: function(resp) {
@@ -84,3 +84,4 @@ function delete_position(id) {
     });
 }
 </script>
+

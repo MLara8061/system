@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <div class="col-lg-12">
 	<div class="card">
 		<div class="card-body">
@@ -8,9 +8,9 @@
 						<th>#</th>
 						<th>Nombre</th>
 						<th>N Contacto</th>
-						<th>Dirección</th>
+						<th>DirecciÃ³n</th>
 						<th>Correo</th>
-						<th>Acción</th>
+						<th>AcciÃ³n</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -27,7 +27,7 @@
 							<td><b><?php echo $row['email'] ?></b></td>
 							<td class="text-center">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-									Acción
+									AcciÃ³n
 								</button>
 								<div class="dropdown-menu" style="">
 									<a class="dropdown-item" href="./index.php?page=edit_staff&id=<?php echo $row['id'] ?>">Editar</a>
@@ -48,7 +48,7 @@
 		$('.delete_staff').click(function() {
 			const staffId = $(this).attr('data-id');
 			confirm_toast(
-				'¿Estás seguro de eliminar este empleado? Esta acción no se puede deshacer.',
+				'Â¿EstÃ¡s seguro de eliminar este empleado? Esta acciÃ³n no se puede deshacer.',
 				function() { delete_staff(staffId); }
 			);
 		})
@@ -57,7 +57,7 @@
 	function delete_staff($id) {
 		start_load()
 		$.ajax({
-			url: 'ajax.php?action=delete_staff',
+			url: 'public/ajax/action.php?action=delete_staff',
 			method: 'POST',
 			data: {
 				id: $id

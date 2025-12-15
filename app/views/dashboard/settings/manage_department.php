@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php
 $department_id = 0;
 $name = '';
@@ -87,7 +87,7 @@ if (isset($_GET['id'])) {
 		var formData = new FormData($(this)[0]);
 		
 		$.ajax({
-			url: 'ajax_simple.php?action=save_department',
+			url: 'public/ajax/action.php?action=save_department',
 			data: formData,
 			cache: false,
 			contentType: false,
@@ -118,3 +118,4 @@ if (isset($_GET['id'])) {
 		})
 	})
 </script>
+

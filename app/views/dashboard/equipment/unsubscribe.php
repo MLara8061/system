@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 define('ACCESS', true);
 require_once 'config/config.php';
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
@@ -23,7 +23,7 @@ foreach ($unsub_data as $k => $v) {
 // Causas disponibles
 $causas = $conn->query("SELECT * FROM equipment_withdrawal_reason");
 
-// Asegurar que withdrawal_reason sea siempre un array válido
+// Asegurar que withdrawal_reason sea siempre un array vÃ¡lido
 $raw_reason = isset($withdrawal_reason) && !empty($withdrawal_reason) ? $withdrawal_reason : '[]';
 $reasons = json_decode($raw_reason, true);
 if (!is_array($reasons)) {
@@ -99,7 +99,7 @@ $existing_folio = isset($folio) ? $folio : '';
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="font-weight-bold text-dark">Tipo de Adquisición</label>
+                                <label class="font-weight-bold text-dark">Tipo de AdquisiciÃ³n</label>
                                 <select name="acquisition_type" class="custom-select select2" disabled>
                                     <option value="1" selected>Compra</option>
                                 </select>
@@ -123,7 +123,7 @@ $existing_folio = isset($folio) ? $folio : '';
                 <!-- Estado funcional -->
                 <div class="card mb-4">
                     <div class="card-header bg-white border-0">
-                        <h6 class="mb-0 text-dark">Descripción Estado Funcional</h6>
+                        <h6 class="mb-0 text-dark">DescripciÃ³n Estado Funcional</h6>
                     </div>
                     <div class="card-body">
                         <textarea name="description" class="form-control" rows="3" required><?php echo isset($description) ? $description : ''; ?></textarea>
@@ -183,7 +183,7 @@ $existing_folio = isset($folio) ? $folio : '';
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="font-weight-bold text-dark d-block mb-2">Responsable de la evaluación</label>
+                                <label class="font-weight-bold text-dark d-block mb-2">Responsable de la evaluaciÃ³n</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="responsible" id="resp1" value="1" <?php echo (isset($responsible) && $responsible == 1) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="resp1">Jefe de servicio</label>
@@ -203,7 +203,7 @@ $existing_folio = isset($folio) ? $folio : '';
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="destination" id="dest2" required value="2" <?php echo (isset($destination) && $destination == 2) ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="dest2">Devolución al Proveedor</label>
+                                            <label class="form-check-label" for="dest2">DevoluciÃ³n al Proveedor</label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="destination" id="dest3" required value="3" <?php echo (isset($destination) && $destination == 3) ? 'checked' : ''; ?>>
@@ -324,7 +324,7 @@ $('#manage_equipment').submit(function(e) {
 
     var postData = new FormData($(this)[0]);
     $.ajax({
-        url: 'ajax.php?action=save_equipment_unsubscribe',
+        url: 'public/ajax/action.php?action=save_equipment_unsubscribe',
         data: postData,
         cache: false,
         dataType: 'json',
@@ -340,18 +340,18 @@ $('#manage_equipment').submit(function(e) {
             if (resp.status === 1) {
                 var folio = resp.folio || '';
                 var pdfUrl = resp.unsubscribe_id ? 'equipment_unsubscribe_pdf.php?id=' + resp.unsubscribe_id : '';
-                var successMessage = folio ? 'Se generó el folio ' + folio + '.' : 'Datos guardados correctamente.';
+                var successMessage = folio ? 'Se generÃ³ el folio ' + folio + '.' : 'Datos guardados correctamente.';
                 alert_toast(successMessage, 'success');
 
                 if (pdfUrl && typeof confirm_toast === 'function') {
-                    confirm_toast('¿Deseas imprimir el formato en PDF?', function() {
+                    confirm_toast('Â¿Deseas imprimir el formato en PDF?', function() {
                         window.open(pdfUrl, '_blank');
                         location.replace('index.php?page=equipment_list');
                     }, function() {
                         location.replace('index.php?page=equipment_list');
                     });
                 } else if (pdfUrl) {
-                    var proceed = window.confirm('¿Deseas imprimir el formato en PDF?');
+                    var proceed = window.confirm('Â¿Deseas imprimir el formato en PDF?');
                     if (proceed) {
                         window.open(pdfUrl, '_blank');
                     }
@@ -366,10 +366,11 @@ $('#manage_equipment').submit(function(e) {
         },
         error: function() {
             end_load();
-            alert_toast('No se pudo guardar la baja. Revisa tu conexión.', 'error');
+            alert_toast('No se pudo guardar la baja. Revisa tu conexiÃ³n.', 'error');
         }
     });
 });
 
-// No se requiere confirm modal propio: confirm_toast cubre la interacción
+// No se requiere confirm modal propio: confirm_toast cubre la interacciÃ³n
 </script>
+

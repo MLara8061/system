@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <div class="col-lg-12">
 	<div class="card card-outline card-primary">
 		<div class="card-header">
@@ -14,7 +14,7 @@
 						<th style="width: 25%">Nombre</th>
 						<th style="width: 30%">Ubicaciones</th>
 						<th style="width: 30%">Puestos</th>
-						<th class="text-center" style="width: 10%">Acción</th>
+						<th class="text-center" style="width: 10%">AcciÃ³n</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -47,9 +47,9 @@
 							<td><small><?php echo $positions_text ?></small></td>
 							<td class="text-center ">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-									Acción
+									AcciÃ³n
 								</button>
-								<div class="dropdown-menu" style="">
+								<div class="dropdown-menu">
 									<a class="dropdown-item edit_department" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
 									<div class="dropdown-divider"></div>
 									<a class="dropdown-item delete_department" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Eliminar</a>
@@ -66,15 +66,15 @@
 	$(document).ready(function() {
 		$('#list').dataTable()
 		$('#new_department').click(function() {
-			uni_modal("Agregar Departamento", "manage_department.php")
+			uni_modal("Agregar Departamento", "app/views/dashboard/settings/manage_department.php")
 		})
 		$('.edit_department').click(function() {
-			uni_modal("Editar Departmento", "manage_department.php?id=" + $(this).attr('data-id'))
+			uni_modal("Editar Departmento", "app/views/dashboard/settings/manage_department.php?id=" + $(this).attr('data-id'))
 		})
 		$('.delete_department').click(function() {
 			const deptId = $(this).attr('data-id');
 			confirm_toast(
-				'¿Estás seguro de eliminar este departamento? Esta acción no se puede deshacer.',
+				'Â¿EstÃ¡s seguro de eliminar este departamento? Esta acciÃ³n no se puede deshacer.',
 				function() { delete_department(deptId); }
 			);
 		})
@@ -84,7 +84,7 @@
 	function delete_department($id) {
 		start_load()
 		$.ajax({
-			url: 'ajax.php?action=delete_department',
+			url: 'public/ajax/action.php?action=delete_department',
 			method: 'POST',
 			data: {
 				id: $id

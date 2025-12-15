@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <div class="container-fluid">
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
@@ -33,7 +33,7 @@
                         <div class="form-group">
                             <label class="font-weight-bold text-dark">Sector</label>
                             <input type="text" name="sector" class="form-control" 
-                                   placeholder="Ej: Tecnología, Médico" 
+                                   placeholder="Ej: TecnologÃ­a, MÃ©dico" 
                                    value="<?= $supplier['sector'] ?? '' ?>">
                         </div>
                     </div>
@@ -48,9 +48,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">Teléfono</label>
+                            <label class="font-weight-bold text-dark">TelÃ©fono</label>
                             <input type="text" name="telefono" class="form-control solonumeros" maxlength="10" 
-                                   placeholder="10 dígitos" value="<?= $supplier['telefono'] ?? '' ?>">
+                                   placeholder="10 dÃ­gitos" value="<?= $supplier['telefono'] ?? '' ?>">
                         </div>
 
                         <div class="form-group">
@@ -71,7 +71,7 @@
                         <div class="form-group">
                             <label class="font-weight-bold text-dark">Notas</label>
                             <textarea name="notas" class="form-control" rows="4" 
-                                      placeholder="Información adicional..."><?= $supplier['notas'] ?? '' ?></textarea>
+                                      placeholder="InformaciÃ³n adicional..."><?= $supplier['notas'] ?? '' ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
 </style>
 
 <script>
-    // Solo números
+    // Solo nÃºmeros
     $('.solonumeros').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
@@ -145,7 +145,7 @@
 
         start_load();
         $.ajax({
-            url: 'ajax.php?action=save_supplier',
+            url: 'public/ajax/action.php?action=save_supplier',
             data: new FormData(this),
             cache: false,
             contentType: false,
@@ -167,7 +167,7 @@
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
             }
         });
     });

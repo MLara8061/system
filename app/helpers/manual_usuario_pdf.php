@@ -4,6 +4,12 @@
  * Genera un PDF profesional con instrucciones detalladas paso a paso
  */
 
+require_once __DIR__ . '/../../config/session.php';
+if (!validate_session()) {
+    header('location: /app/views/auth/login.php');
+    exit();
+}
+
 require_once __DIR__ . '/../../config/config.php';
 
 // Configuración de encoding

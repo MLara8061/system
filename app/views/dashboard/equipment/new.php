@@ -1,4 +1,4 @@
-<?php require_once 'config/db.php'; ?>
+﻿<?php require_once 'config/db.php'; ?>
 
 <?php
 // Obtener sucursales (robusto: evitar fatal y loader infinito si falla DB)
@@ -16,7 +16,7 @@ try {
         $sql = "SELECT id, name FROM branches" . ($has_active ? " WHERE active = 1" : "") . " ORDER BY name ASC";
         $branches = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fallback: si no hay activas (o active no está bien poblado), listar todas
+        // Fallback: si no hay activas (o active no estÃ¡ bien poblado), listar todas
         if ($has_active && empty($branches)) {
             $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name ASC")
                 ->fetchAll(PDO::FETCH_ASSOC);
@@ -31,7 +31,7 @@ try {
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-body p-0">
 
-            <!-- === FICHA TÉCNICA: IMAGEN + INFO === -->
+            <!-- === FICHA TÃ‰CNICA: IMAGEN + INFO === -->
             <div class="row g-0">
                 <!-- IMAGEN -->
                 <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
@@ -41,11 +41,11 @@ try {
                             <i class="fas fa-camera fa-3x text-muted"></i>
                         </div>
                         <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
-                        <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                        <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
                     </div>
                 </div>
 
-                <!-- INFORMACIÓN CLAVE -->
+                <!-- INFORMACIÃ“N CLAVE -->
                 <div class="col-lg-7 p-5">
                     <form id="manage_equipment" enctype="multipart/form-data">
                         <input type="hidden" name="id" value="">
@@ -89,7 +89,7 @@ try {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Serie</label>
-                                <input type="text" name="serie" class="form-control alfanumerico" required placeholder="Número de serie">
+                                <input type="text" name="serie" class="form-control alfanumerico" required placeholder="NÃºmero de serie">
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Fecha Ingreso</label>
@@ -97,26 +97,26 @@ try {
                             </div>
                         </div>
 
-                        <!-- INVENTARIO ANTERIOR Y NÚMERO DE PARTE -->
+                        <!-- INVENTARIO ANTERIOR Y NÃšMERO DE PARTE -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Inventario Anterior</label>
-                                <input type="text" name="inventario_anterior" class="form-control" placeholder="Número de inventario anterior">
+                                <input type="text" name="inventario_anterior" class="form-control" placeholder="NÃºmero de inventario anterior">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Número de Parte</label>
-                                <input type="text" name="numero_parte" class="form-control" placeholder="Número de parte">
+                                <label class="font-weight-bold text-dark">NÃºmero de Parte</label>
+                                <input type="text" name="numero_parte" class="form-control" placeholder="NÃºmero de parte">
                             </div>
                         </div>
 
-                        <!-- VALOR Y CATEGORÍA -->
+                        <!-- VALOR Y CATEGORÃA -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Valor</label>
                                 <input type="text" name="amount" class="form-control solonumeros" required placeholder="0.00">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Categoría</label>
+                                <label class="font-weight-bold text-dark">CategorÃ­a</label>
                                 <select name="equipment_category_id" id="equipment_category_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
@@ -139,9 +139,9 @@ try {
                             </div>
                         </div>
 
-                        <!-- CONSUMO ELÉCTRICO -->
+                        <!-- CONSUMO ELÃ‰CTRICO -->
                         <div class="bg-light p-3 rounded mb-3">
-                            <h6 class="mb-3 text-dark">Consumo Eléctrico</h6>
+                            <h6 class="mb-3 text-dark">Consumo ElÃ©ctrico</h6>
                             <div class="row">
                                 <div class="col-md-4">
                                     <label class="small text-muted">Voltaje (V)</label>
@@ -179,10 +179,10 @@ try {
                             </select>
                         </div>
 
-                        <!-- ADQUISICIÓN -->
+                        <!-- ADQUISICIÃ“N -->
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Tipo Adquisición</label>
+                                <label class="font-weight-bold text-dark">Tipo AdquisiciÃ³n</label>
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
@@ -279,7 +279,7 @@ try {
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label>Ubicación</label>
+                                <label>UbicaciÃ³n</label>
                                 <select name="location_id" id="location_id" class="custom-select select2" form="manage_equipment" required disabled>
                                     <option value="">Seleccionar departamento primero</option>
                                 </select>
@@ -287,7 +287,7 @@ try {
                             <div class="col-md-4">
                                 <label>Cargo Responsable</label>
                                 <select name="responsible_position" id="responsible_position" class="custom-select select2" form="manage_equipment" disabled>
-                                    <option value="">Seleccionar ubicación primero</option>
+                                    <option value="">Seleccionar ubicaciÃ³n primero</option>
                                 </select>
                             </div>
                         </div>
@@ -297,20 +297,20 @@ try {
                                 <input type="text" name="responsible_name" class="form-control" form="manage_equipment" required>
                             </div>
                             <div class="col-md-6">
-                                <label>Fecha Capacitación</label>
+                                <label>Fecha CapacitaciÃ³n</label>
                                 <input type="date" name="date_training" class="form-control" form="manage_equipment" required>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CARACTERÍSTICAS -->
+                <!-- CARACTERÃSTICAS -->
                 <div class="card mb-4">
                     <div class="card-header bg-light border-0">
-                        <h6 class="mb-0 text-dark">Características Técnicas</h6>
+                        <h6 class="mb-0 text-dark">CaracterÃ­sticas TÃ©cnicas</h6>
                     </div>
                     <div class="card-body">
-                        <textarea name="characteristics" class="form-control" rows="3" form="manage_equipment" placeholder="Detalles técnicos..."></textarea>
+                        <textarea name="characteristics" class="form-control" rows="3" form="manage_equipment" placeholder="Detalles tÃ©cnicos..."></textarea>
                     </div>
                 </div>
 
@@ -332,8 +332,8 @@ try {
                                 'bailment_file' => 'Comodato',
                                 'contract_file' => 'Contrato M',
                                 'usermanual_file' => 'Manual Usuario',
-                                'fast_guide_file' => 'Guía Rápida',
-                                'datasheet_file' => 'Ficha Técnica',
+                                'fast_guide_file' => 'GuÃ­a RÃ¡pida',
+                                'datasheet_file' => 'Ficha TÃ©cnica',
                                 'servicemanual_file' => 'Man. Servicios'
                             ];
                             foreach ($doc_fields as $field => $label):
@@ -347,11 +347,11 @@ try {
                     </div>
                 </div>
 
-                <!-- RECEPCIÓN Y RESGUARDO -->
+                <!-- RECEPCIÃ“N Y RESGUARDO -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card mb-4">
-                            <div class="card-header bg-light border-0"><h6 class="text-dark">Recepción</h6></div>
+                            <div class="card-header bg-light border-0"><h6 class="text-dark">RecepciÃ³n</h6></div>
                             <div class="card-body">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="state" value="1" form="manage_equipment" checked>
@@ -371,11 +371,11 @@ try {
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <label>Garantía (Años)</label>
+                                        <label>GarantÃ­a (AÃ±os)</label>
                                         <input type="number" name="warranty_time" class="form-control" min="1" form="manage_equipment" placeholder="1">
                                     </div>
                                     <div class="col-md-6">
-                                        <label>Fecha Adquisición</label>
+                                        <label>Fecha AdquisiciÃ³n</label>
                                         <input type="date" name="date_adquisition" class="form-control" form="manage_equipment" value="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
@@ -418,9 +418,9 @@ try {
                 return false;
             }
             
-            // Validar tamaño (5MB)
+            // Validar tamaÃ±o (5MB)
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
                 $(this).val('');
                 return false;
             }
@@ -436,7 +436,7 @@ try {
             maximumInputLength: 0
         });
 
-        // Generar número de inventario cuando se selecciona sucursal
+        // Generar nÃºmero de inventario cuando se selecciona sucursal
         function refresh_inventory_number(){
             var branch_id = $('#branch_id').val();
             var acquisition_type_id = $('[name="acquisition_type"]').val();
@@ -448,13 +448,13 @@ try {
                 return;
             }
             if(!acquisition_type_id || !equipment_category_id){
-                $('#inventory_badge').text('Seleccionar tipo y categoría');
+                $('#inventory_badge').text('Seleccionar tipo y categorÃ­a');
                 $('#number_inventory').val('');
                 return;
             }
 
             $.ajax({
-                url: 'ajax_simple.php?action=get_next_inventory_number',
+                url: 'public/ajax/action.php?action=get_next_inventory_number',
                 method: 'POST',
                 data: {
                     branch_id: branch_id,
@@ -467,14 +467,14 @@ try {
                         $('#inventory_badge').text(data.number);
                         $('#number_inventory').val(data.number);
                     } else {
-                        var msg = (data && data.error) ? data.error : 'Error al generar número de inventario';
+                        var msg = (data && data.error) ? data.error : 'Error al generar nÃºmero de inventario';
                         $('#inventory_badge').text('Error');
                         $('#number_inventory').val('');
                         alert_toast(msg, 'error');
                     }
                 },
                 error: function(xhr){
-                    var msg = 'Error de conexión';
+                    var msg = 'Error de conexiÃ³n';
                     try {
                         if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
                     } catch (e) {}
@@ -501,18 +501,18 @@ try {
             
             // Limpiar y deshabilitar los selectores dependientes
             $locationSelect.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
-            $positionSelect.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true);
+            $positionSelect.empty().append('<option value="">Seleccionar ubicaciÃ³n primero</option>').prop('disabled', true);
             $locationSelect.trigger('change.select2');
             $positionSelect.trigger('change.select2');
             
             if(department_id){
                 $.ajax({
-                    url: 'ajax_simple.php?action=get_locations_by_department',
+                    url: 'public/ajax/action.php?action=get_locations_by_department',
                     method: 'POST',
                     data: { department_id: department_id },
                     dataType: 'json',
                     success: function(locations){
-                        $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
+                        $locationSelect.empty().append('<option value="">Seleccionar ubicaciÃ³n</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
                                 $locationSelect.append('<option value="'+ location.id +'">'+ String(location.name || '').toUpperCase() +'</option>');
@@ -538,7 +538,7 @@ try {
             }
         });
 
-        // CASCADA 2: Cargar cargos cuando se selecciona una ubicación
+        // CASCADA 2: Cargar cargos cuando se selecciona una ubicaciÃ³n
         $('#location_id').on('change', function(){
             var location_id = $(this).val();
             var $responsiblePosition = $('#responsible_position');
@@ -549,7 +549,7 @@ try {
             
             if(location_id){
                 $.ajax({
-                    url: 'ajax_simple.php?action=get_job_positions_by_location',
+                    url: 'public/ajax/action.php?action=get_job_positions_by_location',
                     method: 'POST',
                     data: { location_id: location_id },
                     dataType: 'json',
@@ -561,7 +561,7 @@ try {
                             });
                             $responsiblePosition.prop('disabled', false);
                         } else {
-                            $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
+                            $responsiblePosition.append('<option value="">No hay cargos para esta ubicaciÃ³n</option>');
                             $responsiblePosition.prop('disabled', true);
                         }
                         $responsiblePosition.trigger('change.select2');
@@ -576,7 +576,7 @@ try {
                     }
                 });
             } else {
-                $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true).trigger('change.select2');
+                $responsiblePosition.empty().append('<option value="">Seleccionar ubicaciÃ³n primero</option>').prop('disabled', true).trigger('change.select2');
             }
         });
     });
@@ -585,7 +585,7 @@ try {
         e.preventDefault();
         start_load();
         $.ajax({
-            url: 'ajax.php?action=save_equipment',
+            url: 'public/ajax/action.php?action=save_equipment',
             data: new FormData(this),
             cache: false,
             contentType: false,
@@ -615,3 +615,4 @@ try {
         });
     });
 </script>
+

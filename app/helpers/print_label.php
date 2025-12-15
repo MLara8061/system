@@ -1,5 +1,11 @@
 <?php
 $root = dirname(__DIR__, 2);
+require_once $root . '/config/session.php';
+if (!validate_session()) {
+  header('location: /app/views/auth/login.php');
+  exit();
+}
+
 require_once $root . '/config/config.php';
 require_once $root . '/lib/phpqrcode/qrlib.php';
 
@@ -107,7 +113,7 @@ if (!$qry || $qry->num_rows === 0) {
 $eq = $qry->fetch_assoc();
 
 // Generar URL usando BASE_URL de configuración
-$qr_url = BASE_URL . '/equipment_public.php?id=' . $id;
+$qr_url = BASE_URL . '/legacy/equipment_public.php?id=' . $id;
 
 // Generar QR en base64 (QR más grande dentro de etiqueta pequeña)
 ob_start();

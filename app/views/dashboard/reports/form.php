@@ -1,5 +1,5 @@
-<?php
-// Configurar zona horaria de México
+﻿<?php
+// Configurar zona horaria de MÃ©xico
 date_default_timezone_set('America/Cancun');
 
 require_once 'config/config.php';
@@ -17,10 +17,10 @@ $current_user_name = $current_user_name ?: 'No registrado';
 
 // === DATOS FIJOS ===
 $company_info = [
-    'company_name' => "Venta, Mantenimiento Preventivo y Correctivo de Equipo Médico",
+    'company_name' => "Venta, Mantenimiento Preventivo y Correctivo de Equipo MÃ©dico",
     'address_line_1' => "Murillo No.26 Lote 28 Mz-75 Smz-321",
     'address_line_2' => "Fracc. Villas del Arte",
-    'city_state_zip' => "Benito Juarez Cancún, Quintana Roo C.P 77560",
+    'city_state_zip' => "Benito Juarez CancÃºn, Quintana Roo C.P 77560",
     'phone_number' => "TEL: (998) 214 86 73/ 998 214 91 91",
 ];
 
@@ -84,7 +84,7 @@ if ($conn) {
                 font-weight: 600;
             }
 
-            /* Ajustar sección de refacciones */
+            /* Ajustar secciÃ³n de refacciones */
             .refaccion_item {
                 margin-bottom: 1rem !important;
                 padding: 10px;
@@ -100,14 +100,14 @@ if ($conn) {
                 padding-right: 5px;
             }
 
-            /* Hacer que select de inventario ocupe más espacio */
+            /* Hacer que select de inventario ocupe mÃ¡s espacio */
             .refaccion_item > div:nth-child(1) {
                 flex: 0 0 100%;
                 max-width: 100%;
                 margin-bottom: 0.5rem;
             }
 
-            /* Cantidad más pequeña */
+            /* Cantidad mÃ¡s pequeÃ±a */
             .refaccion_item > div:nth-child(2) {
                 flex: 0 0 40%;
                 max-width: 40%;
@@ -120,7 +120,7 @@ if ($conn) {
                 text-align: left !important;
             }
 
-            /* Botón eliminar */
+            /* BotÃ³n eliminar */
             .refaccion_item > div:nth-child(4) {
                 flex: 0 0 10%;
                 max-width: 10%;
@@ -132,7 +132,7 @@ if ($conn) {
                 font-size: 0.75rem;
             }
 
-            /* Botón añadir item más pequeño */
+            /* BotÃ³n aÃ±adir item mÃ¡s pequeÃ±o */
             .section-header .btn-sm {
                 padding: 0.35rem 0.7rem;
                 font-size: 0.8rem;
@@ -272,7 +272,7 @@ if ($conn) {
                                 <div class="form-group row">
                                     <label class="col-md-2 col-12 col-form-label">INVENTARIO:</label>
                                     <div class="col-md-4 col-12 mb-2 mb-md-0"><input type="text" class="form-control form-control-sm" name="equipo_inventario" id="equipo_inventario" readonly></div>
-                                    <label class="col-md-2 col-12 col-form-label">UBICACIÓN:</label>
+                                    <label class="col-md-2 col-12 col-form-label">UBICACIÃ“N:</label>
                                     <div class="col-md-4 col-12"><input type="text" class="form-control form-control-sm" name="equipo_ubicacion" id="equipo_ubicacion" readonly></div>
                                     <input type="hidden" name="location_id" id="location_id_hidden">
                                 </div>
@@ -280,18 +280,18 @@ if ($conn) {
                         </div>
 
                         <!-- TIPO DE SERVICIO -->
-                        <div class="section-header">TIPO DE SERVICIO & EJECUCIÓN</div>
+                        <div class="section-header">TIPO DE SERVICIO & EJECUCIÃ“N</div>
                         <div class="row mb-3">
                             <div class="col-12 mb-2">
                                 <label class="d-block font-weight-bold">Tipo de Servicio:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="INSTALACION"><label class="form-check-label">INSTALACION</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="MP" checked><label class="form-check-label">MP</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="MC"><label class="form-check-label">MC</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="SOPORTE TECNICO"><label class="form-check-label">SOPORTE TÉC.</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="SOPORTE TECNICO"><label class="form-check-label">SOPORTE TÃ‰C.</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="tipo_servicio" value="PREDICTIVO"><label class="form-check-label">PREDICTIVO</label></div>
                             </div>
                             <div class="col-12">
-                                <label class="d-block font-weight-bold">Ejecución:</label>
+                                <label class="d-block font-weight-bold">EjecuciÃ³n:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="ejecucion" value="PLAZA" checked><label class="form-check-label">PLAZA</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="ejecucion" value="TALLER"><label class="form-check-label">TALLER</label></div>
                             </div>
@@ -320,8 +320,8 @@ if ($conn) {
                             </div>
                         </div>
 
-                        <!-- DESCRIPCIÓN -->
-                        <div class="section-header">DESCRIPCIÓN DEL TRABAJO</div>
+                        <!-- DESCRIPCIÃ“N -->
+                        <div class="section-header">DESCRIPCIÃ“N DEL TRABAJO</div>
                         <div class="form-group">
                             <textarea class="form-control" name="descripcion" rows="8"></textarea>
                         </div>
@@ -330,7 +330,7 @@ if ($conn) {
                         <div class="section-header d-flex justify-content-between align-items-center flex-wrap">
                             <span>REFACCIONES</span>
                             <button type="button" class="btn btn-success btn-sm mt-2 mt-md-0" id="add_refaccion_btn">
-                                <i class="fas fa-plus"></i> Añadir Item
+                                <i class="fas fa-plus"></i> AÃ±adir Item
                             </button>
                         </div>
 
@@ -392,7 +392,7 @@ if ($conn) {
                                 <label>Status Final del Equipo:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="status_final" value="FUNCIONAL" checked><label class="form-check-label">FUNCIONAL</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="status_final" value="STAND BY"><label class="form-check-label">STAND BY</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="status_final" value="SIN REPARACION"><label class="form-check-label">SIN REPARACIÓN</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="status_final" value="SIN REPARACION"><label class="form-check-label">SIN REPARACIÃ“N</label></div>
                             </div>
                         </div>
 
@@ -442,7 +442,7 @@ $(document).ready(function() {
         }).on('change', check_stock);
     }
 
-    // === VALIDACIÓN DE STOCK ===
+    // === VALIDACIÃ“N DE STOCK ===
     function check_stock() {
         const row = $(this).closest('.refaccion_item');
         const selected = row.find('.inventory_select option:selected');
@@ -456,15 +456,15 @@ $(document).ready(function() {
         }
 
         if (qty > stock) {
-            indicator.removeClass('badge-success badge-warning').addClass('badge-danger').text(`¡Falta Stock! (${stock} disp.)`);
+            indicator.removeClass('badge-success badge-warning').addClass('badge-danger').text(`Â¡Falta Stock! (${stock} disp.)`);
         } else if (qty <= 0) {
-            indicator.removeClass('badge-danger badge-success').addClass('badge-warning').text(`Cantidad inválida`);
+            indicator.removeClass('badge-danger badge-success').addClass('badge-warning').text(`Cantidad invÃ¡lida`);
         } else {
             indicator.removeClass('badge-danger badge-warning').addClass('badge-success').text(`Stock OK (${stock} disp.)`);
         }
     }
 
-    // === AÑADIR FILA ===
+    // === AÃ‘ADIR FILA ===
     $('#add_refaccion_btn').on('click', function() {
         refaccion_counter++;
         const new_row = $('#refaccion_template').contents().clone();
@@ -482,7 +482,7 @@ $(document).ready(function() {
             select.append('<option value="<?= $row['id'] ?>" data-stock="<?= $row['stock'] ?>"><?= htmlspecialchars($row['name']) ?> (Stock: <?= $row['stock'] ?>)</option>');
         <?php endforeach; ?>
 
-        select.addClass('select2'); // ← AdminLTE lo detecta
+        select.addClass('select2'); // â† AdminLTE lo detecta
 
         $('#refacciones_container').append(new_row);
         initNewSelect2();
@@ -496,7 +496,7 @@ $(document).ready(function() {
             row.find('.inventory_select').select2('destroy');
             row.remove();
         } else {
-            alert("No puedes eliminar la última fila.");
+            alert("No puedes eliminar la Ãºltima fila.");
         }
     });
 
@@ -506,7 +506,7 @@ $(document).ready(function() {
             $('#equipo_nombre, #equipo_marca, #equipo_modelo, #equipo_serie, #equipo_inventario, #equipo_ubicacion, #location_id_hidden').val('');
             return;
         }
-        $.post('ajax.php', { action: 'get_equipo_details', id: id }, function(resp) {
+        $.post('public/ajax/action.php', { action: 'get_equipo_details', id: id }, function(resp) {
             if (resp.status === 1) {
                 const d = resp.data;
                 $('#equipo_nombre').val(d.name);
@@ -525,7 +525,7 @@ $(document).ready(function() {
         loadEquipmentDetails(id);
     });
 
-    // === ENVÍO ===
+    // === ENVÃO ===
    $('#reporteForm').on('submit', function(e) {
     // Validar stock ANTES de enviar
     let valid = true;

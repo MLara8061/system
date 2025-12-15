@@ -66,45 +66,45 @@ if ($informe->num_rows > 0) {
 ?>
 
 <div class="col-lg-12">
-    <div class="card">
-        <div class="card-body">
 
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                        <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-clipboard-check fa-2x text-primary mr-3"></i>
-                            <div>
-                                <h6 class="mb-0 text-muted">Total Revisiones</h6>
-                                <h4 class="mb-0"><?= (int)$summary['total_revisiones'] ?></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                        <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-desktop fa-2x text-success mr-3"></i>
-                            <div>
-                                <h6 class="mb-0 text-muted">Equipos Distintos</h6>
-                                <h4 class="mb-0"><?= (int)$summary['equipos_distintos'] ?></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                        <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-calendar-alt fa-2x text-info mr-3"></i>
-                            <div>
-                                <h6 class="mb-0 text-muted">Periodo</h6>
-                                <h4 class="mb-0"><?php echo date('d/m/Y', strtotime($fecha_inicial)) . ' - ' . date('d/m/Y', strtotime($fecha_final)); ?></h4>
-                            </div>
-                        </div>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-clipboard-check fa-2x text-primary mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Total Revisiones</h6>
+                        <h4 class="mb-0"><?= (int)$summary['total_revisiones'] ?></h4>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-desktop fa-2x text-success mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Equipos Distintos</h6>
+                        <h4 class="mb-0"><?= (int)$summary['equipos_distintos'] ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-calendar-alt fa-2x text-info mr-3"></i>
+                    <div>
+                        <h6 class="mb-0 text-muted">Periodo</h6>
+                        <h4 class="mb-0"><?php echo date('d/m/Y', strtotime($fecha_inicial)) . ' - ' . date('d/m/Y', strtotime($fecha_final)); ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="card">
+        <div class="card-body">
             <div>
                 <form action="index.php?page=equipment_report_revision_month">
                     <input type="hidden" name="page" value="equipment_report_revision_month">

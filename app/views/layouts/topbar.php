@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Partial de Navbar superior (sin duplicar <html>, <head> ni scripts)
 ?>
 
@@ -154,7 +154,7 @@ if ($branch_name === '' && $active_bid > 0) {
 <script>
   // Dejar que AdminLTE maneje el pushmenu nativamente
   $(function(){
-    // Solo logs para depuración (opcional, puedes eliminar después)
+    // Solo logs para depuraciÃ³n (opcional, puedes eliminar despuÃ©s)
     const log = (...args) => { if (window.console) console.log('[Sidebar]', ...args); };
     
     // Observer para depurar cambios en clases del body
@@ -182,7 +182,7 @@ if ($branch_name === '' && $active_bid > 0) {
       if (branch_id === null || branch_id === undefined) return;
 
       $.ajax({
-        url: 'ajax.php?action=update_user_branch',
+        url: 'public/ajax/action.php?action=update_user_branch',
         method: 'POST',
         data: { branch_id: branch_id },
         dataType: 'json',
@@ -199,10 +199,11 @@ if ($branch_name === '' && $active_bid > 0) {
           }
         },
         error: function () {
-          if (typeof alert_toast === 'function') alert_toast('Error de conexión', 'error');
+          if (typeof alert_toast === 'function') alert_toast('Error de conexiÃ³n', 'error');
         }
       });
     });
   });
 </script>
 <?php endif; ?>
+

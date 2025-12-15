@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php 
 $qry = $conn->query("SELECT * FROM tickets where id = ".$_GET['id'])->fetch_array();
 foreach($qry as $k => $v){
@@ -25,7 +25,7 @@ foreach($qry as $k => $v){
 		start_load()
 		// $('#msg').html('')
 		$.ajax({
-			url:'ajax.php?action=update_ticket',
+			url:'public/ajax/action.php?action=update_ticket',
 			data: new FormData($(this)[0]),
 		    cache: false,
 		    contentType: false,

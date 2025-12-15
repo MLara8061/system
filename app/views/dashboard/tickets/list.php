@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php
 $where = '';
 if ($_SESSION['login_type'] == 2) {
@@ -30,59 +30,60 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 }
 ?>
 <div class="container-fluid">
+	<div class="row mb-3">
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-clipboard-list fa-2x text-primary mr-3"></i>
+					<div>
+						<h6>Total</h6>
+						<h4><?php echo (int)$ticketSummary['total']; ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-folder-open fa-2x text-info mr-3"></i>
+					<div>
+						<h6>Abiertos</h6>
+						<h4><?php echo (int)$ticketSummary['abiertos']; ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-spinner fa-2x text-warning mr-3"></i>
+					<div>
+						<h6>En Proceso</h6>
+						<h4><?php echo (int)$ticketSummary['en_proceso']; ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="card shadow-sm" style="background:#fff;">
+				<div class="card-body d-flex align-items-center">
+					<i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+					<div>
+						<h6>Finalizados</h6>
+						<h4><?php echo (int)$ticketSummary['finalizados']; ?></h4>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte Técnico</h4>
+				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte TÃ©cnico</h4>
 			</div>
 			<div class="card-body">
-				<div class="row mb-3">
-					<div class="col-md-3">
-						<div class="card shadow-sm" style="background:#fff;">
-							<div class="card-body d-flex align-items-center">
-								<i class="fas fa-clipboard-list fa-2x text-primary mr-3"></i>
-								<div>
-									<h6>Total</h6>
-									<h4><?php echo (int)$ticketSummary['total']; ?></h4>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="card shadow-sm" style="background:#fff;">
-							<div class="card-body d-flex align-items-center">
-								<i class="fas fa-folder-open fa-2x text-info mr-3"></i>
-								<div>
-									<h6>Abiertos</h6>
-									<h4><?php echo (int)$ticketSummary['abiertos']; ?></h4>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="card shadow-sm" style="background:#fff;">
-							<div class="card-body d-flex align-items-center">
-								<i class="fas fa-spinner fa-2x text-warning mr-3"></i>
-								<div>
-									<h6>En Proceso</h6>
-									<h4><?php echo (int)$ticketSummary['en_proceso']; ?></h4>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="card shadow-sm" style="background:#fff;">
-							<div class="card-body d-flex align-items-center">
-								<i class="fas fa-check-circle fa-2x text-success mr-3"></i>
-								<div>
-									<h6>Finalizados</h6>
-									<h4><?php echo (int)$ticketSummary['finalizados']; ?></h4>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
 				<div class="d-flex justify-content-end mb-3">
 					<a href="./index.php?page=new_ticket" class="btn btn-primary btn-sm">
 						<i class="fas fa-plus"></i> Nuevo Ticket
@@ -103,12 +104,12 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 					<thead style="background-color: #f8f9fa;">
 						<tr>
 							<th class="text-center">#</th>
-							<th>Fecha Creación</th>
+							<th>Fecha CreaciÃ³n</th>
 							<th>Reportado por</th>
 							<th>Asunto</th>
-							<th>Descripción</th>
+							<th>DescripciÃ³n</th>
 							<th class="text-center">Estado</th>
-							<th class="text-center">Acción</th>
+							<th class="text-center">AcciÃ³n</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -127,7 +128,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 								<td>
 									<?php echo ucwords($row['reporter_name'] ?? 'N/A') ?>
 									<?php if (isset($row['is_public']) && $row['is_public'] == 1): ?>
-										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> Público</small>
+										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> PÃºblico</small>
 									<?php endif; ?>
 								</td>
 								<td><strong><?php echo $row['subject'] ?></strong></td>
@@ -169,6 +170,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 				</div>
 			</div>
 		</div>
+	</div>
 	</div>
 </div>
 
@@ -234,7 +236,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 		$('.delete_ticket').click(function() {
 			const ticketId = $(this).attr('data-id');
 			confirm_toast(
-				'¿Estás seguro de eliminar este ticket? Esta acción no se puede deshacer.',
+				'Â¿EstÃ¡s seguro de eliminar este ticket? Esta acciÃ³n no se puede deshacer.',
 				function() { delete_ticket(ticketId); }
 			);
 		})
@@ -243,7 +245,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	function delete_ticket($id) {
 		start_load()
 		$.ajax({
-			url: 'ajax.php?action=delete_ticket',
+			url: 'public/ajax/action.php?action=delete_ticket',
 			method: 'POST',
 			data: {
 				id: $id

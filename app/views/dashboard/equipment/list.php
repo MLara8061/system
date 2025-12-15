@@ -1,11 +1,6 @@
-<?php 
-// DEBUG: Mostrar que el archivo se está cargando
-error_log("=== EQUIPMENT LIST STARTED ===");
-
-// La conexión $conn debe estar disponible desde index.php
-// NO intentar cargar config.php aquí, index.php ya lo hizo
-
-error_log("=== ABOUT TO EXECUTE QUERIES ===");
+﻿<?php 
+// La conexiÃ³n $conn debe estar disponible desde index.php
+// NO intentar cargar config.php aquÃ­, index.php ya lo hizo
 
 $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id') : '';
 $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
@@ -19,14 +14,12 @@ try {
     if ($result) {
         $row = $result->fetch_assoc();
         $total_equipos = $row['total'] ?? 0;
-        error_log("Total equipos: " . $total_equipos);
     } else {
-        error_log("Query error: " . $conn->error);
     }
     
     $costo_total = 0;
     // Compatibilidad: algunos entornos usan `amount`, otros `purchase_price`.
-    // En mysqli con modo estricto, una columna inexistente puede lanzar excepción y romper el flujo.
+    // En mysqli con modo estricto, una columna inexistente puede lanzar excepciÃ³n y romper el flujo.
     $sum_column = null;
     try {
         $chk = @$conn->query("SHOW COLUMNS FROM `equipments` LIKE 'amount'");
@@ -71,10 +64,23 @@ try {
 
     $mp_total = $countMaintenance('MP');
     $mc_total = $countMaintenance('MC');
-    
-    error_log("=== QUERIES COMPLETED ===");
+
+    // Counts para footer (evita SELECT * + num_rows)
+    $with_revision = 0;
+    $without_revision = 0;
+    try {
+        $rev = $conn->query("SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 1" . (function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : ''));
+        if ($rev) $with_revision = (int)($rev->fetch_assoc()['c'] ?? 0);
+    } catch (Throwable $e) {
+        $with_revision = 0;
+    }
+    try {
+        $nrev = $conn->query("SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 0" . (function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : ''));
+        if ($nrev) $without_revision = (int)($nrev->fetch_assoc()['c'] ?? 0);
+    } catch (Throwable $e) {
+        $without_revision = 0;
+    }
 } catch (Exception $e) {
-    error_log("Exception in equipment list: " . $e->getMessage());
 }
 ?>
 
@@ -155,9 +161,9 @@ try {
                         <th>Detalles</th>
                         <th>Proveedor</th>
                         <th>Estado</th>
-                        <th>Próximo Mtto.</th> <!-- NUEVA -->
-                        <th>Último Mtto.</th> <!-- NUEVA -->
-                        <th>Antigüedad</th> <!-- NUEVA -->
+                        <th>PrÃ³ximo Mtto.</th> <!-- NUEVA -->
+                        <th>Ãšltimo Mtto.</th> <!-- NUEVA -->
+                        <th>AntigÃ¼edad</th> <!-- NUEVA -->
                         <th style="width: 60px;">QR</th>
                         <th style="width: 80px;">Acciones</th>
                     </tr>
@@ -186,7 +192,7 @@ try {
                         $supplier_name = $row['supplier_name'] ?: 'Sin Proveedor';
                         $proximo = 'Sin periodo';
                         $ultimo = 'Sin registro';
-                        $antiguedad = abs($row['antiguedad_dias']) . ' días';
+                        $antiguedad = abs($row['antiguedad_dias']) . ' dÃ­as';
                         $dias_restantes = 999;
                     ?>
                         <tr>
@@ -203,12 +209,21 @@ try {
                                         } else {
                                             $finalSrc = 'uploads/' . basename($imgSrc);
                                         }
+                                        $base = pathinfo($finalSrc, PATHINFO_FILENAME);
+                                        $thumbJpg = 'uploads/thumbs/' . $base . '.jpg';
+                                        $thumbWebp = 'uploads/thumbs/' . $base . '.webp';
                                     ?>
-                                        <img src="<?php echo htmlspecialchars($finalSrc); ?>"
-                                            class="rounded shadow-sm"
-                                            loading="lazy"
-                                            style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;"
-                                            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-light rounded d-flex align-items-center justify-content-center\' style=\'width: 45px; height: 45px; border: 1px dashed #ccc;\'><i class=\'fas fa-camera text-muted\'></i></div>';">
+                                        <picture>
+                                            <source type="image/webp" srcset="<?php echo htmlspecialchars($thumbWebp); ?>">
+                                            <img src="<?php echo htmlspecialchars($thumbJpg); ?>"
+                                                data-fallback="<?php echo htmlspecialchars($finalSrc); ?>"
+                                                class="rounded shadow-sm"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="45" height="45"
+                                                style="width: 45px; height: 45px; object-fit: cover; border: 1px solid #ddd;"
+                                                onerror="if(this.dataset.fallback){var fb=this.dataset.fallback; this.removeAttribute('data-fallback'); this.src=fb; return;} this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-light rounded d-flex align-items-center justify-content-center\' style=\'width: 45px; height: 45px; border: 1px dashed #ccc;\'><i class=\'fas fa-camera text-muted\'></i></div>';">
+                                        </picture>
                                     <?php } else { ?>
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center"
                                         style="width: 45px; height: 45px; border: 1px dashed #ccc;">
@@ -254,11 +269,11 @@ try {
                                 <div>
                                     <?php if ($row['revision'] == 1): ?>
                                         <span class="badge badge-success">
-                                            <i class="fas fa-check mr-1"></i> Con Revisión
+                                            <i class="fas fa-check mr-1"></i> Con RevisiÃ³n
                                         </span>
                                     <?php else: ?>
                                         <span class="badge badge-warning">
-                                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin Revisión
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> Sin RevisiÃ³n
                                         </span>
                                     <?php endif ?>
                                     <br>
@@ -269,7 +284,7 @@ try {
                                 </div>
                             </td>
 
-                            <!-- PRÓXIMO MTTO. -->
+                            <!-- PRÃ“XIMO MTTO. -->
                             <td>
                                 <div>
                                     <strong>
@@ -289,19 +304,19 @@ try {
                                     </strong>
                                     <br>
                                     <small class="text-muted">
-                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes días" : "Vencido hace " . abs($dias_restantes) . " días"; ?>
+                                        <?php echo $dias_restantes >= 0 ? "En $dias_restantes dÃ­as" : "Vencido hace " . abs($dias_restantes) . " dÃ­as"; ?>
                                     </small>
                                 </div>
                             </td>
 
-                            <!-- ÚLTIMO MTTO. -->
+                            <!-- ÃšLTIMO MTTO. -->
                             <td>
                                 <div>
                                     <strong><?php echo $ultimo; ?></strong>
                                 </div>
                             </td>
 
-                            <!-- ANTIGÜEDAD -->
+                            <!-- ANTIGÃœEDAD -->
                             <td>
                                 <div>
                                     <strong><?php echo $antiguedad; ?></strong>
@@ -330,7 +345,7 @@ try {
                                             <i class="fas fa-edit mr-2 text-secondary"></i> Editar
                                         </a>
                                         <a class="dropdown-item" href="./index.php?page=equipment_new_revision&id=<?php echo $row['id'] ?>">
-                                            <i class="fas fa-tools mr-2 text-success"></i> Nueva Revisión
+                                            <i class="fas fa-tools mr-2 text-success"></i> Nueva RevisiÃ³n
                                         </a>
                                         <div class="dropdown-divider"></div>
                                         <h6 class="dropdown-header">Reportes</h6>
@@ -367,10 +382,10 @@ try {
                 </div>
                 <div class="col-sm-6 text-right">
                     <small class="text-muted">
-                        Con revisión:
-                        <span class="badge badge-success"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 1")->num_rows; ?></span>
-                        Sin revisión:
-                        <span class="badge badge-warning"><?php echo $conn->query("SELECT e.* FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 0")->num_rows; ?></span>
+                        Con revisiÃ³n:
+                        <span class="badge badge-success"><?php echo (int)$with_revision; ?></span>
+                        Sin revisiÃ³n:
+                        <span class="badge badge-warning"><?php echo (int)$without_revision; ?></span>
                     </small>
                 </div>
             </div>
@@ -383,7 +398,7 @@ try {
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="qrModalLabel">Código QR del Equipo</h5>
+                <h5 class="modal-title" id="qrModalLabel">CÃ³digo QR del Equipo</h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
@@ -427,7 +442,7 @@ try {
                 if (typeof end_load === 'function') {
                     end_load();
                 }
-                // Forzar ocultar overlay por ID también
+                // Forzar ocultar overlay por ID tambiÃ©n
                 $('#page-loading-indicator').addClass('is-hidden');
             }
         });
@@ -443,7 +458,7 @@ try {
             $('#qrName').text($row.find('td:eq(1) strong').text().trim());
             $('#qrInventory').text($row.find('td:eq(2) strong').text().replace('Inv: ', '').trim());
             $('#qrSerie').text($row.find('td:eq(2) small').text().split(' - ')[1]?.trim() || 'N/A');
-            $('#printLabelBtn').attr('href', 'print_label.php?id=' + id);
+            $('#printLabelBtn').attr('href', 'app/helpers/print_label.php?id=' + id);
 
             const img = new Image();
             img.onload = function() {
@@ -454,7 +469,7 @@ try {
             img.onerror = function() {
                 $('#qrLoading').html('<p class="text-danger">Error: No se pudo generar el QR</p>');
             };
-            img.src = 'generate_qr.php?id=' + id + '&t=' + Date.now();
+            img.src = 'app/helpers/generate_qr.php?id=' + id + '&t=' + Date.now();
 
             $('#qrModal').modal('show');
         });
@@ -463,7 +478,7 @@ try {
         $(document).on('click', '.delete', function() {
             const id = $(this).data('id');
             confirm_toast(
-                '¿Estás seguro de eliminar este equipo? Esta acción no se puede deshacer.',
+                'Â¿EstÃ¡s seguro de eliminar este equipo? Esta acciÃ³n no se puede deshacer.',
                 function() { delete_equipment(id); }
             );
         });
@@ -471,7 +486,7 @@ try {
         window.delete_equipment = function(id) {
             start_load();
             $.ajax({
-                url: 'ajax.php?action=delete_equipment',
+                url: 'public/ajax/action.php?action=delete_equipment',
                 method: 'POST',
                 data: { id: id },
                 success: function(resp) {
@@ -485,7 +500,7 @@ try {
                 },
                 error: function() {
                     end_load();
-                    alert_toast("Error de conexión", 'error');
+                    alert_toast("Error de conexiÃ³n", 'error');
                 }
             });
         };

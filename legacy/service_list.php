@@ -1,4 +1,4 @@
-
+﻿
 <style>
 	.img-service{
 		width:75px;
@@ -25,10 +25,10 @@
 							<tr>
 								<th>#</th>
 								<th>Imagen</th>
-								<th>Categoría</th>
+								<th>CategorÃ­a</th>
 								<th>Servicio</th>
-								<th>Descripción</th>
-								<th>Acción</th>
+								<th>DescripciÃ³n</th>
+								<th>AcciÃ³n</th>
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -47,7 +47,7 @@
 			$('table tbody').html('')
 		}
 		$.ajax({
-			url:"ajax.php?action=load_service",
+			url:"public/ajax/action.php?action=load_service",
 			dataType: "json",
 			error: err=>{
 				console.log(err)
@@ -69,7 +69,7 @@
 							tr.append('<td><span class="truncate">'+data[k].description+'</span></td>')
 							tr.append('<td class="text-center"><div class="btn-group">'+
 	                   ' <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">'+
-	                    	'Acción'+
+	                    	'AcciÃ³n'+
 	                      '<span class="sr-only">Toggle Dropdown</span>'+
 	                    '</button>'+
 	                    '<div class="dropdown-menu" role="menu" style="">'+
@@ -104,7 +104,7 @@
 		$('.delete_data').click(function(){
 			const serviceId = $(this).attr('data-id');
 			confirm_toast(
-				'¿Estás seguro de eliminar este servicio? Esta acción no se puede deshacer.',
+				'Â¿EstÃ¡s seguro de eliminar este servicio? Esta acciÃ³n no se puede deshacer.',
 				function() { delete_data(serviceId); }
 			);
 		})
@@ -123,7 +123,7 @@
 			},
 			success:function(resp){
 				if(!!resp.status && resp.status == 'success'){
-					alert_toast(" Datos eliminados exitósamente","success");
+					alert_toast(" Datos eliminados exitÃ³samente","success");
 					$('.modal').modal('hide');
 					end_loader();
 					load_data()
@@ -138,3 +138,4 @@
 		})
 	})
 </script>
+

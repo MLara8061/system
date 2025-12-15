@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <?php
 // === TOTALES GENERALES DE INVENTARIO ===
@@ -7,14 +7,14 @@ $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'i'
 
 $total_items = $conn->query("SELECT COUNT(*) as total FROM inventory i {$branch_where}")->fetch_assoc()['total'] ?? 0;
 
-// === CAMBIO 1: Contar ítems CON STOCK (stock > 0) ===
+// === CAMBIO 1: Contar Ã­tems CON STOCK (stock > 0) ===
 $con_stock = $conn->query("SELECT COUNT(*) as total FROM inventory i WHERE stock > 0 {$branch_and}")->fetch_assoc()['total'] ?? 0;
 
-// === CAMBIO 2: Contar ítems SIN STOCK (stock = 0) ===
-// Se mantiene la variable, pero se asegura la condición de conteo (stock = 0)
+// === CAMBIO 2: Contar Ã­tems SIN STOCK (stock = 0) ===
+// Se mantiene la variable, pero se asegura la condiciÃ³n de conteo (stock = 0)
 $sin_stock = $conn->query("SELECT COUNT(*) as total FROM inventory i WHERE stock = 0 {$branch_and}")->fetch_assoc()['total'] ?? 0;
 
-// Se mantiene la lógica del valor total
+// Se mantiene la lÃ³gica del valor total
 $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM inventory i {$branch_where}")->fetch_assoc()['total'] ?? 0;
 ?>
 
@@ -73,7 +73,7 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-header bg-white border-0">
             <div class="card-tools float-right">
-                <a href="index.php?page=manage_insumos" class="btn btn-tool btn-sm" title="Agregar ítem">
+                <a href="index.php?page=manage_insumos" class="btn btn-tool btn-sm" title="Agregar Ã­tem">
                     <i class="fas fa-plus text-secondary"></i>
                 </a>
                 <a href="#" class="btn btn-tool btn-sm" title="Exportar a Excel" id="export-excel">
@@ -88,12 +88,12 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                     <tr>
                         <th style="width:50px;">Img</th>
                         <th>Nombre</th>
-                        <th>Categoría</th>
+                        <th>CategorÃ­a</th>
                         <th>Precio</th>
                         <th>Costo</th>
                         <th>Stock</th>
-                        <th>Mín</th>
-                        <th>Máx</th>
+                        <th>MÃ­n</th>
+                        <th>MÃ¡x</th>
                         <th>Valor</th>
                         <th>Status</th>
                         <th>Creado</th>
@@ -189,7 +189,7 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
         border: 1px solid #ddd;
     }
 
-    /* Quitar fondo y negrita de categoría */
+    /* Quitar fondo y negrita de categorÃ­a */
     #inventory-table td:nth-child(3) span {
         font-weight: normal !important;
         background: none !important;
@@ -214,9 +214,10 @@ $(document).ready(function() {
     // === VER / EDITAR ITEM ===
     $(document).on('click', '.view-inventory', function() {
         const id = $(this).data('id');
+        const baseUrl = '<?php echo rtrim(BASE_URL, '/'); ?>';
         uni_modal(
-            '<i class="fa fa-edit text-primary"></i> Editar Ítem',
-            'view_inventory.php?id=' + id,
+            '<i class="fa fa-edit text-primary"></i> Editar Ãtem',
+            baseUrl + '/app/views/pages/view_inventory.php?id=' + id,
             'mid-large',
             '<div class="modal-footer">' +
                 '<button type="button" class="btn btn-secondary" data-dismiss="modal">' +
@@ -233,16 +234,16 @@ $(document).ready(function() {
     $(document).on('click', '.delete-inventory', function() {
         const id = $(this).data('id');
         confirm_toast(
-            '¿Estás seguro de eliminar este ítem de insumos? Esta acción no se puede deshacer.',
+            'Â¿EstÃ¡s seguro de eliminar este Ã­tem de insumos? Esta acciÃ³n no se puede deshacer.',
             function() { delete_inventory(id); }
         );
     });
 
-    // === FUNCIÓN ELIMINAR ===
+    // === FUNCIÃ“N ELIMINAR ===
     window.delete_inventory = function(id) {
         start_load();
         $.ajax({
-            url: 'ajax.php?action=delete_inventory',
+            url: 'public/ajax/action.php?action=delete_inventory',
             method: 'POST',
             data: { id: id },
             success: function(resp) {
@@ -260,9 +261,9 @@ $(document).ready(function() {
     // === EXPORTAR A EXCEL ===
     $('#export-excel').click(function(e) {
         e.preventDefault();
-        let data = [['Img','Nombre','Categoría','Precio','Costo','Stock','Mín','Máx','Valor Total','Status','Creado']];
+        let data = [['Img','Nombre','CategorÃ­a','Precio','Costo','Stock','MÃ­n','MÃ¡x','Valor Total','Status','Creado']];
         table.rows({ search: 'applied' }).data().each(function(row) {
-            const img = $(row[0]).find('img').length ? 'Sí' : 'No';
+            const img = $(row[0]).find('img').length ? 'SÃ­' : 'No';
             const status = $(row[9]).text();
             data.push([
                 img,

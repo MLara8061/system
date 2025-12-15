@@ -366,7 +366,7 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                         <?php if ($maintenance_query && $maintenance_query->num_rows > 0): ?>
                             <div class="table-responsive">
                                 <table id="maintenanceTable" class="table table-striped table-hover">
-                                    <thead class="bg-secondary">
+                                    <thead class="thead-light table-light text-secondary">
                                         <tr>
                                             <th>Fecha</th>
                                             <th>Hora</th>

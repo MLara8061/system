@@ -1,10 +1,10 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <div class="col-lg-12">
   <div class="card card-outline card-primary">
     <div class="card-header">
       <div class="card-tools">
         <button class="btn btn-sm btn-primary btn-block" type='button' id="new_location">
-          <i class="fa fa-plus"></i> Agregar Ubicación
+          <i class="fa fa-plus"></i> Agregar UbicaciÃ³n
         </button>
       </div>
     </div>
@@ -14,7 +14,7 @@
           <tr>
             <th>#</th>
             <th>Nombre</th>
-            <th>Acción</th>
+            <th>AcciÃ³n</th>
           </tr>
         </thead>
         <tbody>
@@ -28,7 +28,7 @@
               <td><b><?php echo ucwords($row['name']) ?></b></td>
               <td class="text-center">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-                  Acción
+                  AcciÃ³n
                 </button>
                 <div class="dropdown-menu">
                   <a class="dropdown-item edit_location" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
@@ -49,27 +49,27 @@
     $('#list').dataTable();
 
     $('#new_location').click(function() {
-      uni_modal("Agregar Ubicación", "manage_equipment_location.php");
+      uni_modal("Agregar UbicaciÃ³n", "manage_equipment_location.php");
     });
 
     $('.edit_location').click(function() {
-      uni_modal("Editar Ubicación", "manage_equipment_location.php?id=" + $(this).attr('data-id'));
+      uni_modal("Editar UbicaciÃ³n", "manage_equipment_location.php?id=" + $(this).attr('data-id'));
     });
 
     $('.delete_location').click(function() {
-      _conf("¿Deseas eliminar esta ubicación?", "delete_location", [$(this).attr('data-id')]);
+      _conf("Â¿Deseas eliminar esta ubicaciÃ³n?", "delete_location", [$(this).attr('data-id')]);
     });
   });
 
   function delete_location(id) {
     start_load();
     $.ajax({
-      url: 'ajax.php?action=delete_equipment_location',
+      url: 'public/ajax/action.php?action=delete_equipment_location',
       method: 'POST',
       data: { id: id },
       success: function(resp) {
         if (resp == 1) {
-          alert_toast("Ubicación eliminada correctamente", 'success');
+          alert_toast("UbicaciÃ³n eliminada correctamente", 'success');
           setTimeout(function() {
             location.reload();
           }, 1500);
@@ -78,3 +78,4 @@
     });
   }
 </script>
+

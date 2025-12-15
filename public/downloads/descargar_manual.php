@@ -5,5 +5,5 @@
  */
 
 // Redirigir al manual con parámetro para forzar descarga
-header('Location: manual_usuario_pdf.php?download=1');
+header('Location: ../../app/helpers/manual_usuario_pdf.php?download=1');
 exit();

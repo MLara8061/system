@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 require_once 'config/db.php';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $is_edit = $id > 0;
@@ -30,7 +30,7 @@ if ($is_edit) {
             <input type="text" name="lastname" id="lastname" class="form-control" value="<?= $user['lastname'] ?? '' ?>" required>
         </div>
 
-        <!-- USUARIO CON VALIDACIÓN -->
+        <!-- USUARIO CON VALIDACIÃ“N -->
         <div class="form-group">
             <label for="username"><strong>Usuario</strong></label>
             <div class="input-group">
@@ -52,15 +52,15 @@ if ($is_edit) {
             </select>
         </div>
 
-        <!-- CONTRASEÑA -->
+        <!-- CONTRASEÃ‘A -->
         <div class="form-group">
-            <label for="password"><strong>Contraseña</strong> 
+            <label for="password"><strong>ContraseÃ±a</strong> 
                 <small class="text-muted">
-                    <?= $is_edit ? '(Dejar vacío para no cambiar)' : '(Requerida)' ?>
+                    <?= $is_edit ? '(Dejar vacÃ­o para no cambiar)' : '(Requerida)' ?>
                 </small>
             </label>
             <input type="password" name="password" id="password" class="form-control" 
-                   placeholder="<?= $is_edit ? 'Nueva contraseña' : 'Contraseña segura' ?>"
+                   placeholder="<?= $is_edit ? 'Nueva contraseÃ±a' : 'ContraseÃ±a segura' ?>"
                    <?= !$is_edit ? 'required' : '' ?>>
         </div>
     </form>
@@ -86,7 +86,7 @@ $(document).ready(function() {
 
         typingTimer = setTimeout(() => {
             $.ajax({
-                url: 'ajax.php?action=check_username',
+                url: 'public/ajax/action.php?action=check_username',
                 method: 'POST',
                 data: { username: val, id: <?= $id ?> },
                 success: function(resp) {
@@ -108,12 +108,12 @@ $(document).ready(function() {
     $form.submit(function(e) {
         e.preventDefault();
         if ($username.hasClass('is-invalid')) {
-            alert_toast("El usuario no está disponible", 'error');
+            alert_toast("El usuario no estÃ¡ disponible", 'error');
             return;
         }
         start_load();
         $.ajax({
-            url: 'ajax.php?action=save_user',
+            url: 'public/ajax/action.php?action=save_user',
             method: 'POST',
             data: $form.serialize(),
             success: function(resp) {
@@ -127,7 +127,7 @@ $(document).ready(function() {
                     alert_toast("El usuario ya existe", 'error');
                     end_load();
                 } else if (resp == 4) {
-                    alert_toast("La contraseña es requerida", 'error');
+                    alert_toast("La contraseÃ±a es requerida", 'error');
                     end_load();
                 } else {
                     alert_toast("Error: " + resp, 'error');

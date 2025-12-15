@@ -1260,6 +1260,130 @@ class Action {
     }
 
     // ================== EQUIPOS (COMPLETO) ==================
+    private function optimize_image_inplace($path, $ext, $maxDim = 1600) {
+        if (empty($path) || !file_exists($path)) return;
+        if (!function_exists('getimagesize')) return;
+
+        $ext = strtolower((string)$ext);
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) return;
+
+        $info = @getimagesize($path);
+        if (!$info || empty($info[0]) || empty($info[1])) return;
+        $w = (int)$info[0];
+        $h = (int)$info[1];
+
+        $src = null;
+        if (($ext === 'jpg' || $ext === 'jpeg') && function_exists('imagecreatefromjpeg')) {
+            $src = @imagecreatefromjpeg($path);
+            if ($src && function_exists('exif_read_data')) {
+                $exif = @exif_read_data($path);
+                $orientation = (int)($exif['Orientation'] ?? 0);
+                if ($orientation === 3 && function_exists('imagerotate')) $src = imagerotate($src, 180, 0);
+                if ($orientation === 6 && function_exists('imagerotate')) $src = imagerotate($src, -90, 0);
+                if ($orientation === 8 && function_exists('imagerotate')) $src = imagerotate($src, 90, 0);
+            }
+        } elseif ($ext === 'png' && function_exists('imagecreatefrompng')) {
+            $src = @imagecreatefrompng($path);
+        } elseif ($ext === 'gif' && function_exists('imagecreatefromgif')) {
+            $src = @imagecreatefromgif($path);
+        }
+        if (!$src) return;
+
+        $ratio = 1.0;
+        if ($w > $maxDim || $h > $maxDim) {
+            $ratio = min($maxDim / max(1, $w), $maxDim / max(1, $h));
+        }
+        $newW = max(1, (int)round($w * $ratio));
+        $newH = max(1, (int)round($h * $ratio));
+
+        $dst = $src;
+        if ($ratio < 1.0 && function_exists('imagecreatetruecolor') && function_exists('imagecopyresampled')) {
+            $dst = imagecreatetruecolor($newW, $newH);
+            if ($ext === 'png' || $ext === 'gif') {
+                if (function_exists('imagealphablending')) imagealphablending($dst, false);
+                if (function_exists('imagesavealpha')) imagesavealpha($dst, true);
+                $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+                imagefilledrectangle($dst, 0, 0, $newW, $newH, $transparent);
+            }
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
+        }
+
+        if ($ext === 'jpg' || $ext === 'jpeg') {
+            @imagejpeg($dst, $path, 82);
+        } elseif ($ext === 'png') {
+            @imagepng($dst, $path, 6);
+        } elseif ($ext === 'gif') {
+            @imagegif($dst, $path);
+        }
+
+        if ($dst && $dst !== $src) @imagedestroy($dst);
+        if ($src) @imagedestroy($src);
+    }
+
+    private function create_image_thumb($srcPath, $thumbJpgPath, $thumbWebpPath = null, $size = 96) {
+        if (empty($srcPath) || !file_exists($srcPath)) return;
+        if (!function_exists('getimagesize') || !function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled')) return;
+
+        $info = @getimagesize($srcPath);
+        if (!$info || empty($info[0]) || empty($info[1])) return;
+        $w = (int)$info[0];
+        $h = (int)$info[1];
+        if ($w <= 0 || $h <= 0) return;
+
+        $type = (int)($info[2] ?? 0);
+        $src = null;
+        if ($type === IMAGETYPE_JPEG && function_exists('imagecreatefromjpeg')) $src = @imagecreatefromjpeg($srcPath);
+        if ($type === IMAGETYPE_PNG && function_exists('imagecreatefrompng')) $src = @imagecreatefrompng($srcPath);
+        if ($type === IMAGETYPE_GIF && function_exists('imagecreatefromgif')) $src = @imagecreatefromgif($srcPath);
+        if (!$src) return;
+
+        // cover crop
+        $srcRatio = $w / max(1, $h);
+        $dstRatio = 1.0;
+        if ($srcRatio > $dstRatio) {
+            $cropH = $h;
+            $cropW = (int)round($h * $dstRatio);
+            $srcX = (int)round(($w - $cropW) / 2);
+            $srcY = 0;
+        } else {
+            $cropW = $w;
+            $cropH = (int)round($w / $dstRatio);
+            $srcX = 0;
+            $srcY = (int)round(($h - $cropH) / 2);
+        }
+
+        $dst = imagecreatetruecolor((int)$size, (int)$size);
+        // fondo blanco (evita fondos negros al convertir a jpg)
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefilledrectangle($dst, 0, 0, (int)$size, (int)$size, $white);
+
+        imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, (int)$size, (int)$size, $cropW, $cropH);
+
+        $thumbDir = dirname($thumbJpgPath);
+        if (!is_dir($thumbDir)) @mkdir($thumbDir, 0777, true);
+        @imagejpeg($dst, $thumbJpgPath, 75);
+
+        if (!empty($thumbWebpPath) && function_exists('imagewebp')) {
+            $thumbWebpDir = dirname($thumbWebpPath);
+            if (!is_dir($thumbWebpDir)) @mkdir($thumbWebpDir, 0777, true);
+            @imagewebp($dst, $thumbWebpPath, 75);
+        }
+
+        if ($dst) @imagedestroy($dst);
+        if ($src) @imagedestroy($src);
+    }
+
+    private function delete_equipment_image_thumbs($imgPath) {
+        if (empty($imgPath)) return;
+        $base = pathinfo($imgPath, PATHINFO_FILENAME);
+        if (empty($base)) return;
+
+        $jpg = 'uploads/thumbs/' . $base . '.jpg';
+        $webp = 'uploads/thumbs/' . $base . '.webp';
+        if (file_exists($jpg)) @unlink($jpg);
+        if (file_exists($webp)) @unlink($webp);
+    }
+
     function save_equipment() {
         try {
             $login_type = (int)($_SESSION['login_type'] ?? 0);
@@ -1459,11 +1583,21 @@ class Action {
                     $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
                 }
                 
-                if ($old_img && file_exists($old_img)) unlink($old_img);
+                if ($old_img && file_exists($old_img)) {
+                    @unlink($old_img);
+                    $this->delete_equipment_image_thumbs($old_img);
+                }
 
                 $filename = $id.'_'.time().'.'.$ext;
                 $dest = $upload_dir.$filename;
                 if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    // Optimiza imagen original y genera miniaturas para listados
+                    $this->optimize_image_inplace($dest, $ext, 1600);
+                    $base = pathinfo($dest, PATHINFO_FILENAME);
+                    $thumbJpg = 'uploads/thumbs/' . $base . '.jpg';
+                    $thumbWebp = 'uploads/thumbs/' . $base . '.webp';
+                    $this->create_image_thumb($dest, $thumbJpg, $thumbWebp, 96);
+
                     if ($this->pdo) {
                         $stmt = $this->pdo->prepare("UPDATE equipments SET image = ? WHERE id = ?");
                         $stmt->execute([$dest, $id]);
@@ -1483,6 +1617,7 @@ class Action {
                     $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
                 }
                 if ($old_img && file_exists($old_img)) unlink($old_img);
+                if ($old_img) $this->delete_equipment_image_thumbs($old_img);
                 
                 if ($this->pdo) {
                     $stmt = $this->pdo->prepare("UPDATE equipments SET image = NULL WHERE id = ?");

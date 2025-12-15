@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 
 <?php
 // === RESUMEN DE TARJETAS ===
@@ -62,11 +62,11 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
         <div class="card-header border-0">
            
             <div class="card-tools">
-                <!-- BOTÓN + (ORIGINAL) -->
+                <!-- BOTÃ“N + (ORIGINAL) -->
                 <a href="./index.php?page=new_supplier" class="btn btn-tool btn-sm" title="Agregar Proveedor">
                     <i class="fas fa-plus"></i>
                 </a>
-                <!-- BOTÓN DESCARGAR (ORIGINAL) -->
+                <!-- BOTÃ“N DESCARGAR (ORIGINAL) -->
                 <a href="javascript:void(0)" id="export_excel" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
@@ -115,7 +115,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                                 <?php endif; ?>
                             </td>
 
-                            <!-- TELÉFONO + SITIO WEB (CORREGIDO) -->
+                            <!-- TELÃ‰FONO + SITIO WEB (CORREGIDO) -->
                             <td>
                                 <small>
                                     <?php if (!empty($row['telefono'])): ?>
@@ -182,14 +182,14 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
                 "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible",
+                "sEmptyTable": "NingÃºn dato disponible",
                 "sInfo": "Mostrando _START_ a _END_ de _TOTAL_",
                 "sInfoEmpty": "Mostrando 0 a 0 de 0",
                 "sInfoFiltered": "(filtrado de _MAX_ total)",
                 "sSearch": "Buscar:",
                 "oPaginate": {
                     "sFirst": "Primero",
-                    "sLast": "Último",
+                    "sLast": "Ãšltimo",
                     "sNext": "Siguiente",
                     "sPrevious": "Anterior"
                 }
@@ -204,9 +204,9 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                 targets: 2, // Columna Contacto
                 render: function(data, type, row, meta) {
                     if (type === 'display') {
-                        return data; // Ya está bien formateado en PHP
+                        return data; // Ya estÃ¡ bien formateado en PHP
                     }
-                    // Para filtro/búsqueda: extraer texto limpio
+                    // Para filtro/bÃºsqueda: extraer texto limpio
                     let text = '';
                     if (row.telefono) text += row.telefono + ' ';
                     if (row.sitio_web) text += row.sitio_web;
@@ -215,7 +215,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             }]
         });
 
-        // === EXPORTAR A CSV 100% FUNCIONAL Y DINÁMICO ===
+        // === EXPORTAR A CSV 100% FUNCIONAL Y DINÃMICO ===
         $('#export_excel').click(function(e) {
             e.preventDefault();
             let table = $('#list').DataTable();
@@ -249,7 +249,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
                 let correo = $(data[1]).find('small').text().trim();
                 row.push(correo ? `${rep} (${correo})` : rep);
 
-                // Contacto: Teléfono + Web
+                // Contacto: TelÃ©fono + Web
                 let contacto = '';
                 let telMatch = data[2].match(/fa-phone[^>]*>([^<]+)/);
                 let webMatch = data[2].match(/href="[^"]*">([^<]+)</);
@@ -284,7 +284,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             e.preventDefault();
             let id = $(this).data('id');
             confirm_toast(
-                '¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer.',
+                'Â¿EstÃ¡s seguro de eliminar este proveedor? Esta acciÃ³n no se puede deshacer.',
                 function() { delete_supplier(id); }
             );
         });
@@ -292,13 +292,13 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
         // Tooltip
         $('[title]').tooltip();
 
-    }); // ← CIERRE CORRECTO
+    }); // â† CIERRE CORRECTO
 
-    // === FUNCIÓN GLOBAL DE ELIMINAR ===
+    // === FUNCIÃ“N GLOBAL DE ELIMINAR ===
     function delete_supplier(id) {
         start_load();
         $.ajax({
-            url: 'ajax.php?action=delete_supplier',
+            url: 'public/ajax/action.php?action=delete_supplier',
             method: 'POST',
             data: {
                 id: id
@@ -314,7 +314,7 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexión', 'error');
+                alert_toast('Error de conexiÃ³n', 'error');
             }
         });
     }

@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 require_once 'config/config.php';
 
 if(isset($_GET['id'])){
@@ -14,16 +14,16 @@ if(isset($_GET['id'])){
 	<form action="" id="manage-category">
 		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
 		<div class="form-group">
-			<label for="category" class="control-label">Categoría</label>
+			<label for="category" class="control-label">CategorÃ­a</label>
 			<input type="text" class="form-control form-control-sm" name="category" id="category" value="<?php echo isset($category) ? $category : "" ?>" required>
 		</div>
 		<div class="form-group">
 			<label for="clave" class="control-label">Clave (Inmutable)</label>
 			<input type="text" class="form-control form-control-sm" name="clave" id="clave" value="<?php echo isset($clave) ? $clave : "" ?>" <?php echo isset($_GET['id']) ? 'readonly' : 'required' ?>>
-			<small class="text-muted">La clave es única e inmutable una vez creada.</small>
+			<small class="text-muted">La clave es Ãºnica e inmutable una vez creada.</small>
 		</div>
 		<div class="form-group">
-			<label for="description" class="control-label">Descripción</label>
+			<label for="description" class="control-label">DescripciÃ³n</label>
 			<textarea type="text" style="resize: none" class="form-control" rows="3" name="description" id="description"  required><?php echo isset($description) ? $description : "" ?></textarea>
 		</div>
 
@@ -47,7 +47,7 @@ if(isset($_GET['id'])){
 			}
 			//start_loader();
 			$.ajax({
-				url:"ajax.php?action=save_category",
+				url:"public/ajax/action.php?action=save_category",
 				method:"POST",
 				data:$(this).serialize(),
 				dataType:'json',
@@ -58,12 +58,12 @@ if(isset($_GET['id'])){
 				},
 				success:function(resp){
 					if(!!resp.status && resp.status =='success'){
-						alert_toast(" Datos guardados exitósamente","success");
+						alert_toast(" Datos guardados exitÃ³samente","success");
 						$('.modal').modal('hide');
 						end_loader()
 						load_data();
 					}else if(!!resp.status && resp.status =='duplicate_category'){
-						$('#manage-category').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Categoría ingresada ya existe</b></div></div>');
+						$('#manage-category').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>CategorÃ­a ingresada ya existe</b></div></div>');
 						$('#category').addClass('border-danger');
 						$('#category').focus();
 						end_loader();

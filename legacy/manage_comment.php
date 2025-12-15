@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php
 if(isset($_GET['id'])){
 	$qry = $conn->query("SELECT * FROM comments where id = ".$_GET['id'])->fetch_array();
@@ -24,7 +24,7 @@ foreach($qry as $k => $v){
 		start_load()
 		// $('#msg').html('')
 		$.ajax({
-			url:'ajax.php?action=save_comment',
+			url:'public/ajax/action.php?action=save_comment',
 			data: new FormData($(this)[0]),
 		    cache: false,
 		    contentType: false,

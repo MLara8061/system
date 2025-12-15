@@ -1,4 +1,4 @@
-<?php require_once 'config/config.php'; ?>
+﻿<?php require_once 'config/config.php'; ?>
 <?php
 $position_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $location_id = '';
@@ -45,9 +45,9 @@ if($position_id){
     </div>
 
     <div class="form-group">
-      <label class="control-label">Ubicación</label>
+      <label class="control-label">UbicaciÃ³n</label>
       <select name="location_id" id="location_id" class="form-control" required>
-        <option value="">Seleccionar Ubicación</option>
+        <option value="">Seleccionar UbicaciÃ³n</option>
         <?php
         $locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");
         while($row = $locations->fetch_assoc()):
@@ -66,7 +66,7 @@ $('#manage_job_position').submit(function(e){
     e.preventDefault();
     start_load();
     $.ajax({
-        url:'ajax.php?action=save_job_position',
+        url:'public/ajax/action.php?action=save_job_position',
         data: new FormData($(this)[0]),
         cache: false,
         contentType: false,
@@ -85,13 +85,14 @@ $('#manage_job_position').submit(function(e){
                     location.reload();
                 },1500);
             } else {
-                alert_toast("Ocurrió un error", 'error');
+                alert_toast("OcurriÃ³ un error", 'error');
             }
         },
         error: function(){
             end_load();
-            alert_toast("Error de conexión", 'error');
+            alert_toast("Error de conexiÃ³n", 'error');
         }
     });
 });
 </script>
+
