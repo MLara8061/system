@@ -36,9 +36,13 @@ if ($result && ($row = $result->fetch_assoc())) {
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_equipos={$total_equipos}\n", FILE_APPEND);
 }
 
-// TEMPORAL: Queries de accessories y tools comentadas por timeout
-$total_epp = 0;
-$total_herramientas = 0;
+// Query optimizada: solo COUNT sin JOINs
+$result_accesorios = $conn->query("SELECT COUNT(*) as total FROM accessories");
+$total_epp = ($result_accesorios && $row = $result_accesorios->fetch_assoc()) ? $row['total'] : 0;
+
+$result_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools");
+$total_herramientas = ($result_herramientas && $row = $result_herramientas->fetch_assoc()) ? $row['total'] : 0;
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: EPP={$total_epp}, Herramientas={$total_herramientas}\n", FILE_APPEND);
 
 $valor_total_equipos = 0;
 $result = safe_query($conn, "SELECT SUM(e.amount) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_filter}");
@@ -85,31 +89,71 @@ switch ($period) {
         $months_count = 6;
 }
 
-// TEMPORAL: Datos de mantenimiento dummy por timeout
+// Query optimizada: agregación directa por tipo
+$result_mp = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports WHERE type='MP'");
+$result_mc = $conn->query("SELECT COUNT(*) as total FROM maintenance_reports WHERE type='MC'");
+$mp_count = ($result_mp && $row = $result_mp->fetch_assoc()) ? $row['total'] : 0;
+$mc_count = ($result_mc && $row = $result_mc->fetch_assoc()) ? $row['total'] : 0;
 $service_types = ['MP', 'MC'];
-$service_counts = [10, 5];
+$service_counts = [$mp_count, $mc_count];
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance counts - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
-// TEMPORAL: Datos de ejecución mensual dummy
+// Query optimizada: agregación mensual con GROUP BY
 $exec_months = [];
 for ($i = $months_count - 1; $i >= 0; $i--) {
     $exec_months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$mp_data = array_fill(0, $months_count, 5);
-$mc_data = array_fill(0, $months_count, 3);
+$mp_data = array_fill(0, $months_count, 0);
+$mc_data = array_fill(0, $months_count, 0);
+$result_monthly = $conn->query("SELECT DATE_FORMAT(date, '%Y-%m') as mes, type, COUNT(*) as total FROM maintenance_reports WHERE date >= '$start_service' GROUP BY DATE_FORMAT(date, '%Y-%m'), type ORDER BY mes");
+if ($result_monthly) {
+    while ($row = $result_monthly->fetch_assoc()) {
+        $idx = array_search($row['mes'], $exec_months);
+        if ($idx !== false) {
+            if ($row['type'] == 'MP') $mp_data[$idx] = (int)$row['total'];
+            if ($row['type'] == 'MC') $mc_data[$idx] = (int)$row['total'];
+        }
+    }
+}
 $exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loaded monthly execution data\n", FILE_APPEND);
 
-// TEMPORAL: Series mensuales dummy
+// Query optimizada: agregación mensual de equipos por fecha de compra
 $months = [];
 for ($i = 11; $i >= 0; $i--) {
     $months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$counts = array_fill(0, 12, 8);
-$sums = array_fill(0, 12, 15000);
+$counts = array_fill(0, 12, 0);
+$sums = array_fill(0, 12, 0);
+$result_series = $conn->query("SELECT DATE_FORMAT(purchase_date, '%Y-%m') as mes, COUNT(*) as cantidad, SUM(price) as valor_total FROM equipments WHERE purchase_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) GROUP BY DATE_FORMAT(purchase_date, '%Y-%m') ORDER BY mes");
+if ($result_series) {
+    while ($row = $result_series->fetch_assoc()) {
+        $idx = array_search($row['mes'], $months);
+        if ($idx !== false) {
+            $counts[$idx] = (int)$row['cantidad'];
+            $sums[$idx] = (float)$row['valor_total'];
+        }
+    }
+}
 $categories = array_map(function ($m) { return $m . '-01'; }, $months);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loaded equipment series data\n", FILE_APPEND);
 
-// TEMPORAL: Pie proveedores dummy
-$pie_labels = ['Proveedor A', 'Proveedor B', 'Sin Proveedor'];
-$pie_values = [100, 80, 72];
+// Query optimizada: datos para pie chart de proveedores
+$pie_query = "SELECT COALESCE(s.name, 'Sin Proveedor') as supplier, COUNT(*) as cnt 
+              FROM equipments e 
+              LEFT JOIN suppliers s ON e.supplier_id = s.id 
+              GROUP BY s.id, s.name 
+              ORDER BY cnt DESC LIMIT 5";
+$pie_result = $conn->query($pie_query);
+$pie_labels = [];
+$pie_values = [];
+if ($pie_result) {
+    while ($row = $pie_result->fetch_assoc()) {
+        $pie_labels[] = $row['supplier'];
+        $pie_values[] = (int)$row['cnt'];
+    }
+}
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loaded pie chart data with " . count($pie_labels) . " suppliers\n", FILE_APPEND);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting HTML output\n", FILE_APPEND);
 ?>
 
@@ -295,8 +339,19 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
             </thead>
             <tbody>
               <?php
-              // TEMPORAL: Sin equipos recientes por timeout
+              // Query optimizada: últimos 5 equipos con JOIN a suppliers
+              $recent_query = "SELECT e.id, e.number_inventory, e.name, s.name as supplier, e.amount, e.revision 
+                               FROM equipments e 
+                               LEFT JOIN suppliers s ON e.supplier_id = s.id 
+                               ORDER BY e.id DESC LIMIT 5";
+              $recent_result = $conn->query($recent_query);
               $recent_data = [];
+              if ($recent_result) {
+                  while ($row = $recent_result->fetch_assoc()) {
+                      $recent_data[] = $row;
+                  }
+              }
+              file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loaded " . count($recent_data) . " recent equipments\n", FILE_APPEND);
               foreach ($recent_data as $eq): ?>
                 <tr>
                   <td><a href="./index.php?page=edit_equipment&id=<?php echo $eq['id']; ?>" class="link-primary"><?php echo $eq['number_inventory']; ?></a></td>
@@ -339,12 +394,21 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
       <div class="card-footer p-0">
         <ul class="nav nav-pills flex-column">
           <?php
-          // TEMPORAL: Top suppliers dummy
-          $top_suppliers_data = [
-            ['supplier' => 'Proveedor A', 'cnt' => 100, 'pct' => 40.0],
-            ['supplier' => 'Proveedor B', 'cnt' => 80, 'pct' => 32.0],
-            ['supplier' => 'Sin Proveedor', 'cnt' => 72, 'pct' => 28.0]
-          ];
+          // Query optimizada: top proveedores con JOIN y GROUP BY
+          $suppliers_query = "SELECT COALESCE(s.name, 'Sin Proveedor') as supplier, COUNT(*) as cnt, 
+                              (COUNT(*) * 100.0 / (SELECT COUNT(*) FROM equipments)) as pct 
+                              FROM equipments e 
+                              LEFT JOIN suppliers s ON e.supplier_id = s.id 
+                              GROUP BY s.id, s.name 
+                              ORDER BY cnt DESC LIMIT 3";
+          $suppliers_result = $conn->query($suppliers_query);
+          $top_suppliers_data = [];
+          if ($suppliers_result) {
+              while ($row = $suppliers_result->fetch_assoc()) {
+                  $top_suppliers_data[] = $row;
+              }
+          }
+          file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: loaded " . count($top_suppliers_data) . " top suppliers\n", FILE_APPEND);
           foreach ($top_suppliers_data as $sup): ?>
             <li class="nav-item">
               <a href="#" class="nav-link">
