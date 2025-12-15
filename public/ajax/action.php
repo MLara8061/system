@@ -647,6 +647,45 @@ if ($action == 'save_maintenance_report') {
     exit;
 }
 
+// ===================================
+// CONFIGURACIÓN: Tipos de adquisición y categorías de equipos
+// ===================================
+if ($action == 'load_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->load_acquisition_type();
+    exit;
+}
+
+if ($action == 'save_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->save_acquisition_type();
+    exit;
+}
+
+if ($action == 'delete_acquisition_type') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->delete_acquisition_type();
+    exit;
+}
+
+if ($action == 'load_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->load_equipment_category();
+    exit;
+}
+
+if ($action == 'save_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->save_equipment_category();
+    exit;
+}
+
+if ($action == 'delete_equipment_category') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo $crud->delete_equipment_category();
+    exit;
+}
+
 if ($action == 'get_equipo_details') {
     echo $crud->get_equipo_details(); 
     exit;
