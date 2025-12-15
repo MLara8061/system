@@ -100,30 +100,19 @@ $service_types = ['MP', 'MC'];
 $service_counts = [$mp_count, $mc_count];
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance dummy - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
-// Intentar obtener datos mensuales reales con queries individuales por mes
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution - trying real data\n", FILE_APPEND);
+// CRÍTICO: maintenance_reports causa timeout en CUALQUIER query (incluso COUNT simple)
+// Usar distribución dummy basada en totales
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (maintenance_reports broken)\n", FILE_APPEND);
 $exec_months = [];
 for ($i = $months_count - 1; $i >= 0; $i--) {
     $exec_months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$mp_data = [];
-$mc_data = [];
-
-// Intentar obtener datos reales por mes (queries simples, una por mes)
-foreach ($exec_months as $month) {
-    $start = $month . '-01';
-    $end = date('Y-m-t', strtotime($start));
-    
-    // MP count para este mes
-    $mp_result = $conn->query("SELECT COUNT(*) as cnt FROM maintenance_reports WHERE date >= '$start' AND date <= '$end' AND type='MP'");
-    $mp_data[] = ($mp_result && $row = $mp_result->fetch_assoc()) ? (int)$row['cnt'] : 0;
-    
-    // MC count para este mes
-    $mc_result = $conn->query("SELECT COUNT(*) as cnt FROM maintenance_reports WHERE date >= '$start' AND date <= '$end' AND type='MC'");
-    $mc_data[] = ($mc_result && $row = $mc_result->fetch_assoc()) ? (int)$row['cnt'] : 0;
-}
+$mp_per_month = $months_count > 0 ? ceil($mp_count / $months_count) : 0;
+$mc_per_month = $months_count > 0 ? ceil($mc_count / $months_count) : 0;
+$mp_data = array_fill(0, $months_count, $mp_per_month);
+$mc_data = array_fill(0, $months_count, $mc_per_month);
 $exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution loaded - total MP: " . array_sum($mp_data) . ", MC: " . array_sum($mc_data) . "\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution dummy distributed\n", FILE_APPEND);
 
 // Intentar obtener datos reales de equipos por mes con queries individuales
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - trying real data\n", FILE_APPEND);
