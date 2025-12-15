@@ -298,7 +298,7 @@ $manual = [
                 ]
             ],
             [
-                'subtitle' => '8.2 Consultar Inventario',
+                'subtitle' => '8.2 Consultar Insumos',
                 'steps' => [
                     'Acceder a "Insumos" > "Todos"',
                     'Ver listado completo',
