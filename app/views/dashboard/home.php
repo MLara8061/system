@@ -21,29 +21,30 @@ $branches_data = [['id' => 1, 'name' => 'Sede Principal']];
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using static branches data\n", FILE_APPEND);
 
 // TEMPORAL: Desactivar filtro de sucursal hasta verificar que branch_id existe en todas las tablas
-$branch_filter = '';
-// $branch_filter = $user_branch && $user_branch['active_branch_id'] ? 'AND e.branch_id = ' . (int)$user_branch['active_branch_id'] : '';
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter disabled (troubleshooting)\n", FILE_APPEND);
+$active_branch_id = (int)($user_branch['active_branch_id'] ?? 0);
+$branch_where = $active_branch_id ? " WHERE branch_id = {$active_branch_id}" : '';
+$branch_and = $active_branch_id ? " AND branch_id = {$active_branch_id}" : '';
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter enabled (active_branch_id={$active_branch_id})\n", FILE_APPEND);
 
 $total_equipos = 0;
 // Simplificado: sin JOIN que causa timeout
-$result = $conn->query("SELECT COUNT(*) AS total FROM equipments");
+$result = $conn->query("SELECT COUNT(*) AS total FROM equipments{$branch_where}");
 if ($result && ($row = $result->fetch_assoc())) {
     $total_equipos = (int)($row['total'] ?? 0);
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_equipos={$total_equipos}\n", FILE_APPEND);
 }
 
 // Query optimizada: solo COUNT sin JOINs
-$result_accesorios = $conn->query("SELECT COUNT(*) as total FROM accessories");
+$result_accesorios = $conn->query("SELECT COUNT(*) as total FROM accessories{$branch_where}");
 $total_epp = ($result_accesorios && $row = $result_accesorios->fetch_assoc()) ? $row['total'] : 0;
 
-$result_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools");
+$result_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools{$branch_where}");
 $total_herramientas = ($result_herramientas && $row = $result_herramientas->fetch_assoc()) ? $row['total'] : 0;
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: EPP={$total_epp}, Herramientas={$total_herramientas}\n", FILE_APPEND);
 
 $valor_total_equipos = 0;
 // Simplificado: sin JOIN que causa timeout
-$result = $conn->query("SELECT SUM(amount) AS total FROM equipments");
+$result = $conn->query("SELECT SUM(amount) AS total FROM equipments{$branch_where}");
 if ($result && ($row = $result->fetch_assoc())) {
     $valor_total_equipos = (float)($row['total'] ?? 0);
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: valor_total_equipos={$valor_total_equipos}\n", FILE_APPEND);
@@ -87,41 +88,75 @@ switch ($period) {
         $months_count = 6;
 }
 
-// TEMPORAL: maintenance_reports queries causan timeout incluso con columnas correctas
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy maintenance (queries timeout)\n", FILE_APPEND);
-$mp_count = 15;
-$mc_count = 8;
-$service_types = ['MP', 'MC'];
-$service_counts = [$mp_count, $mc_count];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance dummy - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
+// maintenance_reports: datos reales (service_type, service_date, branch_id)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance_reports real queries\n", FILE_APPEND);
 
-// CRÍTICO: maintenance_reports causa timeout incluso con columnas correctas (service_type, service_date)
-// Usar distribución dummy basada en totales
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (queries timeout)\n", FILE_APPEND);
+$mp_count = 0;
+$mc_count = 0;
+$service_types = ['MP', 'MC'];
+
+$mp_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MP' AND service_date >= '{$start_service}'{$branch_and}");
+$mc_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MC' AND service_date >= '{$start_service}'{$branch_and}");
+
+if ($mp_res && ($row = $mp_res->fetch_assoc())) $mp_count = (int)($row['count'] ?? 0);
+if ($mc_res && ($row = $mc_res->fetch_assoc())) $mc_count = (int)($row['count'] ?? 0);
+
+$service_counts = [$mp_count, $mc_count];
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance real - MP: {$mp_count}, MC: {$mc_count}\n", FILE_APPEND);
+
+// Monthly execution: queries individuales (evita GROUP BY)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (real)\n", FILE_APPEND);
 $exec_months = [];
 for ($i = $months_count - 1; $i >= 0; $i--) {
-    $exec_months[] = date('Y-m', strtotime("-{$i} months"));
+  $exec_months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$mp_per_month = $months_count > 0 ? ceil($mp_count / $months_count) : 0;
-$mc_per_month = $months_count > 0 ? ceil($mc_count / $months_count) : 0;
-$mp_data = array_fill(0, $months_count, $mp_per_month);
-$mc_data = array_fill(0, $months_count, $mc_per_month);
-$exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution dummy distributed\n", FILE_APPEND);
 
-// TEMPORAL: Equipment series con datos dummy (queries por mes causan timeout)
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - using dummy data\n", FILE_APPEND);
+$mp_data = [];
+$mc_data = [];
+foreach ($exec_months as $month) {
+  $start_date = $month . '-01';
+  $end_date = date('Y-m-t', strtotime($start_date));
+
+  $mp_q = "SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MP' AND service_date >= '{$start_date}' AND service_date <= '{$end_date}'{$branch_and}";
+  $mc_q = "SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MC' AND service_date >= '{$start_date}' AND service_date <= '{$end_date}'{$branch_and}";
+
+  $mp_r = $conn->query($mp_q);
+  $mc_r = $conn->query($mc_q);
+
+  $mp_data[] = ($mp_r && ($row = $mp_r->fetch_assoc())) ? (int)($row['count'] ?? 0) : 0;
+  $mc_data[] = ($mc_r && ($row = $mc_r->fetch_assoc())) ? (int)($row['count'] ?? 0) : 0;
+}
+
+$exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution real loaded\n", FILE_APPEND);
+
+// Equipment series: datos reales (date_created + amount, con índice en date_created)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - real data\n", FILE_APPEND);
 $months = [];
 for ($i = 11; $i >= 0; $i--) {
-    $months[] = date('Y-m', strtotime("-{$i} months"));
+  $months[] = date('Y-m', strtotime("-{$i} months"));
 }
-// Distribuir el total de equipos proporcionalmente a lo largo del año
-$total_per_month = ceil($total_equipos / 12);
-$counts = array_fill(0, 12, $total_per_month);
-$valor_per_month = ceil($valor_total_equipos / 12);
-$sums = array_fill(0, 12, $valor_per_month);
+
+$counts = [];
+$sums = [];
+foreach ($months as $month) {
+  $start = $month . '-01';
+  $end = date('Y-m-t', strtotime($start));
+  $start_dt = $start . ' 00:00:00';
+  $end_dt = $end . ' 23:59:59';
+
+  $cnt_q = "SELECT COUNT(*) AS cnt FROM equipments WHERE date_created >= '{$start_dt}' AND date_created <= '{$end_dt}'" . ($active_branch_id ? " AND branch_id = {$active_branch_id}" : "");
+  $sum_q = "SELECT SUM(amount) AS total FROM equipments WHERE date_created >= '{$start_dt}' AND date_created <= '{$end_dt}'" . ($active_branch_id ? " AND branch_id = {$active_branch_id}" : "");
+
+  $cnt_r = $conn->query($cnt_q);
+  $sum_r = $conn->query($sum_q);
+
+  $counts[] = ($cnt_r && ($row = $cnt_r->fetch_assoc())) ? (int)($row['cnt'] ?? 0) : 0;
+  $sums[] = ($sum_r && ($row = $sum_r->fetch_assoc())) ? (float)($row['total'] ?? 0) : 0;
+}
+
 $categories = array_map(function ($m) { return $m . '-01'; }, $months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series dummy loaded\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series real loaded\n", FILE_APPEND);
 
 // Pie chart: datos de ejemplo (JOIN a suppliers causa timeout)
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart dummy\n", FILE_APPEND);
