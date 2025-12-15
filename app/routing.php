@@ -94,7 +94,7 @@ $ROUTE_MAP = [
     // Otros
     'calendar' => 'app/views/dashboard/calendar.php',
     'manage_inventory' => 'app/views/dashboard/inventory/manage.php',
-    'inventory_list' => 'app/views/dashboard/inventory/list.php',
+    'inventory_list' => 'legacy/inventory_list.php',
     'view_inventory' => 'app/views/pages/view_inventory.php',
     'descargar_manual' => 'app/views/dashboard/descargar_manual.php',
     'check_structure' => 'app/views/dashboard/check_structure.php',
