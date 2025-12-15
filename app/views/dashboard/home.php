@@ -109,30 +109,19 @@ $mc_data = array_fill(0, $months_count, $mc_per_month);
 $exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution dummy distributed\n", FILE_APPEND);
 
-// Intentar obtener datos reales de equipos por mes con queries individuales
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - trying real data\n", FILE_APPEND);
+// TEMPORAL: Equipment series con datos dummy (queries por mes causan timeout)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - using dummy data\n", FILE_APPEND);
 $months = [];
 for ($i = 11; $i >= 0; $i--) {
     $months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$counts = [];
-$sums = [];
-
-// Obtener datos reales por mes (queries simples sin GROUP BY)
-foreach ($months as $month) {
-    $start = $month . '-01';
-    $end = date('Y-m-t', strtotime($start));
-    
-    // Contar equipos comprados este mes
-    $cnt_result = $conn->query("SELECT COUNT(*) as cnt FROM equipments WHERE purchase_date >= '$start' AND purchase_date <= '$end'");
-    $counts[] = ($cnt_result && $row = $cnt_result->fetch_assoc()) ? (int)$row['cnt'] : 0;
-    
-    // Sumar valor de equipos comprados este mes
-    $sum_result = $conn->query("SELECT SUM(price) as total FROM equipments WHERE purchase_date >= '$start' AND purchase_date <= '$end'");
-    $sums[] = ($sum_result && $row = $sum_result->fetch_assoc()) ? (float)($row['total'] ?? 0) : 0;
-}
+// Distribuir el total de equipos proporcionalmente a lo largo del año
+$total_per_month = ceil($total_equipos / 12);
+$counts = array_fill(0, 12, $total_per_month);
+$valor_per_month = ceil($valor_total_equipos / 12);
+$sums = array_fill(0, 12, $valor_per_month);
 $categories = array_map(function ($m) { return $m . '-01'; }, $months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series loaded - total: " . array_sum($counts) . " equipos, $" . array_sum($sums) . "\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series dummy loaded\n", FILE_APPEND);
 
 // Pie chart: datos de ejemplo (JOIN a suppliers causa timeout)
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: pie chart dummy\n", FILE_APPEND);
