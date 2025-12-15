@@ -14,7 +14,8 @@ function safe_query($conn, $sql) {
 $user_id = $_SESSION['login_id'] ?? 0;
 $user_branch = null;
 if ($user_id) {
-    $user_query = safe_query($conn, "SELECT u.*, b.name AS branch_name FROM users u LEFT JOIN branches b ON u.active_branch_id = b.id WHERE u.id = {$user_id}");
+    // Sin JOIN a branches (causa timeout)
+    $user_query = safe_query($conn, "SELECT * FROM users WHERE id = {$user_id}");
     $user_branch = $user_query ? $user_query->fetch_assoc() : null;
     file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . '] HOME LOAD: fetched user_branch: ' . json_encode($user_branch) . "\n", FILE_APPEND);
 }
