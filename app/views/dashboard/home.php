@@ -92,27 +92,41 @@ switch ($period) {
         $months_count = 6;
 }
 
-// TEMPORAL: maintenance_reports no funciona incluso sin branch_filter
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using dummy maintenance\n", FILE_APPEND);
-$mp_count = 15;
-$mc_count = 8;
+// Contar tipos de servicio usando columnas correctas (service_type, service_date)
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: querying maintenance_reports with correct columns\n", FILE_APPEND);
+$mp_query = "SELECT COUNT(*) as count FROM maintenance_reports WHERE service_type = 'MP'";
+$mc_query = "SELECT COUNT(*) as count FROM maintenance_reports WHERE service_type = 'MC'";
+$mp_result = $conn->query($mp_query);
+$mc_result = $conn->query($mc_query);
+$mp_count = $mp_result ? $mp_result->fetch_assoc()['count'] : 0;
+$mc_count = $mc_result ? $mc_result->fetch_assoc()['count'] : 0;
 $service_types = ['MP', 'MC'];
 $service_counts = [$mp_count, $mc_count];
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance dummy - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintenance real - MP: $mp_count, MC: $mc_count\n", FILE_APPEND);
 
-// CRÍTICO: maintenance_reports causa timeout en CUALQUIER query (incluso COUNT simple)
-// Usar distribución dummy basada en totales
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (maintenance_reports broken)\n", FILE_APPEND);
+// Obtener datos mensuales reales usando queries individuales con service_date
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (real data)\n", FILE_APPEND);
 $exec_months = [];
 for ($i = $months_count - 1; $i >= 0; $i--) {
     $exec_months[] = date('Y-m', strtotime("-{$i} months"));
 }
-$mp_per_month = $months_count > 0 ? ceil($mp_count / $months_count) : 0;
-$mc_per_month = $months_count > 0 ? ceil($mc_count / $months_count) : 0;
-$mp_data = array_fill(0, $months_count, $mp_per_month);
-$mc_data = array_fill(0, $months_count, $mc_per_month);
+$mp_data = [];
+$mc_data = [];
+foreach ($exec_months as $month) {
+    $start_date = $month . '-01';
+    $end_date = date('Y-m-t', strtotime($start_date));
+    
+    $mp_query = "SELECT COUNT(*) as count FROM maintenance_reports WHERE service_type = 'MP' AND service_date >= '$start_date' AND service_date <= '$end_date'";
+    $mc_query = "SELECT COUNT(*) as count FROM maintenance_reports WHERE service_type = 'MC' AND service_date >= '$start_date' AND service_date <= '$end_date'";
+    
+    $mp_result = $conn->query($mp_query);
+    $mc_result = $conn->query($mc_query);
+    
+    $mp_data[] = $mp_result ? $mp_result->fetch_assoc()['count'] : 0;
+    $mc_data[] = $mc_result ? $mc_result->fetch_assoc()['count'] : 0;
+}
 $exec_categories = array_map(function ($m) { return $m . '-01'; }, $exec_months);
-file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution dummy distributed\n", FILE_APPEND);
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution real data retrieved\n", FILE_APPEND);
 
 // Intentar obtener datos reales de equipos por mes con queries individuales
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: equipment series - trying real data\n", FILE_APPEND);
