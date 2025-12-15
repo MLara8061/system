@@ -3,7 +3,19 @@
 <?php
 // Obtener sucursales
 $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
-// PrÃ³ximo nÃºmero de inventario se generarÃ¡ dinÃ¡micamente
+// Próximo número de inventario se generará dinámicamente
+
+// Para generar el número con el endpoint compartido, necesitamos una categoría de equipo.
+// Intentamos resolver una categoría relacionada a "accesor"; si no existe, el badge mostrará aviso.
+$accessories_category_id = 0;
+try {
+    $cat = $conn->query("SELECT id FROM equipment_categories WHERE LOWER(description) LIKE '%accesor%' OR LOWER(description) LIKE '%accessor%' OR LOWER(clave) LIKE '%acc%' ORDER BY id ASC LIMIT 1");
+    if ($cat && ($r = $cat->fetch_assoc())) {
+        $accessories_category_id = (int)($r['id'] ?? 0);
+    }
+} catch (Throwable $e) {
+    $accessories_category_id = 0;
+}
 ?>
 
 <div class="container-fluid">
@@ -41,6 +53,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                                     Seleccionar sucursal
                                 </span>
                                 <input type="hidden" name="numero_inventario" id="numero_inventario" value="">
+                                <input type="hidden" name="equipment_category_id" id="equipment_category_id" value="<?= (int)$accessories_category_id ?>">
                             </div>
                         </div>
 
@@ -111,7 +124,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                             </div>
                         </div>
 
-                        <!-- INVENTARIO ANTERIOR Y NÃšMERO DE PARTE -->
+                        <!-- INVENTARIO ANTERIOR Y NÚMERO DE PARTE -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Inventario Anterior</label>
@@ -123,7 +136,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                             </div>
                         </div>
 
-                        <!-- COSTO Y ADQUISICIÃ“N -->
+                        <!-- COSTO Y ADQUISICIÓN -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Costo (MXN)</label>
@@ -142,7 +155,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                             </div>
                         </div>
 
-                        <!-- ÃREA -->
+                        <!-- ÁREA -->
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Área Asignada</label>
                             <select name="area_id" class="custom-select select2" required>
@@ -237,37 +250,68 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
             allowClear: true
         });
 
-        // Generar nÃºmero de inventario cuando se selecciona sucursal
-        $('#branch_id').on('change', function(){
-            var branch_id = $(this).val();
-            if(branch_id){
-                $.ajax({
-                    url: 'public/ajax/action.php?action=get_next_inventory_number',
-                    method: 'POST',
-                    data: { branch_id: branch_id },
-                    dataType: 'json',
-                    success: function(data){
-                        if(data.success){
-                            $('#inventory_badge').text('#' + data.number);
-                            $('#numero_inventario').val(data.number);
-                        } else {
-                            alert_toast('Error al generar número de inventario', 'error');
-                        }
-                    },
-                    error: function(){
-                        alert_toast('Error de conexión', 'error');
-                    }
-                });
-            } else {
+        function refresh_inventory_number(){
+            var branch_id = $('#branch_id').val();
+            var acquisition_type_id = $('[name="acquisition_type"]').val();
+            var equipment_category_id = $('#equipment_category_id').val();
+
+            if(!branch_id){
                 $('#inventory_badge').text('Seleccionar sucursal');
                 $('#numero_inventario').val('');
+                return;
             }
-        });
+            if(!acquisition_type_id){
+                $('#inventory_badge').text('Seleccionar tipo de adquisición');
+                $('#numero_inventario').val('');
+                return;
+            }
+            if(!equipment_category_id || equipment_category_id === '0'){
+                $('#inventory_badge').text('Configurar categoría Accesorios');
+                $('#numero_inventario').val('');
+                return;
+            }
+
+            $.ajax({
+                url: 'public/ajax/action.php?action=get_next_inventory_number',
+                method: 'POST',
+                data: {
+                    branch_id: branch_id,
+                    acquisition_type_id: acquisition_type_id,
+                    equipment_category_id: equipment_category_id
+                },
+                dataType: 'json',
+                success: function(data){
+                    if(data && data.success && data.number){
+                        $('#inventory_badge').text(data.number);
+                        $('#numero_inventario').val(data.number);
+                    } else {
+                        var msg = (data && data.error) ? data.error : 'Error al generar número de inventario';
+                        $('#inventory_badge').text('Error');
+                        $('#numero_inventario').val('');
+                        alert_toast(msg, 'error');
+                    }
+                },
+                error: function(xhr){
+                    var msg = 'Error de conexión';
+                    try {
+                        if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                    } catch (e) {}
+                    $('#inventory_badge').text('Error');
+                    $('#numero_inventario').val('');
+                    alert_toast(msg, 'error');
+                }
+            });
+        }
+
+        $('#branch_id').on('change', refresh_inventory_number);
+        $('[name="acquisition_type"]').on('change', refresh_inventory_number);
     });
 
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
         start_load();
+        var $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true);
         $.ajax({
             url: 'public/ajax/action.php?action=save_accessory',
             data: new FormData(this),
@@ -283,6 +327,16 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
+            },
+            error: function(xhr){
+                var msg = 'Error de conexión';
+                try {
+                    if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
+                $btn.prop('disabled', false);
                 end_load();
             }
         });

@@ -1,4 +1,4 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -142,7 +142,7 @@ $acc = $qry->fetch_assoc();
                             </div>
                         </div>
 
-                        <!-- COSTO Y ADQUISICIÃ“N -->
+                        <!-- COSTO Y ADQUISICIÓN -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Costo (MXN)</label>
@@ -166,7 +166,7 @@ $acc = $qry->fetch_assoc();
                             </div>
                         </div>
 
-                        <!-- ÃREA -->
+                        <!-- ÁREA -->
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Área Asignada</label>
                             <select name="area_id" class="custom-select select2" required>

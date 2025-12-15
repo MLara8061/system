@@ -218,6 +218,8 @@ $siguiente_inventario = $row['Auto_increment'];
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
         start_load();
+        var $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true);
         $.ajax({
             url: 'public/ajax/action.php?action=save_accessory',
             data: new FormData(this),
@@ -233,6 +235,16 @@ $siguiente_inventario = $row['Auto_increment'];
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
+            },
+            error: function(xhr){
+                var msg = 'Error de conexión';
+                try {
+                    if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
+                $btn.prop('disabled', false);
                 end_load();
             }
         });

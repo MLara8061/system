@@ -1,7 +1,7 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
-// === NUEVOS CÃLCULOS SIN CANTIDAD ===
+// === NUEVOS CÁLCULOS SIN CANTIDAD ===
 $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 't') : '';
 $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 't') : '';
 

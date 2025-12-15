@@ -1,4 +1,4 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
@@ -82,7 +82,7 @@ if (!$tool) {
                             </div>
                         </div>
 
-                        <!-- FECHA ADQUISICIÃ“N -->
+                        <!-- FECHA ADQUISICIÓN -->
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Fecha de Adquisición</label>
                             <input type="date" name="fecha_adquisicion" class="form-control" required 
@@ -121,7 +121,7 @@ if (!$tool) {
                             </div>
                         </div>
 
-                        <!-- CARACTERÃSTICAS -->
+                        <!-- CARACTERÍSTICAS -->
                         <div class="card mb-4">
                             <div class="card-header bg-light border-0">
                                 <h6 class="mb-0 text-dark">Características Técnicas</h6>
@@ -210,7 +210,7 @@ if (!$tool) {
             allowClear: false
         });
         
-        // Eliminar imagen con botÃ³n
+        // Eliminar imagen con botón
         $('#remove-image').click(function() {
             if (confirm('¿Eliminar imagen actual?')) {
                 $('#current-img').parent().remove();

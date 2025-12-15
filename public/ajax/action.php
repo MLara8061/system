@@ -397,8 +397,8 @@ if ($action == 'get_job_positions_by_location') {
     ob_start();
     header('Content-Type: application/json');
     
-    // Incluir conexión a BD
-    require_once 'config/config.php';
+    // Incluir conexión a BD (usar ROOT para evitar rutas relativas rotas en hosting)
+    require_once ROOT . '/config/config.php';
     global $conn;
     if (!$conn) {
         if (isset($crud) && method_exists($crud, 'getDb')) {
@@ -464,8 +464,8 @@ if ($action == 'get_locations_by_department') {
     ob_start();
     header('Content-Type: application/json');
     
-    // Incluir conexión a BD
-    require_once 'config/config.php';
+    // Incluir conexión a BD (usar ROOT para evitar rutas relativas rotas en hosting)
+    require_once ROOT . '/config/config.php';
     global $conn;
     if (!$conn) {
         if (isset($crud) && method_exists($crud, 'getDb')) {
@@ -588,8 +588,8 @@ if ($action == 'get_positions_by_department') {
     ob_start();
     header('Content-Type: application/json');
     
-    // Incluir conexión a BD
-    require_once 'config/config.php';
+    // Incluir conexión a BD (usar ROOT para evitar rutas relativas rotas en hosting)
+    require_once ROOT . '/config/config.php';
     global $conn;
     if (!$conn) {
         if (isset($crud) && method_exists($crud, 'getDb')) {

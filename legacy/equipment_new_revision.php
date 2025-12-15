@@ -1,9 +1,9 @@
-﻿<?php
+<?php
 require_once 'config/config.php';
 
 // === SEGURIDAD: Validar ID ===
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    die('<div class="alert alert-danger">ID invÃ¡lido.</div>');
+    die('<div class="alert alert-danger">ID inválido.</div>');
 }
 $id = (int)$_GET['id'];
 
@@ -32,7 +32,7 @@ if ($qry_freq->num_rows > 0) {
                     <!-- COLUMNA IZQUIERDA -->
                     <div class="col-lg-6">
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">Fecha de RevisiÃ³n</label>
+                            <label class="font-weight-bold text-dark">Fecha de Revisión</label>
                             <input type="date" name="date_revision" class="form-control" required 
                                    value="<?= date('Y-m-d') ?>">
                             <div class="invalid-feedback">Selecciona una fecha.</div>
@@ -72,7 +72,7 @@ if ($qry_freq->num_rows > 0) {
                     <!-- COLUMNA DERECHA -->
                     <div class="col-lg-6">
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">CaracterÃ­sticas</label>
+                            <label class="font-weight-bold text-dark">Características</label>
                             <textarea class="form-control" rows="4" disabled 
                                       style="resize: none;"><?= htmlspecialchars($eq['characteristics'] ?? '') ?></textarea>
                         </div>
@@ -90,14 +90,14 @@ if ($qry_freq->num_rows > 0) {
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">Tipo de AdquisiciÃ³n</label>
+                            <label class="font-weight-bold text-dark">Tipo de Adquisición</label>
                             <select class="custom-select" disabled>
                                 <option value="1" selected>Compra</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">Frecuencia de RevisiÃ³n</label>
+                            <label class="font-weight-bold text-dark">Frecuencia de Revisión</label>
                             <select name="frecuencia" class="custom-select select2" required>
                                 <option value="7" <?= $frecuencia_actual == 7 ? 'selected' : '' ?>>Semanal</option>
                                 <option value="15" <?= $frecuencia_actual == 15 ? 'selected' : '' ?>>Quincenal</option>
@@ -115,7 +115,7 @@ if ($qry_freq->num_rows > 0) {
                 <hr class="my-4">
                 <div class="text-center btn-container-mobile">
                     <button type="submit" class="btn btn-primary btn-lg px-5">
-                        Guardar RevisiÃ³n
+                        Guardar Revisión
                     </button>
                     <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-5">
                         Cancelar
@@ -164,7 +164,7 @@ if ($qry_freq->num_rows > 0) {
         });
     });
 
-    // ValidaciÃ³n Bootstrap
+    // Validación Bootstrap
     (function() {
         'use strict';
         var forms = document.querySelectorAll('.needs-validation');
@@ -179,7 +179,7 @@ if ($qry_freq->num_rows > 0) {
         });
     })();
 
-    // EnvÃ­o AJAX
+    // Envío AJAX
     $('#manage_revision').submit(function(e) {
         e.preventDefault();
         if (!this.checkValidity()) return;
@@ -196,7 +196,7 @@ if ($qry_freq->num_rows > 0) {
                 resp = resp.trim();
                 end_load();
                 if (resp == 1) {
-                    alert_toast('RevisiÃ³n guardada correctamente', 'success');
+                    alert_toast('Revisión guardada correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=equipment_list', 1000);
                 } else {
                     alert_toast('Error al guardar', 'error');
@@ -204,7 +204,7 @@ if ($qry_freq->num_rows > 0) {
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

@@ -45,7 +45,7 @@
                             </div>
                         </div>
 
-                        <!-- FECHA ADQUISICIÃ“N -->
+                        <!-- FECHA ADQUISICIÓN -->
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Fecha de Adquisición</label>
                             <input type="date" name="fecha_adquisicion" class="form-control" required 
@@ -81,7 +81,7 @@
                             </div>
                         </div>
 
-                        <!-- CARACTERÃSTICAS -->
+                        <!-- CARACTERÍSTICAS -->
                         <div class="card mb-4">
                             <div class="card-header bg-light border-0">
                                 <h6 class="mb-0 text-dark">Características Técnicas</h6>

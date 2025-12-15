@@ -1,4 +1,4 @@
-﻿<?php 
+<?php 
 require_once 'config/config.php';
 $id = $_GET['id'] ?? 0;
 $is_edit = $id > 0;
@@ -35,7 +35,7 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
                 <div class="form-group">
                     <label for="create-lastname" class="font-weight-bold"><strong>Apellido</strong></label>
                     <input type="text" name="lastname" id="create-lastname" class="form-control form-control-sm" 
-                           value="<?= $user['lastname'] ?? '' ?>" required placeholder="Ej: PÃ©rez">
+                           value="<?= $user['lastname'] ?? '' ?>" required placeholder="Ej: Pérez">
                 </div>
 
                 <!-- USUARIO -->
@@ -56,16 +56,16 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
                     </select>
                 </div>
 
-                <!-- CONTRASEÃ‘A -->
+                <!-- CONTRASEÑA -->
                 <div class="form-group">
                     <label class="font-weight-bold">
-                        <strong>ContraseÃ±a</strong> 
+                        <strong>Contraseña</strong> 
                         <small class="text-muted">
-                            <?= $is_edit ? '(Dejar vacÃ­o para no cambiar)' : '(Requerida)' ?>
+                            <?= $is_edit ? '(Dejar vacío para no cambiar)' : '(Requerida)' ?>
                         </small>
                     </label>
                     <input type="password" name="password" id="password" class="form-control form-control-sm" 
-                           placeholder="<?= $is_edit ? 'Nueva contraseÃ±a' : 'ContraseÃ±a segura' ?>" 
+                           placeholder="<?= $is_edit ? 'Nueva contraseña' : 'Contraseña segura' ?>" 
                            <?= !$is_edit ? 'required' : '' ?>>
                     <small id="password-strength" class="text-muted"></small>
                 </div>
@@ -127,12 +127,12 @@ $(document).ready(function() {
         }, 500);
     });
 
-    // === FUERZA DE CONTRASEÃ‘A ===
+    // === FUERZA DE CONTRASEÑA ===
     $password.on('input', function() {
         const val = $(this).val();
         let strength = '';
         if (val.length === 0) strength = '';
-        else if (val.length < 6) strength = '<span class="text-danger">DÃ©bil</span>';
+        else if (val.length < 6) strength = '<span class="text-danger">Débil</span>';
         else if (val.length < 10) strength = '<span class="text-warning">Media</span>';
         else strength = '<span class="text-success">Fuerte</span>';
         $('#password-strength').html(strength);

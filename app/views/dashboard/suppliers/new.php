@@ -33,7 +33,7 @@
                         <div class="form-group">
                             <label class="font-weight-bold text-dark">Sector</label>
                             <input type="text" name="sector" class="form-control" 
-                                   placeholder="Ej: TecnologÃ­a, MÃ©dico" 
+                                   placeholder="Ej: Tecnología, Médico" 
                                    value="<?= $supplier['sector'] ?? '' ?>">
                         </div>
                     </div>
@@ -48,9 +48,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold text-dark">TelÃ©fono</label>
+                            <label class="font-weight-bold text-dark">Teléfono</label>
                             <input type="text" name="telefono" class="form-control solonumeros" maxlength="10" 
-                                   placeholder="10 dÃ­gitos" value="<?= $supplier['telefono'] ?? '' ?>">
+                                   placeholder="10 dígitos" value="<?= $supplier['telefono'] ?? '' ?>">
                         </div>
 
                         <div class="form-group">
@@ -71,7 +71,7 @@
                         <div class="form-group">
                             <label class="font-weight-bold text-dark">Notas</label>
                             <textarea name="notas" class="form-control" rows="4" 
-                                      placeholder="InformaciÃ³n adicional..."><?= $supplier['notas'] ?? '' ?></textarea>
+                                      placeholder="Información adicional..."><?= $supplier['notas'] ?? '' ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
 </style>
 
 <script>
-    // Solo nÃºmeros
+    // Solo números
     $('.solonumeros').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
@@ -167,7 +167,7 @@
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

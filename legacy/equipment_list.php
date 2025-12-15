@@ -1,4 +1,4 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // Filtro multi-sucursal (admin con branch_id=0 => sin filtro)
@@ -402,7 +402,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
         $(document).on('click', '.delete', function() {
             const id = $(this).data('id');
             confirm_toast(
-                'Â¿EstÃ¡s seguro de eliminar este equipo? Esta acciÃ³n no se puede deshacer.',
+                '¿Estás seguro de eliminar este equipo? Esta acción no se puede deshacer.',
                 function() { delete_equipment(id); }
             );
         });

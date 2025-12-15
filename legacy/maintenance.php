@@ -30,10 +30,10 @@ document.addEventListener('DOMContentLoaded', function () {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: 'public/ajax/action.php?action=get_maintenance_events', // Carga dinÃ¡mica
+        events: 'public/ajax/action.php?action=get_maintenance_events', // Carga dinámica
         eventClick: function(info) {
             alert('Mantenimiento: ' + info.event.title);
-            // Puedes abrir un modal aquÃ­ si lo deseas
+            // Puedes abrir un modal aquí si lo deseas
         }
     });
 

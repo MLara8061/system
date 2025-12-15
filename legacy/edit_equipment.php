@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 require_once 'config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    echo "<script>alert('ID invÃ¡lido'); window.location='index.php?page=equipment_list';</script>";
+    echo "<script>alert('ID inválido'); window.location='index.php?page=equipment_list';</script>";
     exit;
 }
 $equipment_id = (int)$_GET['id'];
@@ -75,13 +75,66 @@ if (!function_exists('format_date_input')) {
 $date_created_value = format_date_input($eq['date_created'] ?? null);
 $date_training_value = format_date_input($delivery['date_training'] ?? null);
 $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? null);
+
+// === Listas para campos nuevos (alinear con Nuevo Equipo) ===
+$branches = [];
+try {
+    $has_active = false;
+    $col = @$conn->query("SHOW COLUMNS FROM branches LIKE 'active'");
+    if ($col && $col->num_rows > 0) $has_active = true;
+
+    $sql = "SELECT id, name FROM branches" . ($has_active ? " WHERE active = 1" : "") . " ORDER BY name ASC";
+    $qryb = @$conn->query($sql);
+    if ($qryb) {
+        while ($r = $qryb->fetch_assoc()) $branches[] = $r;
+    }
+    if ($has_active && empty($branches)) {
+        $qryb = @$conn->query("SELECT id, name FROM branches ORDER BY name ASC");
+        if ($qryb) {
+            while ($r = $qryb->fetch_assoc()) $branches[] = $r;
+        }
+    }
+} catch (Throwable $e) {
+    $branches = [];
+}
+
+$equipment_categories = [];
+$selected_category_id = (int)($eq['equipment_category_id'] ?? 0);
+try {
+    $cat_has_active = false;
+    $cat_has_clave = false;
+    $c = @$conn->query("SHOW COLUMNS FROM equipment_categories LIKE 'active'");
+    if ($c && $c->num_rows > 0) $cat_has_active = true;
+    $c = @$conn->query("SHOW COLUMNS FROM equipment_categories LIKE 'clave'");
+    if ($c && $c->num_rows > 0) $cat_has_clave = true;
+
+    $cols = $cat_has_clave ? 'id, clave, description' : 'id, description';
+    $where = $cat_has_active ? 'WHERE active = 1' : '';
+    $order = $cat_has_clave ? 'ORDER BY clave ASC, description ASC' : 'ORDER BY description ASC';
+    $qryc = @$conn->query("SELECT {$cols} FROM equipment_categories {$where} {$order}");
+    if ($qryc) {
+        while ($r = $qryc->fetch_assoc()) $equipment_categories[] = $r;
+    }
+
+    if ($selected_category_id <= 0 && !empty($eq['discipline'])) {
+        $disc = $conn->real_escape_string((string)$eq['discipline']);
+        $q = @$conn->query("SELECT id FROM equipment_categories WHERE description = '{$disc}' LIMIT 1");
+        if ($q && $q->num_rows > 0) {
+            $selected_category_id = (int)($q->fetch_assoc()['id'] ?? 0);
+        }
+    }
+} catch (Throwable $e) {
+    $equipment_categories = [];
+}
+
+$can_change_branch = ($login_type === 1 && $active_bid === 0);
 ?>
 
 <div class="container-fluid">
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-body p-0">
 
-            <!-- === FICHA TÃ‰CNICA: IMAGEN + INFO === -->
+            <!-- === FICHA TÉCNICA: IMAGEN + INFO === -->
             <div class="row g-0">
                 <!-- IMAGEN -->
                 <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
@@ -113,7 +166,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                             <input type="file" name="equipment_image" id="equipment_image" 
                                    class="form-control" accept="image/jpeg,image/png,image/jpg" 
                                    form="manage_equipment" onchange="previewEquipmentImg(this)">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             <img id="equipment-preview-new" src="" alt="" 
                                  class="img-fluid rounded shadow mt-2"
                                  style="display:none; max-height: 200px;">
@@ -121,11 +174,27 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     </div>
                 </div>
 
-                <!-- INFORMACIÃ“N CLAVE -->
+                <!-- INFORMACIÓN CLAVE -->
                 <div class="col-lg-7 p-5">
                     <form id="manage_equipment" enctype="multipart/form-data">
                         <input type="hidden" name="id" value="<?= $equipment_id ?>">
                         <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
+
+                        <!-- SUCURSAL (alineado con Nuevo Equipo) -->
+                        <div class="mb-3">
+                            <label class="font-weight-bold text-dark">Sucursal</label>
+                            <select name="branch_id" id="branch_id" class="custom-select select2" required <?= $can_change_branch ? '' : 'disabled' ?>>
+                                <option value="">Seleccionar sucursal</option>
+                                <?php foreach ($branches as $b): ?>
+                                    <option value="<?= (int)($b['id'] ?? 0) ?>" <?= ((int)($b['id'] ?? 0) === (int)($eq['branch_id'] ?? 0)) ? 'selected' : '' ?>>
+                                        <?= ucwords((string)($b['name'] ?? '')) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php if (!$can_change_branch): ?>
+                                <input type="hidden" name="branch_id" value="<?= (int)($eq['branch_id'] ?? 0) ?>">
+                            <?php endif; ?>
+                        </div>
 
                         <!-- NOMBRE + #INVENTARIO -->
                         <div class="row align-items-center mb-3">
@@ -166,7 +235,19 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                             </div>
                         </div>
 
-                        <!-- VALOR Y CATEGORÃA -->
+                        <!-- INVENTARIO ANTERIOR Y NÚMERO DE PARTE (alineado con Nuevo Equipo) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Inventario Anterior</label>
+                                <input type="text" name="inventario_anterior" class="form-control" value="<?= htmlspecialchars((string)($eq['inventario_anterior'] ?? '')) ?>" placeholder="Número de inventario anterior">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark">Número de Parte</label>
+                                <input type="text" name="numero_parte" class="form-control" value="<?= htmlspecialchars((string)($eq['numero_parte'] ?? '')) ?>" placeholder="Número de parte">
+                            </div>
+                        </div>
+
+                        <!-- VALOR Y CATEGORÍA -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Valor</label>
@@ -174,15 +255,28 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                        required value="<?= $eq['amount'] ?>">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">CategorÃ­a</label>
-                                <input type="text" name="discipline" class="form-control" 
-                                       required value="<?= $eq['discipline'] ?>">
+                                <label class="font-weight-bold text-dark">Categoría</label>
+                                <select name="equipment_category_id" id="equipment_category_id" class="custom-select select2" required>
+                                    <option value="">Seleccionar</option>
+                                    <?php foreach ($equipment_categories as $cat): ?>
+                                        <?php
+                                            $cid = (int)($cat['id'] ?? 0);
+                                            $clave = trim((string)($cat['clave'] ?? ''));
+                                            $desc = (string)($cat['description'] ?? '');
+                                            $label = ($clave !== '') ? ($clave . ' - ' . $desc) : $desc;
+                                        ?>
+                                        <option value="<?= $cid ?>" data-desc="<?= htmlspecialchars($desc) ?>" <?= $cid === (int)$selected_category_id ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($label) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="hidden" name="discipline" id="discipline" value="<?= htmlspecialchars((string)($eq['discipline'] ?? '')) ?>">
                             </div>
                         </div>
 
-                        <!-- CONSUMO ELÃ‰CTRICO CON ETIQUETAS -->
+                        <!-- CONSUMO ELÉCTRICO CON ETIQUETAS -->
                         <div class="bg-light p-3 rounded mb-3">
-                            <h6 class="mb-3 text-dark">Consumo ElÃ©ctrico</h6>
+                            <h6 class="mb-3 text-dark">Consumo Eléctrico</h6>
                             <div class="row">
                                 <div class="col-md-4">
                                     <label class="small text-muted">Voltaje (V)</label>
@@ -217,10 +311,10 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                             </select>
                         </div>
 
-                        <!-- ADQUISICIÃ“N -->
+                        <!-- ADQUISICIÓN -->
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Tipo AdquisiciÃ³n</label>
+                                <label class="font-weight-bold text-dark">Tipo Adquisición</label>
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
@@ -274,9 +368,9 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label>UbicaciÃ³n</label>
+                                <label>Ubicación</label>
                                 <select name="location_id" id="location_id" class="custom-select select2" form="manage_equipment" required>
-                                    <option value="">Seleccionar ubicaciÃ³n</option>
+                                    <option value="">Seleccionar ubicación</option>
                                     <?php
                                     // Cargar ubicaciones del departamento seleccionado
                                     $current_department = $delivery['department_id'] ?? '';
@@ -297,7 +391,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                 <select name="responsible_position" id="responsible_position" class="custom-select select2" form="manage_equipment">
                                     <option value="">Seleccionar cargo</option>
                                     <?php
-                                    // Cargar cargos si ya hay ubicaciÃ³n seleccionada
+                                    // Cargar cargos si ya hay ubicación seleccionada
                                     $current_position = $delivery['responsible_position'] ?? '';
                                     if($current_location){
                                         // Intentar primero con la nueva estructura (location_id en job_positions)
@@ -328,7 +422,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                 <input type="text" name="responsible_name" class="form-control" form="manage_equipment" required value="<?= $delivery['responsible_name'] ?? '' ?>">
                             </div>
                             <div class="col-md-6">
-                                <label>Fecha CapacitaciÃ³n</label>
+                                <label>Fecha Capacitación</label>
                                 <input type="date" name="date_training" class="form-control" form="manage_equipment" required 
                                         value="<?= $date_training_value ?>">
                             </div>
@@ -336,10 +430,10 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     </div>
                 </div>
 
-                <!-- CARACTERÃSTICAS -->
+                <!-- CARACTERÍSTICAS -->
                 <div class="card mb-4">
                     <div class="card-header bg-light border-0">
-                        <h6 class="mb-0 text-dark">CaracterÃ­sticas TÃ©cnicas</h6>
+                        <h6 class="mb-0 text-dark">Características Técnicas</h6>
                     </div>
                     <div class="card-body">
                         <textarea name="characteristics" class="form-control" rows="3" form="manage_equipment"><?= $eq['characteristics'] ?></textarea>
@@ -364,8 +458,8 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                 'bailment_file' => 'Comodato',
                                 'contract_file' => 'Contrato M',
                                 'usermanual_file' => 'Manual Usuario',
-                                'fast_guide_file' => 'GuÃ­a RÃ¡pida',
-                                'datasheet_file' => 'Ficha TÃ©cnica',
+                                'fast_guide_file' => 'Guía Rápida',
+                                'datasheet_file' => 'Ficha Técnica',
                                 'servicemanual_file' => 'Man. Servicios'
                             ];
                             foreach ($doc_fields as $field => $label):
@@ -402,11 +496,11 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     </div>
                 </div>
 
-                <!-- RECEPCIÃ“N Y RESGUARDO -->
+                <!-- RECEPCIÓN Y RESGUARDO -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card mb-4">
-                            <div class="card-header bg-light border-0"><h6 class="text-dark">RecepciÃ³n</h6></div>
+                            <div class="card-header bg-light border-0"><h6 class="text-dark">Recepción</h6></div>
                             <div class="card-body">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="state" value="1" form="manage_equipment" <?= ($reception['state'] ?? 0) == 1 ? 'checked' : '' ?>>
@@ -426,11 +520,11 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <label>GarantÃ­a (AÃ±os)</label>
+                                        <label>Garantía (Años)</label>
                                         <input type="number" name="warranty_time" class="form-control" min="1" form="manage_equipment" value="<?= $safeguard['warranty_time'] ?? '' ?>">
                                     </div>
                                     <div class="col-md-6">
-                                        <label>Fecha AdquisiciÃ³n</label>
+                                        <label>Fecha Adquisición</label>
                                         <input type="date" name="date_adquisition" class="form-control" form="manage_equipment" 
                                                  value="<?= $date_acquisition_value ?>">
                                     </div>
@@ -464,7 +558,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                                     <tr>
                                         <th>Fecha</th>
                                         <th>Hora</th>
-                                        <th>TÃ©cnico</th>
+                                        <th>Técnico</th>
                                         <th>Validado por</th>
                                         <th>Tipo</th>
                                         <th class="text-center">Acciones</th>
@@ -568,7 +662,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#equipment-preview-new').hide();
                 return false;
@@ -595,7 +689,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
             
             // Limpiar y deshabilitar los selectores dependientes
             $locationSelect.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
-            $positionSelect.empty().append('<option value="">Seleccionar ubicaciÃ³n primero</option>').prop('disabled', true);
+            $positionSelect.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true);
             
             if(department_id){
                 $.ajax({
@@ -604,7 +698,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     data: { department_id: department_id },
                     dataType: 'json',
                     success: function(locations){
-                        $locationSelect.empty().append('<option value="">Seleccionar ubicaciÃ³n</option>');
+                        $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
                                 $locationSelect.append('<option value="'+ location.id +'">'+ location.name.toUpperCase() +'</option>');
@@ -616,7 +710,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                         // Destruir y reinicializar Select2
                         $locationSelect.select2('destroy').select2({
                             width: '100%',
-                            placeholder: 'Seleccionar ubicaciÃ³n',
+                            placeholder: 'Seleccionar ubicación',
                             allowClear: true
                         });
                     },
@@ -630,7 +724,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
             }
         });
         
-        // CASCADA 2: Cargar cargos cuando se selecciona una ubicaciÃ³n
+        // CASCADA 2: Cargar cargos cuando se selecciona una ubicación
         // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2
         $('#location_id').on('select2:select change', function(){
             var location_id = $(this).val();
@@ -653,7 +747,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                             });
                             $responsiblePosition.prop('disabled', false);
                         } else {
-                            $responsiblePosition.append('<option value="">No hay cargos para esta ubicaciÃ³n</option>');
+                            $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
                         }
                         // Destruir y reinicializar Select2
                         $responsiblePosition.select2('destroy').select2({
@@ -667,13 +761,13 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     }
                 });
             } else {
-                $responsiblePosition.empty().append('<option value="">Seleccionar ubicaciÃ³n primero</option>');
+                $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>');
             }
         });
         
         // Eliminar imagen de equipo
         $('#remove-equipment-image').click(function() {
-            if (confirm('Â¿Eliminar imagen actual?')) {
+            if (confirm('¿Eliminar imagen actual?')) {
                 $('#equipment-preview').parent().remove();
                 $(this).remove();
                 $('#empty-equipment-image').remove();
@@ -689,14 +783,14 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                     sProcessing: "Procesando...",
                     sLengthMenu: "Mostrar _MENU_ registros",
                     sZeroRecords: "No se encontraron resultados",
-                    sEmptyTable: "NingÃºn dato disponible en esta tabla",
+                    sEmptyTable: "Ningún dato disponible en esta tabla",
                     sInfo: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                     sInfoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
                     sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
                     sSearch: "Buscar:",
                     oPaginate: {
                         sFirst: "Primero",
-                        sLast: "Ãšltimo",
+                        sLast: "Último",
                         sNext: "Siguiente",
                         sPrevious: "Anterior"
                     }
@@ -711,7 +805,7 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
 
     // === ELIMINAR DOCUMENTO ===
     $(document).on('click', '.delete-doc', function(){
-        if(confirm('Â¿Eliminar documento?')){
+        if(confirm('¿Eliminar documento?')){
             const field = $(this).data('field');
             $(this).closest('.col-md-4').find('.border').remove();
             $(`input[name="delete_${field}"]`).val('1');
@@ -719,10 +813,12 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
         }
     });
 
-    // === ENVÃO ===
+    // === ENVÍO ===
     $('#manage_equipment').submit(function(e){
         e.preventDefault();
         start_load();
+        var $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true);
         $.ajax({
             url: 'public/ajax/action.php?action=save_equipment',
             data: new FormData(this),
@@ -738,6 +834,16 @@ $date_acquisition_value = format_date_input($safeguard['date_adquisition'] ?? nu
                 } else {
                     alert_toast('Error: ' + resp, 'error');
                 }
+            },
+            error: function(xhr){
+                var msg = 'Error de conexión';
+                try {
+                    if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
+                $btn.prop('disabled', false);
                 end_load();
             }
         });

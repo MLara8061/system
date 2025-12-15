@@ -1,4 +1,4 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 // Tarjetas informativas (mes actual)
@@ -172,7 +172,7 @@ try {
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek'
             },
-            // Usar endpoint legacy que estÃ¡ en whitelist
+            // Usar endpoint legacy que está en whitelist
             events: 'public/ajax/action.php?action=get_mantenimientos',
             dateClick: function(info) {
                 openModal(info.dateStr);
@@ -185,7 +185,7 @@ try {
         // Asegurar ocultar overlay tras renderizar
         if (typeof end_load === 'function') { end_load(); }
 
-        // BOTÃ“N NUEVO
+        // BOTÓN NUEVO
         $('#btn-new').click(() => openModal());
     });
 
@@ -329,7 +329,7 @@ try {
                 if (resp === '1') {
                     alert_toast('Mantenimiento guardado', 'success');
                     $('#maintenanceModal').modal('hide');
-                    // RECARGAR PÃGINA PARA EVITAR ERRORES DE FULLCALENDAR
+                    // RECARGAR PÁGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
                 } else if (resp === '-1') {
                     alert_toast('⚠ Esta fecha ya tiene el máximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');

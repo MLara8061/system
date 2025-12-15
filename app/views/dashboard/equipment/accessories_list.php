@@ -1,4 +1,4 @@
-﻿<?php require_once 'config/config.php'; ?>
+<?php require_once 'config/config.php'; ?>
 
 <?php
 $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'a') : '';
@@ -198,7 +198,7 @@ try {
 </div>
 
 <style>
-    /* SIN ANIMACIÃ“N */
+    /* SIN ANIMACIÓN */
     .card { transition: none !important; }
 
     /* SIN FONDO AZUL EN INVENTARIO */

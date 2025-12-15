@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 define('ACCESS', true);
 
 // Usar rutas absolutas para soportar acceso directo a /app/views/pages/view_inventory.php
@@ -110,7 +110,7 @@ $row = $qry->fetch_assoc();
                     </div>
                 </div>
 
-                <!-- STATUS AUTOMÃTICO -->
+                <!-- STATUS AUTOMÁTICO -->
                 <div class="form-group">
                     <label for="status-preview"><strong>Status</strong></label>
                     <div id="status-preview" class="mt-2">

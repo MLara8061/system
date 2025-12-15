@@ -1,6 +1,6 @@
-﻿<?php 
+<?php 
 // La conexión $conn debe estar disponible desde index.php
-// NO intentar cargar config.php aquÃ­, index.php ya lo hizo
+// NO intentar cargar config.php aquí, index.php ya lo hizo
 
 $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id') : '';
 $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
@@ -19,7 +19,7 @@ try {
     
     $costo_total = 0;
     // Compatibilidad: algunos entornos usan `amount`, otros `purchase_price`.
-    // En mysqli con modo estricto, una columna inexistente puede lanzar excepciÃ³n y romper el flujo.
+    // En mysqli con modo estricto, una columna inexistente puede lanzar excepción y romper el flujo.
     $sum_column = null;
     try {
         $chk = @$conn->query("SHOW COLUMNS FROM `equipments` LIKE 'amount'");
@@ -456,7 +456,7 @@ try {
                 if (typeof end_load === 'function') {
                     end_load();
                 }
-                // Forzar ocultar overlay por ID tambiÃ©n
+                // Forzar ocultar overlay por ID también
                 $('#page-loading-indicator').addClass('is-hidden');
             }
         });
@@ -492,7 +492,7 @@ try {
         $(document).on('click', '.delete', function() {
             const id = $(this).data('id');
             confirm_toast(
-                'Â¿EstÃ¡s seguro de eliminar este equipo? Esta acciÃ³n no se puede deshacer.',
+                '¿Estás seguro de eliminar este equipo? Esta acción no se puede deshacer.',
                 function() { delete_equipment(id); }
             );
         });

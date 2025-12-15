@@ -7,7 +7,7 @@
 				<input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
 				<div class="row">
 					<div class="col-md-6 border-right">
-						<b class="text-muted">InformaciÃ³n Personal</b>
+						<b class="text-muted">Información Personal</b>
 						<div class="form-group">
 							<label for="" class="control-label">Nombre</label>
 							<input type="text" name="firstname" class="form-control form-control-sm" required value="<?php echo isset($firstname) ? $firstname : '' ?>">
@@ -25,7 +25,7 @@
 							<input type="text" name="contact" class="form-control form-control-sm" required value="<?php echo isset($contact) ? $contact : '' ?>">
 						</div>
 						<div class="form-group">
-							<label class="control-label">DirecciÃ³n</label>
+							<label class="control-label">Dirección</label>
 							<textarea name="address" id="" cols="30" rows="4" class="form-control" required><?php echo isset($address) ? $address : '' ?></textarea>
 						</div>
 					</div>
@@ -37,12 +37,12 @@
 							<small id="#msg"></small>
 						</div>
 						<div class="form-group">
-							<label class="control-label">ContraseÃ±a</label>
+							<label class="control-label">Contraseña</label>
 							<input type="password" class="form-control form-control-sm" name="password" <?php echo isset($id) ? "" : 'required' ?>>
-							<small><i><?php echo isset($id) ? "Deja este campo en blanco si no deseas cambiar tu contraseÃ±a" : '' ?></i></small>
+							<small><i><?php echo isset($id) ? "Deja este campo en blanco si no deseas cambiar tu contraseña" : '' ?></i></small>
 						</div>
 						<div class="form-group">
-							<label class="label control-label">Confirmar ContraseÃ±a</label>
+							<label class="label control-label">Confirmar Contraseña</label>
 							<input type="password" class="form-control form-control-sm" name="cpass" <?php echo isset($id) ? 'required' : '' ?>>
 							<small id="pass_match" data-status=''></small>
 						</div>
@@ -65,9 +65,9 @@
 			$('#pass_match').attr('data-status', '')
 		} else {
 			if (cpass == pass) {
-				$('#pass_match').attr('data-status', '1').html('<i class="text-success">Las contraseÃ±as coinciden</i>')
+					$('#pass_match').attr('data-status', '1').html('<i class="text-success">Las contraseñas coinciden</i>')
 			} else {
-				$('#pass_match').attr('data-status', '2').html('<i class="text-danger">Las contraseÃ±as no coinciden</i>')
+					$('#pass_match').attr('data-status', '2').html('<i class="text-danger">Las contraseñas no coinciden</i>')
 			}
 		}
 	})
@@ -111,8 +111,15 @@
 				} else if (resp == 2) {
 					$('#msg').html("<div class='alert alert-danger'>El correo ingresado ya existe.</div>");
 					$('[name="email"]').addClass("border-danger")
-					end_load()
+				} else {
+					alert_toast('Error: ' + resp, 'error');
 				}
+			},
+			error: function(){
+				alert_toast('Error de conexión', 'error');
+			},
+			complete: function(){
+				end_load()
 			}
 		})
 	})
