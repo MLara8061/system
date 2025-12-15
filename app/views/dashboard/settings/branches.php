@@ -1,4 +1,7 @@
-<?php require_once 'config/config.php'; ?>
+<?php
+$root = defined('ROOT') ? ROOT : realpath(__DIR__ . '/../../../../');
+require_once $root . '/config/config.php';
+?>
 <div class="col-lg-12">
 	<div class="card card-outline card-primary">
 		<div class="card-header">

@@ -1,4 +1,7 @@
-<?php require_once 'config/config.php'; ?>
+<?php
+$root = defined('ROOT') ? ROOT : realpath(__DIR__ . '/../../../../');
+require_once $root . '/config/config.php';
+?>
 <?php
 $branch_id = 0;
 $code = '';
