@@ -293,6 +293,7 @@ if ($action == 'upload_excel_equipment') {
     error_log("AJAX upload_excel_equipment llamado");
     $result = $crud->upload_excel_equipment();
     error_log("Respuesta upload_excel_equipment: $result");
+    header('Content-Type: application/json; charset=utf-8');
     echo $result;
     exit;
 }

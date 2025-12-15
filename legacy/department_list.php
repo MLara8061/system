@@ -49,7 +49,7 @@
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
 									Acción
 								</button>
-								<div class="dropdown-menu" style="">
+								<div class="dropdown-menu">
 									<a class="dropdown-item edit_department" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
 									<div class="dropdown-divider"></div>
 									<a class="dropdown-item delete_department" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Eliminar</a>

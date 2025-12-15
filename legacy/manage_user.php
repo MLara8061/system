@@ -1,5 +1,6 @@
 ﻿<?php 
 require_once 'config/db.php';
+/** @var \PDO $pdo */
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $is_edit = $id > 0;
 $user = [];

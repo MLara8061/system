@@ -55,6 +55,9 @@
 	window.end_load = function() {
 		ensureLoader().addClass(hiddenClass);
 	}
+	// Compatibilidad con vistas legacy que aún invocan start_loader/end_loader
+	if (typeof window.start_loader !== 'function') window.start_loader = window.start_load;
+	if (typeof window.end_loader !== 'function') window.end_loader = window.end_load;
 	window.viewer_modal = function($src = '') {
 		start_load()
 		var t = $src.split('.')

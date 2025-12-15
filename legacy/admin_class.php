@@ -3131,6 +3131,10 @@ class Action {
 
     //======== CARGA MASIVA DE EQUIPOS DESDE EXCEL
     function upload_excel_equipment() {
+        // Evitar timeouts en cargas grandes (según hosting puede no aplicar)
+        @set_time_limit(0);
+        @ini_set('memory_limit', '512M');
+
         // Usar SimpleXLSX (librería ligera sin dependencias)
         require_once 'lib/simplexlsx-master/src/SimpleXLSX.php';
         
@@ -3163,7 +3167,9 @@ class Action {
         
         // Procesar archivo Excel con PHPSpreadsheet
         try {
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file['tmp_name']);
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file['tmp_name']);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file['tmp_name']);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
             
