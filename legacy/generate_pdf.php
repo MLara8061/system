@@ -68,9 +68,37 @@ if (isset($_POST['refaccion_item_id']) && is_array($_POST['refaccion_item_id']))
 }
 $parts_used_json = json_encode($parts_used, JSON_UNESCAPED_UNICODE);
 
+// === MULTI-SUCURSAL: validar sucursal del equipo ===
+$equipment_id = (int)$equipment_id;
+if ($equipment_id <= 0) {
+    die("Equipo inválido");
+}
+
+$login_type = (int)($_SESSION['login_type'] ?? 0);
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+$eqRes = $conn->query("SELECT branch_id FROM equipments WHERE id = {$equipment_id} LIMIT 1");
+if (!$eqRes || $eqRes->num_rows === 0) {
+    die("Equipo no encontrado");
+}
+$equipment_branch_id = (int)($eqRes->fetch_assoc()['branch_id'] ?? 0);
+if ($equipment_branch_id <= 0) {
+    die("El equipo no tiene sucursal asignada");
+}
+
+// No-admin siempre limitado a su sucursal activa; admin sólo si tiene sucursal específica
+if ($login_type !== 1 || $active_bid > 0) {
+    if ($active_bid <= 0 || $equipment_branch_id !== $active_bid) {
+        die("Sin permiso para esta sucursal");
+    }
+}
+
 // === VERIFICAR SI EXISTEN LAS COLUMNAS NUEVAS ===
 $check = $conn->query("SHOW COLUMNS FROM maintenance_reports LIKE 'service_date'");
 $has_new_columns = ($check && $check->num_rows > 0);
+
+$check_branch = $conn->query("SHOW COLUMNS FROM maintenance_reports LIKE 'branch_id'");
+$has_branch_id = ($check_branch && $check_branch->num_rows > 0);
 
 // === INSERTAR REPORTE ===
 if ($has_new_columns) {
@@ -81,20 +109,32 @@ if ($has_new_columns) {
             client_name, client_phone, client_address, client_email,
             equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
             service_type, execution_type, service_date, service_start_time, service_end_time, description, observations, final_status, received_by,
-            parts_used
+            parts_used" . ($has_branch_id ? ", branch_id" : "") . "
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" . ($has_branch_id ? ", ?" : "") . "
         )
     ");
 
-    $stmt->bind_param(
-        "sssssssssssssissssssssssss",
-        $order_number, $report_date, $report_time, $engineer_name,
-        $client_name, $client_phone, $client_address, $client_email,
-        $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
-        $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
-        $parts_used_json
-    );
+    if ($has_branch_id) {
+        $stmt->bind_param(
+            "sssssssssssssissssssssssssi",
+            $order_number, $report_date, $report_time, $engineer_name,
+            $client_name, $client_phone, $client_address, $client_email,
+            $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+            $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
+            $parts_used_json,
+            $equipment_branch_id
+        );
+    } else {
+        $stmt->bind_param(
+            "sssssssssssssissssssssssss",
+            $order_number, $report_date, $report_time, $engineer_name,
+            $client_name, $client_phone, $client_address, $client_email,
+            $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+            $service_type, $execution_type, $service_date, $service_start_time, $service_end_time, $description, $observations, $final_status, $received_by,
+            $parts_used_json
+        );
+    }
 } else {
     // Sin las columnas nuevas (versión anterior)
     $stmt = $conn->prepare("
@@ -103,20 +143,32 @@ if ($has_new_columns) {
             client_name, client_phone, client_address, client_email,
             equipment_id, equipment_name, equipment_brand, equipment_model, equipment_serial, equipment_inventory_code, equipment_location, location_id,
             service_type, execution_type, description, observations, final_status, received_by,
-            parts_used
+            parts_used" . ($has_branch_id ? ", branch_id" : "") . "
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" . ($has_branch_id ? ", ?" : "") . "
         )
     ");
 
-    $stmt->bind_param(
-        "ssssssssssssissssssssss",
-        $order_number, $report_date, $report_time, $engineer_name,
-        $client_name, $client_phone, $client_address, $client_email,
-        $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
-        $service_type, $execution_type, $description, $observations, $final_status, $received_by,
-        $parts_used_json
-    );
+    if ($has_branch_id) {
+        $stmt->bind_param(
+            "ssssssssssssissssssssssi",
+            $order_number, $report_date, $report_time, $engineer_name,
+            $client_name, $client_phone, $client_address, $client_email,
+            $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+            $service_type, $execution_type, $description, $observations, $final_status, $received_by,
+            $parts_used_json,
+            $equipment_branch_id
+        );
+    } else {
+        $stmt->bind_param(
+            "ssssssssssssissssssssss",
+            $order_number, $report_date, $report_time, $engineer_name,
+            $client_name, $client_phone, $client_address, $client_email,
+            $equipment_id, $equipment_name, $equipment_brand, $equipment_model, $equipment_serial, $equipment_inventory_code, $equipment_location, $location_id,
+            $service_type, $execution_type, $description, $observations, $final_status, $received_by,
+            $parts_used_json
+        );
+    }
 }
 
 if (!$stmt->execute()) {
@@ -127,8 +179,11 @@ $stmt->close();
 
 // === DESCONTAR STOCK ===
 foreach ($parts_used as $part) {
-    $stmt = $conn->prepare("UPDATE inventory SET stock = stock - ? WHERE id = ? AND stock >= ?");
-    $stmt->bind_param("iii", $part['quantity'], $part['item_id'], $part['quantity']);
+    $item_id = (int)($part['item_id'] ?? 0);
+    $qty = (int)($part['quantity'] ?? 0);
+    if ($item_id <= 0 || $qty <= 0) continue;
+    $stmt = $conn->prepare("UPDATE inventory SET stock = stock - ? WHERE id = ? AND branch_id = ? AND stock >= ?");
+    $stmt->bind_param("iiii", $qty, $item_id, $equipment_branch_id, $qty);
     $stmt->execute();
     $stmt->close();
 }

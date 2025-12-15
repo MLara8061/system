@@ -78,6 +78,44 @@ $is_local = $is_cli
     || str_contains($host, '.dev');
 
 // Hostinger y otros servicios son producción
+
+// =========================
+// Helpers multi-sucursal
+// =========================
+/**
+ * Retorna el branch_id activo para la sesión actual.
+ * - Admin (login_type=1) puede usar 0 para "todas".
+ * - Usuarios no admin: si falta, retorna 0 (y el código debe tratarlo como "sin filtro" o asignar default en login).
+ */
+if (!function_exists('active_branch_id')) {
+    function active_branch_id(): int {
+        $bid = isset($_SESSION['login_active_branch_id']) ? (int)$_SESSION['login_active_branch_id'] : 0;
+        return $bid;
+    }
+}
+
+/**
+ * Devuelve SQL para filtrar por sucursal (WHERE/AND).
+ * Si el usuario es admin y branch activo es 0 -> retorna '' (sin filtro = todas).
+ */
+if (!function_exists('branch_sql')) {
+    function branch_sql(string $clause = 'AND', string $column = 'branch_id', string $alias = ''): string {
+        $login_type = isset($_SESSION['login_type']) ? (int)$_SESSION['login_type'] : 0;
+        $bid = active_branch_id();
+
+        if ($login_type === 1 && $bid === 0) {
+            return '';
+        }
+        if ($bid <= 0) {
+            return '';
+        }
+
+        $prefix = $alias !== '' ? rtrim($alias, '.') . '.' : '';
+        $clause = strtoupper(trim($clause));
+        if ($clause !== 'WHERE' && $clause !== 'AND') $clause = 'AND';
+        return " $clause {$prefix}{$column} = {$bid} ";
+    }
+}
 define('ENVIRONMENT', $is_local ? 'local' : 'production');
 
 // === CONFIGURACIÓN BD ===

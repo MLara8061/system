@@ -158,7 +158,8 @@
                         <select name="equipo_id" class="form-control form-control-sm" required>
                             <option value="">Seleccionar equipo</option>
                             <?php
-                            $eqs = $conn->query("SELECT id, name FROM equipments ORDER BY name ASC");
+                            $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
+                            $eqs = $conn->query("SELECT id, name FROM equipments e {$equip_where} ORDER BY name ASC");
                             while ($r = $eqs->fetch_assoc()):
                             ?>
                                 <option value="<?php echo $r['id']; ?>">

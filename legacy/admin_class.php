@@ -919,6 +919,29 @@ class Action {
     // ================== EQUIPOS (COMPLETO) ==================
     function save_equipment() {
         try {
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+            $is_new_request = empty($_POST['id'] ?? '');
+
+            // No-admin: forzar sucursal activa
+            if ($login_type !== 1) {
+                if ($active_bid <= 0) {
+                    return 2;
+                }
+                $_POST['branch_id'] = $active_bid;
+            } else {
+                // Admin: si está en una sucursal específica y no viene branch_id, usarla
+                if (!isset($_POST['branch_id']) && $active_bid > 0) {
+                    $_POST['branch_id'] = $active_bid;
+                }
+
+                // Admin en "todas": impedir crear sin branch_id explícito
+                if ($is_new_request && $active_bid === 0 && empty($_POST['branch_id'])) {
+                    return 2;
+                }
+            }
+
             extract($_POST);
             $id = isset($id) ? (int)$id : 0;
             $new = empty($id);
@@ -957,8 +980,14 @@ class Action {
                     $id = $this->pdo->lastInsertId();
                 } else {
                     $set_parts = array_map(fn($k) => "$k = ?", array_keys($equipment_data));
-                    $stmt = $this->pdo->prepare("UPDATE equipments SET " . implode(', ', $set_parts) . " WHERE id = ?");
-                    $values = array_merge(array_values($equipment_data), [$id]);
+                    $where = " WHERE id = ?";
+                    $whereParams = [$id];
+                    if ($login_type !== 1 && $active_bid > 0) {
+                        $where .= " AND branch_id = ?";
+                        $whereParams[] = $active_bid;
+                    }
+                    $stmt = $this->pdo->prepare("UPDATE equipments SET " . implode(', ', $set_parts) . $where);
+                    $values = array_merge(array_values($equipment_data), $whereParams);
                     $stmt->execute($values);
                 }
             } else {
@@ -970,7 +999,7 @@ class Action {
                 }
                 $save = $new
                     ? $this->db->query("INSERT INTO equipments SET $data")
-                    : $this->db->query("UPDATE equipments SET $data WHERE id = $id");
+                    : $this->db->query("UPDATE equipments SET $data WHERE id = $id" . ($login_type !== 1 && $active_bid > 0 ? " AND branch_id = {$active_bid}" : ""));
                 if (!$save) return 2;
                 $id = $new ? $this->db->insert_id : $id;
             }
@@ -1847,9 +1876,25 @@ class Action {
 
     // ================== HERRAMIENTAS ==================
     function save_tool() {
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $is_new_request = empty($_POST['id'] ?? '');
+
+        if ($login_type !== 1) {
+            if ($active_bid <= 0) return 0;
+            $_POST['branch_id'] = $active_bid;
+        } else {
+            if (!isset($_POST['branch_id']) && $active_bid > 0) {
+                $_POST['branch_id'] = $active_bid;
+            }
+
+            if ($is_new_request && $active_bid === 0 && empty($_POST['branch_id'])) return 0;
+        }
+
         extract($_POST);
         $data = "";
-        $allowed = ['nombre','marca','costo','supplier_id','estatus','fecha_adquisicion','fecha_baja','caracteristicas'];
+        $allowed = ['nombre','marca','costo','supplier_id','estatus','fecha_adquisicion','fecha_baja','caracteristicas','branch_id'];
         foreach ($allowed as $k) {
             if (isset($_POST[$k])) {
                 $data .= empty($data) ? " `$k` = '".addslashes($_POST[$k])."' " : ", `$k` = '".addslashes($_POST[$k])."' ";
@@ -1862,9 +1907,15 @@ class Action {
             $data .= empty($data) ? " `imagen` = '$fname' " : ", `imagen` = '$fname' ";
         }
 
-        $sql = empty($id)
-            ? "INSERT INTO tools SET $data"
-            : "UPDATE tools SET $data WHERE id = $id";
+        if (empty($id)) {
+            $sql = "INSERT INTO tools SET $data";
+        } else {
+            $id = (int)$id;
+            $sql = "UPDATE tools SET $data WHERE id = $id";
+            if ($login_type !== 1 && $active_bid > 0) {
+                $sql .= " AND branch_id = {$active_bid}";
+            }
+        }
 
         return $this->db->query($sql) ? 1 : 0;
     }
@@ -1872,18 +1923,46 @@ class Action {
     function delete_tool() {
         extract($_POST);
         $id = (int)$id;
-        $qry = $this->db->query("SELECT imagen FROM tools WHERE id = $id");
-        if ($qry && $qry->num_rows > 0) {
-            $img = $qry->fetch_assoc()['imagen'];
-            if (!empty($img) && file_exists('uploads/' . $img)) {
-                unlink('uploads/' . $img);
-            }
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $sel = "SELECT imagen FROM tools WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sel .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query("DELETE FROM tools WHERE id = $id") ? 1 : 0;
+        $qry = $this->db->query($sel);
+        if (!$qry || $qry->num_rows === 0) {
+            return 0;
+        }
+        $img = $qry->fetch_assoc()['imagen'];
+        if (!empty($img) && file_exists('uploads/' . $img)) {
+            unlink('uploads/' . $img);
+        }
+        $sql = "DELETE FROM tools WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sql .= " AND branch_id = {$active_bid}";
+        }
+        return $this->db->query($sql) ? 1 : 0;
     }
 
     // ================== ACCESORIOS ==================
     function save_accessory() {
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $is_new_request = empty($_POST['id'] ?? '');
+
+        if ($login_type !== 1) {
+            if ($active_bid <= 0) return 0;
+            $_POST['branch_id'] = $active_bid;
+        } else {
+            if (!isset($_POST['branch_id']) && $active_bid > 0) {
+                $_POST['branch_id'] = $active_bid;
+            }
+
+            if ($is_new_request && $active_bid === 0 && empty($_POST['branch_id'])) return 0;
+        }
+
         extract($_POST);
         $data = "";
         $allowed = ['name','type','brand','model','serial','cost','acquisition_date','acquisition_type_id','area_id','status','observations','inventory_number','branch_id','numero_parte'];
@@ -1929,9 +2008,15 @@ class Action {
             }
         }
 
-        $sql = empty($id)
-            ? "INSERT INTO accessories SET $data"
-            : "UPDATE accessories SET $data WHERE id = $id";
+        if (empty($id)) {
+            $sql = "INSERT INTO accessories SET $data";
+        } else {
+            $id = (int)$id;
+            $sql = "UPDATE accessories SET $data WHERE id = $id";
+            if ($login_type !== 1 && $active_bid > 0) {
+                $sql .= " AND branch_id = {$active_bid}";
+            }
+        }
 
         return $this->db->query($sql) ? 1 : 0;
     }
@@ -1939,19 +2024,47 @@ class Action {
     function delete_accessory() {
         extract($_POST);
         $id = (int)$id;
-        $qry = $this->db->query("SELECT image FROM accessories WHERE id = $id");
-        if ($qry && $qry->num_rows > 0) {
-            $img = $qry->fetch_assoc()['image'];
-            if (!empty($img) && file_exists('uploads/' . $img)) unlink('uploads/' . $img);
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $sel = "SELECT image FROM accessories WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sel .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query("DELETE FROM accessories WHERE id = $id") ? 1 : 0;
+        $qry = $this->db->query($sel);
+        if (!$qry || $qry->num_rows === 0) {
+            return 0;
+        }
+        $img = $qry->fetch_assoc()['image'];
+        if (!empty($img) && file_exists('uploads/' . $img)) unlink('uploads/' . $img);
+        $sql = "DELETE FROM accessories WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sql .= " AND branch_id = {$active_bid}";
+        }
+        return $this->db->query($sql) ? 1 : 0;
     }
 
     // ================== INVENTARIO ==================
     function save_inventory() {
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $is_new_request = empty($_POST['id'] ?? '');
+
+        if ($login_type !== 1) {
+            if ($active_bid <= 0) return 0;
+            $_POST['branch_id'] = $active_bid;
+        } else {
+            if (!isset($_POST['branch_id']) && $active_bid > 0) {
+                $_POST['branch_id'] = $active_bid;
+            }
+
+            if ($is_new_request && $active_bid === 0 && empty($_POST['branch_id'])) return 0;
+        }
+
         extract($_POST);
         $data = "";
-        $allowed = ['name', 'category', 'price', 'cost', 'stock', 'min_stock', 'max_stock', 'status'];
+        $allowed = ['name', 'category', 'price', 'cost', 'stock', 'min_stock', 'max_stock', 'status', 'branch_id'];
         
         foreach ($allowed as $field) {
             if (isset($_POST[$field])) {
@@ -1969,9 +2082,15 @@ class Action {
             }
         }
 
-        $sql = empty($id)
-            ? "INSERT INTO inventory SET $data"
-            : "UPDATE inventory SET $data WHERE id = " . (int)$id;
+        if (empty($id)) {
+            $sql = "INSERT INTO inventory SET $data";
+        } else {
+            $id = (int)$id;
+            $sql = "UPDATE inventory SET $data WHERE id = $id";
+            if ($login_type !== 1 && $active_bid > 0) {
+                $sql .= " AND branch_id = {$active_bid}";
+            }
+        }
 
         return $this->db->query($sql) ? 1 : 0;
     }
@@ -1979,13 +2098,26 @@ class Action {
     function delete_inventory() {
         extract($_POST);
         $id = (int)$id;
-        $qry = $this->db->query("SELECT image_path FROM inventory WHERE id = $id");
-        if ($qry && $row = $qry->fetch_assoc()) {
-            if (!empty($row['image_path']) && file_exists('uploads/' . $row['image_path'])) {
-                unlink('uploads/' . $row['image_path']);
-            }
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $sel = "SELECT image_path FROM inventory WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sel .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query("DELETE FROM inventory WHERE id = $id") ? 1 : 0;
+        $qry = $this->db->query($sel);
+        if (!$qry || $qry->num_rows === 0) {
+            return 0;
+        }
+        $row = $qry->fetch_assoc();
+        if (!empty($row['image_path']) && file_exists('uploads/' . $row['image_path'])) {
+            unlink('uploads/' . $row['image_path']);
+        }
+        $sql = "DELETE FROM inventory WHERE id = $id";
+        if ($login_type !== 1 && $active_bid > 0) {
+            $sql .= " AND branch_id = {$active_bid}";
+        }
+        return $this->db->query($sql) ? 1 : 0;
     }
 
     // ================== MANTENIMIENTOS ==================
@@ -2023,11 +2155,23 @@ class Action {
         $startStr = $startDate->format('Y-m-d');
         $endStr = $endDate->format('Y-m-d');
 
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        $branch_and_e = '';
+        if ($active_bid > 0 || $login_type !== 1) {
+            // Para no-admin siempre aplica; para admin sólo si tiene sucursal específica
+            $branch_and_e = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : ($active_bid > 0 ? " AND e.branch_id = {$active_bid} " : '');
+        }
+
         $sql = "SELECT m.id, m.equipo_id, m.fecha_programada, m.hora_programada, m.tipo_mantenimiento, m.descripcion, m.estatus, e.name, $statusSelect, u.date AS unsubscribe_date
                 FROM mantenimientos m
                 JOIN equipments e ON m.equipo_id = e.id
                 LEFT JOIN equipment_unsubscribe u ON u.equipment_id = e.id
                 WHERE m.fecha_programada BETWEEN '$startStr' AND '$endStr'";
+
+        if ($branch_and_e) {
+            $sql .= $branch_and_e;
+        }
 
         if ($statusColumn) {
             $sql .= " AND (UPPER(e.`$statusColumn`) = 'ACTIVO')";
@@ -2118,6 +2262,25 @@ class Action {
             return 0;
         }
 
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        // En modo sucursal específica (admin con active_bid>0) o no-admin: validar que el equipo pertenezca a esa sucursal
+        if ($login_type !== 1 || $active_bid > 0) {
+            if ($active_bid <= 0) return 0;
+            $checkEq = $this->db->query("SELECT id FROM equipments WHERE id = {$equipo_id} AND branch_id = {$active_bid} LIMIT 1");
+            if (!$checkEq || $checkEq->num_rows === 0) {
+                return 0;
+            }
+        }
+
+        // Si es edición, validar que el mantenimiento pertenezca a un equipo permitido
+        if ($id > 0 && ($login_type !== 1 || $active_bid > 0)) {
+            $checkMaint = $this->db->query("SELECT m.id FROM mantenimientos m JOIN equipments e ON m.equipo_id = e.id WHERE m.id = {$id} AND e.branch_id = {$active_bid} LIMIT 1");
+            if (!$checkMaint || $checkMaint->num_rows === 0) {
+                return 0;
+            }
+        }
+
         // Validar límite de eventos por día (solo para nuevos registros)
         if ($id <= 0 && !$this->can_add_maintenance_on_date($fecha_programada)) {
             return -1; // Código especial para indicar límite excedido
@@ -2158,8 +2321,19 @@ class Action {
     }
 
     function complete_maintenance() {
-        $id = $_POST['id'];
-        return $this->db->query("UPDATE mantenimientos SET estatus='completado' WHERE id=$id") ? 1 : 0;
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) return 0;
+
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $sql = "UPDATE mantenimientos m JOIN equipments e ON m.equipo_id = e.id SET m.estatus='completado' WHERE m.id={$id}";
+        if ($login_type !== 1 || $active_bid > 0) {
+            if ($active_bid <= 0) return 0;
+            $sql .= " AND e.branch_id = {$active_bid}";
+        }
+
+        return $this->db->query($sql) ? 1 : 0;
     }
 
     // ================== UBICACIONES / PUESTOS ==================
@@ -2365,6 +2539,30 @@ class Action {
     function save_maintenance_report() {
         extract($_POST); 
         $data_report = "";
+
+        $login_type = (int)($_SESSION['login_type'] ?? 0);
+        $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+        $equipment_id_for_branch = isset($_POST['equipo_id_select']) ? (int)$_POST['equipo_id_select'] : 0;
+        if ($equipment_id_for_branch <= 0) {
+            return json_encode(['status' => 0, 'message' => 'Equipo inválido.']);
+        }
+
+        $eqBranchRow = $this->db->query("SELECT branch_id FROM equipments WHERE id = {$equipment_id_for_branch} LIMIT 1");
+        if (!$eqBranchRow || $eqBranchRow->num_rows === 0) {
+            return json_encode(['status' => 0, 'message' => 'Equipo no encontrado.']);
+        }
+        $report_branch_id = (int)($eqBranchRow->fetch_assoc()['branch_id'] ?? 0);
+        if ($report_branch_id <= 0) {
+            return json_encode(['status' => 0, 'message' => 'El equipo no tiene sucursal asignada.']);
+        }
+
+        // No-admin: el reporte debe ser de su sucursal activa. Admin: si tiene sucursal específica, también.
+        if ($login_type !== 1 || $active_bid > 0) {
+            if ($active_bid <= 0 || $report_branch_id !== $active_bid) {
+                return json_encode(['status' => 0, 'message' => 'Sin permiso para generar reporte en esta sucursal.']);
+            }
+        }
         
         // Mapeo de campos POST a columnas de BD
         $field_mapping = [
@@ -2388,6 +2586,9 @@ class Action {
                 $data_report .= empty($data_report) ? " $column_name='$escaped_value' " : ", $column_name='$escaped_value' ";
             }
         }
+
+        // Asegurar branch_id consistente (derivado del equipo)
+        $data_report .= empty($data_report) ? " branch_id='{$report_branch_id}' " : ", branch_id='{$report_branch_id}' ";
         
         $save_report = $this->db->query("INSERT INTO maintenance_reports SET $data_report");
 
@@ -2404,7 +2605,7 @@ class Action {
                 
                 if (!empty($item_id) && $qty > 0) {
                     $update_stock = $this->db->query("
-                        UPDATE inventory SET stock = stock - {$qty} WHERE id = {$item_id}
+                        UPDATE inventory SET stock = stock - {$qty} WHERE id = {$item_id} AND branch_id = {$report_branch_id}
                     ");
                     
                     $save_item = $this->db->query("

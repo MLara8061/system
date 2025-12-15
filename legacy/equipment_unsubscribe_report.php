@@ -27,6 +27,7 @@ $sql = "SELECT eu.*, e.name AS equipment_name, e.number_inventory, e.brand, e.mo
                (SELECT COUNT(1) FROM maintenance_reports mr WHERE mr.equipment_id = eu.equipment_id) AS maintenance_total
         FROM equipment_unsubscribe eu
         INNER JOIN equipments e ON e.id = eu.equipment_id
+    " . (function_exists('branch_sql') ? branch_sql('WHERE', 'e.branch_id') : '') . "
         ORDER BY eu.date DESC, eu.time DESC, eu.id DESC";
 $records = $conn->query($sql);
 $rows = [];

@@ -2,17 +2,20 @@
 
 <?php
 // === TOTALES GENERALES DE INVENTARIO ===
-$total_items = $conn->query("SELECT COUNT(*) as total FROM inventory")->fetch_assoc()['total'] ?? 0;
+$branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'i') : '';
+$branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'i') : '';
+
+$total_items = $conn->query("SELECT COUNT(*) as total FROM inventory i {$branch_where}")->fetch_assoc()['total'] ?? 0;
 
 // === CAMBIO 1: Contar ítems CON STOCK (stock > 0) ===
-$con_stock = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE stock > 0")->fetch_assoc()['total'] ?? 0;
+$con_stock = $conn->query("SELECT COUNT(*) as total FROM inventory i WHERE stock > 0 {$branch_and}")->fetch_assoc()['total'] ?? 0;
 
 // === CAMBIO 2: Contar ítems SIN STOCK (stock = 0) ===
 // Se mantiene la variable, pero se asegura la condición de conteo (stock = 0)
-$sin_stock = $conn->query("SELECT COUNT(*) as total FROM inventory WHERE stock = 0")->fetch_assoc()['total'] ?? 0;
+$sin_stock = $conn->query("SELECT COUNT(*) as total FROM inventory i WHERE stock = 0 {$branch_and}")->fetch_assoc()['total'] ?? 0;
 
 // Se mantiene la lógica del valor total
-$total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM inventory")->fetch_assoc()['total'] ?? 0;
+$total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM inventory i {$branch_where}")->fetch_assoc()['total'] ?? 0;
 ?>
 
 <div class="row mb-4">
@@ -101,7 +104,8 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                     <?php
                     $qry = $conn->query("
                         SELECT id, name, category, price, cost, stock, min_stock, max_stock, status, image_path, created_at
-                        FROM inventory 
+                        FROM inventory i 
+                        {$branch_where}
                         ORDER BY name ASC
                     ");
                     while ($row = $qry->fetch_assoc()):

@@ -668,11 +668,13 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     // Consultar distribución por tipo de servicio
     $service_types = [];
     $service_counts = [];
+
+    $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
     
     $service_query = $conn->query("
         SELECT service_type, COUNT(*) as total 
         FROM maintenance_reports 
-        WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'
+      WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'{$branch_and}
         GROUP BY service_type 
         ORDER BY total DESC
     ");
@@ -700,7 +702,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
             service_type,
             COUNT(*) as total
         FROM maintenance_reports
-        WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'
+      WHERE STR_TO_DATE(report_date, '%d/%m/%Y') >= '{$start_service}'{$branch_and}
         GROUP BY month, service_type
         ORDER BY month ASC
     ");

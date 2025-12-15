@@ -15,6 +15,23 @@ if (!$qry || $qry->num_rows === 0) {
 }
 $eq = $qry->fetch_assoc();
 
+// === MULTI-SUCURSAL: validar permiso para ver este equipo ===
+$login_type = (int)($_SESSION['login_type'] ?? 0);
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+$equipment_branch_id = (int)($eq['branch_id'] ?? 0);
+if ($equipment_branch_id <= 0) {
+    echo "<script>alert('El equipo no tiene sucursal asignada'); window.location='index.php?page=equipment_list';</script>";
+    exit;
+}
+
+// Admin con sucursal 0 (todas): sin filtro. Si no, debe coincidir.
+if ($login_type !== 1 || $active_bid > 0) {
+    if ($active_bid <= 0 || $equipment_branch_id !== $active_bid) {
+        echo "<script>alert('Sin permiso para esta sucursal'); window.location='index.php?page=equipment_list';</script>";
+        exit;
+    }
+}
+
 // Formatear el valor como moneda
 $amount_formatted = (isset($eq['amount']) && $eq['amount'] !== '' && is_numeric($eq['amount'])) 
     ? '$' . number_format((float)$eq['amount'], 2, '.', ',') 

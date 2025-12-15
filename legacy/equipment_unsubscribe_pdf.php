@@ -4,6 +4,11 @@ require_once 'config/config.php';
 
 header('Content-Type: text/html; charset=UTF-8');
 
+// Validar sesión (es un PDF interno)
+if (!isset($_SESSION['login_id'])) {
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Acceso denegado.</h3>');
+}
+
 // Verificar que la conexión existe
 if (!isset($conn) || $conn->connect_error) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Error de conexión a la base de datos.</h3>');
@@ -61,7 +66,7 @@ if ($unsubscribeId <= 0) {
     die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Identificador de baja no válido.</h3>');
 }
 
-$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.id AS equipment_ref
+$unsubscribeSql = "SELECT eu.*, e.name AS equipment_name, e.brand, e.model, e.number_inventory, e.serie, e.date_created, e.image, e.amount, e.discipline, e.id AS equipment_ref, e.branch_id AS equipment_branch_id
                     FROM equipment_unsubscribe eu
                     INNER JOIN equipments e ON e.id = eu.equipment_id
                     WHERE eu.id = {$unsubscribeId} LIMIT 1";
@@ -79,6 +84,19 @@ if (!$unsubscribe) {
 }
 
 $equipmentId = (int)$unsubscribe['equipment_id'];
+$equipmentBranchId = (int)($unsubscribe['equipment_branch_id'] ?? 0);
+if ($equipmentBranchId <= 0) {
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">El equipo no tiene sucursal asignada.</h3>');
+}
+
+// MULTI-SUCURSAL: validar permiso
+$login_type = (int)($_SESSION['login_type'] ?? 0);
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+if ($login_type !== 1 || $active_bid > 0) {
+    if ($active_bid <= 0 || $equipmentBranchId !== $active_bid) {
+        die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Sin permiso para esta sucursal.</h3>');
+    }
+}
 $folio = $unsubscribe['folio'] ?? '';
 $processedName = $unsubscribe['processed_by_name'] ?? '';
 $processedName = $processedName !== '' ? $processedName : 'No registrado';
@@ -140,9 +158,11 @@ $historySelect = [
 ];
 
 $orderColumn = equipment_pdf_resolve_column($conn, 'maintenance_reports', ['report_date', 'fecha_reporte', 'id']);
+$mrBranchFilter = equipment_pdf_column_exists($conn, 'maintenance_reports', 'branch_id') ? " AND branch_id = {$equipmentBranchId}" : '';
 $historySql = "SELECT " . implode(', ', $historySelect) . "
                 FROM maintenance_reports
                 WHERE equipment_id = {$equipmentId}
+                {$mrBranchFilter}
                 ORDER BY {$orderColumn} DESC
                 LIMIT 12";
 $historyRes = $conn->query($historySql);
@@ -156,6 +176,7 @@ if ($historyRes instanceof mysqli_result) {
     $historyFallbackSql = "SELECT id AS order_number, report_date, report_time, service_type, execution_type, engineer_name, final_status
                             FROM maintenance_reports
                             WHERE equipment_id = {$equipmentId}
+                            {$mrBranchFilter}
                             ORDER BY id DESC
                             LIMIT 12";
     $historyFallbackRes = $conn->query($historyFallbackSql);

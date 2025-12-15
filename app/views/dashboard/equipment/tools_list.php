@@ -2,10 +2,13 @@
 
 <?php
 // === NUEVOS CÁLCULOS SIN CANTIDAD ===
-$total_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools")->fetch_assoc()['total'];
-$activos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Activa'")->fetch_assoc()['total'];
-$inactivos = $conn->query("SELECT COUNT(*) as total FROM tools WHERE estatus = 'Inactiva'")->fetch_assoc()['total'];
-$total_valor = $conn->query("SELECT SUM(costo) as total FROM tools")->fetch_assoc()['total'];
+$branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 't') : '';
+$branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 't') : '';
+
+$total_herramientas = $conn->query("SELECT COUNT(*) as total FROM tools t {$branch_where}")->fetch_assoc()['total'];
+$activos = $conn->query("SELECT COUNT(*) as total FROM tools t WHERE estatus = 'Activa' {$branch_and}")->fetch_assoc()['total'];
+$inactivos = $conn->query("SELECT COUNT(*) as total FROM tools t WHERE estatus = 'Inactiva' {$branch_and}")->fetch_assoc()['total'];
+$total_valor = $conn->query("SELECT COALESCE(SUM(costo),0) as total FROM tools t {$branch_where}")->fetch_assoc()['total'];
 ?>
 
 <!-- Tarjetas de resumen -->
@@ -89,7 +92,7 @@ $total_valor = $conn->query("SELECT SUM(costo) as total FROM tools")->fetch_asso
                 </thead>
                 <tbody>
                     <?php
-                    $qry = $conn->query("SELECT t.*, s.empresa FROM tools t LEFT JOIN suppliers s ON t.supplier_id = s.id ORDER BY t.id DESC");
+                    $qry = $conn->query("SELECT t.*, s.empresa FROM tools t LEFT JOIN suppliers s ON t.supplier_id = s.id {$branch_where} ORDER BY t.id DESC");
                     while ($row = $qry->fetch_assoc()) :
                     ?>
                         <tr>

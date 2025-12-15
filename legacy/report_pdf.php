@@ -8,6 +8,8 @@ if (!$report_id || !is_numeric($report_id)) {
     die('<h3 style="color:red;text-align:center;margin:50px;">Report ID not provided</h3>');
 }
 
+$report_id = (int)$report_id;
+
 $stmt = $conn->prepare("SELECT * FROM maintenance_reports WHERE id = ?");
 $stmt->bind_param("i", $report_id);
 $stmt->execute();
@@ -19,12 +21,44 @@ if (!$report) {
     die('<h3 style="color:red;text-align:center;margin:50px;">Report not found</h3>');
 }
 
+// === MULTI-SUCURSAL: validar acceso al reporte ===
+$login_type = (int)($_SESSION['login_type'] ?? 0);
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+
+$report_branch_id = 0;
+if (array_key_exists('branch_id', $report) && is_numeric($report['branch_id'])) {
+    $report_branch_id = (int)$report['branch_id'];
+}
+if ($report_branch_id <= 0) {
+    $eq_id = (int)($report['equipment_id'] ?? 0);
+    if ($eq_id > 0) {
+        $stmt = $conn->prepare('SELECT branch_id FROM equipments WHERE id = ? LIMIT 1');
+        $stmt->bind_param('i', $eq_id);
+        $stmt->execute();
+        $eq = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        $report_branch_id = (int)($eq['branch_id'] ?? 0);
+    }
+}
+if ($report_branch_id <= 0) {
+    die('<h3 style="color:red;text-align:center;margin:50px;">Report branch not found</h3>');
+}
+
+// Admin con sucursal 0 (todas): sin filtro; si no, debe coincidir.
+if ($login_type !== 1 || $active_bid > 0) {
+    if ($active_bid <= 0 || $report_branch_id !== $active_bid) {
+        die('<h3 style="color:red;text-align:center;margin:50px;">Sin permiso para esta sucursal</h3>');
+    }
+}
+
 // === REFACCIONES ===
 $parts = json_decode($report['parts_used'], true) ?: [];
 $parts_list = '';
 foreach ($parts as $p) {
-    $stmt = $conn->prepare("SELECT name, stock FROM inventory WHERE id = ?");
-    $stmt->bind_param("i", $p['item_id']);
+    $item_id = (int)($p['item_id'] ?? 0);
+    if ($item_id <= 0) continue;
+    $stmt = $conn->prepare("SELECT name, stock FROM inventory WHERE id = ? AND branch_id = ?");
+    $stmt->bind_param("ii", $item_id, $report_branch_id);
     $stmt->execute();
     $item = $stmt->get_result()->fetch_assoc();
     $stmt->close();

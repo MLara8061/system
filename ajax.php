@@ -98,11 +98,25 @@ if ($action == 'check_username') {
 if ($action == 'update_user_branch') {
     header('Content-Type: application/json; charset=utf-8');
     $branch_id = intval($_POST['branch_id'] ?? 0);
-    $user_id = $_SESSION['login_id'];
-    if ($branch_id > 0 && $user_id > 0) {
+    $user_id = (int)($_SESSION['login_id'] ?? 0);
+    $login_type = (int)($_SESSION['login_type'] ?? 0);
+
+    // Usuarios no admin deben seleccionar una sucursal válida (>0)
+    if ($login_type !== 1 && $branch_id <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
+        exit;
+    }
+
+    if ($user_id > 0) {
         $db = $crud->getDb();
-        $result = $db ? $db->query("UPDATE users SET active_branch_id = $branch_id WHERE id = $user_id") : false;
+        if ($login_type === 1 && $branch_id === 0) {
+            // Admin: 0 = todas (guardar NULL en DB)
+            $result = $db ? $db->query("UPDATE users SET active_branch_id = NULL WHERE id = $user_id") : false;
+        } else {
+            $result = $db ? $db->query("UPDATE users SET active_branch_id = $branch_id WHERE id = $user_id") : false;
+        }
         if ($result) {
+            $_SESSION['login_active_branch_id'] = $branch_id;
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['success' => false, 'error' => 'Error updating branch']);

@@ -1,19 +1,13 @@
 <?php require_once 'config/config.php'; ?>
 
 <?php
-// Obtener sucursal activa del usuario
-$user_id = $_SESSION['login_id'] ?? 0;
-$user_branch = null;
-if ($user_id) {
-    $user_query = $conn->query("SELECT active_branch_id FROM users WHERE id = $user_id");
-    $user_branch = $user_query->fetch_assoc();
-}
-$branch_filter = $user_branch && $user_branch['active_branch_id'] ? "AND branch_id = " . $user_branch['active_branch_id'] : "";
+// Filtro multi-sucursal (admin con branch_id=0 => sin filtro)
+$branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
 
-$total_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE 1=1 $branch_filter")->fetch_assoc()['total'] ?? 0;
-$activos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE status = 'Activo' $branch_filter")->fetch_assoc()['total'] ?? 0;
-$inactivos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE status = 'Inactivo' $branch_filter")->fetch_assoc()['total'] ?? 0;
-$total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM accessories WHERE 1=1 $branch_filter")->fetch_assoc()['total'];
+$total_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE 1=1 {$branch_and}")->fetch_assoc()['total'] ?? 0;
+$activos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE status = 'Activo' {$branch_and}")->fetch_assoc()['total'] ?? 0;
+$inactivos_acc = $conn->query("SELECT COUNT(*) as total FROM accessories WHERE status = 'Inactivo' {$branch_and}")->fetch_assoc()['total'] ?? 0;
+$total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM accessories WHERE 1=1 {$branch_and}")->fetch_assoc()['total'];
 ?>
 
 <!-- Tarjetas de resumen -->
@@ -108,7 +102,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                         FROM accessories a 
                         LEFT JOIN departments d ON a.area_id = d.id 
                         LEFT JOIN acquisition_type at ON a.acquisition_type_id = at.id 
-                        WHERE 1=1 $branch_filter
+                        WHERE 1=1 {$branch_and}
                         ORDER BY a.id DESC
                     ");
                     while ($row = $qry->fetch_assoc()):

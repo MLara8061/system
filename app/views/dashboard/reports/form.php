@@ -30,12 +30,14 @@ $fecha_reporte = date('d/m/Y');
 $ingeniero_nombre = $current_user_name;
 
 // === CONSULTAS ===
-$equipos_list = $conn->query("SELECT id, name FROM equipments ORDER BY name ASC");
+$equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
+$equipos_list = $conn->query("SELECT id, name FROM equipments e {$equip_where} ORDER BY name ASC");
 $prefill_equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : 0;
 
 $inventario_data = [];
 if ($conn) {
-    $result = $conn->query("SELECT id, name, stock FROM inventory ORDER BY name ASC");
+    $inv_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'i') : '';
+    $result = $conn->query("SELECT id, name, stock FROM inventory i {$inv_where} ORDER BY name ASC");
     if ($result && $result->num_rows > 0) {
         $inventario_data = $result->fetch_all(MYSQLI_ASSOC);
     }

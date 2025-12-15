@@ -7,10 +7,13 @@ error_log("=== EQUIPMENT LIST STARTED ===");
 
 error_log("=== ABOUT TO EXECUTE QUERIES ===");
 
+$branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id') : '';
+$branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '';
+
 // Datos para las tarjetas - simplificado
 try {
     $total_equipos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments");
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments {$branch_where}");
     if ($result) {
         $row = $result->fetch_assoc();
         $total_equipos = $row['total'] ?? 0;
@@ -20,21 +23,21 @@ try {
     }
     
     $costo_total = 0;
-    $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments");
+    $result = $conn->query("SELECT IFNULL(SUM(purchase_price), 0) as total FROM equipments {$branch_where}");
     if ($result) {
         $row = $result->fetch_assoc();
         $costo_total = $row['total'] ?? 0;
     }
     
     $preventivos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1");
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 1 {$branch_and}");
     if ($result) {
         $row = $result->fetch_assoc();
         $preventivos = $row['total'] ?? 0;
     }
     
     $correctivos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2");
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments WHERE mandate_period_id = 2 {$branch_and}");
     if ($result) {
         $row = $result->fetch_assoc();
         $correctivos = $row['total'] ?? 0;
@@ -133,6 +136,7 @@ try {
                 <tbody>
                     <?php
                     // Simple query to list equipment
+                    $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
                     $qry = $conn->query("
                         SELECT 
                             e.*,
@@ -140,6 +144,7 @@ try {
                             DATEDIFF(CURDATE(), e.date_created) AS antiguedad_dias
                         FROM equipments e 
                         LEFT JOIN suppliers s ON e.supplier_id = s.id
+                        {$equip_where}
                         ORDER BY e.id DESC
                         LIMIT 500
                     ");

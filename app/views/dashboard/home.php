@@ -199,6 +199,10 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
     <div class="d-flex align-items-center justify-content-end">
       <label class="mr-2 font-weight-bold mb-0">Sucursal Activa:</label>
       <select id="branch_selector" class="form-control form-control-sm" style="width: 200px;">
+        <?php $is_admin = (int)($_SESSION['login_type'] ?? 0) === 1; ?>
+        <?php if ($is_admin): ?>
+          <option value="0" <?= empty($user_branch['active_branch_id']) ? 'selected' : '' ?>>Todas</option>
+        <?php endif; ?>
         <?php foreach ($branches_data as $branch): ?>
           <option value="<?= $branch['id'] ?>" <?= $user_branch && $user_branch['active_branch_id'] == $branch['id'] ? 'selected' : '' ?>>
             <?= htmlspecialchars($branch['name']) ?>
