@@ -30,7 +30,10 @@ $branches = false;
 $branches_data = [['id' => 1, 'name' => 'Sede Principal']];
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: using static branches data\n", FILE_APPEND);
 
-$branch_filter = $user_branch && $user_branch['active_branch_id'] ? 'AND e.branch_id = ' . (int)$user_branch['active_branch_id'] : '';
+// TEMPORAL: Desactivar filtro de sucursal hasta verificar que branch_id existe en todas las tablas
+$branch_filter = '';
+// $branch_filter = $user_branch && $user_branch['active_branch_id'] ? 'AND e.branch_id = ' . (int)$user_branch['active_branch_id'] : '';
+file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter disabled (troubleshooting)\n", FILE_APPEND);
 
 $total_equipos = 0;
 $result = safe_query($conn, "SELECT COUNT(*) AS total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_filter}");
