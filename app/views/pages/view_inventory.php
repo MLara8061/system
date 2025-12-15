@@ -1,8 +1,12 @@
-<?php define('ACCESS', true); require_once 'config/config.php'; ?>
 <?php
-require_once 'config/session.php';
+define('ACCESS', true);
+
+// Usar rutas absolutas para soportar acceso directo a /app/views/pages/view_inventory.php
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../config/session.php';
+
 if (!validate_session()) {
-    header('location: app/views/auth/login.php');
+    header('location: /app/views/auth/login.php');
     exit();
 }
 ?>
