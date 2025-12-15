@@ -391,6 +391,8 @@ try {
             // Limpiar y deshabilitar los selectores dependientes
             $locationSelect.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
             $positionSelect.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true);
+            $locationSelect.trigger('change.select2');
+            $positionSelect.trigger('change.select2');
             
             if(department_id){
                 $.ajax({
@@ -402,19 +404,26 @@ try {
                         $locationSelect.empty().append('<option value="">Seleccionar ubicación</option>');
                         if(locations.length > 0){
                             $.each(locations, function(index, location){
-                                $locationSelect.append('<option value="'+ location.id +'">'+ location.name.toUpperCase() +'</option>');
+                                $locationSelect.append('<option value="'+ location.id +'">'+ String(location.name || '').toUpperCase() +'</option>');
                             });
                             $locationSelect.prop('disabled', false);
                         } else {
                             $locationSelect.append('<option value="">No hay ubicaciones en este departamento</option>');
+                            $locationSelect.prop('disabled', true);
                         }
+                        $locationSelect.trigger('change.select2');
                     },
-                    error: function(){
+                    error: function(xhr){
+                        var msg = 'Error al cargar ubicaciones';
+                        try { if (xhr && xhr.responseText) msg += ': ' + String(xhr.responseText).trim(); } catch (e) {}
+                        console.log(xhr);
+                        alert_toast(msg,'error');
                         $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
+                        $locationSelect.prop('disabled', true).trigger('change.select2');
                     }
                 });
             } else {
-                $locationSelect.empty().append('<option value="">Seleccionar departamento primero</option>');
+                $locationSelect.empty().append('<option value="">Seleccionar departamento primero</option>').prop('disabled', true).trigger('change.select2');
             }
         });
 
@@ -425,6 +434,7 @@ try {
             
             // Limpiar y deshabilitar select de cargo
             $responsiblePosition.empty().append('<option value="">Cargando...</option>').prop('disabled', true);
+            $responsiblePosition.trigger('change.select2');
             
             if(location_id){
                 $.ajax({
@@ -436,19 +446,26 @@ try {
                         $responsiblePosition.empty().append('<option value="">Seleccionar cargo</option>');
                         if(positions.length > 0){
                             $.each(positions, function(index, position){
-                                $responsiblePosition.append('<option value="'+ position.id +'">'+ position.name.toUpperCase() +'</option>');
+                                $responsiblePosition.append('<option value="'+ position.id +'">'+ String(position.name || '').toUpperCase() +'</option>');
                             });
                             $responsiblePosition.prop('disabled', false);
                         } else {
                             $responsiblePosition.append('<option value="">No hay cargos para esta ubicación</option>');
+                            $responsiblePosition.prop('disabled', true);
                         }
+                        $responsiblePosition.trigger('change.select2');
                     },
-                    error: function(){
+                    error: function(xhr){
+                        var msg = 'Error al cargar cargos';
+                        try { if (xhr && xhr.responseText) msg += ': ' + String(xhr.responseText).trim(); } catch (e) {}
+                        console.log(xhr);
+                        alert_toast(msg,'error');
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
+                        $responsiblePosition.prop('disabled', true).trigger('change.select2');
                     }
                 });
             } else {
-                $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>');
+                $responsiblePosition.empty().append('<option value="">Seleccionar ubicación primero</option>').prop('disabled', true).trigger('change.select2');
             }
         });
     });

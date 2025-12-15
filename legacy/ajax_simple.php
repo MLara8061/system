@@ -73,47 +73,105 @@ try {
         $department_id = isset($_POST['department_id']) ? intval($_POST['department_id']) : 0;
         error_log("SIMPLE AJAX: department_id = $department_id");
         
-        if ($department_id > 0) {
-            $query = "SELECT l.id, l.name FROM locations l WHERE l.department_id = $department_id ORDER BY l.name ASC";
+        if ($department_id <= 0) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $locations = [];
+        try {
+            // Compatibilidad: algunas instalaciones no tienen locations.department_id
+            $has_department_id = false;
+            $col = @$conn->query("SHOW COLUMNS FROM locations LIKE 'department_id'");
+            $has_department_id = $col && $col->num_rows > 0;
+
+            if ($has_department_id) {
+                $query = "SELECT l.id, l.name FROM locations l WHERE l.department_id = $department_id ORDER BY l.name ASC";
+            } else {
+                $query = "SELECT l.id, l.name FROM locations l ORDER BY l.name ASC";
+            }
+
             $qry = $conn->query($query);
-            $locations = [];
-            
-            if($qry) {
+            if ($qry) {
                 while ($row = $qry->fetch_assoc()) {
                     $locations[] = $row;
                 }
+            } else {
+                error_log('SIMPLE AJAX get_locations_by_department query error: ' . $conn->error);
             }
-            
-            echo json_encode($locations);
-        } else {
-            echo json_encode([]);
+        } catch (Throwable $e) {
+            error_log('SIMPLE AJAX get_locations_by_department throwable: ' . $e->getMessage());
         }
+
+        echo json_encode($locations);
     }
     else if ($action == 'get_job_positions_by_location') {
         $location_id = isset($_POST['location_id']) ? intval($_POST['location_id']) : 0;
         error_log("SIMPLE AJAX: location_id = $location_id");
         
         if ($location_id > 0) {
-            // Intentar con nueva estructura
-            $query = "SELECT j.id, j.name FROM job_positions j WHERE j.location_id = $location_id ORDER BY j.name ASC";
-            $qry = $conn->query($query);
             $positions = [];
-            
-            if($qry && $qry->num_rows > 0) {
-                while ($row = $qry->fetch_assoc()) {
-                    $positions[] = $row;
-                }
-            } else {
-                // Fallback a estructura antigua
-                $query = "SELECT j.id, j.name FROM job_positions j 
-                          INNER JOIN location_positions lp ON lp.job_position_id = j.id 
-                          WHERE lp.location_id = $location_id ORDER BY j.name ASC";
-                $qry = $conn->query($query);
-                if($qry) {
-                    while ($row = $qry->fetch_assoc()) {
-                        $positions[] = $row;
+
+            try {
+                // Intentar con nueva estructura (job_positions.location_id)
+                $has_location_id = false;
+                $col = @$conn->query("SHOW COLUMNS FROM job_positions LIKE 'location_id'");
+                $has_location_id = $col && $col->num_rows > 0;
+
+                if ($has_location_id) {
+                    $query = "SELECT j.id, j.name FROM job_positions j WHERE j.location_id = $location_id ORDER BY j.name ASC";
+                    $qry = $conn->query($query);
+                    if ($qry && $qry->num_rows > 0) {
+                        while ($row = $qry->fetch_assoc()) {
+                            $positions[] = $row;
+                        }
                     }
                 }
+
+                // Fallback a estructura antigua (tabla intermedia location_positions)
+                if (empty($positions)) {
+                    $tbl = @$conn->query("SHOW TABLES LIKE 'location_positions'");
+                    $has_lp = $tbl && $tbl->num_rows > 0;
+                    if ($has_lp) {
+                        $query = "SELECT j.id, j.name FROM job_positions j 
+                                  INNER JOIN location_positions lp ON lp.job_position_id = j.id 
+                                  WHERE lp.location_id = $location_id ORDER BY j.name ASC";
+                        $qry = $conn->query($query);
+                        if ($qry) {
+                            while ($row = $qry->fetch_assoc()) {
+                                $positions[] = $row;
+                            }
+                        }
+                    }
+                }
+
+                // Último fallback: cargos por departamento del location (job_positions.department_id)
+                if (empty($positions)) {
+                    $col = @$conn->query("SHOW COLUMNS FROM job_positions LIKE 'department_id'");
+                    $has_dep = $col && $col->num_rows > 0;
+                    if ($has_dep) {
+                        $dep_id = 0;
+                        $col2 = @$conn->query("SHOW COLUMNS FROM locations LIKE 'department_id'");
+                        $loc_has_dep = $col2 && $col2->num_rows > 0;
+                        if ($loc_has_dep) {
+                            $dq = @$conn->query("SELECT department_id FROM locations WHERE id = $location_id LIMIT 1");
+                            if ($dq && $dq->num_rows > 0) {
+                                $dep_id = (int)($dq->fetch_assoc()['department_id'] ?? 0);
+                            }
+                        }
+                        if ($dep_id > 0) {
+                            $query = "SELECT j.id, j.name FROM job_positions j WHERE j.department_id = $dep_id ORDER BY j.name ASC";
+                            $qry = $conn->query($query);
+                            if ($qry) {
+                                while ($row = $qry->fetch_assoc()) {
+                                    $positions[] = $row;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable $e) {
+                error_log('SIMPLE AJAX get_job_positions_by_location throwable: ' . $e->getMessage());
             }
             
             echo json_encode($positions);
