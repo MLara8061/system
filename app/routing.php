@@ -80,6 +80,8 @@ $ROUTE_MAP = [
     'manage_equipment_location' => 'app/views/dashboard/settings/manage_equipment_location.php',
     'job_positions' => 'app/views/dashboard/settings/job_positions.php',
     'manage_job_position' => 'app/views/dashboard/settings/manage_job_position.php',
+    'branches' => 'app/views/dashboard/settings/branches.php',
+    'manage_branch' => 'app/views/dashboard/settings/manage_branch.php',
     
     // Reportes
     'report_form' => 'app/views/dashboard/reports/form.php',

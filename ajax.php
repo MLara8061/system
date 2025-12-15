@@ -100,7 +100,8 @@ if ($action == 'update_user_branch') {
     $branch_id = intval($_POST['branch_id'] ?? 0);
     $user_id = $_SESSION['login_id'];
     if ($branch_id > 0 && $user_id > 0) {
-        $result = $crud->db->query("UPDATE users SET active_branch_id = $branch_id WHERE id = $user_id");
+        $db = $crud->getDb();
+        $result = $db ? $db->query("UPDATE users SET active_branch_id = $branch_id WHERE id = $user_id") : false;
         if ($result) {
             echo json_encode(['success' => true]);
         } else {
@@ -145,6 +146,19 @@ if ($action == 'save_department') {
 
 if ($action == 'delete_department') {
     echo $crud->delete_department();
+    exit;
+}
+
+// ===================================
+// 4B. SUCURSALES
+// ===================================
+if ($action == 'save_branch') {
+    echo $crud->save_branch();
+    exit;
+}
+
+if ($action == 'delete_branch') {
+    echo $crud->delete_branch();
     exit;
 }
 

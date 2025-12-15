@@ -641,6 +641,102 @@ class Action {
         return $this->db->query("DELETE FROM departments WHERE id = $id") ? 1 : 0;
     }
 
+    // ================== SUCURSALES ==================
+    function save_branch() {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $code = isset($_POST['code']) ? trim($_POST['code']) : '';
+            $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+
+            if ($code === '' || $name === '') {
+                return 0;
+            }
+
+            $code_esc = $this->db->real_escape_string($code);
+            $name_esc = $this->db->real_escape_string($name);
+
+            $has_active = false;
+            $col = $this->db->query("SHOW COLUMNS FROM branches LIKE 'active'");
+            if ($col && $col->num_rows > 0) $has_active = true;
+
+            $active_val = 1;
+            if ($has_active) {
+                $active_val = isset($_POST['active']) ? 1 : 0;
+            }
+
+            // Unicidad por código
+            $check_code = $this->db->query("SELECT id FROM branches WHERE code='$code_esc' " . ($id > 0 ? "AND id != $id" : '') . " LIMIT 1");
+            if ($check_code && $check_code->num_rows > 0) {
+                return 2;
+            }
+
+            // Unicidad por nombre
+            $check_name = $this->db->query("SELECT id FROM branches WHERE name='$name_esc' " . ($id > 0 ? "AND id != $id" : '') . " LIMIT 1");
+            if ($check_name && $check_name->num_rows > 0) {
+                return 3;
+            }
+
+            if ($id > 0) {
+                $set = "code='$code_esc', name='$name_esc'";
+                if ($has_active) $set .= ", active=$active_val";
+                $save = $this->db->query("UPDATE branches SET $set WHERE id = $id");
+                return $save ? 1 : 0;
+            }
+
+            $fields = "code, name";
+            $values = "'$code_esc', '$name_esc'";
+            if ($has_active) {
+                $fields .= ", active";
+                $values .= ", $active_val";
+            }
+
+            $save = $this->db->query("INSERT INTO branches ($fields) VALUES ($values)");
+            return $save ? 1 : 0;
+        } catch (Exception $e) {
+            error_log("SAVE_BRANCH ERROR: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    function delete_branch() {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            if ($id <= 0) return 0;
+
+            // Bloquear eliminación si está referenciada
+            $tables = [
+                ['table' => 'equipments', 'col' => 'branch_id'],
+                ['table' => 'tools', 'col' => 'branch_id'],
+                ['table' => 'accessories', 'col' => 'branch_id'],
+                ['table' => 'maintenance_reports', 'col' => 'branch_id'],
+                ['table' => 'users', 'col' => 'active_branch_id'],
+            ];
+
+            foreach ($tables as $t) {
+                $table = $t['table'];
+                $col = $t['col'];
+                $exists = $this->db->query("SHOW TABLES LIKE '$table'");
+                if (!$exists || $exists->num_rows === 0) continue;
+
+                $has_col = $this->db->query("SHOW COLUMNS FROM `$table` LIKE '$col'");
+                if (!$has_col || $has_col->num_rows === 0) continue;
+
+                $cnt_res = $this->db->query("SELECT COUNT(*) as cnt FROM `$table` WHERE `$col` = $id");
+                if ($cnt_res && ($row = $cnt_res->fetch_assoc())) {
+                    if (intval($row['cnt']) > 0) {
+                        return 2;
+                    }
+                }
+            }
+
+            $del = $this->db->query("DELETE FROM branches WHERE id = $id");
+            return $del ? 1 : 0;
+        } catch (Exception $e) {
+            error_log("DELETE_BRANCH ERROR: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     // ================== TICKETS ==================
     function save_ticket() {
         extract($_POST);

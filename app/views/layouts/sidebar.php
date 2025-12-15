@@ -182,6 +182,13 @@
             </li>
 
             <li class="nav-item">
+              <a href="./index.php?page=branches" class="nav-link nav-branches tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Sucursales</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a href="#" class="nav-link nav-service">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Tickets <i class="right fas fa-angle-left"></i></p>
