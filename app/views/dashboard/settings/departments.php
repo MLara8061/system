@@ -14,7 +14,7 @@
 						<th style="width: 25%">Nombre</th>
 						<th style="width: 30%">Ubicaciones</th>
 						<th style="width: 30%">Puestos</th>
-						<th class="text-center" style="width: 10%">AcciÃ³n</th>
+						<th class="text-center" style="width: 10%">Acción</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -47,7 +47,7 @@
 							<td><small><?php echo $positions_text ?></small></td>
 							<td class="text-center ">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-									AcciÃ³n
+									Acción
 								</button>
 								<div class="dropdown-menu">
 									<a class="dropdown-item edit_department" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
@@ -74,7 +74,7 @@
 		$('.delete_department').click(function() {
 			const deptId = $(this).attr('data-id');
 			confirm_toast(
-				'Â¿EstÃ¡s seguro de eliminar este departamento? Esta acciÃ³n no se puede deshacer.',
+				'¿Estás seguro de eliminar este departamento? Esta acción no se puede deshacer.',
 				function() { delete_department(deptId); }
 			);
 		})

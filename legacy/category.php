@@ -5,7 +5,7 @@
 			<div class="card-header">
 				<h5 class="card-title">Lista de Categoria de Servicios</h5>
 				<div class="card-tools">
-					<button class="btn btn-flat btn-primary btn-sm" type="button" id="new_data"><span class="fa fa-plus"></span> Nueva CategorÃ­a</button>
+					<button class="btn btn-flat btn-primary btn-sm" type="button" id="new_data"><span class="fa fa-plus"></span> Nueva Categoría</button>
 				</div>
 			</div>
 			<div class="card-body">
@@ -21,8 +21,8 @@
 							<tr>
 								<th>#</th>
 								<th>Categoria</th>
-								<th>DescripciÃ³n</th>
-								<th>AcciÃ³n</th>
+								<th>Descripción</th>
+								<th>Acción</th>
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -61,7 +61,7 @@
 							tr.append('<td><span class="truncate">'+data[k].description+'</span></td>')
 							tr.append('<td class="text-center"><div class="btn-group">'+
 	                   ' <button type="button" class="btn btn-default dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">'+
-	                    	'AcciÃ³n'+
+	                    	'Acción'+
 	                      '<span class="sr-only">Toggle Dropdown</span>'+
 	                    '</button>'+
 	                    '<div class="dropdown-menu" role="menu" style="">'+
@@ -91,7 +91,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar CategorÃ­a de Servicios','manage_category.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Servicios','manage_category.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -111,7 +111,7 @@
 			},
 			success:function(resp){
 				if(!!resp.status && resp.status == 'success'){
-					alert_toast(" Datos eliminados exitÃ³samente.","success");
+					alert_toast(" Datos eliminados exitosamente.","success");
 					$('.modal').modal('hide');
 				end_loader();
 					load_data()
@@ -122,7 +122,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categorÃ­a de servicio','manage_category.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de servicio','manage_category.php')
 		})
 	})
 </script>

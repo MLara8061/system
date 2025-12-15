@@ -1,7 +1,7 @@
 ﻿<?php require_once 'config/config.php'; ?>
 
 <?php
-// Obtener el siguiente ID automÃ¡tico
+// Obtener el siguiente ID automático
 $result = $conn->query("SHOW TABLE STATUS LIKE 'inventory'");
 $row = $result->fetch_assoc();
 $siguiente_id = $row['Auto_increment'];
@@ -23,7 +23,7 @@ $siguiente_id = $row['Auto_increment'];
                                 <i class="fas fa-box fa-3x text-muted"></i>
                             </div>
                             <input type="file" name="image_path" id="image_path" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3"
                                 style="display:none; max-height: 200px;">
                         </div>
@@ -31,11 +31,11 @@ $siguiente_id = $row['Auto_increment'];
 
                     <!-- DATOS DERECHA -->
                     <div class="col-lg-7 p-5">
-                        <!-- NOMBRE + ID AUTOMÃTICO -->
+                        <!-- NOMBRE + ID AUTOMÁTICO -->
                         <div class="row align-items-center mb-3">
                             <div class="col-md-8">
                                 <input type="text" name="name" class="form-control" required
-                                    placeholder="Nombre del Ãtem">
+                                    placeholder="Nombre del Ítem">
                             </div>
                             <div class="col-md-4">
                                 <span class="badge badge-primary font-weight-bold p-2" style="font-size: 1.1rem;">
@@ -44,10 +44,10 @@ $siguiente_id = $row['Auto_increment'];
                             </div>
                         </div>
 
-                        <!-- CATEGORÃA + STATUS -->
+                        <!-- CATEGORÍA + STATUS -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">CategorÃ­a</label>
+                                <label class="font-weight-bold text-dark">Categoría</label>
                                 <input type="text" name="category" class="form-control" placeholder="Ej: Consumibles, Herramientas" required>
                             </div>
                             <div class="col-md-6">
@@ -72,18 +72,18 @@ $siguiente_id = $row['Auto_increment'];
                             </div>
                         </div>
 
-                        <!-- STOCK MÃNIMO Y MÃXIMO -->
+                        <!-- STOCK MÍNIMO Y MÁXIMO -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="font-weight-bold text-dark">Stock Actual</label>
                                 <input type="number" name="stock" class="form-control" required min="0" value="0">
                             </div>
                             <div class="col-md-4">
-                                <label class="font-weight-bold text-dark">Stock MÃ­nimo</label>
+                                <label class="font-weight-bold text-dark">Stock Mínimo</label>
                                 <input type="number" name="min_stock" class="form-control" required min="0" value="0">
                             </div>
                             <div class="col-md-4">
-                                <label class="font-weight-bold text-dark">Stock MÃ¡ximo</label>
+                                <label class="font-weight-bold text-dark">Stock Máximo</label>
                                 <input type="number" name="max_stock" class="form-control" required min="0" value="0">
                             </div>
                         </div>
@@ -141,7 +141,7 @@ $siguiente_id = $row['Auto_increment'];
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
@@ -176,7 +176,7 @@ $siguiente_id = $row['Auto_increment'];
         const stock = parseInt($('input[name="stock"]').val()) || 0;
         const max_stock = parseInt($('input[name="max_stock"]').val()) || 0;
         if (stock > max_stock && max_stock > 0) {
-            alert_toast('El stock actual no puede superar el stock mÃ¡ximo', 'warning');
+            alert_toast('El stock actual no puede superar el stock máximo', 'warning');
             end_load();
             return;
         }
@@ -191,7 +191,7 @@ $siguiente_id = $row['Auto_increment'];
             success: function(resp) {
                 resp = resp.trim();
                 if (resp === '1') {
-                    alert_toast('Ãtem guardado correctamente', 'success');
+                    alert_toast('Ítem guardado correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=insumos_list', 1500);
                 } else {
                     alert_toast('Error: ' + resp, 'error');
@@ -199,7 +199,7 @@ $siguiente_id = $row['Auto_increment'];
                 end_load();
             },
             error: function() {
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
                 end_load();
             }
         });

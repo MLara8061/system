@@ -30,7 +30,7 @@ if ($is_edit) {
             <input type="text" name="lastname" id="lastname" class="form-control" value="<?= $user['lastname'] ?? '' ?>" required>
         </div>
 
-        <!-- USUARIO CON VALIDACIÃ“N -->
+        <!-- USUARIO CON VALIDACIÓN -->
         <div class="form-group">
             <label for="username"><strong>Usuario</strong></label>
             <div class="input-group">
@@ -52,15 +52,15 @@ if ($is_edit) {
             </select>
         </div>
 
-        <!-- CONTRASEÃ‘A -->
+        <!-- CONTRASEÑA -->
         <div class="form-group">
-            <label for="password"><strong>ContraseÃ±a</strong> 
+            <label for="password"><strong>Contraseña</strong> 
                 <small class="text-muted">
-                    <?= $is_edit ? '(Dejar vacÃ­o para no cambiar)' : '(Requerida)' ?>
+                    <?= $is_edit ? '(Dejar vacío para no cambiar)' : '(Requerida)' ?>
                 </small>
             </label>
             <input type="password" name="password" id="password" class="form-control" 
-                   placeholder="<?= $is_edit ? 'Nueva contraseÃ±a' : 'ContraseÃ±a segura' ?>"
+                   placeholder="<?= $is_edit ? 'Nueva contraseña' : 'Contraseña segura' ?>"
                    <?= !$is_edit ? 'required' : '' ?>>
         </div>
     </form>
@@ -108,7 +108,7 @@ $(document).ready(function() {
     $form.submit(function(e) {
         e.preventDefault();
         if ($username.hasClass('is-invalid')) {
-            alert_toast("El usuario no estÃ¡ disponible", 'error');
+            alert_toast("El usuario no está disponible", 'error');
             return;
         }
         start_load();
@@ -127,7 +127,7 @@ $(document).ready(function() {
                     alert_toast("El usuario ya existe", 'error');
                     end_load();
                 } else if (resp == 4) {
-                    alert_toast("La contraseÃ±a es requerida", 'error');
+                    alert_toast("La contraseña es requerida", 'error');
                     end_load();
                 } else {
                     alert_toast("Error: " + resp, 'error');

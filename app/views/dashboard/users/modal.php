@@ -50,21 +50,21 @@ $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_ass
     </div>
 
     <div class="form-group">
-        <label for="password"><strong>ContraseÃ±a</strong>
+        <label for="password"><strong>Contraseña</strong>
             <small class="text-muted">
-                <?= $is_edit ? '(Dejar vacÃ­o para no cambiar)' : '(Requerida)' ?>
+                <?= $is_edit ? '(Dejar vacío para no cambiar)' : '(Requerida)' ?>
             </small>
         </label>
         <input type="password" name="password" id="password" class="form-control form-control-sm"
-               placeholder="<?= $is_edit ? 'Nueva contraseÃ±a' : 'ContraseÃ±a segura' ?>"
+               placeholder="<?= $is_edit ? 'Nueva contraseña' : 'Contraseña segura' ?>"
                <?= !$is_edit ? 'required' : '' ?>>
     </div>
 </form>
 
 <script>
-// El formulario se carga dinÃ¡micamente, asÃ­ que ejecutamos directamente
+// El formulario se carga dinámicamente, así que ejecutamos directamente
 (function() {
-    console.log("Inicializando validaciÃ³n de usuario");
+    console.log("Inicializando validación de usuario");
     
     const $form = $('#manage-user-form');
     if ($form.length === 0) {
@@ -79,9 +79,9 @@ $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_ass
     const isEdit = parseInt($form.find('input[name="id"]').val()) > 0;
     let typingTimer;
 
-    console.log("ValidaciÃ³n inicializada. isEdit:", isEdit);
+    console.log("Validación inicializada. isEdit:", isEdit);
 
-    // ValidaciÃ³n en tiempo real del username
+    // Validación en tiempo real del username
     $username.off('input').on('input', function() {
         clearTimeout(typingTimer);
         const val = $(this).val().trim();

@@ -22,7 +22,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                                 <i class="fas fa-headset fa-3x text-muted"></i>
                             </div>
                             <input type="file" name="imagen" id="imagen" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3"
                                 style="display:none; max-height: 200px;">
                         </div>
@@ -105,7 +105,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                                 <input type="text" name="serie" class="form-control" placeholder="Serie">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Fecha AdquisiciÃ³n</label>
+                                <label class="font-weight-bold text-dark">Fecha Adquisición</label>
                                 <input type="date" name="fecha_adquisicion" class="form-control" required
                                     value="<?= date('Y-m-d') ?>">
                             </div>
@@ -115,11 +115,11 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Inventario Anterior</label>
-                                <input type="text" name="inventario_anterior" class="form-control" placeholder="NÃºmero de inventario anterior">
+                                <input type="text" name="inventario_anterior" class="form-control" placeholder="Número de inventario anterior">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">NÃºmero de Parte</label>
-                                <input type="text" name="numero_parte" class="form-control" placeholder="NÃºmero de parte">
+                                <label class="font-weight-bold text-dark">Número de Parte</label>
+                                <input type="text" name="numero_parte" class="form-control" placeholder="Número de parte">
                             </div>
                         </div>
 
@@ -130,7 +130,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                                 <input type="number" step="0.01" name="costo" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Tipo AdquisiciÃ³n</label>
+                                <label class="font-weight-bold text-dark">Tipo Adquisición</label>
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
@@ -144,7 +144,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
 
                         <!-- ÃREA -->
                         <div class="mb-3">
-                            <label class="font-weight-bold text-dark">Ãrea Asignada</label>
+                            <label class="font-weight-bold text-dark">Área Asignada</label>
                             <select name="area_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
@@ -214,7 +214,7 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
@@ -251,11 +251,11 @@ $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER B
                             $('#inventory_badge').text('#' + data.number);
                             $('#numero_inventario').val(data.number);
                         } else {
-                            alert_toast('Error al generar nÃºmero de inventario', 'error');
+                            alert_toast('Error al generar número de inventario', 'error');
                         }
                     },
                     error: function(){
-                        alert_toast('Error de conexiÃ³n', 'error');
+                        alert_toast('Error de conexión', 'error');
                     }
                 });
             } else {

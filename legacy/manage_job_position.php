@@ -45,9 +45,9 @@ if($position_id){
     </div>
 
     <div class="form-group">
-      <label class="control-label">UbicaciÃ³n</label>
+      <label class="control-label">Ubicación</label>
       <select name="location_id" id="location_id" class="form-control" required>
-        <option value="">Seleccionar UbicaciÃ³n</option>
+        <option value="">Seleccionar Ubicación</option>
         <?php
         $locations = $conn->query("SELECT * FROM locations ORDER BY name ASC");
         while($row = $locations->fetch_assoc()):
@@ -85,12 +85,12 @@ $('#manage_job_position').submit(function(e){
                     location.reload();
                 },1500);
             } else {
-                alert_toast("OcurriÃ³ un error", 'error');
+                alert_toast("Ocurrió un error", 'error');
             }
         },
         error: function(){
             end_load();
-            alert_toast("Error de conexiÃ³n", 'error');
+            alert_toast("Error de conexión", 'error');
         }
     });
 });

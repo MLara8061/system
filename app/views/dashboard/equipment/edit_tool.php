@@ -48,7 +48,7 @@ if (!$tool) {
                                 <input type="file" name="imagen" id="imagen" 
                                        class="form-control" accept="image/jpeg,image/png,image/jpg" 
                                        onchange="displayImg(this)">
-                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                                 <img id="preview-img" src="" alt="" 
                                      class="img-fluid rounded shadow mt-2" 
                                      style="display:none; max-height: 200px;">
@@ -64,7 +64,7 @@ if (!$tool) {
                             <label class="font-weight-bold text-dark">Nombre de la Herramienta</label>
                             <input type="text" name="nombre" class="form-control" required 
                                    value="<?= htmlspecialchars($tool['nombre']) ?>" 
-                                   placeholder="Ej: Taladro InalÃ¡mbrico">
+                                   placeholder="Ej: Taladro Inalámbrico">
                         </div>
 
                         <!-- MARCA Y COSTO -->
@@ -84,7 +84,7 @@ if (!$tool) {
 
                         <!-- FECHA ADQUISICIÃ“N -->
                         <div class="mb-3">
-                            <label class="font-weight-bold text-dark">Fecha de AdquisiciÃ³n</label>
+                            <label class="font-weight-bold text-dark">Fecha de Adquisición</label>
                             <input type="date" name="fecha_adquisicion" class="form-control" required 
                                    value="<?= $tool['fecha_adquisicion'] ?>">
                         </div>
@@ -124,11 +124,11 @@ if (!$tool) {
                         <!-- CARACTERÃSTICAS -->
                         <div class="card mb-4">
                             <div class="card-header bg-light border-0">
-                                <h6 class="mb-0 text-dark">CaracterÃ­sticas TÃ©cnicas</h6>
+                                <h6 class="mb-0 text-dark">Características Técnicas</h6>
                             </div>
                             <div class="card-body">
                                 <textarea name="caracteristicas" class="form-control" rows="3" 
-                                          placeholder="Detalles tÃ©cnicos, uso, accesorios..."><?= htmlspecialchars($tool['caracteristicas']) ?></textarea>
+                                          placeholder="Detalles técnicos, uso, accesorios..."><?= htmlspecialchars($tool['caracteristicas']) ?></textarea>
                             </div>
                         </div>
 
@@ -184,7 +184,7 @@ if (!$tool) {
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
@@ -212,7 +212,7 @@ if (!$tool) {
         
         // Eliminar imagen con botÃ³n
         $('#remove-image').click(function() {
-            if (confirm('Â¿Eliminar imagen actual?')) {
+            if (confirm('¿Eliminar imagen actual?')) {
                 $('#current-img').parent().remove();
                 $(this).remove();
                 $('#empty-tool-image').remove();
@@ -246,7 +246,7 @@ if (!$tool) {
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

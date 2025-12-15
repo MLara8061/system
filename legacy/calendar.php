@@ -70,7 +70,7 @@
         });
         calendar.render();
 
-        // BOTÃ“N NUEVO
+        // BOTÓN NUEVO
         $('#btn-new').click(() => openModal());
     });
 
@@ -89,7 +89,7 @@
         const hora = event.extendedProps.hora_programada || '';
         const fecha = event.startStr ? new Date(event.startStr).toLocaleDateString('es-MX') : '';
 
-        const message = `Â¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
+        const message = `¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
 
         const $modal = $('<div class="modal fade" tabindex="-1" role="dialog">\n' +
             '  <div class="modal-dialog" role="document">\n' +
@@ -131,7 +131,7 @@
                 $modal.modal('hide');
             }).fail(function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
                 $modal.modal('hide');
             });
         });
@@ -185,7 +185,7 @@
                         <input type="time" name="hora_programada" id="hora_programada" class="form-control form-control-sm">
                     </div>
                     <div class="form-group">
-                        <label>DescripciÃ³n</label>
+                        <label>Descripción</label>
                         <textarea name="descripcion" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                 </div>
@@ -214,7 +214,7 @@
                 if (resp === '1') {
                     alert_toast('Mantenimiento guardado', 'success');
                     $('#maintenanceModal').modal('hide');
-                    // RECARGAR PÃGINA PARA EVITAR ERRORES DE FULLCALENDAR
+                    // RECARGAR PÁGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
                 } else {
                     console.error('Respuesta inesperada:', resp);
@@ -224,7 +224,7 @@
             error: function(xhr) {
                 end_load();
                 console.error('AJAX Error:', xhr.responseText);
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

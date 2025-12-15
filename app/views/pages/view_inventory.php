@@ -14,7 +14,7 @@ if (!validate_session()) {
 $id = $_GET['id'] ?? 0;
 $qry = $conn->query("SELECT * FROM inventory WHERE id = " . intval($id));
 if (!$qry || $qry->num_rows == 0) {
-    echo "<div class='alert alert-danger'>Ãtem no encontrado.</div>";
+    echo "<div class='alert alert-danger'>Ítem no encontrado.</div>";
     exit;
 }
 $row = $qry->fetch_assoc();
@@ -55,7 +55,7 @@ $row = $qry->fetch_assoc();
                      style="display: <?= (!empty($row['image_path']) && file_exists('uploads/'.$row['image_path'])) ? 'none' : 'block' ?>;">
                     <input type="file" name="image_path" id="image-input" 
                            class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
-                    <small class="text-muted d-block mt-1">Formatos: JPG, PNG (mÃ¡x. 5MB)</small>
+                    <small class="text-muted d-block mt-1">Formatos: JPG, PNG (máx. 5MB)</small>
                     <img id="preview-inv-img" src="" alt="" 
                          class="img-fluid rounded mt-2" 
                          style="display:none; max-height: 120px;">
@@ -70,8 +70,8 @@ $row = $qry->fetch_assoc();
                 </div>
 
                 <div class="form-group">
-                    <label for="inv-category"><strong>CategorÃ­a</strong></label>
-                    <input type="text" name="category" id="inv-category" class="form-control" value="<?= ucwords($row['category'] ?? '') ?>" placeholder="Ej: PapelerÃ­a">
+                    <label for="inv-category"><strong>Categoría</strong></label>
+                    <input type="text" name="category" id="inv-category" class="form-control" value="<?= ucwords($row['category'] ?? '') ?>" placeholder="Ej: Papelería">
                 </div>
 
                 <div class="row">
@@ -98,13 +98,13 @@ $row = $qry->fetch_assoc();
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="min_stock"><strong>MÃ­n Stock</strong></label>
+                            <label for="min_stock"><strong>Mín Stock</strong></label>
                             <input type="number" name="min_stock" id="min_stock" class="form-control" value="<?= $row['min_stock'] ?>" min="0" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label for="max_stock"><strong>MÃ¡x Stock</strong></label>
+                            <label for="max_stock"><strong>Máx Stock</strong></label>
                             <input type="number" name="max_stock" id="max_stock" class="form-control" value="<?= $row['max_stock'] ?>" min="0" required>
                         </div>
                     </div>
@@ -153,7 +153,7 @@ $row = $qry->fetch_assoc();
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-inv-img').hide();
                 return false;
@@ -172,7 +172,7 @@ $row = $qry->fetch_assoc();
     $(document).ready(function() {
     // === ELIMINAR IMAGEN ===
     $('#remove-inv-image').click(function() {
-        if (confirm('Â¿Eliminar imagen actual?')) {
+        if (confirm('¿Eliminar imagen actual?')) {
             $('#current-inv-img').parent().remove();
             $(this).remove();
             $('#empty-inv-image').remove();
@@ -219,7 +219,7 @@ $row = $qry->fetch_assoc();
                 }
             },
             error: function() {
-                alert_toast("Error de conexiÃ³n", 'error');
+                alert_toast("Error de conexión", 'error');
                 end_load();
             }
         });

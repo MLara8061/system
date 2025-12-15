@@ -97,7 +97,7 @@ try {
                 <div class="card-body d-flex align-items-center">
                     <i class="fas fa-clock fa-2x text-info mr-3"></i>
                     <div>
-                        <h6 class="mb-0 text-muted">PrÃ³ximo</h6>
+                        <h6 class="mb-0 text-muted">Próximo</h6>
                         <h4 class="mb-0">
                             <?php
                             if (!empty($calendar_summary['next_date'])) {
@@ -204,7 +204,7 @@ try {
         const hora = event.extendedProps.hora_programada || '';
         const fecha = event.startStr ? new Date(event.startStr).toLocaleDateString('es-MX') : '';
 
-        const message = `Â¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
+        const message = `¿Marcar como completado el ${type} del ${fecha}${hora ? ' a las ' + hora : ''}?`;
 
         const $modal = $('<div class="modal fade" tabindex="-1" role="dialog">\n' +
             '  <div class="modal-dialog" role="document">\n' +
@@ -246,7 +246,7 @@ try {
                 $modal.modal('hide');
             }).fail(function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
                 $modal.modal('hide');
             });
         });
@@ -300,7 +300,7 @@ try {
                         <input type="time" name="hora_programada" id="hora_programada" class="form-control form-control-sm">
                     </div>
                     <div class="form-group">
-                        <label>DescripciÃ³n</label>
+                        <label>Descripción</label>
                         <textarea name="descripcion" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                 </div>
@@ -332,7 +332,7 @@ try {
                     // RECARGAR PÃGINA PARA EVITAR ERRORES DE FULLCALENDAR
                     setTimeout(() => location.reload(), 800);
                 } else if (resp === '-1') {
-                    alert_toast('âš  Esta fecha ya tiene el mÃ¡ximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');
+                    alert_toast('⚠ Esta fecha ya tiene el máximo de eventos permitidos (20). Por favor selecciona otra fecha.', 'warning');
                 } else {
                     console.error('Respuesta inesperada:', resp);
                     alert_toast('Error al guardar', 'error');
@@ -341,7 +341,7 @@ try {
             error: function(xhr) {
                 end_load();
                 console.error('AJAX Error:', xhr.responseText);
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

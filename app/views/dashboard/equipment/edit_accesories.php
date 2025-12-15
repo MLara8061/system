@@ -3,7 +3,7 @@
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) {
-    echo "<script>alert('ID invÃ¡lido'); window.location='index.php?page=accessories_list';</script>";
+    echo "<script>alert('ID inválido'); window.location='index.php?page=accessories_list';</script>";
     exit;
 }
 
@@ -61,7 +61,7 @@ $acc = $qry->fetch_assoc();
                                 style="display: <?= !empty($acc['image']) ? 'none' : 'block' ?>;">
                                 <input type="file" name="imagen" id="imagen" class="form-control" accept="image/jpeg,image/png,image/jpg"
                                     onchange="displayImg(this)">
-                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                                <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                                 <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-2"
                                     style="display:none; max-height: 200px;">
                             </div>
@@ -136,7 +136,7 @@ $acc = $qry->fetch_assoc();
                                     value="<?= htmlspecialchars($acc['serial'] ?? '') ?>" placeholder="Serie">
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Fecha AdquisiciÃ³n</label>
+                                <label class="font-weight-bold text-dark">Fecha Adquisición</label>
                                 <input type="date" name="acquisition_date" class="form-control"
                                     value="<?= $acc['acquisition_date'] ?>" required>
                             </div>
@@ -150,7 +150,7 @@ $acc = $qry->fetch_assoc();
                                     value="<?= $acc['cost'] ?>" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="font-weight-bold text-dark">Tipo AdquisiciÃ³n</label>
+                                <label class="font-weight-bold text-dark">Tipo Adquisición</label>
                                 <select name="acquisition_type_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
@@ -168,7 +168,7 @@ $acc = $qry->fetch_assoc();
 
                         <!-- ÃREA -->
                         <div class="mb-3">
-                            <label class="font-weight-bold text-dark">Ãrea Asignada</label>
+                            <label class="font-weight-bold text-dark">Área Asignada</label>
                             <select name="area_id" class="custom-select select2" required>
                                 <option value="">Seleccionar</option>
                                 <?php
@@ -254,7 +254,7 @@ $acc = $qry->fetch_assoc();
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
@@ -278,7 +278,7 @@ $acc = $qry->fetch_assoc();
         });
 
         $('#remove-image').click(function() {
-            if (confirm('Â¿Eliminar imagen actual?')) {
+            if (confirm('¿Eliminar imagen actual?')) {
                 $('#current-img').parent().remove();
                 $('#remove-image').remove();
                 $('#empty-image').remove();
@@ -317,7 +317,7 @@ $acc = $qry->fetch_assoc();
                 },
                 error: function() {
                     end_load();
-                    alert_toast('Error de conexiÃ³n', 'error');
+                    alert_toast('Error de conexión', 'error');
                 }
             });
         });

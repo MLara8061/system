@@ -14,10 +14,10 @@ require_once $root . '/config/config.php';
 				<thead>
 					<tr>
 						<th class="text-center" style="width: 5%">#</th>
-						<th style="width: 20%">CÃ³digo</th>
+						<th style="width: 20%">Código</th>
 						<th style="width: 45%">Nombre</th>
 						<th class="text-center" style="width: 15%">Estado</th>
-						<th class="text-center" style="width: 15%">AcciÃ³n</th>
+						<th class="text-center" style="width: 15%">Acción</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -44,7 +44,7 @@ require_once $root . '/config/config.php';
 							</td>
 							<td class="text-center">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-									AcciÃ³n
+									Acción
 								</button>
 								<div class="dropdown-menu">
 									<a class="dropdown-item edit_branch" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">Editar</a>
@@ -74,7 +74,7 @@ require_once $root . '/config/config.php';
 		$('.delete_branch').click(function() {
 			const branchId = $(this).attr('data-id');
 			confirm_toast(
-				'Â¿EstÃ¡s seguro de eliminar esta sucursal? Esta acciÃ³n no se puede deshacer.',
+				'¿Estás seguro de eliminar esta sucursal? Esta acción no se puede deshacer.',
 				function() {
 					delete_branch(branchId);
 				}
@@ -95,7 +95,7 @@ require_once $root . '/config/config.php';
 						location.reload()
 					}, 750)
 				} else if (resp == 2) {
-					alert_toast("No se puede eliminar: la sucursal estÃ¡ en uso", 'warning')
+					alert_toast("No se puede eliminar: la sucursal está en uso", 'warning')
 					end_load()
 				} else {
 					alert_toast("Error al eliminar la sucursal", 'danger')

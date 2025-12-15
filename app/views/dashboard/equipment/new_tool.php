@@ -16,7 +16,7 @@
                                 <i class="fas fa-tools fa-3x text-muted"></i>
                             </div>
                             <input type="file" name="imagen" id="imagen" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (mÃ¡x. 5MB)</small>
+                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3" 
                                  style="display:none; max-height: 200px;">
                         </div>
@@ -29,7 +29,7 @@
                         <div class="mb-3">
                             <label class="font-weight-bold text-dark">Nombre de la Herramienta</label>
                             <input type="text" name="nombre" class="form-control" required 
-                                   placeholder="Ej: Taladro InalÃ¡mbrico">
+                                   placeholder="Ej: Taladro Inalámbrico">
                         </div>
 
                         <!-- MARCA Y COSTO -->
@@ -47,7 +47,7 @@
 
                         <!-- FECHA ADQUISICIÃ“N -->
                         <div class="mb-3">
-                            <label class="font-weight-bold text-dark">Fecha de AdquisiciÃ³n</label>
+                            <label class="font-weight-bold text-dark">Fecha de Adquisición</label>
                             <input type="date" name="fecha_adquisicion" class="form-control" required 
                                    value="<?= date('Y-m-d') ?>">
                         </div>
@@ -84,11 +84,11 @@
                         <!-- CARACTERÃSTICAS -->
                         <div class="card mb-4">
                             <div class="card-header bg-light border-0">
-                                <h6 class="mb-0 text-dark">CaracterÃ­sticas TÃ©cnicas</h6>
+                                <h6 class="mb-0 text-dark">Características Técnicas</h6>
                             </div>
                             <div class="card-body">
                                 <textarea name="caracteristicas" class="form-control" rows="3" 
-                                          placeholder="Detalles tÃ©cnicos, uso, accesorios..."></textarea>
+                                          placeholder="Detalles técnicos, uso, accesorios..."></textarea>
                             </div>
                         </div>
 
@@ -144,7 +144,7 @@
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
@@ -193,7 +193,7 @@
             },
             error: function() {
                 end_load();
-                alert_toast('Error de conexiÃ³n', 'error');
+                alert_toast('Error de conexión', 'error');
             }
         });
     });

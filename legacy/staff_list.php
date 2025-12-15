@@ -8,9 +8,9 @@
 						<th>#</th>
 						<th>Nombre</th>
 						<th>N Contacto</th>
-						<th>DirecciÃ³n</th>
+						<th>Dirección</th>
 						<th>Correo</th>
-						<th>AcciÃ³n</th>
+						<th>Acción</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -27,7 +27,7 @@
 							<td><b><?php echo $row['email'] ?></b></td>
 							<td class="text-center">
 								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-									AcciÃ³n
+									Acción
 								</button>
 								<div class="dropdown-menu" style="">
 									<a class="dropdown-item" href="./index.php?page=edit_staff&id=<?php echo $row['id'] ?>">Editar</a>
@@ -48,7 +48,7 @@
 		$('.delete_staff').click(function() {
 			const staffId = $(this).attr('data-id');
 			confirm_toast(
-				'Â¿EstÃ¡s seguro de eliminar este empleado? Esta acciÃ³n no se puede deshacer.',
+				'¿Estás seguro de eliminar este empleado? Esta acción no se puede deshacer.',
 				function() { delete_staff(staffId); }
 			);
 		})

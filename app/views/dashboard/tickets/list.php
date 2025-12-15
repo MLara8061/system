@@ -81,7 +81,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte TÃ©cnico</h4>
+				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte Técnico</h4>
 			</div>
 			<div class="card-body">
 				<div class="d-flex justify-content-end mb-3">
@@ -104,12 +104,12 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 					<thead style="background-color: #f8f9fa;">
 						<tr>
 							<th class="text-center">#</th>
-							<th>Fecha CreaciÃ³n</th>
+							<th>Fecha Creación</th>
 							<th>Reportado por</th>
 							<th>Asunto</th>
-							<th>DescripciÃ³n</th>
+							<th>Descripción</th>
 							<th class="text-center">Estado</th>
-							<th class="text-center">AcciÃ³n</th>
+							<th class="text-center">Acción</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -128,7 +128,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 								<td>
 									<?php echo ucwords($row['reporter_name'] ?? 'N/A') ?>
 									<?php if (isset($row['is_public']) && $row['is_public'] == 1): ?>
-										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> PÃºblico</small>
+										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> Público</small>
 									<?php endif; ?>
 								</td>
 								<td><strong><?php echo $row['subject'] ?></strong></td>
@@ -236,7 +236,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 		$('.delete_ticket').click(function() {
 			const ticketId = $(this).attr('data-id');
 			confirm_toast(
-				'Â¿EstÃ¡s seguro de eliminar este ticket? Esta acciÃ³n no se puede deshacer.',
+				'¿Estás seguro de eliminar este ticket? Esta acción no se puede deshacer.',
 				function() { delete_ticket(ticketId); }
 			);
 		})

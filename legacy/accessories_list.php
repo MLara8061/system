@@ -84,9 +84,9 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                         <th>Modelo</th>
                         <th>Serie</th>
                         <th>Inventario</th>
-                        <th>Ãrea</th>
+                        <th>Área</th>
                         <th>Costo</th>
-                        <th>AdquisiciÃ³n</th>
+                        <th>Adquisición</th>
                         <th>Fecha</th>
                         <th>Status</th>
                         <th class="text-center">Acciones</th>
@@ -125,7 +125,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                             <td><?= $row['model'] ?? '-' ?></td>
                             <td><?= $row['serial'] ?? '-' ?></td>
                             <td>#<?= $row['inventory_number'] ?></td>
-                            <td><?= ucwords($row['area_name'] ?? 'Sin Ã¡rea') ?></td>
+                            <td><?= ucwords($row['area_name'] ?? 'Sin área') ?></td>
                             <td>$<?= number_format($row['cost'], 2) ?></td>
                             <td><small><?= ucwords($row['acquisition_name'] ?? 'N/A') ?></small></td>
                             <td><small><?= date('d/m/Y', strtotime($row['acquisition_date'])) ?></small></td>
@@ -162,7 +162,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
 </div>
 
 <style>
-    /* SIN ANIMACIÃ“N */
+    /* SIN ANIMACIÓN */
     .card { transition: none !important; }
 
     /* SIN FONDO AZUL EN INVENTARIO */
@@ -190,17 +190,17 @@ $(document).ready(function() {
             { className: "text-center", targets: [0, 6, 11, 12] }
         ],
         info: false,         /* Ocultar "Mostrando 1 a X de Y entradas" */
-        lengthChange: false  /* Ocultar selector de filas por pÃ¡gina */
+        lengthChange: false  /* Ocultar selector de filas por página */
     });
 
     $('#export-excel').click(function(e) {
         e.preventDefault();
         let table = $('#accessory-table').DataTable();
         let data = table.rows({ search: 'applied' }).data();
-        let rows = [['Imagen','Nombre','Tipo','Marca','Modelo','Serie','Inventario','Ãrea','Costo','AdquisiciÃ³n','Fecha','Status']];
+        let rows = [['Imagen','Nombre','Tipo','Marca','Modelo','Serie','Inventario','Área','Costo','Adquisición','Fecha','Status']];
 
         data.each(function(row) {
-            let img = $(row[0]).find('img').length ? 'SÃ­' : 'No';
+            let img = $(row[0]).find('img').length ? 'Sí' : 'No';
             rows.push([
                 img,
                 $(row[1]).text(),
@@ -234,7 +234,7 @@ $(document).ready(function() {
     $(document).on('click', '.delete-accessory', function() {
         let id = $(this).data('id');
         confirm_toast(
-            'Â¿EstÃ¡s seguro de eliminar este accesorio? Esta acciÃ³n no se puede deshacer.',
+            '¿Estás seguro de eliminar este accesorio? Esta acción no se puede deshacer.',
             function() {
                 start_load();
                 $.post('public/ajax/action.php?action=delete_accessory', { id: id }, function(resp) {
@@ -247,7 +247,7 @@ $(document).ready(function() {
                     }
                 }).fail(function() {
                     end_load();
-                    alert_toast('Error de conexiÃ³n', 'error');
+                    alert_toast('Error de conexión', 'error');
                 });
             }
         );

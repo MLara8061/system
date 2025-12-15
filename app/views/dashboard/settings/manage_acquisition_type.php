@@ -51,8 +51,8 @@ if ($id > 0) {
 		</div>
 
 		<div class="form-group">
-			<label class="control-label">DescripciÃ³n</label>
-			<input type="text" name="name" class="form-control" required placeholder="Ej: AdquisiciÃ³n" value="<?php echo htmlspecialchars($name); ?>">
+			<label class="control-label">Descripción</label>
+			<input type="text" name="name" class="form-control" required placeholder="Ej: Adquisición" value="<?php echo htmlspecialchars($name); ?>">
 		</div>
 	</form>
 </div>
@@ -87,7 +87,7 @@ if ($id > 0) {
 					alert_toast('La CLAVE ya existe','warning');
 					end_loader();
 				}else if(resp && resp.status == 'in_use'){
-					alert_toast('No se puede cambiar la CLAVE: estÃ¡ en uso','warning');
+					alert_toast('No se puede cambiar la CLAVE: está en uso','warning');
 					end_loader();
 				}else{
 					alert_toast('No se pudo guardar','error');

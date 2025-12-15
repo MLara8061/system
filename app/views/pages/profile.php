@@ -69,11 +69,11 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
                     <small id="username-feedback" class="text-muted d-block mt-1"></small>
                 </div>
 
-                <!-- CONTRASEÃ‘A -->
+                <!-- CONTRASEÑA -->
                 <div class="form-group">
                     <label class="font-weight-bold">
-                        <strong>Nueva ContraseÃ±a</strong> 
-                        <small class="text-muted">(Dejar vacÃ­o para no cambiar)</small>
+                        <strong>Nueva Contraseña</strong> 
+                        <small class="text-muted">(Dejar vacío para no cambiar)</small>
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="password" name="password" id="password" class="form-control form-control-sm">
@@ -103,7 +103,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Recortar Imagen</h5>
-                <button type="button" class="close" data-dismiss="modal">Ã—</button>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body text-center">
                 <img id="crop-image" src="" class="img-fluid">
@@ -159,7 +159,7 @@ $(document).ready(function() {
             }
             
             if (file.size > 5 * 1024 * 1024) {
-                alert_toast('La imagen es muy grande. MÃ¡ximo 5MB', 'error');
+                alert_toast('La imagen es muy grande. Máximo 5MB', 'error');
                 $(this).val('');
                 return false;
             }
@@ -215,14 +215,14 @@ $(document).ready(function() {
                     end_load();
                 },
                 error: function() {
-                    alert_toast("Error de conexiÃ³n", 'error');
+                    alert_toast("Error de conexión", 'error');
                     end_load();
                 }
             });
         }, 'image/jpeg', 0.95);
     });
 
-    // === MOSTRAR/OCULTAR CONTRASEÃ‘A ===
+    // === MOSTRAR/OCULTAR CONTRASEÑA ===
     $toggleBtn.click(function() {
         const type = $password.attr('type') === 'password' ? 'text' : 'password';
         $password.attr('type', type);
@@ -258,14 +258,14 @@ $(document).ready(function() {
         }, 500);
     });
 
-    // === FUERZA DE CONTRASEÃ‘A ===
+    // === FUERZA DE CONTRASEÑA ===
     $password.on('input', function() {
         const val = $(this).val();
         let strength = '';
         if (val.length === 0) {
             strength = '<span class="text-info">Sin cambios</span>';
         } else if (val.length < 6) {
-            strength = '<span class="text-danger">DÃ©bil</span>';
+            strength = '<span class="text-danger">Débil</span>';
         } else if (val.length < 10) {
             strength = '<span class="text-warning">Media</span>';
         } else {
@@ -278,10 +278,10 @@ $(document).ready(function() {
     $form.submit(function(e) {
         e.preventDefault();
 
-        // Solo bloquear si el usuario cambiÃ³ y estÃ¡ duplicado
+        // Solo bloquear si el usuario cambió y está duplicado
         const currentVal = $username.val().trim();
         if (currentVal !== originalUsername && $usernameFeedback.hasClass('text-danger')) {
-            alert_toast("El usuario no estÃ¡ disponible", 'error');
+            alert_toast("El usuario no está disponible", 'error');
             return;
         }
 
@@ -291,12 +291,12 @@ $(document).ready(function() {
             method: 'POST',
             data: $form.serialize(),
             success: function(resp) {
-                // resp = 1 â†’ Ã©xito, 2 â†’ usuario duplicado, 0 â†’ error
+                // resp = 1 → éxito, 2 → usuario duplicado, 0 → error
                 if (resp == 1) {
                     alert_toast("Perfil actualizado correctamente", 'success');
                     setTimeout(() => location.reload(), 1200);
                 } else if (resp == 2) {
-                    alert_toast("El nombre de usuario ya estÃ¡ en uso", 'error');
+                    alert_toast("El nombre de usuario ya está en uso", 'error');
                     end_load();
                 } else {
                     alert_toast("Error al guardar los cambios", 'error');
@@ -304,7 +304,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                alert_toast("Error de conexiÃ³n: " + error, 'error');
+                alert_toast("Error de conexión: " + error, 'error');
                 end_load();
             }
         });

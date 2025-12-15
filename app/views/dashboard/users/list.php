@@ -41,13 +41,13 @@
         </div>
     </div>
 
-    <!-- ÃšLTIMO REGISTRO -->
+    <!-- ÚLTIMO REGISTRO -->
     <div class="col-md-3">
         <div class="card shadow-sm border-0" style="border-radius: 12px;">
             <div class="card-body d-flex align-items-center">
                 <i class="fas fa-calendar-plus fa-2x text-warning mr-3"></i>
                 <div>
-                    <h6 class="mb-0 text-muted">Ãšltimo Creado</h6>
+                    <h6 class="mb-0 text-muted">Último Creado</h6>
                     <?php 
                     $last = $conn->query("SELECT date_created FROM users ORDER BY date_created DESC LIMIT 1")->fetch_assoc();
                     if ($last && $last['date_created']) {
@@ -73,10 +73,10 @@
                 <a href="javascript:void(0)"
                    id="add-new-user-btn"
                    class="text-decoration-none d-flex align-items-center"
-                   title="AÃ±adir Nuevo Usuario"
-                   aria-label="AÃ±adir nuevo usuario">
+                   title="Añadir Nuevo Usuario"
+                   aria-label="Añadir nuevo usuario">
                     <i class="fas fa-user-plus text-primary mr-2" style="font-size: 1.1rem;"></i>
-                    <span class="text-muted" style="font-size: 0.9rem; font-weight: 900;">AÃ±adir Usuario</span>
+                    <span class="text-muted" style="font-size: 0.9rem; font-weight: 900;">Añadir Usuario</span>
                 </a>
             </div>
         </div>
@@ -168,7 +168,7 @@ $(document).ready(function() {
         lengthChange: false
     });
 
-    // === MODAL ÃšNICO (NO DUPLICADO) ===
+    // === MODAL ÚNICO (NO DUPLICADO) ===
     const $modal = $(`
         <div class="modal fade" id="userModal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered modal-mid-large">
@@ -177,7 +177,7 @@ $(document).ready(function() {
                         <h5 class="modal-title text-dark" id="modal-title">
                             <i class="fa fa-user-plus text-primary mr-2"></i> Nuevo Usuario
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal">Ã—</button>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
                     <div class="modal-body pt-2" id="modal-user-content">
                         <div class="text-center p-4">
@@ -208,7 +208,7 @@ $(document).ready(function() {
         const id = isEdit ? $(this).data('id') : 0;
         const url = `manage_user_modal.php${id ? '?id=' + id : ''}`;
 
-        // Actualizar tÃ­tulo y botÃ³n
+        // Actualizar título y botón
         $('#modal-title').html(`
             <i class="fa ${isEdit ? 'fa-edit' : 'fa-user-plus'} text-primary mr-2"></i>
             ${isEdit ? 'Editar Usuario' : 'Nuevo Usuario'}
@@ -223,7 +223,7 @@ $(document).ready(function() {
 
         $.get(url, function(data) {
             $('#modal-user-content').html(data);
-            initializeUserForm(); // â† Inicializa el formulario
+            initializeUserForm(); // ← Inicializa el formulario
         }).fail(function() {
             $('#modal-user-content').html('<p class="text-danger">Error al cargar.</p>');
         });
@@ -233,15 +233,15 @@ $(document).ready(function() {
     function initializeUserForm() {
         const $form = $('#manage-user-form');
         if ($form.length === 0) {
-            setTimeout(initializeUserForm, 100); // Reintentar si el form aÃºn no estÃ¡ en el DOM
+            setTimeout(initializeUserForm, 100); // Reintentar si el form aún no está en el DOM
             return;
         }
-        // El formulario ya estÃ¡ inicializado en manage_user_modal.php
+        // El formulario ya está inicializado en manage_user_modal.php
     }
 
-    // === BOTÃ“N GUARDAR (SUBMIT EXPLÃCITO) ===
+    // === BOTÓN GUARDAR (SUBMIT EXPLÍCITO) ===
     $(document).on('click', '#btn-save', function() {
-        console.log('BotÃ³n guardar clickeado');
+        console.log('Botón guardar clickeado');
         const $form = $('#manage-user-form');
         console.log('Formulario encontrado:', $form.length);
         
@@ -250,7 +250,7 @@ $(document).ready(function() {
             return;
         }
 
-        // Validar que el usuario no estÃ© vacÃ­o
+        // Validar que el usuario no esté vacío
         const username = $form.find('input[name="username"]').val().trim();
         if (username.length < 3) {
             alert_toast("El usuario debe tener al menos 3 caracteres", 'error');
@@ -279,17 +279,17 @@ $(document).ready(function() {
                 } else if (resp == 2) {
                     alert_toast("El usuario ya existe", 'error');
                 } else if (resp == 3) {
-                    alert_toast("Campos requeridos vacÃ­os", 'error');
+                    alert_toast("Campos requeridos vacíos", 'error');
                 } else if (resp == 4) {
-                    alert_toast("ContraseÃ±a requerida", 'error');
+                    alert_toast("Contraseña requerida", 'error');
                 } else {
-                    alert_toast("Error al guardar: cÃ³digo " + resp, 'error');
+                    alert_toast("Error al guardar: código " + resp, 'error');
                 }
             },
             error: function(xhr, status, error) {
                 end_load();
                 console.error('AJAX Error:', status, error, xhr.responseText);
-                alert_toast("Error de conexiÃ³n: " + error, 'error');
+                alert_toast("Error de conexión: " + error, 'error');
             }
         });
     });
@@ -298,7 +298,7 @@ $(document).ready(function() {
     $(document).on('click', '.delete-user', function() {
         const id = $(this).data('id');
         confirm_toast(
-            'Â¿EstÃ¡s seguro de eliminar este usuario? Esta acciÃ³n no se puede deshacer.',
+            '¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.',
             function() { delete_user(id); }
         );
     });

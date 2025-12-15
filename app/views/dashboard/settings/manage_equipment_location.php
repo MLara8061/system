@@ -15,7 +15,7 @@ if(isset($_GET['id'])){
     <input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
     
     <div class="form-group">
-      <label class="control-label">Nombre de la UbicaciÃ³n</label>
+      <label class="control-label">Nombre de la Ubicación</label>
       <input type="text" name="name" class="form-control" required value="<?php echo isset($name) ? $name : '' ?>">
     </div>
     
@@ -32,7 +32,7 @@ if(isset($_GET['id'])){
           </option>
         <?php endwhile; ?>
       </select>
-      <small class="form-text text-muted">Opcional: Asigna esta ubicaciÃ³n a un departamento</small>
+      <small class="form-text text-muted">Opcional: Asigna esta ubicación a un departamento</small>
     </div>
   </form>
 </div>
@@ -50,12 +50,12 @@ if(isset($_GET['id'])){
       method: 'POST',
       success:function(resp){
         if(resp == 1){
-          alert_toast("UbicaciÃ³n agregada correctamente", 'success');
+          alert_toast("Ubicación agregada correctamente", 'success');
           setTimeout(function(){
             location.reload();
           },1500);
         } else if(resp == 2){
-          alert_toast("UbicaciÃ³n actualizada correctamente", 'success');
+          alert_toast("Ubicación actualizada correctamente", 'success');
           setTimeout(function(){
             location.reload();
           },1500);

@@ -41,8 +41,8 @@ if ($id > 0) {
 		</div>
 
 		<div class="form-group">
-			<label class="control-label">DescripciÃ³n</label>
-			<input type="text" name="description" class="form-control" required placeholder="Ej: Equipo mÃ©dico" value="<?php echo htmlspecialchars($description); ?>">
+			<label class="control-label">Descripción</label>
+			<input type="text" name="description" class="form-control" required placeholder="Ej: Equipo médico" value="<?php echo htmlspecialchars($description); ?>">
 		</div>
 	</form>
 </div>

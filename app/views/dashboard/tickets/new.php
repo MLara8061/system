@@ -3,7 +3,7 @@ if (!isset($conn)) {
 	require_once 'config/config.php';
 }
 
-// Capturar parÃ¡metros del equipo si vienen desde el QR
+// Capturar parámetros del equipo si vienen desde el QR
 $equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : '';
 $equipment_name = isset($_GET['equipment_name']) ? htmlspecialchars($_GET['equipment_name']) : '';
 $inventory = isset($_GET['inventory']) ? htmlspecialchars($_GET['inventory']) : '';
@@ -107,7 +107,7 @@ if ($equipment_name && $inventory) {
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group">
-								<label class="control-label"><i class="fas fa-align-left"></i> DescripciÃ³n</label>
+								<label class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
 								<textarea name="description" id="" cols="30" rows="10" class="form-control summernote"><?php echo isset($description) ? $description : '' ?></textarea>
 							</div>
 						</div>
