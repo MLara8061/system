@@ -74,7 +74,8 @@ $ROUTE_MAP = [
     'manage_department' => 'app/views/dashboard/settings/manage_department.php',
     'manage_category' => 'app/views/dashboard/settings/manage_category.php',
     'category' => 'app/views/dashboard/settings/categories.php',
-    'manage_services' => 'app/views/dashboard/settings/manage_services.php',
+    // Nota: `manage_services` es la pantalla/listado; el formulario se carga vía `modals/manage_service.php`.
+    'manage_services' => 'app/views/dashboard/settings/services.php',
     'service_list' => 'app/views/dashboard/settings/services.php',
     'locations' => 'app/views/dashboard/settings/locations.php',
     'manage_equipment_location' => 'app/views/dashboard/settings/manage_equipment_location.php',

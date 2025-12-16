@@ -3583,36 +3583,69 @@ class Action {
         $save = $this->db->query($sql);
         if ($save) {
             $id = !empty($id) ? $id : $this->db->insert_id;
-            $upload_dir = 'uploads/services';
-            
-            // Verificar y crear directorio con permisos correctos
+            $upload_dir_rel = 'uploads/services';
+            $upload_dir = (defined('ROOT') ? rtrim(ROOT, '/\\') . '/' . $upload_dir_rel : $upload_dir_rel);
+
+            // Verificar y crear directorio
             if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-                chmod($upload_dir, 0777);
+                @mkdir($upload_dir, 0777, true);
+                @chmod($upload_dir, 0777);
             }
-            
+
             if (!empty($_FILES['img']['tmp_name'])) {
-                $file = pathinfo($_FILES["img"]["name"]);
-                $extension = strtolower($file['extension']);
-                
-                // Convertir todo a webp para consistencia
-                if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
-                    $fname = $id . '_img.webp';
-                    $target_path = $upload_dir . '/' . $fname;
-                    
+                $file = pathinfo($_FILES['img']['name'] ?? '');
+                $extension = strtolower($file['extension'] ?? '');
+
+                if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                    $base = $id . '_img';
+
                     // Eliminar imagen anterior si existe
-                    $old_images = glob($upload_dir . '/' . $id . '_img.*');
-                    foreach($old_images as $old_img) {
+                    $old_images = glob($upload_dir . '/' . $base . '.*');
+                    foreach ($old_images as $old_img) {
                         if (is_file($old_img)) {
-                            unlink($old_img);
+                            @unlink($old_img);
                         }
                     }
-                    
-                    // Mover archivo
-                    $move = move_uploaded_file($_FILES["img"]["tmp_name"], $target_path);
-                    if ($move) {
-                        chmod($target_path, 0644);
-                        $data = " img_path = '{$upload_dir}/{$fname}' ";
+
+                    $tmp = $_FILES['img']['tmp_name'];
+                    $saved_ext = $extension;
+                    $target_path = null;
+                    $saved = false;
+
+                    // Convertir a webp solo si realmente se puede (GD)
+                    $can_webp = function_exists('imagewebp');
+                    if ($can_webp && in_array($extension, ['jpg', 'jpeg', 'png'], true)) {
+                        $src = null;
+                        if ($extension === 'jpg' || $extension === 'jpeg') {
+                            $src = @imagecreatefromjpeg($tmp);
+                        } elseif ($extension === 'png') {
+                            $src = @imagecreatefrompng($tmp);
+                            if ($src) {
+                                @imagepalettetotruecolor($src);
+                                @imagealphablending($src, true);
+                                @imagesavealpha($src, true);
+                            }
+                        }
+
+                        if ($src) {
+                            $saved_ext = 'webp';
+                            $target_path = $upload_dir . '/' . $base . '.webp';
+                            $saved = @imagewebp($src, $target_path, 82);
+                            @imagedestroy($src);
+                        }
+                    }
+
+                    // Fallback: guardar con extensión original
+                    if (!$saved) {
+                        $target_path = $upload_dir . '/' . $base . '.' . $extension;
+                        $saved = move_uploaded_file($tmp, $target_path);
+                        $saved_ext = $extension;
+                    }
+
+                    if ($saved && $target_path) {
+                        @chmod($target_path, 0644);
+                        $fname = $base . '.' . $saved_ext;
+                        $data = " img_path = '{$upload_dir_rel}/{$fname}' ";
                         $this->db->query("UPDATE `services` set {$data} where id = $id ");
                     }
                 }

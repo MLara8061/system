@@ -137,7 +137,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Create New Service','modals/manage_service.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear Nuevo Servicio','modals/manage_service.php')
 		})
 	})
 </script>
