@@ -159,76 +159,31 @@ if(isset($_GET['id'])){
 	.modal-footer {
 		border-top: 1px solid #f0f0f0;
 		padding: 1.5rem 2rem;
-		display: flex;
-		justify-content: flex-end;
-		gap: 1rem;
 	}
 	
-	/* Estilos para botones del modal (submit = guardar, secundario = cancelar) */
-	#uni_modal .modal-footer .submit,
-	#uni_modal .modal-footer .btn-primary {
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		border: none;
-		padding: 0.875rem 2.5rem;
-		font-weight: 600;
-		font-size: 0.95rem;
-		border-radius: 10px;
-		transition: all 0.3s ease;
-		box-shadow: 0 4px 12px rgba(102,126,234,0.3);
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		order: 2;
+	/* Fix Select2 rendering */
+	.select2-container {
+		width: 100% !important;
 	}
 	
-	#uni_modal .modal-footer .submit:hover,
-	#uni_modal .modal-footer .btn-primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+	.select2-container .select2-selection--single {
+		height: calc(2.25rem + 2px);
+		border-radius: 8px;
+		border: 2px solid #e8ecef;
+		padding: 0.375rem 0.75rem;
 	}
 	
-	#uni_modal .modal-footer .submit:active,
-	#uni_modal .modal-footer .btn-primary:active {
-		transform: translateY(0);
+	.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+		line-height: calc(2.25rem);
 	}
 	
-	#uni_modal .modal-footer button[data-dismiss="modal"],
-	#uni_modal .modal-footer .btn-secondary {
-		background: #ffffff;
-		border: 2px solid #e2e8f0;
-		color: #718096;
-		padding: 0.875rem 2rem;
-		font-weight: 600;
-		font-size: 0.95rem;
-		border-radius: 10px;
-		transition: all 0.3s ease;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		order: 1;
-	}
-	
-	#uni_modal .modal-footer button[data-dismiss="modal"]:hover,
-	#uni_modal .modal-footer .btn-secondary:hover {
-		background: #f7fafc;
-		border-color: #cbd5e0;
-		color: #4a5568;
-		transform: translateY(-2px);
+	.select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+		height: calc(2.25rem);
 	}
 	
 	@media (max-width: 576px) {
 		.modal-body {
 			padding: 1.5rem;
-		}
-		
-		.modal-footer {
-			flex-direction: column-reverse;
-		}
-		
-		#uni_modal .modal-footer .submit,
-		#uni_modal .modal-footer button[data-dismiss="modal"],
-		#uni_modal .modal-footer .btn-secondary {
-			width: 100%;
-			margin: 0;
-			margin-bottom: 0.5rem;
 		}
 	}
 </style>
@@ -282,11 +237,14 @@ if(isset($_GET['id'])){
 <script>
 	$(document).ready(function(){
 		// Initialize Select2
-		$('.select2').select2({
-			theme: 'bootstrap4',
-			placeholder: 'Selecciona una categoría',
-			width: '100%'
-		});
+		setTimeout(function() {
+			$('.select2').select2({
+				dropdownParent: $('#uni_modal'),
+				theme: 'bootstrap4',
+				placeholder: 'Selecciona una categoría',
+				width: '100%'
+			});
+		}, 100);
 		
 		// Drag & Drop Image Upload
 		const dropZone = $('#service-drop-zone');
@@ -302,8 +260,10 @@ if(isset($_GET['id'])){
 		}
 		
 		// Click to select file
-		dropZone.on('click', function() {
-			fileInput.click();
+		dropZone.on('click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			fileInput.trigger('click');
 		});
 		
 		// File input change
@@ -382,16 +342,8 @@ if(isset($_GET['id'])){
 		$('#manage-service').submit(function(e){
 			e.preventDefault();
 			
-			// Remove previous error messages
-			if($('.err_msg').length > 0){
-				$('.err_msg').remove();
-			}
-			
-			// Show loading state
-			const submitBtn = $('.btn-save-service');
-			const originalText = submitBtn.html();
-			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
-			
+			// Remove previous er on modal submit button
+			const submitBtn = $('#uni_modal .modal-footer #
 			$.ajax({
 				url: "public/ajax/action.php?action=save_service",
 				dataType: 'json',
