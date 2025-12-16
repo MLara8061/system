@@ -211,16 +211,6 @@ if(isset($_GET['id'])){
 	</form>
 </div>
 <script>
-	function displayImg(input) {
-		if (input.files && input.files[0]) {
-			var reader = new FileReader();
-			reader.onload = function (e) {
-				$('#cimg').attr('src', e.target.result);
-			}
-			reader.readAsDataURL(input.files[0]);
-		}
-	}
-
 	$(document).ready(function(){
 		// Initialize Select2
 		setTimeout(function() {
@@ -232,10 +222,44 @@ if(isset($_GET['id'])){
 			});
 		}, 100);
 		
-		// Update custom file input label
-		$('#customFile').on('change', function() {
-			var fileName = $(this).val().split('\\').pop();
-			$(this).next('.custom-file-label').html(fileName || 'Elegir archivo');
+		// Upload de imagen
+		$('#service-img-upload').on('change', function(e) {
+			if (this.files && this.files[0]) {
+				const file = this.files[0];
+				
+				// Validar tipo de archivo
+				if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+					alert_toast('Por favor selecciona una imagen válida (JPG, PNG, WebP)', 'warning');
+					return;
+				}
+				
+				// Validar tamaño (5MB máx)
+				if (file.size > 5 * 1024 * 1024) {
+					alert_toast('La imagen debe ser menor a 5MB', 'warning');
+					return;
+				}
+				
+				const reader = new FileReader();
+				reader.onload = function(e) {
+					$('#service-img-preview').attr('src', e.target.result);
+					
+					// Mostrar botón eliminar si no existe
+					if ($('#delete-service-img-btn').length === 0) {
+						$('.service-img-container').append(
+							'<button type="button" class="service-delete-btn" id="delete-service-img-btn" title="Eliminar imagen">' +
+							'<i class="fas fa-trash-alt"></i></button>'
+						);
+					}
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+		
+		// Eliminar imagen
+		$(document).on('click', '#delete-service-img-btn', function() {
+			$('#service-img-preview').attr('src', 'uploads/default.png');
+			$('#service-img-upload').val('');
+			$(this).remove();
 		});
 		
 		// Remove error styling on input
