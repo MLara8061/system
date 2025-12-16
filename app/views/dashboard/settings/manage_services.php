@@ -244,7 +244,7 @@ if(isset($_GET['id'])){
 	</div>
 	
 	<hr>
-	<div class="row">
+	<div class="row" id="form-buttons-row">
 		<div class="col-12 text-right">
 			<a href="index.php?page=service_list" class="btn btn-secondary">
 				<i class="fas fa-times"></i> Cancelar
@@ -258,6 +258,11 @@ if(isset($_GET['id'])){
 </div>
 <script>
 	$(document).ready(function(){
+		// Detectar si estamos en modal y ocultar botones del formulario
+		if ($('#uni_modal').length && $('#uni_modal').is(':visible')) {
+			$('#form-buttons-row').hide();
+		}
+		
 		// Initialize Select2
 		setTimeout(function() {
 			$('.select2').select2({
@@ -328,12 +333,22 @@ if(isset($_GET['id'])){
 			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
 			
 			var formData = new FormData($(this)[0]);
+			
+			// DEBUG COMPLETO
 			console.log('=== DEBUG FORM SUBMISSION ===');
 			console.log('Form element:', $(this)[0]);
-			console.log('File input:', $('#service-img-upload')[0]);
-			console.log('File selected:', $('#service-img-upload')[0].files[0]);
+			console.log('File input element:', $('#service-img-upload')[0]);
+			console.log('File selected:', $('#service-img-upload')[0] ? $('#service-img-upload')[0].files[0] : 'NO FILE INPUT FOUND');
+			console.log('FormData entries:');
 			for(var pair of formData.entries()) {
-				console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+				console.log('  ' + pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name + ' (' + pair[1].size + ' bytes)' : pair[1]));
+			}
+			
+			// Verificar si hay imagen
+			if ($('#service-img-upload')[0] && $('#service-img-upload')[0].files[0]) {
+				console.log('✓ Imagen detectada: ' + $('#service-img-upload')[0].files[0].name);
+			} else {
+				console.warn('⚠ NO se detectó ninguna imagen en el formulario');
 			}
 			
 			$.ajax({
