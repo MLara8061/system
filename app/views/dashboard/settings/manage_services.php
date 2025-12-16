@@ -242,6 +242,18 @@ if(isset($_GET['id'])){
 		</div>
 		<input type="file" id="service-img-upload" name="img" class="d-none" accept="image/png,image/jpeg,image/jpg,image/webp">
 	</div>
+	
+	<hr>
+	<div class="row">
+		<div class="col-12 text-right">
+			<button type="submit" class="btn btn-primary">
+				<i class="fas fa-save"></i> Guardar
+			</button>
+			<a href="index.php?page=service_list" class="btn btn-secondary">
+				<i class="fas fa-times"></i> Cancelar
+			</a>
+		</div>
+	</div>
 	</form>
 </div>
 <script>
