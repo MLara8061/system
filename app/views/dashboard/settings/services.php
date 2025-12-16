@@ -99,7 +99,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Servicio',_base_url_+'modals/manage_service.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Servicio','modals/manage_service.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			const serviceId = $(this).attr('data-id');
@@ -134,7 +134,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Create New Service',_base_url_+'modals/manage_service.php')
+			uni_modal('<span class="fa fa-plus"></span> Create New Service','modals/manage_service.php')
 		})
 	})
 </script>
