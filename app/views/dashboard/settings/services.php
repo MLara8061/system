@@ -112,7 +112,7 @@
 	function delete_data($id){
 		start_loader();
 		$.ajax({
-			url:_base_url_+"classes/Master.php?f=delete_service",
+			url:"public/ajax/action.php?action=delete_service",
 			method:'POST',
 			data:{id:$id},
 			dataType:'json',
