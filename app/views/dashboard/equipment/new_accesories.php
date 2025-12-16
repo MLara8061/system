@@ -309,9 +309,11 @@ try {
 
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
-        start_load();
+        
         var $btn = $(this).find('button[type="submit"]');
-        $btn.prop('disabled', true);
+        var originalText = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+        
         $.ajax({
             url: 'public/ajax/action.php?action=save_accessory',
             data: new FormData(this),
@@ -319,25 +321,22 @@ try {
             contentType: false,
             processData: false,
             method: 'POST',
-            success: resp => {
-                resp = resp.trim();
+            success: function(resp) {
+                console.log('Response:', resp);
+                resp = String(resp).trim();
                 if (resp == '1') {
-                    alert_toast('Guardado', 'success');
+                    $btn.removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check"></i> Guardado');
                     setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                 } else {
-                    alert_toast('Error: ' + resp, 'error');
+                    $btn.prop('disabled', false).html(originalText);
+                    alert('Error al guardar: ' + resp);
                 }
             },
-            error: function(xhr){
-                var msg = 'Error de conexión';
-                try {
-                    if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
-                } catch (e) {}
-                alert_toast(msg, 'error');
-            },
-            complete: function(){
-                $btn.prop('disabled', false);
-                end_load();
+            error: function(xhr, status, error){
+                console.error('Ajax error:', status, error);
+                console.error('Response:', xhr.responseText);
+                $btn.prop('disabled', false).html(originalText);
+                alert('Error de conexión: ' + (xhr.responseText || error));
             }
         });
     });
