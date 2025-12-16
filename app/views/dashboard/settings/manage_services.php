@@ -155,8 +155,17 @@ if(isset($_GET['id'])){
 		transform: translateX(calc(50% + 90px)) scale(1.1);
 	}
 	
-	/* Button Styles */
-	.btn-save-service {
+	/* Modal Footer Styles */
+	.modal-footer {
+		border-top: 1px solid #f0f0f0;
+		padding: 1.5rem 2rem;
+		display: flex;
+		justify-content: flex-end;
+		gap: 1rem;
+	}
+	
+	/* Estilos para botones del modal (submit = guardar, secundario = cancelar) */
+	#uni_modal .modal-footer .submit {
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		border: none;
 		padding: 0.875rem 2.5rem;
@@ -167,18 +176,20 @@ if(isset($_GET['id'])){
 		box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
+		order: 2;
 	}
 	
-	.btn-save-service:hover {
+	#uni_modal .modal-footer .submit:hover {
 		transform: translateY(-2px);
 		box-shadow: 0 6px 20px rgba(102,126,234,0.4);
 	}
 	
-	.btn-save-service:active {
+	#uni_modal .modal-footer .submit:active {
 		transform: translateY(0);
 	}
 	
-	.btn-cancel-service {
+	#uni_modal .modal-footer button[data-dismiss="modal"],
+	#uni_modal .modal-footer .btn-secondary {
 		background: #ffffff;
 		border: 2px solid #e2e8f0;
 		color: #718096;
@@ -189,22 +200,15 @@ if(isset($_GET['id'])){
 		transition: all 0.3s ease;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
-		margin-right: 1rem;
+		order: 1;
 	}
 	
-	.btn-cancel-service:hover {
+	#uni_modal .modal-footer button[data-dismiss="modal"]:hover,
+	#uni_modal .modal-footer .btn-secondary:hover {
 		background: #f7fafc;
 		border-color: #cbd5e0;
 		color: #4a5568;
 		transform: translateY(-2px);
-	}
-	
-	.modal-footer {
-		border-top: 1px solid #f0f0f0;
-		padding: 1.5rem 2rem;
-		display: flex;
-		justify-content: flex-end;
-		gap: 1rem;
 	}
 	
 	@media (max-width: 576px) {
@@ -216,7 +220,9 @@ if(isset($_GET['id'])){
 			flex-direction: column-reverse;
 		}
 		
-		.btn-save-service, .btn-cancel-service {
+		#uni_modal .modal-footer .submit,
+		#uni_modal .modal-footer button[data-dismiss="modal"],
+		#uni_modal .modal-footer .btn-secondary {
 			width: 100%;
 			margin: 0;
 			margin-bottom: 0.5rem;
@@ -267,14 +273,6 @@ if(isset($_GET['id'])){
 				</div>
 			</div>
 		</div>
-		
-		<div class="modal-footer">
-			<button type="button" class="btn btn-cancel-service" data-dismiss="modal">Cancelar</button>
-			<button type="submit" class="btn btn-primary btn-save-service">
-				<i class="fas fa-save mr-2"></i>Guardar Servicio
-			</button>
-		</div>
-			
 		
 	</form>
 </div>
@@ -394,6 +392,14 @@ if(isset($_GET['id'])){
 			$.ajax({
 				url: "public/ajax/action.php?action=save_service",
 				dataType: 'json',
+				data: new FormData($ on modal submit button
+			const submitBtn = $('#uni_modal .modal-footer .submit');
+			const originalText = submitBtn.html();
+			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
+			
+			$.ajax({
+				url: "public/ajax/action.php?action=save_service",
+				dataType: 'json',
 				data: new FormData($(this)[0]),
 				type: 'POST',
 				method: 'POST',
@@ -409,15 +415,7 @@ if(isset($_GET['id'])){
 					if(!!resp.status && resp.status == 'success'){
 						alert_toast("Servicio guardado exitosamente", "success");
 						setTimeout(function() {
-							$('.modal').modal('hide');
-							if (typeof load_data === 'function') {
-								load_data();
-							} else {
-								location.reload();
-							}
-						}, 1500);
-					} else if(!!resp.status && resp.status == 'duplicate'){
-						$('#manage-service').prepend('<div class="alert alert-danger err_msg"><i class="fas fa-exclamation-triangle mr-2"></i>Este servicio ya existe en el sistema.</div>');
+							$('#uni_anage-service').prepend('<div class="alert alert-danger err_msg"><i class="fas fa-exclamation-triangle mr-2"></i>Este servicio ya existe en el sistema.</div>');
 						$('#service').addClass('border-danger').focus();
 						submitBtn.prop('disabled', false).html(originalText);
 					} else {
