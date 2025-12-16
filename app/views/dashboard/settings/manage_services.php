@@ -247,19 +247,12 @@ if(isset($_GET['id'])){
 		// Initialize Select2
 		setTimeout(function() {
 			$('.select2').select2({
-				dropdownParent: $('#uni_modal'),
+				dropdownParent: $('body'),
 				theme: 'bootstrap4',
 				placeholder: 'Selecciona una categoría',
-				width: '100%',
-				dropdownCssClass: 'select2-dropdown-high-z'
+				width: '100%'
 			});
-		}, 100);
-		
-		// Fix z-index on open
-		$('.select2').on('select2:open', function() {
-			$('.select2-dropdown').css('z-index', 99999);
-			$('.select2-container--open').css('z-index', 99999);
-		});
+		}, 200);
 		
 		// Upload de imagen
 		$('#service-img-upload').on('change', function(e) {
