@@ -71,18 +71,25 @@ if(isset($_GET['id'])){
 	}
 	
 	.select2-container .select2-selection--single {
-		height: calc(2.25rem + 2px);
+		height: calc(2.5rem + 4px) !important;
 		border-radius: 8px;
 		border: 2px solid #e8ecef;
-		padding: 0.375rem 0.75rem;
+		display: flex;
+		align-items: center;
 	}
 	
 	.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
-		line-height: calc(2.25rem);
+		line-height: normal !important;
+		padding-left: 0.75rem !important;
+		padding-top: 0 !important;
+		display: flex;
+		align-items: center;
 	}
 	
 	.select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
-		height: calc(2.25rem);
+		height: calc(2.5rem + 4px) !important;
+		display: flex;
+		align-items: center;
 	}
 	
 	@media (max-width: 576px) {
