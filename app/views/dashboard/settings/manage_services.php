@@ -144,6 +144,14 @@ if(isset($_GET['id'])){
 		width: 100% !important;
 	}
 	
+	.select2-container--open {
+		z-index: 99999 !important;
+	}
+	
+	.select2-dropdown {
+		z-index: 99999 !important;
+	}
+	
 	.select2-container .select2-selection--single {
 		height: calc(2.5rem + 4px) !important;
 		border-radius: 8px;

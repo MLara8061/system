@@ -3583,17 +3583,38 @@ class Action {
         $save = $this->db->query($sql);
         if ($save) {
             $id = !empty($id) ? $id : $this->db->insert_id;
-            if (!is_dir('uploads/services')) mkdir('uploads/services', 0777, true);
+            $upload_dir = 'uploads/services';
+            
+            // Verificar y crear directorio con permisos correctos
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+                chmod($upload_dir, 0777);
+            }
+            
             if (!empty($_FILES['img']['tmp_name'])) {
                 $file = pathinfo($_FILES["img"]["name"]);
-                $fname = $id . '_img.' . ($file['extension']);
-                if (is_file('uploads/services/' . $fname)) {
-                    unlink('uploads/services/' . $fname);
-                }
-                $move = move_uploaded_file($_FILES["img"]["tmp_name"], 'uploads/services/' . $fname);
-                if ($move) {
-                    $data = " img_path = 'uploads/services/{$fname}' ";
-                    $this->db->query("UPDATE `services` set {$data} where id = $id ");
+                $extension = strtolower($file['extension']);
+                
+                // Convertir todo a webp para consistencia
+                if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $fname = $id . '_img.webp';
+                    $target_path = $upload_dir . '/' . $fname;
+                    
+                    // Eliminar imagen anterior si existe
+                    $old_images = glob($upload_dir . '/' . $id . '_img.*');
+                    foreach($old_images as $old_img) {
+                        if (is_file($old_img)) {
+                            unlink($old_img);
+                        }
+                    }
+                    
+                    // Mover archivo
+                    $move = move_uploaded_file($_FILES["img"]["tmp_name"], $target_path);
+                    if ($move) {
+                        chmod($target_path, 0644);
+                        $data = " img_path = '{$upload_dir}/{$fname}' ";
+                        $this->db->query("UPDATE `services` set {$data} where id = $id ");
+                    }
                 }
             }
             return json_encode(['status' => 'success']);
