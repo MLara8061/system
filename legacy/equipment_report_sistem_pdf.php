@@ -1,4 +1,7 @@
 <?php
+// Iniciar sesión ANTES de cargar config
+session_start();
+
 define('ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
 
