@@ -25,14 +25,22 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
                 <div class="text-center mb-4">
                     <div class="avatar-container position-relative d-inline-block">
                         <img src="<?= $avatar_path ?>" alt="Avatar" id="avatar-preview" 
-                             class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 4px solid #e9ecef;">
-                           <label for="avatar-upload" class="btn btn-primary btn-sm rounded-circle position-absolute avatar-camera-btn" 
-                               style="bottom: 0; right: 0; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                             class="rounded-circle avatar-image" style="width: 140px; height: 140px; object-fit: cover; border: 3px solid #e9ecef;">
+                        
+                        <!-- Botón Cámara -->
+                        <label for="avatar-upload" class="avatar-camera-btn" title="Cambiar foto">
                             <i class="fas fa-camera"></i>
                         </label>
+                        
+                        <!-- Botón Eliminar -->
+                        <?php if (!empty($user['avatar'])): ?>
+                        <button type="button" class="avatar-delete-btn" id="delete-avatar-btn" title="Eliminar foto">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <?php endif; ?>
                     </div>
                     <input type="file" id="avatar-upload" accept="image/jpeg,image/png,image/jpg" class="d-none">
-                    <p class="text-muted mt-2 mb-0">Haz clic para cambiar foto</p>
+                    <p class="text-muted mt-3 mb-0" style="font-size: 0.875rem;">Haz clic en <i class="fas fa-camera text-primary"></i> para cambiar</p>
                 </div>
 
                 <!-- NOMBRE -->
@@ -119,29 +127,128 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
 <!-- CROP CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 <style>
-    .avatar-container { transition: all 0.2s; }
-    .avatar-container:hover { transform: scale(1.05); }
+    /* === AVATAR CONTAINER === */
+    .avatar-container {
+        position: relative;
+        display: inline-block;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .avatar-container:hover .avatar-image {
+        transform: scale(1.02);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .avatar-image {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* === BOTÓN CÁMARA (Moderno y Compacto) === */
+    .avatar-camera-btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: 3px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        z-index: 2;
+    }
+    .avatar-camera-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    .avatar-camera-btn i {
+        color: #fff;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* === BOTÓN ELIMINAR (Icono Basura Rojo) === */
+    .avatar-delete-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        border: 3px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
+        z-index: 2;
+        padding: 0;
+    }
+    .avatar-delete-btn:hover {
+        transform: scale(1.15) rotate(-5deg);
+        box-shadow: 0 6px 16px rgba(238, 90, 111, 0.6);
+        background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+    }
+    .avatar-delete-btn i {
+        color: #fff;
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    /* === CROPPER === */
     #crop-image { max-width: 100%; height: auto; }
     .cropper-container { max-height: 400px; }
 
-    /* Botón cámara: compacto en móvil */
-    .avatar-camera-btn {
-        line-height: 1;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .avatar-camera-btn i { font-size: 0.9rem; }
-    @media (max-width: 576px) {
+    /* === RESPONSIVE (MÓVIL) === */
+    @media (max-width: 768px) {
+        .avatar-image {
+            width: 120px !important;
+            height: 120px !important;
+        }
         .avatar-camera-btn {
-            width: 30px !important;
-            height: 30px !important;
-            padding: 0 !important;
+            width: 36px;
+            height: 36px;
+            bottom: 3px;
+            right: 3px;
         }
         .avatar-camera-btn i {
+            font-size: 0.9rem;
+        }
+        .avatar-delete-btn {
+            width: 28px;
+            height: 28px;
+            top: -2px;
+            right: -2px;
+        }
+        .avatar-delete-btn i {
             font-size: 0.7rem;
         }
-        #avatar-preview {
+    }
+
+    @media (max-width: 576px) {
+        .avatar-image {
             width: 100px !important;
             height: 100px !important;
+        }
+        .avatar-camera-btn {
+            width: 32px;
+            height: 32px;
+        }
+        .avatar-camera-btn i {
+            font-size: 0.8rem;
+        }
+        .avatar-delete-btn {
+            width: 26px;
+            height: 26px;
+        }
+        .avatar-delete-btn i {
+            font-size: 0.65rem;
         }
     }
 </style>
@@ -230,6 +337,7 @@ $(document).ready(function() {
                         $avatarInput.val(resp.split('/').pop());
                         $cropModal.modal('hide');
                         alert_toast("Foto actualizada", 'success');
+                        location.reload();
                     } else {
                         alert_toast("Error al subir foto", 'error');
                     }
@@ -241,6 +349,31 @@ $(document).ready(function() {
                 }
             });
         }, 'image/jpeg', 0.95);
+    });
+
+    // === ELIMINAR AVATAR ===
+    $('#delete-avatar-btn').click(function() {
+        if (!confirm('¿Estás seguro de eliminar tu foto de perfil?')) return;
+        
+        start_load();
+        $.ajax({
+            url: 'public/ajax/action.php?action=delete_avatar',
+            method: 'POST',
+            data: { id: <?= $user_id ?> },
+            success: function(resp) {
+                if (resp == 1) {
+                    alert_toast("Foto eliminada correctamente", 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    alert_toast("Error al eliminar la foto", 'error');
+                    end_load();
+                }
+            },
+            error: function() {
+                alert_toast("Error de conexión", 'error');
+                end_load();
+            }
+        });
     });
 
     // === MOSTRAR/OCULTAR CONTRASEÑA ===

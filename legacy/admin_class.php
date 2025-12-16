@@ -309,6 +309,54 @@ class Action {
         }
     }
 
+    function delete_avatar()
+    {
+        try {
+            extract($_POST);
+            $id = (int)($id ?? 0);
+            if ($id <= 0) return 0;
+            
+            // Verificar permisos: solo el usuario o admin
+            if ($_SESSION['login_id'] != $id && $_SESSION['login_type'] != 1) return 0;
+
+            // Obtener avatar actual
+            $old_avatar = null;
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("SELECT avatar FROM users WHERE id = ?");
+                $stmt->execute([$id]);
+                $result = $stmt->fetch();
+                $old_avatar = $result['avatar'] ?? null;
+            } else {
+                $result = $this->db->query("SELECT avatar FROM users WHERE id = $id")->fetch_assoc();
+                $old_avatar = $result['avatar'] ?? null;
+            }
+            
+            // Eliminar archivo físico si existe
+            if ($old_avatar && $old_avatar != 'default-avatar.png') {
+                $file_path = 'assets/avatars/' . $old_avatar;
+                if (file_exists($file_path)) {
+                    unlink($file_path);
+                }
+            }
+
+            // Limpiar avatar en BD (poner NULL o vacío)
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("UPDATE users SET avatar = NULL WHERE id = ?");
+                $stmt->execute([$id]);
+            } else {
+                $this->db->query("UPDATE users SET avatar = NULL WHERE id = $id");
+            }
+            
+            // Actualizar sesión
+            unset($_SESSION['login_avatar']);
+            
+            return 1;
+        } catch (Exception $e) {
+            error_log("DELETE_AVATAR ERROR: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     // ================== PÁGINA (IMÁGENES) ==================
     function save_page_img() {
         extract($_POST);

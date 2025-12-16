@@ -195,6 +195,11 @@ if ($action == 'upload_avatar') {
     exit;
 }
 
+if ($action == 'delete_avatar') {
+    echo $crud->delete_avatar();
+    exit;
+}
+
 // ===================================
 // 3. IMAGEN PÁGINA
 // ===================================
