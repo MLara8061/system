@@ -342,13 +342,13 @@ if(isset($_GET['id'])){
 		$('#manage-service').submit(function(e){
 			e.preventDefault();
 			
-			// Remove previous er on modal submit button
-			const submitBtn = $('#uni_modal .modal-footer #
-			$.ajax({
-				url: "public/ajax/action.php?action=save_service",
-				dataType: 'json',
-				data: new FormData($ on modal submit button
-			const submitBtn = $('#uni_modal .modal-footer .submit');
+			// Remove previous error messages
+			if($('.err_msg').length > 0){
+				$('.err_msg').remove();
+			}
+			
+			// Show loading state on modal submit button
+			const submitBtn = $('#uni_modal .modal-footer #submit');
 			const originalText = submitBtn.html();
 			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
 			
@@ -370,7 +370,15 @@ if(isset($_GET['id'])){
 					if(!!resp.status && resp.status == 'success'){
 						alert_toast("Servicio guardado exitosamente", "success");
 						setTimeout(function() {
-							$('#uni_anage-service').prepend('<div class="alert alert-danger err_msg"><i class="fas fa-exclamation-triangle mr-2"></i>Este servicio ya existe en el sistema.</div>');
+							$('#uni_modal').modal('hide');
+							if (typeof load_data === 'function') {
+								load_data();
+							} else {
+								location.reload();
+							}
+						}, 1500);
+					} else if(!!resp.status && resp.status == 'duplicate'){
+						$('#manage-service').prepend('<div class="alert alert-danger err_msg"><i class="fas fa-exclamation-triangle mr-2"></i>Este servicio ya existe en el sistema.</div>');
 						$('#service').addClass('border-danger').focus();
 						submitBtn.prop('disabled', false).html(originalText);
 					} else {
