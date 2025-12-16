@@ -121,8 +121,8 @@ if(isset($_GET['id'])){
 		<div class="form-group">
 		<label for="customFile">Imagen del Servicio</label>
 		<div class="custom-file">
-			<input type="file" class="custom-file-input" id="customFile" name="img" onchange="displayImg(this)" accept="image/png,image/jpeg,image/jpg">
-			<label class="custom-file-label" for="customFile">Elegir archivo</label>
+			<input type="file" class="custom-file-input" id="customFile" name="img" onchange="displayImg(this)" accept="image/png,image/jpeg,image/jpg,image/webp">
+			<label class="custom-file-label" for="customFile">Elegir archivo (PNG, JPG, WebP)</label>
 		</div>
 	</div>
 	<div class="form-group d-flex justify-content-center">
