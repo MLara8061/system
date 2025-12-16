@@ -51,108 +51,12 @@ if(isset($_GET['id'])){
 		box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 	}
 	
-	/* Drag & Drop Image Upload - Modern Style */
-	.image-upload-container {
-		position: relative;
-		margin-top: 0.5rem;
-	}
-	
-	.image-drop-zone {
-		border: 3px dashed #cbd5e0;
-		border-radius: 16px;
-		padding: 2.5rem 1.5rem;
-		text-align: center;
-		background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-		cursor: pointer;
-		transition: all 0.3s ease;
-		position: relative;
-		overflow: hidden;
-	}
-	
-	.image-drop-zone:hover {
-		border-color: #007bff;
-		background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0,123,255,0.15);
-	}
-	
-	.image-drop-zone.dragover {
-		border-color: #28a745;
-		background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
-		transform: scale(1.02);
-	}
-	
-	.drop-icon {
-		font-size: 3rem;
-		color: #a0aec0;
-		margin-bottom: 1rem;
-		transition: all 0.3s ease;
-	}
-	
-	.image-drop-zone:hover .drop-icon {
-		color: #007bff;
-		transform: scale(1.1);
-	}
-	
-	.drop-text {
-		color: #4a5568;
-		font-size: 1rem;
-		font-weight: 500;
-		margin-bottom: 0.5rem;
-	}
-	
-	.drop-subtext {
-		color: #a0aec0;
-		font-size: 0.875rem;
-	}
-	
-	#service-img-input {
-		display: none;
-	}
-	
-	.image-preview-container {
-		margin-top: 1.5rem;
-		text-align: center;
-		display: none;
-	}
-	
-	.image-preview-container.active {
-		display: block;
-	}
-	
-	#service-img-preview {
-		max-width: 100%;
-		width: 180px;
-		height: 180px;
-		object-fit: cover;
-		border-radius: 16px;
-		box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-		border: 4px solid #ffffff;
-	}
-	
-	.remove-image-btn {
-		position: absolute;
-		top: -10px;
-		right: 50%;
-		transform: translateX(calc(50% + 90px));
-		background: #dc3545;
-		color: white;
-		border: none;
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		cursor: pointer;
-		font-size: 1.2rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 2px 8px rgba(220,53,69,0.3);
-		transition: all 0.2s ease;
-	}
-	
-	.remove-image-btn:hover {
-		background: #c82333;
-		transform: translateX(calc(50% + 90px)) scale(1.1);
+	/* Image preview */
+	#cimg {
+		max-width: 200px;
+		max-height: 200px;
+		object-fit: contain;
+		border-radius: 8px;
 	}
 	
 	/* Modal Footer Styles */
@@ -215,26 +119,28 @@ if(isset($_GET['id'])){
 		</div>
 		
 		<div class="form-group">
-			<label>Imagen del Servicio</label>
-			<div class="image-upload-container">
-				<div class="image-drop-zone" id="service-drop-zone">
-					<i class="fas fa-cloud-upload-alt drop-icon"></i>
-					<div class="drop-text">Arrastra y suelta una imagen aquí</div>
-					<div class="drop-subtext">o haz clic para seleccionar (PNG, JPG - Max. 2MB)</div>
-					<input type="file" id="service-img-input" name="img" accept="image/png,image/jpeg,image/jpg">
-				</div>
-				<div class="image-preview-container" id="service-preview-container">
-					<button type="button" class="remove-image-btn" id="remove-service-img">
-						<i class="fas fa-times"></i>
-					</button>
-					<img id="service-img-preview" src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : '' ?>" alt="Preview">
-				</div>
-			</div>
+		<label for="customFile">Imagen del Servicio</label>
+		<div class="custom-file">
+			<input type="file" class="custom-file-input" id="customFile" name="img" onchange="displayImg(this)" accept="image/png,image/jpeg,image/jpg">
+			<label class="custom-file-label" for="customFile">Elegir archivo</label>
 		</div>
+	</div>
+	<div class="form-group d-flex justify-content-center">
+		<img src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : '' ?>" alt="Imagen" id="cimg" class="img-fluid img-thumbnail" style="max-width: 200px; max-height: 200px;">
 		
 	</form>
 </div>
 <script>
+	function displayImg(input) {
+		if (input.files && input.files[0]) {
+			var reader = new FileReader();
+			reader.onload = function (e) {
+				$('#cimg').attr('src', e.target.result);
+			}
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+
 	$(document).ready(function(){
 		// Initialize Select2
 		setTimeout(function() {
@@ -246,91 +152,10 @@ if(isset($_GET['id'])){
 			});
 		}, 100);
 		
-		// Drag & Drop Image Upload
-		const dropZone = $('#service-drop-zone');
-		const fileInput = $('#service-img-input');
-		const previewContainer = $('#service-preview-container');
-		const previewImg = $('#service-img-preview');
-		const removeBtn = $('#remove-service-img');
-		
-		// Check if there's an existing image
-		if (previewImg.attr('src') && previewImg.attr('src') !== '') {
-			previewContainer.addClass('active');
-			dropZone.hide();
-		}
-		
-		// Click to select file
-		dropZone.on('click', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			fileInput.trigger('click');
-		});
-		
-		// File input change
-		fileInput.on('change', function(e) {
-			handleFiles(this.files);
-		});
-		
-		// Drag & Drop events
-		dropZone.on('dragover', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			$(this).addClass('dragover');
-		});
-		
-		dropZone.on('dragleave', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			$(this).removeClass('dragover');
-		});
-		
-		dropZone.on('drop', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			$(this).removeClass('dragover');
-			
-			const files = e.originalEvent.dataTransfer.files;
-			if (files.length > 0) {
-				fileInput[0].files = files;
-				handleFiles(files);
-			}
-		});
-		
-		// Handle file selection
-		function handleFiles(files) {
-			if (files && files[0]) {
-				const file = files[0];
-				
-				// Validate file type
-				if (!file.type.match('image/(png|jpeg|jpg)')) {
-					alert_toast('Por favor selecciona una imagen PNG o JPG', 'warning');
-					return;
-				}
-				
-				// Validate file size (2MB max)
-				if (file.size > 2 * 1024 * 1024) {
-					alert_toast('La imagen debe ser menor a 2MB', 'warning');
-					return;
-				}
-				
-				const reader = new FileReader();
-				reader.onload = function(e) {
-					previewImg.attr('src', e.target.result);
-					dropZone.fadeOut(300, function() {
-						previewContainer.addClass('active').fadeIn(300);
-					});
-				};
-				reader.readAsDataURL(file);
-			}
-		}
-		
-		// Remove image
-		removeBtn.on('click', function() {
-			fileInput.val('');
-			previewImg.attr('src', '');
-			previewContainer.removeClass('active').fadeOut(300, function() {
-				dropZone.fadeIn(300);
-			});
+		// Update custom file input label
+		$('#customFile').on('change', function() {
+			var fileName = $(this).val().split('\\').pop();
+			$(this).next('.custom-file-label').html(fileName || 'Elegir archivo');
 		});
 		
 		// Remove error styling on input
