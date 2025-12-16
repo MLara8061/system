@@ -212,6 +212,10 @@ try {
 </style>
 
 <script>
+    console.log('=== SCRIPT LOADED ===');
+    console.log('jQuery version:', $.fn.jquery);
+    console.log('Form exists:', $('#manage_accessory').length);
+    
     // Validar formato de imagen
     $('#imagen').on('change', function(e) {
         const file = e.target.files[0];
@@ -244,6 +248,9 @@ try {
     }
 
     $(function() {
+        console.log('=== DOCUMENT READY ===');
+        console.log('Form in DOM:', $('#manage_accessory').length);
+        
         $('.select2').select2({
             width: '100%',
             placeholder: 'Seleccionar',
@@ -287,71 +294,59 @@ try {
                     alert_toast(msg, 'error');
                 }
             });
-        }
-
-        $('#branch_id').on('change', refresh_inventory_number);
-    });
-
-    $('#manage_accessory').submit(function(e) {
-        e.preventDefault();
-        console.log('=== SUBMIT ACCESSORY ===');
-        console.log('jQuery loaded:', typeof jQuery !== 'undefined');
-        console.log('$ loaded:', typeof $ !== 'undefined');
-        console.log('start_load exists:', typeof start_load === 'function');
-        console.log('end_load exists:', typeof end_load === 'function');
-        console.log('alert_toast exists:', typeof alert_toast === 'function');
         
-        // Debug: Verificar datos del formulario
-        var formData = new FormData(this);
-        console.log('FormData entries:');
-        for (var pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-        
-        start_load();
-        $.ajax({
-            url: 'public/ajax/action.php?action=save_accessory',
-            data: new FormData(this),
-            cache: false,
-            contentType: false,
-            processData: false,
-            method: 'POST',
-            success: function(resp) {
-                console.log('=== AJAX SUCCESS ===');
-                console.log('Raw response:', resp);
-                console.log('Response type:', typeof resp);
-                console.log('Response length:', resp ? resp.length : 0);
-                
-                resp = String(resp).trim();
-                console.log('Trimmed response:', resp);
-                
-                if (resp == '1') {
-                    alert_toast('Accesorio guardado correctamente', 'success');
-                    setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
-                } else {
-                    console.error('Save failed. Response:', resp);
-                    alert_toast('Error al guardar: ' + resp, 'error');
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('=== AJAX ERROR ===');
-                console.error('Status:', status);
-                console.error('Error:', error);
-                console.error('XHR status:', xhr.status);
-                console.error('XHR statusText:', xhr.statusText);
-                console.error('Response text:', xhr.responseText);
-                var msg = 'Error de conexión';
-                try {
-                    if (xhr && xhr.responseText) {
-                        msg += ': ' + String(xhr.responseText).trim();
-                    }
-                } catch (e) {}
-                alert_toast(msg, 'error');
-            },
-            complete: function(){
-                end_load();
+        // Registrar handler de submit
+        console.log('=== REGISTERING SUBMIT HANDLER ===');
+        $('#manage_accessory').on('submit', function(e) {
+            console.log('=== SUBMIT EVENT TRIGGERED ===');
+            e.preventDefault();
+            console.log('=== SUBMIT ACCESSORY ===');
+            console.log('jQuery loaded:', typeof jQuery !== 'undefined');
+            console.log('$ loaded:', typeof $ !== 'undefined');
+            console.log('start_load exists:', typeof start_load === 'function');
+            console.log('end_load exists:', typeof end_load === 'function');
+            console.log('alert_toast exists:', typeof alert_toast === 'function');
+            
+            // Debug: Verificar datos del formulario
+            var formData = new FormData(this);
+            console.log('FormData entries:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
             }
-        });
-    });
-</script>
-
+            
+            start_load();
+            $.ajax({
+                url: 'public/ajax/action.php?action=save_accessory',
+                data: new FormData(this),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                success: function(resp) {
+                    console.log('=== AJAX SUCCESS ===');
+                    console.log('Raw response:', resp);
+                    console.log('Response type:', typeof resp);
+                    console.log('Response length:', resp ? resp.length : 0);
+                    
+                    resp = String(resp).trim();
+                    console.log('Trimmed response:', resp);
+                    
+                    if (resp == '1') {
+                        alert_toast('Accesorio guardado correctamente', 'success');
+                        setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
+                    } else {
+                        console.error('Save failed. Response:', resp);
+                        alert_toast('Error al guardar: ' + resp, 'error');
+                    }
+                },
+                error: function(xhr, status, error){
+                    console.error('=== AJAX ERROR ===');
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    console.error('XHR status:', xhr.status);
+                    console.error('XHR statusText:', xhr.statusText);
+                    console.error('Response text:', xhr.responseText);
+                    var msg = 'Error de conexión';
+                    try {
+                        if (xhr && xhr.responseText) {
+          
