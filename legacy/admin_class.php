@@ -3673,7 +3673,46 @@ class Action {
         $data = array();
         while ($row = $qry->fetch_assoc()) {
             $row['description'] = strip_tags(stripslashes($row['description']));
-            $row['img_path'] = file_exists($row['img_path']) ? $row['img_path'] : 'uploads/default.png';
+
+            $default_rel = 'uploads/default.png';
+            $img = trim((string)($row['img_path'] ?? ''));
+            $img_rel = '';
+
+            if ($img !== '') {
+                // URLs públicas se devuelven tal cual
+                if (preg_match('/^https?:\/\//i', $img)) {
+                    $img_rel = $img;
+                } else {
+                    // Normalizar separadores / limpiar bytes nulos
+                    $img_norm = str_replace("\0", '', $img);
+                    $img_norm = str_replace('\\', '/', $img_norm);
+
+                    // Si viene ruta absoluta Windows (C:/...), intentar convertir a relativa a ROOT
+                    if (preg_match('/^[A-Za-z]:\//', $img_norm) && defined('ROOT')) {
+                        $root_norm = str_replace('\\', '/', (string)ROOT);
+                        $root_norm = rtrim($root_norm, '/');
+                        if (stripos($img_norm, $root_norm . '/') === 0) {
+                            $img_norm = substr($img_norm, strlen($root_norm) + 1);
+                        } else {
+                            $img_norm = basename($img_norm);
+                        }
+                    }
+
+                    $candidate_rel = ltrim($img_norm, '/');
+                    if (defined('ROOT')) {
+                        $candidate_fs = rtrim(ROOT, '/\\') . '/' . $candidate_rel;
+                        if (is_file($candidate_fs)) {
+                            $img_rel = $candidate_rel;
+                        }
+                    } else {
+                        if (is_file($candidate_rel)) {
+                            $img_rel = $candidate_rel;
+                        }
+                    }
+                }
+            }
+
+            $row['img_path'] = $img_rel !== '' ? $img_rel : $default_rel;
             $data[] = $row;
         }
         return json_encode(['status' => 'success', 'data' => $data]);
