@@ -294,11 +294,7 @@ try {
 
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
-        
-        var $btn = $(this).find('button[type="submit"]');
-        var originalText = $btn.html();
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
-        
+        start_load();
         $.ajax({
             url: 'public/ajax/action.php?action=save_accessory',
             data: new FormData(this),
@@ -310,18 +306,25 @@ try {
                 console.log('Response:', resp);
                 resp = String(resp).trim();
                 if (resp == '1') {
-                    $btn.removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check"></i> Guardado');
+                    alert_toast('Accesorio guardado correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                 } else {
-                    $btn.prop('disabled', false).html(originalText);
-                    alert('Error al guardar: ' + resp);
+                    alert_toast('Error al guardar: ' + resp, 'error');
                 }
             },
             error: function(xhr, status, error){
                 console.error('Ajax error:', status, error);
                 console.error('Response:', xhr.responseText);
-                $btn.prop('disabled', false).html(originalText);
-                alert('Error de conexión: ' + (xhr.responseText || error));
+                var msg = 'Error de conexión';
+                try {
+                    if (xhr && xhr.responseText) {
+                        msg += ': ' + String(xhr.responseText).trim();
+                    }
+                } catch (e) {}
+                alert_toast(msg, 'error');
+            },
+            complete: function(){
+                end_load();
             }
         });
     });
