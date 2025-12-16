@@ -245,11 +245,11 @@ if(isset($_GET['id'])){
 	
 	<hr>
 	<div class="row">
-		<div class="col-12 d-flex justify-content-between">
+		<div class="col-12 text-right">
 			<a href="index.php?page=service_list" class="btn btn-secondary">
 				<i class="fas fa-times"></i> Cancelar
 			</a>
-			<button type="submit" class="btn btn-primary">
+			<button type="submit" class="btn btn-primary ml-2">
 				<i class="fas fa-save"></i> Guardar
 			</button>
 		</div>
@@ -327,7 +327,14 @@ if(isset($_GET['id'])){
 			const originalText = submitBtn.html();
 			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
 			
-			console.log('Form data being sent:', new FormData($(this)[0]));
+			var formData = new FormData($(this)[0]);
+			console.log('=== DEBUG FORM SUBMISSION ===');
+			console.log('Form element:', $(this)[0]);
+			console.log('File input:', $('#service-img-upload')[0]);
+			console.log('File selected:', $('#service-img-upload')[0].files[0]);
+			for(var pair of formData.entries()) {
+				console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+			}
 			
 			$.ajax({
 				url: "public/ajax/action.php?action=save_service",
@@ -347,11 +354,15 @@ if(isset($_GET['id'])){
 					if(!!resp.status && resp.status == 'success'){
 						alert_toast("Servicio guardado exitosamente", "success");
 						setTimeout(function() {
+						// Si estamos en modal, cerrar modal y recargar data
+						if ($('#uni_modal').length && $('#uni_modal').is(':visible')) {
 							$('#uni_modal').modal('hide');
 							if (typeof load_data === 'function') {
 								load_data();
-							} else {
-								location.reload();
+							}
+						} else {
+							// Si estamos en página completa, redirigir a lista
+							window.location.href = 'index.php?page=service_list';
 							}
 						}, 1500);
 					} else if(!!resp.status && resp.status == 'duplicate'){
