@@ -2528,10 +2528,14 @@ class Action {
 
         // Generar inventory_number si no se proporciona y hay branch_id
         if (empty($_POST['inventory_number']) && !empty($_POST['branch_id'])) {
-            $generated_number = $this->get_next_inventory_number($_POST['branch_id']);
+            $acq_type_id = !empty($_POST['acquisition_type_id']) ? (int)$_POST['acquisition_type_id'] : null;
+            $eq_cat_id = !empty($_POST['equipment_category_id']) ? (int)$_POST['equipment_category_id'] : null;
+            
+            $generated_number = $this->get_next_inventory_number($_POST['branch_id'], $acq_type_id, $eq_cat_id);
             if ($generated_number) {
                 $data .= ", `inventory_number` = '$generated_number' ";
             } else {
+                error_log('ERROR save_accessory: No se pudo generar inventory_number para branch_id=' . $_POST['branch_id']);
                 return 0; // Error generando número
             }
         }
