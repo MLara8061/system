@@ -339,7 +339,7 @@ $('#manage_equipment').submit(function(e) {
             }
             if (resp.status === 1) {
                 var folio = resp.folio || '';
-                var pdfUrl = resp.unsubscribe_id ? 'equipment_unsubscribe_pdf.php?id=' + resp.unsubscribe_id : '';
+                var pdfUrl = resp.unsubscribe_id ? '<?= BASE_URL ?>/app/helpers/equipment_unsubscribe_pdf.php?id=' + resp.unsubscribe_id : '';
                 var successMessage = folio ? 'Se generó el folio ' + folio + '.' : 'Datos guardados correctamente.';
                 alert_toast(successMessage, 'success');
 

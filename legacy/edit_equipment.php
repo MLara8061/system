@@ -675,8 +675,19 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
         line-height: 1;
         white-space: nowrap;
     }
+    .equipment-image-remove-btn i {
+        font-size: 0.9rem;
+    }
     @media (max-width: 576px) {
-        .equipment-image-remove-btn { width: 32px; height: 32px; }
+        .equipment-image-remove-btn {
+            width: 28px;
+            height: 28px;
+            top: 5px !important;
+            right: 5px !important;
+        }
+        .equipment-image-remove-btn i {
+            font-size: 0.7rem;
+        }
     }
 </style>
 

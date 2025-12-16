@@ -125,11 +125,24 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
     .cropper-container { max-height: 400px; }
 
     /* Botón cámara: compacto en móvil */
-    .avatar-camera-btn { line-height: 1; }
+    .avatar-camera-btn {
+        line-height: 1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
     .avatar-camera-btn i { font-size: 0.9rem; }
     @media (max-width: 576px) {
-        .avatar-camera-btn { width: 28px !important; height: 28px !important; }
-        .avatar-camera-btn i { font-size: 0.75rem; }
+        .avatar-camera-btn {
+            width: 30px !important;
+            height: 30px !important;
+            padding: 0 !important;
+        }
+        .avatar-camera-btn i {
+            font-size: 0.7rem;
+        }
+        #avatar-preview {
+            width: 100px !important;
+            height: 100px !important;
+        }
     }
 </style>
 

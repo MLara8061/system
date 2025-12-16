@@ -67,8 +67,13 @@ if (file_exists($env_file)) {
 // === DETECTAR ENTORNO (MEJORADO) ===
 $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? php_uname('n');
 $is_cli = php_sapi_name() === 'cli';
-$is_local = $is_cli
-    || in_array($host, ['localhost', '127.0.0.1', '::1', 'localhost:80', 'localhost:8080'], true)
+
+// Permite forzar el entorno desde variables de entorno (útil en CLI/Hostinger)
+$forced_env = strtolower(trim((string)(getenv('APP_ENV') ?: getenv('ENVIRONMENT'))));
+if ($forced_env === 'prod') $forced_env = 'production';
+if ($forced_env === 'dev') $forced_env = 'local';
+
+$is_local_by_host = in_array($host, ['localhost', '127.0.0.1', '::1', 'localhost:80', 'localhost:8080'], true)
     || str_starts_with($host, 'localhost')
     || str_starts_with($host, '192.168.')
     || str_starts_with($host, '10.')
@@ -76,6 +81,12 @@ $is_local = $is_cli
     || str_ends_with($host, '.local')
     || str_ends_with($host, '.test')
     || str_contains($host, '.dev');
+
+// En CLI: si existen vars de producción, asumir producción.
+// Esto evita que scripts ejecutados por SSH/Cron en Hostinger se queden en "local".
+$has_prod_env = (getenv('DB_HOST_PROD') !== false && getenv('DB_HOST_PROD') !== '')
+    || (getenv('DB_NAME_PROD') !== false && getenv('DB_NAME_PROD') !== '')
+    || (getenv('DB_USER_PROD') !== false && getenv('DB_USER_PROD') !== '');
 
 // Hostinger y otros servicios son producción
 
@@ -116,7 +127,15 @@ if (!function_exists('branch_sql')) {
         return " $clause {$prefix}{$column} = {$bid} ";
     }
 }
-define('ENVIRONMENT', $is_local ? 'local' : 'production');
+if (in_array($forced_env, ['local', 'production'], true)) {
+    define('ENVIRONMENT', $forced_env);
+} else {
+    if ($is_cli) {
+        define('ENVIRONMENT', $has_prod_env ? 'production' : 'local');
+    } else {
+        define('ENVIRONMENT', $is_local_by_host ? 'local' : 'production');
+    }
+}
 
 // === CONFIGURACIÓN BD ===
 $db_config = [

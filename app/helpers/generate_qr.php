@@ -44,10 +44,22 @@ function derive_acq_code_qr($name) {
 function inventory_sequence_qr($number_inventory) {
     $s = trim((string)$number_inventory);
     if ($s === '') return '';
-    $parts = explode('-', $s);
+
+    // Soporta formatos:
+    // - LEGACY: PREFIX-001
+    // - NUEVO:   PREFIX+001
+    // - Fallback: extraer últimos dígitos
+    $parts = preg_split('/[\-\+]/', $s);
     $last = trim((string)end($parts));
-    if ($last === '' || !preg_match('/^[0-9]+$/', $last)) return '';
-    return str_pad($last, 4, '0', STR_PAD_LEFT);
+    if ($last !== '' && preg_match('/^[0-9]+$/', $last)) {
+        return str_pad($last, 4, '0', STR_PAD_LEFT);
+    }
+
+    if (preg_match('/(\d+)\s*$/', $s, $m)) {
+        return str_pad($m[1], 4, '0', STR_PAD_LEFT);
+    }
+
+    return '';
 }
 
 $extra_qs = [];

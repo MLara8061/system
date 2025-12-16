@@ -193,7 +193,17 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
 
 <div class="row align-items-center mb-3">
   <div class="col-md-8">
-    <h3 class="mb-0">Dashboard</h3>
+    <?php
+      $greetName = '';
+      if (!empty($_SESSION['login_name'])) {
+        $greetName = (string)$_SESSION['login_name'];
+      } else {
+        $first = isset($_SESSION['login_firstname']) ? (string)$_SESSION['login_firstname'] : '';
+        $last = isset($_SESSION['login_lastname']) ? (string)$_SESSION['login_lastname'] : '';
+        $greetName = trim($first . ' ' . $last);
+      }
+    ?>
+    <h3 class="mb-0">Bienvenido<?php echo $greetName !== '' ? ', ' . htmlspecialchars($greetName) : ''; ?></h3>
   </div>
 </div>
 

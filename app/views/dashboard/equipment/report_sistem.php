@@ -31,7 +31,7 @@ while ($row = $qry_inv->fetch_array()) {
         </div>
         <div class="card-body p-5">
 
-            <form action="equipment_report_sistem_add.php" method="POST">
+            <form action="<?= BASE_URL ?>/legacy/equipment_report_sistem_add.php" method="POST">
 
                 <!-- === CAMPOS OCULTOS === -->
                 <input type="hidden" name="orden_servicio" value="<?= $orden_servicio ?>">

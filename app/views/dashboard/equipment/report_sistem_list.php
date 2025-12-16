@@ -193,6 +193,6 @@ $otros = max(0, $total_reports - $preventivos - $correctivos);
 <script>
 	$(document).on('click', '.print-report', function() {
 		const id = $(this).data('id');
-		window.open('equipment_report_sistem_pdf.php?id=' + id, '_blank');
+		window.open('<?= BASE_URL ?>/app/helpers/equipment_report_sistem_pdf.php?id=' + id, '_blank');
 	});
 </script>

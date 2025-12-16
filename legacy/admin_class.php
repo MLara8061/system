@@ -1128,7 +1128,7 @@ class Action {
             }
 
             $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
-            return $prefix . '+' . $seq;
+            return $prefix . $seq;
         } catch (Throwable $e) {
             error_log("GET_NEXT_INVENTORY_NUMBER ERROR: " . $e->getMessage());
             return false;

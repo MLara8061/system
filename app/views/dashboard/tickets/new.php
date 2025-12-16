@@ -175,12 +175,20 @@ if ($equipment_name && $inventory) {
 			method: 'POST',
 			type: 'POST',
 			success: function(resp) {
+				end_load()
 				if (resp == 1) {
 					alert_toast('Datos guardados correctamente', "success");
 					setTimeout(function() {
 						location.replace('index.php?page=ticket_list')
 					}, 750)
+				} else {
+					alert_toast('Error al guardar el ticket', "error");
 				}
+			},
+			error: function(xhr, status, error) {
+				end_load()
+				console.error('Error AJAX:', error);
+				alert_toast('Error de conexión al guardar el ticket', "error");
 			}
 		})
 	})
