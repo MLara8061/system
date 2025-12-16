@@ -974,17 +974,49 @@ class Action {
 
     private function ensure_equipment_categories_schema() {
         if (!$this->db) return;
-        if ($this->table_exists_local('equipment_categories')) return;
-        $sql = "CREATE TABLE IF NOT EXISTS `equipment_categories` (
-            `id` INT NOT NULL AUTO_INCREMENT,
-            `clave` VARCHAR(3) NOT NULL,
-            `description` VARCHAR(255) NOT NULL,
-            `active` TINYINT(1) NOT NULL DEFAULT 1,
-            `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`),
-            UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        @$this->db->query($sql);
+
+        // Si no existe, crearla completa
+        if (!$this->table_exists_local('equipment_categories')) {
+            $sql = "CREATE TABLE IF NOT EXISTS `equipment_categories` (
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `clave` VARCHAR(3) NULL,
+                `description` VARCHAR(255) NOT NULL,
+                `active` TINYINT(1) NOT NULL DEFAULT 1,
+                `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            @$this->db->query($sql);
+            return;
+        }
+
+        // Si ya existe, asegurar columnas mínimas (para compatibilidad con instalaciones antiguas)
+        if (!$this->column_exists_local('equipment_categories', 'description')) {
+            // Algunas instalaciones antiguas podían usar `name`
+            if ($this->column_exists_local('equipment_categories', 'name')) {
+                // No renombrar automáticamente; solo aseguramos que al menos exista 'description'
+                // sin borrar datos. Se puede poblar luego si se requiere.
+                @$this->db->query("ALTER TABLE `equipment_categories` ADD COLUMN `description` VARCHAR(255) NOT NULL DEFAULT '' AFTER `name`");
+                @$this->db->query("UPDATE `equipment_categories` SET `description` = COALESCE(NULLIF(`description`, ''), `name`)");
+            } else {
+                @$this->db->query("ALTER TABLE `equipment_categories` ADD COLUMN `description` VARCHAR(255) NOT NULL DEFAULT ''");
+            }
+        }
+
+        if (!$this->column_exists_local('equipment_categories', 'clave')) {
+            // NULLable para no romper filas existentes; se puede completar desde configuración.
+            @$this->db->query("ALTER TABLE `equipment_categories` ADD COLUMN `clave` VARCHAR(3) NULL AFTER `id`");
+        }
+        if (!$this->column_exists_local('equipment_categories', 'active')) {
+            @$this->db->query("ALTER TABLE `equipment_categories` ADD COLUMN `active` TINYINT(1) NOT NULL DEFAULT 1 AFTER `description`");
+        }
+        if ($this->column_exists_local('equipment_categories', 'clave') && !$this->index_exists_local('equipment_categories', 'uniq_equipment_categories_clave')) {
+            try {
+                @$this->db->query("ALTER TABLE `equipment_categories` ADD UNIQUE KEY `uniq_equipment_categories_clave` (`clave`)");
+            } catch (Throwable $e) {
+                // Ignorar (puede fallar si ya existe con otro nombre o hay datos duplicados)
+            }
+        }
     }
 
     private function ensure_inventory_config_schema() {
@@ -1201,13 +1233,24 @@ class Action {
                 $this->ensure_equipment_categories_schema();
                 $this->ensure_acquisition_type_schema();
 
-                $cq = $this->db->query("SELECT clave, description FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+                // Algunas instalaciones antiguas no tenían `clave` y/o usaban `name` en vez de `description`.
+                $has_clave = $this->column_exists_local('equipment_categories', 'clave');
+                $has_desc = $this->column_exists_local('equipment_categories', 'description');
+                $has_name = $this->column_exists_local('equipment_categories', 'name');
+
+                $desc_col = $has_desc ? 'description' : ($has_name ? 'name' : null);
+                $select_cols = $has_clave
+                    ? ("clave" . ($desc_col ? ", {$desc_col} AS description" : ""))
+                    : ($desc_col ? "{$desc_col} AS description" : "id");
+
+                $cq = $this->db->query("SELECT {$select_cols} FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
                 if (!$cq || $cq->num_rows === 0) {
                     error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada");
                     return false;
                 }
                 $cat_row = $cq->fetch_assoc();
-                $cat_code_raw = $cat_row['clave'] ?? '';
+
+                $cat_code_raw = $has_clave ? ($cat_row['clave'] ?? '') : '';
                 error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
                 $cat_code = strtoupper(trim($cat_code_raw));
                 $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
@@ -1280,15 +1323,37 @@ class Action {
             try { $this->pdo->exec("ALTER TABLE `inventory_config` ADD COLUMN `equipment_category_id` INT NULL AFTER `acquisition_type_id`"); } catch (Throwable $e) {}
             try { $this->pdo->exec("ALTER TABLE `inventory_config` ADD UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)"); } catch (Throwable $e) {}
 
-            $stmt = $this->pdo->prepare("SELECT clave, description FROM equipment_categories WHERE id = ? LIMIT 1");
-            $stmt->execute([$equipment_category_id]);
+            // Detectar columnas en PDO para compatibilidad con tablas antiguas
+            $has_clave_pdo = false;
+            $has_desc_pdo = false;
+            $has_name_pdo = false;
+            try {
+                $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'clave'");
+                $has_clave_pdo = $c && $c->fetch(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+            try {
+                $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'description'");
+                $has_desc_pdo = $c && $c->fetch(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+            try {
+                $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'name'");
+                $has_name_pdo = $c && $c->fetch(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+
+            $desc_col = $has_desc_pdo ? 'description' : ($has_name_pdo ? 'name' : null);
+            $select_cols = $has_clave_pdo
+                ? ("clave" . ($desc_col ? ", {$desc_col} AS description" : ""))
+                : ($desc_col ? "{$desc_col} AS description" : "id");
+
+            $stmt = $this->pdo->prepare("SELECT {$select_cols} FROM equipment_categories WHERE id = ? LIMIT 1");
+            $stmt->execute([(int)$equipment_category_id]);
             $cat_row = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$cat_row) {
                 error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada (PDO)");
                 return false;
             }
 
-            $cat_code_raw = $cat_row['clave'] ?? '';
+            $cat_code_raw = $has_clave_pdo ? ($cat_row['clave'] ?? '') : '';
             $cat_code = strtoupper(trim((string)$cat_code_raw));
             $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
             if ($cat_code === '') {

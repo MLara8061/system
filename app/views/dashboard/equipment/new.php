@@ -130,7 +130,42 @@ try {
                                     $cats = [];
                                     try {
                                         if (isset($pdo) && $pdo) {
-                                            $cats = $pdo->query("SELECT id, clave, description FROM equipment_categories WHERE active = 1 ORDER BY clave ASC")
+                                            $hasActive = false;
+                                            $hasClave = false;
+                                            $hasDesc = false;
+                                            $hasName = false;
+                                            try {
+                                                $c = $pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'active'");
+                                                $hasActive = $c && $c->rowCount() > 0;
+                                            } catch (Exception $e) {
+                                                $hasActive = false;
+                                            }
+                                            try {
+                                                $c = $pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'clave'");
+                                                $hasClave = $c && $c->rowCount() > 0;
+                                            } catch (Exception $e) {
+                                                $hasClave = false;
+                                            }
+                                            try {
+                                                $c = $pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'description'");
+                                                $hasDesc = $c && $c->rowCount() > 0;
+                                            } catch (Exception $e) {
+                                                $hasDesc = false;
+                                            }
+                                            try {
+                                                $c = $pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'name'");
+                                                $hasName = $c && $c->rowCount() > 0;
+                                            } catch (Exception $e) {
+                                                $hasName = false;
+                                            }
+
+                                            $descCol = $hasDesc ? 'description' : ($hasName ? 'name' : null);
+                                            $cols = 'id'
+                                                . ($hasClave ? ', clave' : '')
+                                                . ($descCol ? ", {$descCol} AS description" : '');
+                                            $where = $hasActive ? 'WHERE active = 1' : '';
+                                            $order = $hasClave ? 'ORDER BY clave ASC' : 'ORDER BY id ASC';
+                                            $cats = $pdo->query("SELECT {$cols} FROM equipment_categories {$where} {$order}")
                                                 ->fetchAll(PDO::FETCH_ASSOC);
                                         }
                                     } catch (Exception $e) {
@@ -138,7 +173,7 @@ try {
                                     }
                                     foreach ($cats as $row): ?>
                                         <option value="<?= $row['id'] ?>" data-desc="<?= htmlspecialchars($row['description'] ?? '') ?>">
-                                            <?= htmlspecialchars(($row['clave'] ?? '') . ' - ' . ($row['description'] ?? '')) ?>
+                                            <?= htmlspecialchars((!empty($row['clave']) ? ($row['clave'] . ' - ') : '') . ($row['description'] ?? '')) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
