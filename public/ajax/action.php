@@ -343,7 +343,16 @@ if ($action == 'delete_tool') {
 // 9. ACCESORIOS
 // ===================================
 if ($action == 'save_accessory') {
-    echo $crud->save_accessory();
+    error_log('=== SAVE_ACCESSORY ACTION ===');
+    error_log('POST data: ' . print_r($_POST, true));
+    error_log('FILES data: ' . print_r($_FILES, true));
+    error_log('Session login_id: ' . ($_SESSION['login_id'] ?? 'NOT SET'));
+    error_log('Session login_type: ' . ($_SESSION['login_type'] ?? 'NOT SET'));
+    error_log('Session active_branch_id: ' . ($_SESSION['login_active_branch_id'] ?? 'NOT SET'));
+    
+    $result = $crud->save_accessory();
+    error_log('save_accessory result: ' . $result);
+    echo $result;
     exit;
 }
 

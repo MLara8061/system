@@ -294,6 +294,15 @@ try {
 
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
+        console.log('=== SUBMIT ACCESSORY ===');
+        
+        // Debug: Verificar datos del formulario
+        var formData = new FormData(this);
+        console.log('FormData entries:');
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+        
         start_load();
         $.ajax({
             url: 'public/ajax/action.php?action=save_accessory',
@@ -303,18 +312,29 @@ try {
             processData: false,
             method: 'POST',
             success: function(resp) {
-                console.log('Response:', resp);
+                console.log('=== AJAX SUCCESS ===');
+                console.log('Raw response:', resp);
+                console.log('Response type:', typeof resp);
+                console.log('Response length:', resp ? resp.length : 0);
+                
                 resp = String(resp).trim();
+                console.log('Trimmed response:', resp);
+                
                 if (resp == '1') {
                     alert_toast('Accesorio guardado correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                 } else {
+                    console.error('Save failed. Response:', resp);
                     alert_toast('Error al guardar: ' + resp, 'error');
                 }
             },
             error: function(xhr, status, error){
-                console.error('Ajax error:', status, error);
-                console.error('Response:', xhr.responseText);
+                console.error('=== AJAX ERROR ===');
+                console.error('Status:', status);
+                console.error('Error:', error);
+                console.error('XHR status:', xhr.status);
+                console.error('XHR statusText:', xhr.statusText);
+                console.error('Response text:', xhr.responseText);
                 var msg = 'Error de conexión';
                 try {
                     if (xhr && xhr.responseText) {

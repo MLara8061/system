@@ -2501,13 +2501,19 @@ class Action {
 
     // ================== ACCESORIOS ==================
     function save_accessory() {
+        error_log('=== INSIDE save_accessory ===');
         $login_type = (int)($_SESSION['login_type'] ?? 0);
         $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        error_log("login_type: $login_type, active_bid: $active_bid");
 
         $is_new_request = empty($_POST['id'] ?? '');
+        error_log("is_new_request: " . ($is_new_request ? 'YES' : 'NO'));
 
         if ($login_type !== 1) {
-            if ($active_bid <= 0) return 0;
+            if ($active_bid <= 0) {
+                error_log('ERROR: Non-admin user with active_bid <= 0');
+                return 0;
+            }
             $_POST['branch_id'] = $active_bid;
         } else {
             if (!isset($_POST['branch_id']) && $active_bid > 0) {
