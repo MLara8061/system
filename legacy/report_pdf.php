@@ -1,7 +1,7 @@
 <?php
 // report_pdf.php
 define('ACCESS', true);
-require_once 'config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 $report_id = $_GET['id'] ?? 0;
 if (!$report_id || !is_numeric($report_id)) {
