@@ -132,6 +132,7 @@
 		})
 	}
 	$(document).ready(function(){
+		console.log('service_list.php loaded - version: 2024-12-16-v2');
 		load_data()
 		$('#new_data').click(function(){
 			uni_modal('<span class="fa fa-plus"></span> Crear Nuevo Servicio','modals/manage_service.php')
