@@ -1,4 +1,7 @@
 ﻿
+<?php
+// Version: 2024-12-16-v3 - Fixed _base_url_ references
+?>
 <style>
 	.img-service{
 		width:75px;
