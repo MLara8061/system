@@ -1,14 +1,9 @@
 <?php
-// Iniciar sesión ANTES de cargar config
-session_start();
-
 define('ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
 
-// Validar sesión
-if (!isset($_SESSION['login_id'])) {
-    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Acceso denegado. Por favor, inicie sesión.</h3>');
-}
+// Los PDFs son accesibles directamente mediante URL con ID válido
+// No requieren validación de sesión para permitir compartir e imprimir
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');
