@@ -1,8 +1,18 @@
-﻿<?php require_once 'config/config.php'; ?>
+﻿<?php 
+error_log('=== LOADING new_accesories.php ===');
+require_once 'config/config.php'; 
+error_log('Config loaded. conn exists: ' . (isset($conn) ? 'YES' : 'NO'));
+?>
 
 <?php
 // Obtener sucursales
-$branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+try {
+    $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+    error_log('Branches query success. Rows: ' . $branches->num_rows);
+} catch (Exception $e) {
+    error_log('ERROR loading branches: ' . $e->getMessage());
+    die('<h3>Error cargando sucursales: ' . $e->getMessage() . '</h3>');
+}
 // Próximo número de inventario se generará dinámicamente
 
 // Para generar el número con el endpoint compartido, necesitamos una categoría de equipo.
@@ -180,12 +190,18 @@ try {
 
                         <!-- BOTONES -->
                         <div class="text-center btn-container-mobile">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" id="btn-save-accessory">
                                 Guardar
                             </button>
                             <a href="index.php?page=accessories_list" class="btn btn-secondary btn-lg px-5">
                                 Cancelar
                             </a>
+                        </div>
+                        
+                        <!-- DEBUG INFO -->
+                        <div class="mt-3 p-2 bg-warning text-dark">
+                            <strong>DEBUG:</strong> Archivo cargado correctamente.
+                            Timestamp: <?= date('Y-m-d H:i:s') ?>
                         </div>
                     </div>
                 </div>
