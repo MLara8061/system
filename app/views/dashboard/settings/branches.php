@@ -64,11 +64,11 @@ require_once $root . '/config/config.php';
 		$('#list').dataTable()
 
 		$('#new_branch').click(function() {
-			uni_modal("Agregar Sucursal", "app/views/dashboard/settings/manage_branch.php")
+			uni_modal("Agregar Sucursal", "modals/manage_branch.php")
 		})
 
 		$('.edit_branch').click(function() {
-			uni_modal("Editar Sucursal", "app/views/dashboard/settings/manage_branch.php?id=" + $(this).attr('data-id'))
+			uni_modal("Editar Sucursal", "modals/manage_branch.php?id=" + $(this).attr('data-id'))
 		})
 
 		$('.delete_branch').click(function() {

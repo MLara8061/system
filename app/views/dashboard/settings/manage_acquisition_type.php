@@ -1,5 +1,8 @@
 ﻿<?php
-require_once 'config/config.php';
+if (!defined('ROOT')) {
+	define('ROOT', dirname(__DIR__, 4));
+}
+require_once ROOT . '/config/config.php';
 
 // Asegurar columnas necesarias (sin romper instalaciones existentes)
 @$conn->query("CREATE TABLE IF NOT EXISTS `acquisition_type` (

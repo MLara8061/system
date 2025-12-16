@@ -66,10 +66,10 @@
 	$(document).ready(function() {
 		$('#list').dataTable()
 		$('#new_department').click(function() {
-			uni_modal("Agregar Departamento", "app/views/dashboard/settings/manage_department.php")
+			uni_modal("Agregar Departamento", "modals/manage_department.php")
 		})
 		$('.edit_department').click(function() {
-			uni_modal("Editar Departmento", "app/views/dashboard/settings/manage_department.php?id=" + $(this).attr('data-id'))
+			uni_modal("Editar Departmento", "modals/manage_department.php?id=" + $(this).attr('data-id'))
 		})
 		$('.delete_department').click(function() {
 			const deptId = $(this).attr('data-id');

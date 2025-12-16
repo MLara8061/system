@@ -1,4 +1,9 @@
-﻿<?php require_once 'config/config.php'; ?>
+﻿<?php
+if (!defined('ROOT')) {
+  define('ROOT', dirname(__DIR__, 4));
+}
+require_once ROOT . '/config/config.php';
+?>
 <?php
 $position_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $location_id = '';

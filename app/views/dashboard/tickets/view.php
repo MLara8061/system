@@ -245,10 +245,10 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 
 	})
 	$('.edit_comment').click(function() {
-		uni_modal("Editar Comentario", "manage_comment.php?id=" + $(this).attr('data-id'))
+		uni_modal("Editar Comentario", "modals/manage_comment.php?id=" + $(this).attr('data-id'))
 	})
 	$('.update_status').click(function() {
-		uni_modal("Actualizar estado del ticket", "manage_ticket.php?id=" + $(this).attr('data-id'))
+		uni_modal("Actualizar estado del ticket", "modals/manage_ticket.php?id=" + $(this).attr('data-id'))
 	})
 	$('#manage-comment').submit(function(e) {
 		e.preventDefault()

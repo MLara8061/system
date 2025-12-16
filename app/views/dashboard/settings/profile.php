@@ -26,7 +26,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
                     <div class="avatar-container position-relative d-inline-block">
                         <img src="<?= $avatar_path ?>" alt="Avatar" id="avatar-preview" 
                              class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 4px solid #e9ecef;">
-                        <label for="avatar-upload" class="btn btn-primary btn-sm rounded-circle position-absolute" 
+                           <label for="avatar-upload" class="btn btn-primary btn-sm rounded-circle position-absolute avatar-camera-btn" 
                                style="bottom: 0; right: 0; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-camera"></i>
                         </label>
@@ -123,6 +123,14 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
     .avatar-container:hover { transform: scale(1.05); }
     #crop-image { max-width: 100%; height: auto; }
     .cropper-container { max-height: 400px; }
+
+    /* Botón cámara: compacto en móvil */
+    .avatar-camera-btn { line-height: 1; }
+    .avatar-camera-btn i { font-size: 0.9rem; }
+    @media (max-width: 576px) {
+        .avatar-camera-btn { width: 28px !important; height: 28px !important; }
+        .avatar-camera-btn i { font-size: 0.75rem; }
+    }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>

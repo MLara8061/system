@@ -1,4 +1,9 @@
-﻿<?php require_once 'config/config.php'; ?>
+﻿<?php
+if (!defined('ROOT')) {
+    define('ROOT', dirname(__DIR__));
+}
+require_once ROOT . '/config/config.php';
+?>
 <?php
 if(isset($_GET['id'])){
 	$qry = $conn->query("SELECT * FROM comments where id = ".$_GET['id'])->fetch_array();

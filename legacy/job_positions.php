@@ -55,11 +55,11 @@ $(document).ready(function() {
     $('#positions_list').dataTable();
 
     $('#new_position').click(function() {
-        uni_modal("Agregar Puesto", "manage_job_position.php");
+      uni_modal("Agregar Puesto", "modals/manage_job_position.php");
     });
 
     $('.edit_position').click(function() {
-        uni_modal("Editar Puesto", "manage_job_position.php?id=" + $(this).attr('data-id'));
+      uni_modal("Editar Puesto", "modals/manage_job_position.php?id=" + $(this).attr('data-id'));
     });
 
     $('.delete_position').click(function() {

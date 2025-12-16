@@ -91,7 +91,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Servicios','manage_category.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Categoría de Servicios','modals/manage_category.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -122,7 +122,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de servicio','manage_category.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear una nueva categoría de servicio','modals/manage_category.php')
 		})
 	})
 </script>

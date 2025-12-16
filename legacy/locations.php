@@ -49,11 +49,11 @@
     $('#list').dataTable();
 
     $('#new_location').click(function() {
-      uni_modal("Agregar Ubicación", "manage_equipment_location.php");
+      uni_modal("Agregar Ubicación", "modals/manage_equipment_location.php");
     });
 
     $('.edit_location').click(function() {
-      uni_modal("Editar Ubicación", "manage_equipment_location.php?id=" + $(this).attr('data-id'));
+      uni_modal("Editar Ubicación", "modals/manage_equipment_location.php?id=" + $(this).attr('data-id'));
     });
 
     $('.delete_location').click(function() {

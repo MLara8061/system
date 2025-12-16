@@ -67,11 +67,11 @@
 		$('#list').dataTable()
 		$('#new_department').click(function() {
 			const baseUrl = '<?php echo rtrim(BASE_URL, '/'); ?>';
-			uni_modal("Agregar Departamento", baseUrl + "/app/views/dashboard/settings/manage_department.php")
+			uni_modal("Agregar Departamento", baseUrl + "/modals/manage_department.php")
 		})
 		$('.edit_department').click(function() {
 			const baseUrl = '<?php echo rtrim(BASE_URL, '/'); ?>';
-			uni_modal("Editar Departmento", baseUrl + "/app/views/dashboard/settings/manage_department.php?id=" + $(this).attr('data-id'))
+			uni_modal("Editar Departmento", baseUrl + "/modals/manage_department.php?id=" + $(this).attr('data-id'))
 		})
 		$('.delete_department').click(function() {
 			const deptId = $(this).attr('data-id');

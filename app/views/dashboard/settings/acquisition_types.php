@@ -93,7 +93,7 @@
 
 	function data_func(){
 		$('.edit_data').click(function(){
-			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Tipo de Adquisición','app/views/dashboard/settings/manage_acquisition_type.php?id='+$(this).attr('data-id'))
+			uni_modal('<span class="fa fa-edit text-primary"></span> Editar Tipo de Adquisición','modals/manage_acquisition_type.php?id='+$(this).attr('data-id'))
 		})
 		$('.delete_data').click(function(){
 			_conf('Deseas eliminar estos datos?','delete_data',[$(this).attr('data-id')]);
@@ -129,7 +129,7 @@
 	$(document).ready(function(){
 		load_data()
 		$('#new_data').click(function(){
-			uni_modal('<span class="fa fa-plus"></span> Crear un nuevo tipo de adquisición','app/views/dashboard/settings/manage_acquisition_type.php')
+			uni_modal('<span class="fa fa-plus"></span> Crear un nuevo tipo de adquisición','modals/manage_acquisition_type.php')
 		})
 	})
 </script>

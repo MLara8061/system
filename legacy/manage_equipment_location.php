@@ -1,4 +1,9 @@
-﻿<?php require_once 'config/config.php'; ?>
+﻿<?php
+if (!defined('ROOT')) {
+    define('ROOT', dirname(__DIR__));
+}
+require_once ROOT . '/config/config.php';
+?>
 <?php
 $department_id = '';
 if(isset($_GET['id'])){

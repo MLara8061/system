@@ -206,7 +206,7 @@ $(document).ready(function() {
     $(document).on('click', '#add-new-user-btn, .edit-user', function() {
         const isEdit = $(this).hasClass('edit-user');
         const id = isEdit ? $(this).data('id') : 0;
-        const url = `manage_user_modal.php${id ? '?id=' + id : ''}`;
+        const url = `modals/manage_user_modal.php${id ? '?id=' + id : ''}`;
 
         // Actualizar título y botón
         $('#modal-title').html(`
@@ -236,7 +236,7 @@ $(document).ready(function() {
             setTimeout(initializeUserForm, 100); // Reintentar si el form aún no está en el DOM
             return;
         }
-        // El formulario ya está inicializado en manage_user_modal.php
+        // El formulario ya está inicializado en modals/manage_user_modal.php
     }
 
     // === BOTÓN GUARDAR (SUBMIT EXPLÍCITO) ===

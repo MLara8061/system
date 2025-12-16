@@ -1,13 +1,23 @@
 <?php
 define('ACCESS', true);
 
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/../../..'));
+}
+
 // Usar rutas absolutas para soportar acceso directo a /app/views/pages/view_inventory.php
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/session.php';
 
 if (!validate_session()) {
+    if (defined('IS_MODAL') && IS_MODAL) {
+        http_response_code(401);
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<div class="alert alert-warning mb-0">Sesión expirada. Recarga la página e inicia sesión nuevamente.</div>';
+        exit;
+    }
     header('location: /app/views/auth/login.php');
-    exit();
+    exit;
 }
 ?>
 <?php
@@ -29,9 +39,15 @@ $row = $qry->fetch_assoc();
             <!-- IMAGEN -->
             <div class="col-md-4 text-center mb-3">
                 <div id="image-preview" class="position-relative d-inline-block">
-                    <?php if (!empty($row['image_path']) && file_exists('uploads/'.$row['image_path'])): ?>
+                    <?php
+                    $baseUrl = rtrim(BASE_URL, '/');
+                    $relUploadPath = (!empty($row['image_path'])) ? ('uploads/' . $row['image_path']) : '';
+                    $fullUploadPath = (!empty($relUploadPath)) ? (ROOT . '/' . $relUploadPath) : '';
+                    $hasImage = (!empty($relUploadPath) && is_string($fullUploadPath) && file_exists($fullUploadPath));
+                    ?>
+                    <?php if ($hasImage): ?>
                         <div class="position-relative d-inline-block">
-                            <img src="uploads/<?= $row['image_path'] ?>" 
+                            <img src="<?= $baseUrl . '/' . $relUploadPath ?>" 
                                  class="img-fluid rounded" 
                                  style="max-height: 180px;" 
                                  id="current-inv-img">
@@ -52,7 +68,7 @@ $row = $qry->fetch_assoc();
                     <?php endif; ?>
                 </div>
                 <div class="mt-2" id="upload-inv-container" 
-                     style="display: <?= (!empty($row['image_path']) && file_exists('uploads/'.$row['image_path'])) ? 'none' : 'block' ?>;">
+                     style="display: <?= $hasImage ? 'none' : 'block' ?>;">
                     <input type="file" name="image_path" id="image-input" 
                            class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
                     <small class="text-muted d-block mt-1">Formatos: JPG, PNG (máx. 5MB)</small>
@@ -138,6 +154,8 @@ $row = $qry->fetch_assoc();
 </style>
 
 <script>
+    const baseUrl = '<?= rtrim(BASE_URL, '/') ?>';
+
     // Validar formato de imagen
     $('#image-input').on('change', function(e) {
         const file = e.target.files[0];
@@ -202,7 +220,7 @@ $row = $qry->fetch_assoc();
         formData.append('action', 'save_inventory');
 
         $.ajax({
-            url: 'public/ajax/action.php',
+            url: baseUrl + '/public/ajax/action.php',
             method: 'POST',
             data: formData,
             processData: false,

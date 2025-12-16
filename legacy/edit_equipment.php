@@ -146,9 +146,9 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                                      style="max-height: 380px; object-fit: contain;" 
                                      id="equipment-preview">
                                 <button type="button" 
-                                        class="btn btn-danger btn-sm position-absolute" 
-                                        style="top: 10px; right: 10px; z-index: 10;" 
-                                        id="remove-equipment-image">
+                                    class="btn btn-danger btn-sm position-absolute equipment-image-remove-btn" 
+                                    style="top: 10px; right: 10px; z-index: 10;" 
+                                    id="remove-equipment-image">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -662,6 +662,22 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
     .form-control, .custom-select { border-radius: 10px; }
     .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badge { font-size: 1.1rem; }
+
+    /* Botón eliminar imagen: evita que se estire en móvil */
+    .equipment-image-remove-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    @media (max-width: 576px) {
+        .equipment-image-remove-btn { width: 32px; height: 32px; }
+    }
 </style>
 
 <script>

@@ -217,7 +217,7 @@ $(document).ready(function() {
         const baseUrl = '<?php echo rtrim(BASE_URL, '/'); ?>';
         uni_modal(
             '<i class="fa fa-edit text-primary"></i> Editar Ítem',
-            baseUrl + '/app/views/pages/view_inventory.php?id=' + id,
+            baseUrl + '/modals/view_inventory.php?id=' + id,
             'mid-large',
             '<div class="modal-footer">' +
                 '<button type="button" class="btn btn-secondary" data-dismiss="modal">' +
