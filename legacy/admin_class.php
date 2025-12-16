@@ -2694,18 +2694,23 @@ class Action {
             if ($is_new_request && $active_bid === 0 && empty($_POST['branch_id'])) return 0;
         }
 
+        // El número de inventario en accesorios lo asigna el sistema (no editable desde el cliente)
+        if (isset($_POST['inventory_number'])) {
+            unset($_POST['inventory_number']);
+        }
+
         extract($_POST);
         $data = "";
-        $allowed = ['name','type','brand','model','serial','cost','acquisition_date','acquisition_type_id','area_id','status','observations','inventory_number','branch_id','numero_parte'];
+        $allowed = ['name','type','brand','model','serial','cost','acquisition_date','acquisition_type_id','area_id','status','observations','branch_id','numero_parte'];
         foreach ($allowed as $k) {
             if (isset($_POST[$k])) {
                 $data .= empty($data) ? " `$k` = '".addslashes($_POST[$k])."' " : ", `$k` = '".addslashes($_POST[$k])."' ";
             }
         }
 
-        // Generar inventory_number si no se proporciona y hay branch_id
         // Para accesorios, herramientas e insumos usamos el esquema simple (PREFIX-001)
-        if (empty($_POST['inventory_number']) && !empty($_POST['branch_id'])) {
+        // Siempre autogenerado al crear un nuevo registro.
+        if ($is_new_request && !empty($_POST['branch_id'])) {
             $generated_number = $this->get_next_inventory_number($_POST['branch_id'], null, null);
             if ($generated_number) {
                 $data .= ", `inventory_number` = '$generated_number' ";
@@ -2713,14 +2718,6 @@ class Action {
                 error_log('ERROR save_accessory: No se pudo generar inventory_number para branch_id=' . $_POST['branch_id']);
                 return 0; // Error generando número
             }
-        }
-
-        if (isset($inventory_number)) {
-            $inventory_number = addslashes($inventory_number);
-            $check = empty($id)
-                ? $this->db->query("SELECT id FROM accessories WHERE inventory_number = '$inventory_number'")
-                : $this->db->query("SELECT id FROM accessories WHERE inventory_number = '$inventory_number' AND id != $id");
-            if ($check && $check->num_rows > 0) return 0;
         }
 
         if (isset($keep_image) && $keep_image == '0' && !empty($id)) {

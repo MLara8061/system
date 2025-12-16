@@ -56,7 +56,7 @@ try {
                             </div>
                             <div class="col-md-4">
                                 <span class="badge badge-primary font-weight-bold p-2" id="inventory_badge" style="font-size: 1.1rem;">
-                                    Seleccionar sucursal
+                                    Se asignará automáticamente
                                 </span>
                                 <input type="hidden" name="inventory_number" id="numero_inventario" value="">
                                 <input type="hidden" name="equipment_category_id" id="equipment_category_id" value="<?= (int)$accessories_category_id ?>">
@@ -153,10 +153,38 @@ try {
                                 <select name="acquisition_type_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $acq = $conn->query("SELECT id, name FROM acquisition_type ORDER BY name");
-                                    while ($a = $acq->fetch_assoc()): ?>
-                                        <option value="<?= $a['id'] ?>"><?= ucwords($a['name']) ?></option>
-                                    <?php endwhile; ?>
+                                    $hasCode = false;
+                                    $hasActive = false;
+                                    try {
+                                        $c = $conn->query("SHOW COLUMNS FROM acquisition_type LIKE 'code'");
+                                        $hasCode = $c && $c->num_rows > 0;
+                                    } catch (Throwable $e) {
+                                        $hasCode = false;
+                                    }
+                                    try {
+                                        $c = $conn->query("SHOW COLUMNS FROM acquisition_type LIKE 'active'");
+                                        $hasActive = $c && $c->num_rows > 0;
+                                    } catch (Throwable $e) {
+                                        $hasActive = false;
+                                    }
+
+                                    $cols = $hasCode ? 'id, name, code' : 'id, name';
+                                    $where = $hasActive ? 'WHERE active = 1' : '';
+                                    $order = $hasCode ? 'ORDER BY code ASC, name ASC' : 'ORDER BY name ASC';
+                                    $acq = $conn->query("SELECT {$cols} FROM acquisition_type {$where} {$order}");
+                                    if ($acq) {
+                                        while ($a = $acq->fetch_assoc()):
+                                            $label = (string)($a['name'] ?? '');
+                                            $code = strtoupper(trim((string)($a['code'] ?? '')));
+                                            if ($code !== '') {
+                                                $label = $code . ' - ' . $label;
+                                            }
+                                    ?>
+                                            <option value="<?= htmlspecialchars((string)($a['id'] ?? '')) ?>"><?= htmlspecialchars(ucwords($label)) ?></option>
+                                    <?php
+                                        endwhile;
+                                    }
+                                    ?>
                                 </select>
                             </div>
                         </div>
@@ -255,47 +283,6 @@ try {
             placeholder: 'Seleccionar',
             allowClear: true
         });
-
-        function refresh_inventory_number(){
-            var branch_id = $('#branch_id').val();
-
-            if(!branch_id){
-                $('#inventory_badge').text('Seleccionar sucursal');
-                $('#numero_inventario').val('');
-                return;
-            }
-
-            $.ajax({
-                url: 'public/ajax/action.php?action=get_next_inventory_number',
-                method: 'POST',
-                data: {
-                    branch_id: branch_id
-                },
-                dataType: 'json',
-                success: function(data){
-                    if(data && data.success && data.number){
-                        $('#inventory_badge').text(data.number);
-                        $('#numero_inventario').val(data.number);
-                    } else {
-                        var msg = (data && data.error) ? data.error : 'Error al generar número de inventario';
-                        $('#inventory_badge').text('Error');
-                        $('#numero_inventario').val('');
-                        alert_toast(msg, 'error');
-                    }
-                },
-                error: function(xhr){
-                    var msg = 'Error de conexión';
-                    try {
-                        if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
-                    } catch (e) {}
-                    $('#inventory_badge').text('Error');
-                    $('#numero_inventario').val('');
-                    alert_toast(msg, 'error');
-                }
-            });
-        }
-        
-        $('#branch_id').on('change', refresh_inventory_number);
 
         $('#manage_accessory').on('submit', function(e) {
             e.preventDefault();
