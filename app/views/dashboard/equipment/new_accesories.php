@@ -311,6 +311,9 @@ try {
                     alert_toast(msg, 'error');
                 }
             });
+        }
+        
+        $('#branch_id').on('change', refresh_inventory_number);
         
         // Registrar handler de submit
         console.log('=== REGISTERING SUBMIT HANDLER ===');
