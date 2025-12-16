@@ -152,6 +152,20 @@ if(isset($_GET['id'])){
 		z-index: 99999 !important;
 	}
 	
+	.select2-container--bootstrap4 .select2-results__option {
+		z-index: 99999 !important;
+	}
+	
+	/* Asegurar que el dropdown esté por encima de otros form-groups */
+	#uni_modal .form-group:has(.select2) {
+		z-index: 1000;
+		position: relative;
+	}
+	
+	.select2-dropdown-high-z {
+		z-index: 99999 !important;
+	}
+	
 	.select2-container .select2-selection--single {
 		height: calc(2.5rem + 4px) !important;
 		border-radius: 8px;
@@ -236,9 +250,16 @@ if(isset($_GET['id'])){
 				dropdownParent: $('#uni_modal'),
 				theme: 'bootstrap4',
 				placeholder: 'Selecciona una categoría',
-				width: '100%'
+				width: '100%',
+				dropdownCssClass: 'select2-dropdown-high-z'
 			});
 		}, 100);
+		
+		// Fix z-index on open
+		$('.select2').on('select2:open', function() {
+			$('.select2-dropdown').css('z-index', 99999);
+			$('.select2-container--open').css('z-index', 99999);
+		});
 		
 		// Upload de imagen
 		$('#service-img-upload').on('change', function(e) {
