@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 // Version: 2024-12-16-v4 - Avatar style image upload
 if (!defined('ROOT')) {
     define('ROOT', realpath(__DIR__ . '/../../../../'));
@@ -172,17 +172,14 @@ if(isset($_GET['id'])){
 		}
 	}
 </style>
-<div class="alert alert-info text-center" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-	<strong>PRUEBA DE WEBHOOK 001</strong>
-</div>
 <div class="container-fluid">
 	<form action="" id="manage-service">
 		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
 		
 		<div class="form-group">
-			<label for="category_id">Categor�a</label>
+			<label for="category_id">Categoría</label>
 			<select class="custom-select select2" name="category_id" id="category_id" required>
-				<option value="">Selecciona una categor�a</option>
+				<option value="">Selecciona una categoría</option>
 				<?php 
 				$category = $conn->query("SELECT * FROM `services_category` order by `category` asc ");
 				while($row = $category->fetch_assoc()):
@@ -217,9 +214,10 @@ if(isset($_GET['id'])){
 					style="<?php echo (!isset($img_path) || empty($img_path) || !file_exists($img_path)) ? 'display: none;' : '' ?>">
 				<i class="fas fa-times"></i>
 			</button>
+			</div>
 		</div>
 		<input type="file" id="service-img-upload" name="img" class="d-none" accept="image/png,image/jpeg,image/jpg,image/webp">
-		
+	</div>
 	</form>
 </div>
 <script>
@@ -241,11 +239,11 @@ if(isset($_GET['id'])){
 				
 				// Validar tipo de archivo
 				if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
-					alert_toast('Por favor selecciona una imagen v�lida (JPG, PNG, WebP)', 'warning');
+					alert_toast('Por favor selecciona una imagen válida (JPG, PNG, WebP)', 'warning');
 					return;
 				}
 				
-				// Validar tama�o (5MB m�x)
+				// Validar tamaño (5MB máx)
 				if (file.size > 5 * 1024 * 1024) {
 					alert_toast('La imagen debe ser menor a 5MB', 'warning');
 					return;
@@ -255,7 +253,7 @@ if(isset($_GET['id'])){
 				reader.onload = function(e) {
 					$('#service-img-preview').attr('src', e.target.result);
 					
-					// Mostrar bot�n eliminar si no existe
+					// Mostrar botón eliminar si no existe
 					if ($('#delete-service-img-btn').length === 0) {
 						$('.service-img-container').append(
 							'<button type="button" class="service-delete-btn" id="delete-service-img-btn" title="Eliminar imagen">' +
