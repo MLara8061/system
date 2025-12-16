@@ -2527,11 +2527,9 @@ class Action {
         }
 
         // Generar inventory_number si no se proporciona y hay branch_id
+        // Para accesorios, herramientas e insumos usamos el esquema simple (PREFIX-001)
         if (empty($_POST['inventory_number']) && !empty($_POST['branch_id'])) {
-            $acq_type_id = !empty($_POST['acquisition_type_id']) ? (int)$_POST['acquisition_type_id'] : null;
-            $eq_cat_id = !empty($_POST['equipment_category_id']) ? (int)$_POST['equipment_category_id'] : null;
-            
-            $generated_number = $this->get_next_inventory_number($_POST['branch_id'], $acq_type_id, $eq_cat_id);
+            $generated_number = $this->get_next_inventory_number($_POST['branch_id'], null, null);
             if ($generated_number) {
                 $data .= ", `inventory_number` = '$generated_number' ";
             } else {

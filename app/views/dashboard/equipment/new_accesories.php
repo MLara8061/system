@@ -252,21 +252,9 @@ try {
 
         function refresh_inventory_number(){
             var branch_id = $('#branch_id').val();
-            var acquisition_type_id = $('[name="acquisition_type_id"]').val();
-            var equipment_category_id = $('#equipment_category_id').val();
 
             if(!branch_id){
                 $('#inventory_badge').text('Seleccionar sucursal');
-                $('#numero_inventario').val('');
-                return;
-            }
-            if(!acquisition_type_id){
-                $('#inventory_badge').text('Seleccionar tipo de adquisición');
-                $('#numero_inventario').val('');
-                return;
-            }
-            if(!equipment_category_id || equipment_category_id === '0'){
-                $('#inventory_badge').text('Configurar categoría Accesorios');
                 $('#numero_inventario').val('');
                 return;
             }
@@ -275,9 +263,7 @@ try {
                 url: 'public/ajax/action.php?action=get_next_inventory_number',
                 method: 'POST',
                 data: {
-                    branch_id: branch_id,
-                    acquisition_type_id: acquisition_type_id,
-                    equipment_category_id: equipment_category_id
+                    branch_id: branch_id
                 },
                 dataType: 'json',
                 success: function(data){
@@ -304,7 +290,6 @@ try {
         }
 
         $('#branch_id').on('change', refresh_inventory_number);
-        $('[name="acquisition_type_id"]').on('change', refresh_inventory_number);
     });
 
     $('#manage_accessory').submit(function(e) {
