@@ -33,7 +33,7 @@ if(isset($_GET['id'])){
 		<hr>
 		<div class="col-lg-12 text-right justify-content-center d-flex">
 			<button class="btn btn-primary mr-2" type="submit">Guardar</button>
-			<button class="btn btn-secondary" type="reset">Reset</button>
+			<button class="btn btn-secondary" type="button" id="btn-cancel-category-legacy">Cancelar</button>
 		</div>
 
 	</form>
@@ -41,7 +41,7 @@ if(isset($_GET['id'])){
 <script>
 	$(document).ready(function(){
 		// Este formulario se usa dentro de #uni_modal, cuyo layout ya trae footer con "Guardar/Cancel".
-		// Para evitar botones duplicados (Guardar/Reset + Guardar/Cancel), ocultamos el footer global
+		// Para evitar botones duplicados (Guardar/Cancelar + Guardar/Cancel), ocultamos el footer global
 		// solo mientras este modal está abierto y lo restauramos al cerrarse.
 		if ($('#uni_modal').length) {
 			$('#uni_modal .modal-footer').hide();
@@ -49,6 +49,11 @@ if(isset($_GET['id'])){
 				$('#uni_modal .modal-footer').show();
 			});
 		}
+
+		// Botón Cancelar - cierra el modal
+		$('#btn-cancel-category-legacy').on('click', function(){
+			$('#uni_modal').modal('hide');
+		});
 
 		$('#category').keypress(function(){
 			$(this).removeClass('border-danger');
