@@ -169,7 +169,7 @@ $equipos_unicos = count($uniqueEquip);
                                 <td><?= htmlspecialchars($reasonText) ?></td>
                                 <td class="text-center"><?= $maintenanceTotal ?></td>
                                 <td class="text-center">
-                                    <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= BASE_URL ?>/app/helpers/equipment_unsubscribe_pdf.php?id=<?= (int)$row['id'] ?>">
+                                    <a class="btn btn-sm btn-outline-primary" target="_blank" href="<?= BASE_URL ?>/legacy/equipment_unsubscribe_pdf.php?id=<?= (int)$row['id'] ?>">
                                         <i class="fas fa-file-pdf mr-1"></i> PDF
                                     </a>
                                 </td>
