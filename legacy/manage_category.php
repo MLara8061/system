@@ -4,8 +4,10 @@ if (!defined('ROOT')) {
 }
 require_once ROOT . '/config/config.php';
 
-if(isset($_GET['id'])){
-	$qry = $conn->query("SELECT * FROM `services_category` where id = '{$_GET['id']}'");
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if($id > 0){
+	$qry = $conn->query("SELECT * FROM `services_category` where id = {$id}");
 	foreach ($qry->fetch_array() as $key => $value) {
 		if(!is_numeric($key))
 			$$key = $value;
@@ -15,14 +17,14 @@ if(isset($_GET['id'])){
 ?>
 <div class="container-fluid">
 	<form action="" id="manage-category">
-		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
+		<input type="hidden" name="id" value="<?php echo $id > 0 ? $id : '' ?>">
 	<div class="form-group">
 			<label for="category" class="control-label">Categoría</label>
 			<input type="text" class="form-control form-control-sm" name="category" id="category" value="<?php echo isset($category) ? $category : "" ?>" required>
 		</div>
 		<div class="form-group">
 			<label for="clave" class="control-label">Clave (Inmutable)</label>
-			<input type="text" class="form-control form-control-sm" name="clave" id="clave" value="<?php echo isset($clave) ? $clave : "" ?>" <?php echo isset($_GET['id']) ? 'readonly' : 'required' ?>>
+			<input type="text" class="form-control form-control-sm" name="clave" id="clave" value="<?php echo isset($clave) ? $clave : "" ?>" <?php echo $id > 0 ? 'readonly' : 'required' ?>>
 			<small class="text-muted">La clave es única e inmutable una vez creada.</small>
 		</div>
 		<div class="form-group">

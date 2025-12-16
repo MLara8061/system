@@ -3,8 +3,10 @@ if (!defined('ROOT')) {
     define('ROOT', dirname(__DIR__));
 }
 require_once ROOT . '/config/config.php';
-if(isset($_GET['id'])){
-	$qry = $conn->query("SELECT * FROM `services` where id = '{$_GET['id']}'");
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if($id > 0){
+	$qry = $conn->query("SELECT * FROM `services` where id = {$id}");
 	foreach ($qry->fetch_array() as $key => $value) {
 		if(!is_numeric($key))
 			$$key = $value;
@@ -22,7 +24,7 @@ if(isset($_GET['id'])){
 </style>
 <div class="container-fluid">
 	<form action="" id="manage-service" enctype="multipart/form-data">
-		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
+		<input type="hidden" name="id" value="<?php echo $id > 0 ? $id : '' ?>">
 		<div class="form-group">
 			<label for="category_id" class="control-label">Categoría</label>
 			<select class="custom-select custom-select-sm select2" name="category_id" id="category_id" required>

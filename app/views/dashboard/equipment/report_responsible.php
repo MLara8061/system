@@ -1,33 +1,40 @@
 <?php
 require_once 'config/config.php';
-$qry = $conn->query("SELECT * FROM equipments where id = " . $_GET['id'])->fetch_array();
-foreach ($qry as $k => $v) {
+$equipment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+$qry = $equipment_id > 0 ? $conn->query("SELECT * FROM equipments where id = {$equipment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach ($row as $k => $v) {
     $$k = $v;
 }
 
-$qry = $conn->query("SELECT * FROM equipment_reception where equipment_id = " . $_GET['id'])->fetch_array();
-foreach ($qry as $k => $v) {
+$qry = $equipment_id > 0 ? $conn->query("SELECT * FROM equipment_reception where equipment_id = {$equipment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach ($row as $k => $v) {
     $$k = $v;
 }
 
-$qry = $conn->query("SELECT d.*,p.name as responsible_position_name,l.name as location_name from equipment_delivery d inner join `job_positions` p on d.`responsible_position`=p.`id` inner join locations l on d.`location_id`=l.id  where equipment_id = " . $_GET['id'])->fetch_array();
-foreach ($qry as $k => $v) {
+$qry = $equipment_id > 0 ? $conn->query("SELECT d.*,p.name as responsible_position_name,l.name as location_name from equipment_delivery d inner join `job_positions` p on d.`responsible_position`=p.`id` inner join locations l on d.`location_id`=l.id  where equipment_id = {$equipment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach ($row as $k => $v) {
     $$k = $v;
 }
 
-$qry = $conn->query("SELECT * FROM equipment_safeguard where equipment_id = " . $_GET['id'])->fetch_array();
-foreach ($qry as $k => $v) {
+$qry = $equipment_id > 0 ? $conn->query("SELECT * FROM equipment_safeguard where equipment_id = {$equipment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach ($row as $k => $v) {
     $$k = $v;
 }
 
-$qry = $conn->query("SELECT * FROM equipment_control_documents where equipment_id = " . $_GET['id'])->fetch_array();
-foreach ($qry as $k => $v) {
+$qry = $equipment_id > 0 ? $conn->query("SELECT * FROM equipment_control_documents where equipment_id = {$equipment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach ($row as $k => $v) {
     $$k = $v;
 }
 $mesesN = array(1 => "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
 
 //Seteamos el id de nuevo por toda las consultas anteriores;
-$id = $_GET['id'];
+$id = $equipment_id;
 
 ?>
 <style type="text/css" media="print">

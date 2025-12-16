@@ -6,13 +6,16 @@ require_once ROOT . '/config/config.php';
 ?>
 <?php
 $department_id = '';
-if(isset($_GET['id'])){
-  $qry = $conn->query("SELECT * FROM locations WHERE id=".$_GET['id']);
-  $data = $qry->fetch_assoc();
-  foreach($data as $k => $v){
-    $$k = $v;
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if($id > 0){
+  $qry = $conn->query("SELECT * FROM locations WHERE id={$id}");
+  $data = $qry ? $qry->fetch_assoc() : null;
+  if (is_array($data)) {
+    foreach($data as $k => $v){
+      $$k = $v;
+    }
+    $department_id = $data['department_id'] ?? '';
   }
-  $department_id = $data['department_id'] ?? '';
 }
 ?>
 <div class="container-fluid">

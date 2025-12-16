@@ -3,7 +3,12 @@
 if (session_status() == PHP_SESSION_NONE) {
     require_once __DIR__ . '/../config/session.php';
 }
-ini_set('display_errors', 1);
+$env = strtolower(trim((string)(getenv('APP_ENV') ?: getenv('ENVIRONMENT') ?: '')));
+$is_debug = in_array($env, ['local', 'dev', 'development'], true);
+ini_set('display_errors', $is_debug ? '1' : '0');
+if (!defined('APP_DEBUG')) {
+    define('APP_DEBUG', $is_debug);
+}
 
 class Action {
     private $db; // mysqli legacy
@@ -128,11 +133,12 @@ class Action {
 
         $login_type = $_SESSION['login_type'] ?? 0;
 
-        error_log("=== SAVE_USER DEBUG ===");
-        error_log("current_user: $current_user");
-        error_log("login_type: $login_type");
-        error_log("id (para crear/editar): $id");
-        error_log("SESSION completa: " . json_encode($_SESSION));
+        if (APP_DEBUG) {
+            error_log("=== SAVE_USER DEBUG ===");
+            error_log("current_user: $current_user");
+            error_log("login_type: $login_type");
+            error_log("id (para crear/editar): $id");
+        }
 
         // Solo admin puede crear usuarios nuevos (id=0) o editar a otros usuarios
         // Usuarios normales solo pueden editar su propio perfil
@@ -2672,13 +2678,19 @@ class Action {
 
     // ================== ACCESORIOS ==================
     function save_accessory() {
-        error_log('=== INSIDE save_accessory ===');
+        if (APP_DEBUG) {
+            error_log('=== INSIDE save_accessory ===');
+        }
         $login_type = (int)($_SESSION['login_type'] ?? 0);
         $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
-        error_log("login_type: $login_type, active_bid: $active_bid");
+        if (APP_DEBUG) {
+            error_log("login_type: $login_type, active_bid: $active_bid");
+        }
 
         $is_new_request = empty($_POST['id'] ?? '');
-        error_log("is_new_request: " . ($is_new_request ? 'YES' : 'NO'));
+        if (APP_DEBUG) {
+            error_log("is_new_request: " . ($is_new_request ? 'YES' : 'NO'));
+        }
 
         if ($login_type !== 1) {
             if ($active_bid <= 0) {
@@ -3658,26 +3670,36 @@ class Action {
     // ================== SERVICIOS Y CATEGORÍAS ==================
     function save_category()
     {
-        extract($_POST);
-        $data = "";
-        foreach ($_POST as $k => $v) {
-            if (!in_array($k, array('id'))) {
-                if ($k == 'description') $v = addslashes($v);
-                if (!empty($data)) $data .= " , ";
-                $data .= " {$k} = '{$v}' ";
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+        $allowed_fields = ['category', 'clave', 'description'];
+        $data_parts = [];
+        foreach ($allowed_fields as $k) {
+            if (!array_key_exists($k, $_POST)) {
+                continue;
             }
+            $v = (string)$_POST[$k];
+            $v_esc = $this->db->real_escape_string($v);
+            $data_parts[] = "`{$k}` = '{$v_esc}'";
         }
-        $chk = $this->db->query("SELECT * FROM `services_category` where category = '{$category}' " . (!empty($id) ? " and id != {$id}" : ""));
+        $data = implode(' , ', $data_parts);
+
+        $category_esc = $this->db->real_escape_string(trim((string)($_POST['category'] ?? '')));
+        $chk = $this->db->query("SELECT 1 FROM `services_category` where category = '{$category_esc}' " . ($id > 0 ? " and id != {$id}" : ""));
         if ($chk->num_rows > 0) {
             return json_encode(['status' => 'duplicate_category']);
         }
         if (!empty($_POST['clave'])) {
-            $chk_clave = $this->db->query("SELECT * FROM `services_category` where clave = '{$_POST['clave']}' " . (!empty($id) ? " and id != {$id}" : ""));
+            $clave_esc = $this->db->real_escape_string(trim((string)$_POST['clave']));
+            $chk_clave = $this->db->query("SELECT 1 FROM `services_category` where clave = '{$clave_esc}' " . ($id > 0 ? " and id != {$id}" : ""));
             if ($chk_clave->num_rows > 0) {
                 return json_encode(['status' => 'duplicate_clave']);
             }
         }
-        if (empty($id)) {
+        if ($data === '') {
+            return json_encode(['status' => 'error', 'msg' => 'Datos inválidos']);
+        }
+        if ($id <= 0) {
             $sql = "INSERT INTO `services_category` set $data ";
         } else {
             $sql = "UPDATE `services_category` set $data where id = {$id}";
@@ -3692,9 +3714,12 @@ class Action {
 
     function delete_service_category()
     {
-        extract($_POST);
-        $delete = $this->db->query("DELETE FROM `services_category` where id ='$id' ");
-        $delete2 = $this->db->query("DELETE FROM `services` where category_id ='$id' ");
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($id <= 0) {
+            return json_encode(['status' => 'error', 'error' => 'ID inválido']);
+        }
+        $delete = $this->db->query("DELETE FROM `services_category` where id = {$id}");
+        $delete2 = $this->db->query("DELETE FROM `services` where category_id = {$id}");
         if ($delete && $delete2) {
             return json_encode(['status' => 'success']);
         } else {

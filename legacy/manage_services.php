@@ -4,7 +4,8 @@ if (!defined('ROOT')) {
 }
 require_once ROOT . '/config/config.php';
 if(isset($_GET['id'])){
-	$qry = $conn->query("SELECT * FROM `services` where id = '{$_GET['id']}'");
+	$id = (int)$_GET['id'];
+	$qry = $conn->query("SELECT * FROM `services` where id = {$id}");
 	foreach ($qry->fetch_array() as $key => $value) {
 		if(!is_numeric($key))
 			$$key = $value;
@@ -52,8 +53,8 @@ if(isset($_GET['id'])){
 			</div>
 			<hr>
 		<div class="col-lg-12 text-right justify-content-center d-flex btn-container-mobile">
-			<button class="btn btn-primary" id="enviar_servicio" >Guardar</button>
-			<button class="btn btn-secondary" type="reset">Reset</button>
+			<button class="btn btn-primary" id="enviar_servicio" type="submit">Guardar</button>
+			<button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
 		</div>
 			<div class="form-group d-flex justify-content-center">
 				<img src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23f0f0f0\' width=\'200\' height=\'200\'/%3E%3Ctext fill=\'%23999\' font-family=\'sans-serif\' font-size=\'18\' dy=\'10\' font-weight=\'bold\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\'%3ESin imagen%3C/text%3E%3C/svg%3E' ?>" alt="" id="cimg" class="img-fluid img-thumbnail">
@@ -74,12 +75,6 @@ if(isset($_GET['id'])){
 	    }
 	}
 	$(document).ready(function(){
-
-		$('#enviar_servicio').click(function(e){
-			e.preventDefault();
-			alert('Hola');
-		})
-
 		$('.select2').select2();
 		$('#service').keypress(function(){
 			$(this).removeClass('border-danger');
@@ -111,7 +106,7 @@ if(isset($_GET['id'])){
 						//end_loader()
 						//load_data();
 					}else if(!!resp.status && resp.status =='duplicate'){
-						$('#manage-service').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Servicio ingresado exitosamente.</b></div></div>');
+						$('#manage-service').prepend('<div class="form-group err_msg"><div class="callout callout-danger"><span class="fa fa-exclamation-triangle"><b>Servicio duplicado.</b></div></div>');
 						$('#service').addClass('border-danger');
 						$('#service').focus();
 						//end_loader();

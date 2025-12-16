@@ -40,9 +40,14 @@ if (!$isPublicAction) {
 // Iniciar buffer
 ob_start();
 
+$__env = strtolower(trim((string)(getenv('APP_ENV') ?: getenv('ENVIRONMENT') ?: '')));
+$__is_debug = in_array($__env, ['local', 'dev', 'development'], true);
+
 try {
     include ROOT . '/legacy/admin_class.php';
     $crud = new Action();
+    // Mantener respuestas AJAX limpias (admin_class puede activar display_errors=1)
+    ini_set('display_errors', 0);
 } catch (Exception $e) {
     ob_end_clean();
     error_log("ERROR initializing admin_class: " . $e->getMessage());
@@ -170,12 +175,16 @@ if ($action == 'update_user_branch') {
 }
 
 if ($action == 'save_user') {
-    error_log("=== AJAX save_user ===");
-    error_log("POST data: " . json_encode($_POST));
-    error_log("SESSION login_id: " . ($_SESSION['login_id'] ?? 'NOT SET'));
-    error_log("SESSION login_type: " . ($_SESSION['login_type'] ?? 'NOT SET'));
+    $env = strtolower(trim((string)(getenv('APP_ENV') ?: getenv('ENVIRONMENT') ?: '')));
+    $is_debug = in_array($env, ['local', 'dev', 'development'], true);
+    if ($is_debug) {
+        error_log("=== AJAX save_user (debug) ===");
+        error_log("user_id=" . (int)($_SESSION['login_id'] ?? 0) . ", login_type=" . (int)($_SESSION['login_type'] ?? 0));
+    }
     $result = $crud->save_user();
-    error_log("Result: " . var_export($result, true));
+    if ($is_debug) {
+        error_log("Result: " . var_export($result, true));
+    }
     echo $result;
     exit;
 }
@@ -343,15 +352,19 @@ if ($action == 'delete_tool') {
 // 9. ACCESORIOS
 // ===================================
 if ($action == 'save_accessory') {
-    error_log('=== SAVE_ACCESSORY ACTION ===');
-    error_log('POST data: ' . print_r($_POST, true));
-    error_log('FILES data: ' . print_r($_FILES, true));
-    error_log('Session login_id: ' . ($_SESSION['login_id'] ?? 'NOT SET'));
-    error_log('Session login_type: ' . ($_SESSION['login_type'] ?? 'NOT SET'));
-    error_log('Session active_branch_id: ' . ($_SESSION['login_active_branch_id'] ?? 'NOT SET'));
+    if ($__is_debug) {
+        error_log('=== SAVE_ACCESSORY ACTION (debug) ===');
+        error_log('POST keys: ' . implode(',', array_keys($_POST)));
+        error_log('FILES keys: ' . implode(',', array_keys($_FILES)));
+        error_log('Session login_id: ' . (int)($_SESSION['login_id'] ?? 0));
+        error_log('Session login_type: ' . (int)($_SESSION['login_type'] ?? 0));
+        error_log('Session active_branch_id: ' . (int)($_SESSION['login_active_branch_id'] ?? 0));
+    }
     
     $result = $crud->save_accessory();
-    error_log('save_accessory result: ' . $result);
+    if ($__is_debug) {
+        error_log('save_accessory result: ' . $result);
+    }
     echo $result;
     exit;
 }
@@ -539,6 +552,10 @@ if ($action == 'get_locations_by_department') {
 }
 
 if ($action == 'get_next_inventory_number') {
+    // Asegurar que no haya basura antes del JSON (warnings/notice/espacios)
+    if (ob_get_length()) {
+        ob_clean();
+    }
     header('Content-Type: application/json; charset=utf-8');
 
     $branch_id = isset($_POST['branch_id']) ? (int)$_POST['branch_id'] : 0;

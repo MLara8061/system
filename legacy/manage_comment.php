@@ -5,12 +5,13 @@ if (!defined('ROOT')) {
 require_once ROOT . '/config/config.php';
 ?>
 <?php
-if(isset($_GET['id'])){
-	$qry = $conn->query("SELECT * FROM comments where id = ".$_GET['id'])->fetch_array();
-foreach($qry as $k => $v){
+$comment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$qry = $comment_id > 0 ? $conn->query("SELECT * FROM comments where id = {$comment_id}") : false;
+$row = ($qry && $qry->num_rows > 0) ? $qry->fetch_array() : [];
+foreach($row as $k => $v){
 	$$k = $v;
 }
-}
+$id = isset($id) ? $id : $comment_id;
 ?>
 <div class="container-fluid">
 	<form action="" id="update-comment">
