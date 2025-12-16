@@ -58,7 +58,7 @@ if (isset($_SESSION['login_id']))
 
         /* Fondo con imagen existente + overlay (sin colores hardcodeados: usa variables Bootstrap) */
         .auth-wrap.auth-bg {
-            background-image: url('/assets/img/boxed-bg.jpg');
+            background-image: url('/assets/img/login-bg.svg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -86,20 +86,21 @@ if (isset($_SESSION['login_id']))
         }
 
         .auth-logo {
-            width: 54px;
-            height: 54px;
+            width: 64px;
+            height: 64px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(var(--bs-white-rgb), 0.9);
             box-shadow: var(--bs-box-shadow-sm);
             margin-bottom: 0.75rem;
+            overflow: hidden;
         }
 
         .auth-logo img {
-            width: 28px;
-            height: 28px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
         }
 
@@ -197,10 +198,10 @@ if (isset($_SESSION['login_id']))
             </div>
 
             <div class="card auth-card shadow" id="auth-card">
-                <div class="card-header bg-primary bg-gradient text-white border-0 py-3">
+                <div class="card-header bg-primary-subtle text-primary border-0 py-3">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="font-weight-bold">Iniciar sesión</div>
-                        <div class="small opacity-75">Acceso seguro</div>
+                        <div class="small">Acceso seguro</div>
                     </div>
                 </div>
                 <div class="card-body">

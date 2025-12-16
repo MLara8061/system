@@ -2,7 +2,7 @@
 <html lang="es">
     <head>
         <title>Página por defecto</title>
-        <link rel="icon" type="image/x-icon" href="https://hpanel.hostinger.com/favicons/hostinger.png">
+        <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
         <meta charset="utf-8">
         <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
         <meta content="Página por defecto" name="description">
