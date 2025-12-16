@@ -4,5 +4,5 @@ $qry = $conn->query("SELECT * FROM tickets where id = ".$_GET['id'])->fetch_arra
 foreach($qry as $k => $v){
 	$$k = $v;
 }
-include 'new_ticket.php';
+include 'new.php';
 ?>

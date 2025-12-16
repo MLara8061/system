@@ -40,6 +40,16 @@ if(isset($_GET['id'])){
 </div>
 <script>
 	$(document).ready(function(){
+		// Este formulario se usa dentro de #uni_modal, cuyo layout ya trae footer con "Guardar/Cancel".
+		// Para evitar botones duplicados (Guardar/Reset + Guardar/Cancel), ocultamos el footer global
+		// solo mientras este modal está abierto y lo restauramos al cerrarse.
+		if ($('#uni_modal').length) {
+			$('#uni_modal .modal-footer').hide();
+			$('#uni_modal').one('hidden.bs.modal', function() {
+				$('#uni_modal .modal-footer').show();
+			});
+		}
+
 		$('#category').keypress(function(){
 			$(this).removeClass('border-danger');
 		})
