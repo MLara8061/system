@@ -213,14 +213,12 @@ if (isset($_SESSION['login_id']))
                             <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username" placeholder=" ">
                             <label for="username" class="small">Usuario</label>
                             <span class="field-icon"><i class="fa-regular fa-user"></i></span>
-                            <small class="invalid-feedback" id="username-error">El usuario es requerido.</small>
                         </div>
 
                         <div class="floating-field mb-2">
                             <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password" placeholder=" ">
                             <label for="password" class="small">Contraseña</label>
                             <span class="field-icon"><i class="fa-solid fa-lock"></i></span>
-                            <small class="invalid-feedback" id="password-error">La contraseña es requerida.</small>
                         </div>
 
                         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -266,9 +264,21 @@ if (isset($_SESSION['login_id']))
         }
 
         function showAlert(type, message){
+            const icons = {
+                'danger': '<i class="fas fa-exclamation-circle"></i>',
+                'info': '<i class="fas fa-info-circle"></i>',
+                'success': '<i class="fas fa-check-circle"></i>',
+                'warning': '<i class="fas fa-exclamation-triangle"></i>'
+            };
+            
             const alert = document.createElement('div');
-            alert.className = `alert alert-${type} py-2`;
-            alert.textContent = message;
+            alert.className = `alert alert-${type} py-2 px-3 d-flex align-items-center`;
+            alert.style.borderRadius = '8px';
+            alert.style.fontSize = '0.9rem';
+            alert.innerHTML = `
+                <span class="mr-2">${icons[type] || ''}</span>
+                <span>${message}</span>
+            `;
             slot.appendChild(alert);
         }
 
@@ -292,17 +302,13 @@ if (isset($_SESSION['login_id']))
 
         function validateUsername(){
             const value = (usernameEl.value || '').trim();
-            const ok = value.length >= 2;
-            usernameEl.classList.toggle('is-invalid', !ok);
-            usernameEl.setAttribute('aria-invalid', ok ? 'false' : 'true');
+            const ok = value.length >= 1;
             return ok;
         }
 
         function validatePassword(){
             const value = (passwordEl.value || '');
             const ok = value.length >= 1;
-            passwordEl.classList.toggle('is-invalid', !ok);
-            passwordEl.setAttribute('aria-invalid', ok ? 'false' : 'true');
             return ok;
         }
 
@@ -325,6 +331,13 @@ if (isset($_SESSION['login_id']))
             const okUser = validateUsername();
             const okPass = validatePassword();
             if (!okUser || !okPass){
+                if (!okUser && !okPass) {
+                    showAlert('warning', '<strong>Campos vacíos.</strong> Por favor ingresa tu usuario y contraseña.');
+                } else if (!okUser) {
+                    showAlert('warning', '<strong>Usuario requerido.</strong> Por favor ingresa tu nombre de usuario.');
+                } else if (!okPass) {
+                    showAlert('warning', '<strong>Contraseña requerida.</strong> Por favor ingresa tu contraseña.');
+                }
                 shake();
                 return;
             }
@@ -356,19 +369,20 @@ if (isset($_SESSION['login_id']))
                 } else {
                     // Login fallido
                     if (result.trim() === '2') {
-                        showAlert('danger', 'Usuario no encontrado');
+                        showAlert('danger', '<strong>Usuario no encontrado.</strong> Verifica que el nombre de usuario esté escrito correctamente (distingue mayúsculas y minúsculas).');
                     } else if (result.trim() === '3') {
-                        showAlert('danger', 'Contraseña incorrecta');
+                        showAlert('danger', '<strong>Contraseña incorrecta.</strong> Por favor, verifica tu contraseña e intenta nuevamente.');
                     } else if (result.includes('error') || result.includes('Error')) {
-                        showAlert('danger', 'Error del servidor. Intenta más tarde.');
+                        showAlert('danger', '<strong>Error del servidor.</strong> No se pudo procesar tu solicitud. Intenta más tarde.');
                     } else {
-                        showAlert('danger', 'Usuario o contraseña incorrectos');
+                        showAlert('danger', '<strong>Error de autenticación.</strong> Verifica tus credenciales e intenta nuevamente.');
                     }
 
                     shake();
                 }
             } catch (error) {
-                showAlert('danger', 'Error de conexión. Intenta nuevamente.');
+                console.error('Login error:', error);
+                showAlert('danger', '<strong>Error de conexión.</strong> No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.');
                 shake();
             } finally {
                 setLoading(false);
