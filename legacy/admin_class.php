@@ -1042,8 +1042,14 @@ class Action {
         if (!$this->column_exists_local('inventory_config', 'equipment_category_id')) {
             @$this->db->query("ALTER TABLE `inventory_config` ADD COLUMN `equipment_category_id` INT NULL AFTER `acquisition_type_id`");
         }
-        // Asegurar índice único (si ya existe, ignorar error)
-        @$this->db->query("ALTER TABLE `inventory_config` ADD UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)");
+        // Asegurar índice único (solo si no existe; evita excepciones con MYSQLI_REPORT_STRICT)
+        if (!$this->index_exists_local('inventory_config', 'uniq_inventory_cfg')) {
+            try {
+                $this->db->query("ALTER TABLE `inventory_config` ADD UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)");
+            } catch (Throwable $e) {
+                // Ignorar: puede existir con otro nombre o haber datos duplicados.
+            }
+        }
     }
 
     private function ensure_acquisition_type_code_column() {
@@ -1251,20 +1257,26 @@ class Action {
                 $cat_row = $cq->fetch_assoc();
 
                 $cat_code_raw = $has_clave ? ($cat_row['clave'] ?? '') : '';
-                error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
                 $cat_code = strtoupper(trim($cat_code_raw));
                 $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
-                error_log("Category code after processing: '{$cat_code}'");
+                if (defined('APP_DEBUG') && APP_DEBUG) {
+                    error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
+                    error_log("Category code after processing: '{$cat_code}'");
+                }
                 if ($cat_code === '') {
                     $desc_raw = (string)($cat_row['description'] ?? '');
                     $desc = strtoupper(trim($desc_raw));
                     $desc = substr(preg_replace('/[^A-Z0-9]/', '', $desc), 0, 3);
                     if ($desc !== '') {
                         $cat_code = $desc;
-                        error_log("WARN: cat_code vacío, usando description='{$desc_raw}' => '{$cat_code}'");
+                        if (defined('APP_DEBUG') && APP_DEBUG) {
+                            error_log("WARN: cat_code vacío, usando description='{$desc_raw}' => '{$cat_code}'");
+                        }
                     } else {
                         $cat_code = str_pad((string)(((int)$equipment_category_id) % 1000), 3, '0', STR_PAD_LEFT);
-                        error_log("WARN: cat_code vacío, usando ID={$equipment_category_id} => '{$cat_code}'");
+                        if (defined('APP_DEBUG') && APP_DEBUG) {
+                            error_log("WARN: cat_code vacío, usando ID={$equipment_category_id} => '{$cat_code}'");
+                        }
                     }
                 }
 
