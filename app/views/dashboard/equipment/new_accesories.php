@@ -295,6 +295,11 @@ try {
     $('#manage_accessory').submit(function(e) {
         e.preventDefault();
         console.log('=== SUBMIT ACCESSORY ===');
+        console.log('jQuery loaded:', typeof jQuery !== 'undefined');
+        console.log('$ loaded:', typeof $ !== 'undefined');
+        console.log('start_load exists:', typeof start_load === 'function');
+        console.log('end_load exists:', typeof end_load === 'function');
+        console.log('alert_toast exists:', typeof alert_toast === 'function');
         
         // Debug: Verificar datos del formulario
         var formData = new FormData(this);
