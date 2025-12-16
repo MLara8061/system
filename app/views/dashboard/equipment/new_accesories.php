@@ -1,17 +1,13 @@
 ﻿<?php 
-error_log('=== LOADING new_accesories.php ===');
 require_once 'config/config.php'; 
-error_log('Config loaded. conn exists: ' . (isset($conn) ? 'YES' : 'NO'));
 ?>
 
 <?php
 // Obtener sucursales
 try {
     $branches = $conn->query("SELECT id, name FROM branches ORDER BY name ASC");
-    error_log('Branches query success. Rows: ' . $branches->num_rows);
 } catch (Exception $e) {
-    error_log('ERROR loading branches: ' . $e->getMessage());
-    die('<h3>Error cargando sucursales: ' . $e->getMessage() . '</h3>');
+    die('<h3>Error cargando sucursales</h3>');
 }
 // Próximo número de inventario se generará dinámicamente
 
@@ -197,12 +193,6 @@ try {
                                 Cancelar
                             </a>
                         </div>
-                        
-                        <!-- DEBUG INFO -->
-                        <div class="mt-3 p-2 bg-warning text-dark">
-                            <strong>DEBUG:</strong> Archivo cargado correctamente.
-                            Timestamp: <?= date('Y-m-d H:i:s') ?>
-                        </div>
                     </div>
                 </div>
             </form>
@@ -228,11 +218,6 @@ try {
 </style>
 
 <script>
-    alert('SCRIPT CARGADO - Versión: ' + new Date().getTime());
-    console.log('=== SCRIPT LOADED ===');
-    console.log('jQuery version:', $.fn.jquery);
-    console.log('Form exists:', $('#manage_accessory').length);
-    
     // Validar formato de imagen
     $('#imagen').on('change', function(e) {
         const file = e.target.files[0];
@@ -265,9 +250,6 @@ try {
     }
 
     $(function() {
-        console.log('=== DOCUMENT READY ===');
-        console.log('Form in DOM:', $('#manage_accessory').length);
-        
         $('.select2').select2({
             width: '100%',
             placeholder: 'Seleccionar',
@@ -314,27 +296,11 @@ try {
         }
         
         $('#branch_id').on('change', refresh_inventory_number);
-        
-        // Registrar handler de submit
-        console.log('=== REGISTERING SUBMIT HANDLER ===');
+
         $('#manage_accessory').on('submit', function(e) {
-            console.log('=== SUBMIT EVENT TRIGGERED ===');
             e.preventDefault();
-            console.log('=== SUBMIT ACCESSORY ===');
-            console.log('jQuery loaded:', typeof jQuery !== 'undefined');
-            console.log('$ loaded:', typeof $ !== 'undefined');
-            console.log('start_load exists:', typeof start_load === 'function');
-            console.log('end_load exists:', typeof end_load === 'function');
-            console.log('alert_toast exists:', typeof alert_toast === 'function');
-            
-            // Debug: Verificar datos del formulario
-            var formData = new FormData(this);
-            console.log('FormData entries:');
-            for (var pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-            
-            start_load();
+
+            if (typeof start_load === 'function') start_load();
             $.ajax({
                 url: 'public/ajax/action.php?action=save_accessory',
                 data: new FormData(this),
@@ -343,29 +309,16 @@ try {
                 processData: false,
                 method: 'POST',
                 success: function(resp) {
-                    console.log('=== AJAX SUCCESS ===');
-                    console.log('Raw response:', resp);
-                    console.log('Response type:', typeof resp);
-                    console.log('Response length:', resp ? resp.length : 0);
-                    
                     resp = String(resp).trim();
-                    console.log('Trimmed response:', resp);
                     
                     if (resp == '1') {
                         alert_toast('Accesorio guardado correctamente', 'success');
                         setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                     } else {
-                        console.error('Save failed. Response:', resp);
                         alert_toast('Error al guardar: ' + resp, 'error');
                     }
                 },
                 error: function(xhr, status, error){
-                    console.error('=== AJAX ERROR ===');
-                    console.error('Status:', status);
-                    console.error('Error:', error);
-                    console.error('XHR status:', xhr.status);
-                    console.error('XHR statusText:', xhr.statusText);
-                    console.error('Response text:', xhr.responseText);
                     var msg = 'Error de conexión';
                     try {
                         if (xhr && xhr.responseText) {
@@ -375,71 +328,9 @@ try {
                     alert_toast(msg, 'error');
                 },
                 complete: function(){
-                    end_load();
+                    if (typeof end_load === 'function') end_load();
                 }
             });
-        });
-    });
-
-    $('#manage_accessory').submit(function(e) {
-        e.preventDefault();
-        console.log('=== SUBMIT ACCESSORY ===');
-        console.log('jQuery loaded:', typeof jQuery !== 'undefined');
-        console.log('$ loaded:', typeof $ !== 'undefined');
-        console.log('start_load exists:', typeof start_load === 'function');
-        console.log('end_load exists:', typeof end_load === 'function');
-        console.log('alert_toast exists:', typeof alert_toast === 'function');
-        
-        // Debug: Verificar datos del formulario
-        var formData = new FormData(this);
-        console.log('FormData entries:');
-        for (var pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-        
-        start_load();
-        $.ajax({
-            url: 'public/ajax/action.php?action=save_accessory',
-            data: new FormData(this),
-            cache: false,
-            contentType: false,
-            processData: false,
-            method: 'POST',
-            success: function(resp) {
-                console.log('=== AJAX SUCCESS ===');
-                console.log('Raw response:', resp);
-                console.log('Response type:', typeof resp);
-                console.log('Response length:', resp ? resp.length : 0);
-                
-                resp = String(resp).trim();
-                console.log('Trimmed response:', resp);
-                
-                if (resp == '1') {
-                    alert_toast('Accesorio guardado correctamente', 'success');
-                    setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
-                } else {
-                    console.error('Save failed. Response:', resp);
-                    alert_toast('Error al guardar: ' + resp, 'error');
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('=== AJAX ERROR ===');
-                console.error('Status:', status);
-                console.error('Error:', error);
-                console.error('XHR status:', xhr.status);
-                console.error('XHR statusText:', xhr.statusText);
-                console.error('Response text:', xhr.responseText);
-                var msg = 'Error de conexión';
-                try {
-                    if (xhr && xhr.responseText) {
-                        msg += ': ' + String(xhr.responseText).trim();
-                    }
-                } catch (e) {}
-                alert_toast(msg, 'error');
-            },
-            complete: function(){
-                end_load();
-            }
         });
     });
 </script>

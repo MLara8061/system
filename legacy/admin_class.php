@@ -1052,26 +1052,68 @@ class Action {
     }
 
     private function derive_acquisition_code($acquisition_type_id) {
-        if (!$this->db) return null;
         $id = (int)$acquisition_type_id;
         if ($id <= 0) return null;
 
-        $this->ensure_acquisition_type_code_column();
-        $has_code = $this->column_exists_local('acquisition_type', 'code');
-        $cols = $has_code ? 'id, name, code' : 'id, name';
-        $res = $this->db->query("SELECT {$cols} FROM acquisition_type WHERE id = {$id} LIMIT 1");
-        if (!$res || $res->num_rows === 0) return null;
-        $row = $res->fetch_assoc();
+        // Preferir mysqli si está disponible (compatibilidad legacy)
+        if ($this->db) {
+            $this->ensure_acquisition_type_code_column();
+            $has_code = $this->column_exists_local('acquisition_type', 'code');
+            $cols = $has_code ? 'id, name, code' : 'id, name';
+            $res = $this->db->query("SELECT {$cols} FROM acquisition_type WHERE id = {$id} LIMIT 1");
+            if (!$res || $res->num_rows === 0) return null;
+            $row = $res->fetch_assoc();
 
-        $code = strtoupper(trim($row['code'] ?? ''));
-        if ($code !== '') {
-            $code = preg_replace('/[^A-Z0-9]/', '', $code);
-            return substr($code, 0, 3);
+            $code = strtoupper(trim($row['code'] ?? ''));
+            if ($code !== '') {
+                $code = preg_replace('/[^A-Z0-9]/', '', $code);
+                $code = substr($code, 0, 3);
+                if ($code !== '') return $code;
+            }
+
+            $name = strtoupper(trim($row['name'] ?? ''));
+            $name = preg_replace('/[^A-Z0-9]/', '', $name);
+            $name = substr($name, 0, 3);
+            if ($name !== '') return $name;
+
+            return str_pad((string)($id % 1000), 3, '0', STR_PAD_LEFT);
         }
 
-        $name = strtoupper(trim($row['name'] ?? ''));
-        $name = preg_replace('/[^A-Z0-9]/', '', $name);
-        return substr($name, 0, 3);
+        // Fallback: si mysqli no existe en el entorno, usar PDO
+        if ($this->pdo) {
+            try {
+                $has_code = false;
+                try {
+                    $c = $this->pdo->query("SHOW COLUMNS FROM acquisition_type LIKE 'code'");
+                    $has_code = $c && $c->fetch(PDO::FETCH_ASSOC);
+                } catch (Throwable $e) {
+                    $has_code = false;
+                }
+                $cols = $has_code ? 'id, name, code' : 'id, name';
+                $stmt = $this->pdo->prepare("SELECT {$cols} FROM acquisition_type WHERE id = ? LIMIT 1");
+                $stmt->execute([$id]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$row) return null;
+
+                $code = strtoupper(trim($row['code'] ?? ''));
+                if ($code !== '') {
+                    $code = preg_replace('/[^A-Z0-9]/', '', $code);
+                    $code = substr($code, 0, 3);
+                    if ($code !== '') return $code;
+                }
+
+                $name = strtoupper(trim($row['name'] ?? ''));
+                $name = preg_replace('/[^A-Z0-9]/', '', $name);
+                $name = substr($name, 0, 3);
+                if ($name !== '') return $name;
+
+                return str_pad((string)($id % 1000), 3, '0', STR_PAD_LEFT);
+            } catch (Throwable $e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     function get_next_inventory_number($branch_id, $acquisition_type_id = null, $equipment_category_id = null) {
@@ -1088,6 +1130,18 @@ class Action {
                 if ($bq && $bq->num_rows > 0) {
                     $branch_code = strtoupper(trim(($bq->fetch_assoc()['code'] ?? '')));
                     $branch_code = substr(preg_replace('/[^A-Z0-9]/', '', $branch_code), 0, 3);
+                }
+            } elseif ($this->pdo) {
+                try {
+                    $stmt = $this->pdo->prepare("SELECT code FROM branches WHERE id = ? LIMIT 1");
+                    $stmt->execute([$branch_id]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row) {
+                        $branch_code = strtoupper(trim((string)($row['code'] ?? '')));
+                        $branch_code = substr(preg_replace('/[^A-Z0-9]/', '', $branch_code), 0, 3);
+                    }
+                } catch (Throwable $e) {
+                    $branch_code = null;
                 }
             }
             if (!$branch_code) {
@@ -1132,61 +1186,164 @@ class Action {
             }
 
             // Nuevo esquema: SUC(3)+ADQ(2/3)+CAT(2/3)+001 (consecutivo por combinación)
-            if (!$this->db) return false;
-            $this->ensure_inventory_config_schema();
-            $this->ensure_equipment_categories_schema();
-            $this->ensure_acquisition_type_schema();
-
             $acq_code = $this->derive_acquisition_code($acquisition_type_id);
             if (!$acq_code) return false;
 
-            $cq = $this->db->query("SELECT clave FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
-            if (!$cq || $cq->num_rows === 0) {
-                error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada");
-                return false;
+            // ====== Camino mysqli ======
+            if ($this->db) {
+                $this->ensure_inventory_config_schema();
+                $this->ensure_equipment_categories_schema();
+                $this->ensure_acquisition_type_schema();
+
+                $cq = $this->db->query("SELECT clave, description FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+                if (!$cq || $cq->num_rows === 0) {
+                    error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada");
+                    return false;
+                }
+                $cat_row = $cq->fetch_assoc();
+                $cat_code_raw = $cat_row['clave'] ?? '';
+                error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
+                $cat_code = strtoupper(trim($cat_code_raw));
+                $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
+                error_log("Category code after processing: '{$cat_code}'");
+                if ($cat_code === '') {
+                    $desc_raw = (string)($cat_row['description'] ?? '');
+                    $desc = strtoupper(trim($desc_raw));
+                    $desc = substr(preg_replace('/[^A-Z0-9]/', '', $desc), 0, 3);
+                    if ($desc !== '') {
+                        $cat_code = $desc;
+                        error_log("WARN: cat_code vacío, usando description='{$desc_raw}' => '{$cat_code}'");
+                    } else {
+                        $cat_code = str_pad((string)(((int)$equipment_category_id) % 1000), 3, '0', STR_PAD_LEFT);
+                        error_log("WARN: cat_code vacío, usando ID={$equipment_category_id} => '{$cat_code}'");
+                    }
+                }
+
+                $prefix = $branch_code . $acq_code . $cat_code;
+                $prefix_esc = $this->db->real_escape_string($prefix);
+                $b = (int)$branch_id;
+                $a = (int)$acquisition_type_id;
+                $c = (int)$equipment_category_id;
+
+                $ok = @$this->db->query(
+                    "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
+                    "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', LAST_INSERT_ID(1))\n" .
+                    "ON DUPLICATE KEY UPDATE\n" .
+                    "prefix = VALUES(prefix),\n" .
+                    "current_number = LAST_INSERT_ID(current_number + 1)"
+                );
+
+                $n = $ok ? (int)$this->db->insert_id : 0;
+                if ($n <= 0) {
+                    $sel = $this->db->query("SELECT id, current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
+                    if ($sel && $sel->num_rows > 0) {
+                        $r = $sel->fetch_assoc();
+                        $n = ((int)($r['current_number'] ?? 0)) + 1;
+                        $this->db->query("UPDATE inventory_config SET prefix = '{$prefix_esc}', current_number = {$n} WHERE id = " . (int)$r['id']);
+                    } else {
+                        $this->db->query("INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)");
+                        $n = 1;
+                    }
+                }
+
+                $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
+                return $prefix . $seq;
             }
-            $cat_row = $cq->fetch_assoc();
-            $cat_code_raw = $cat_row['clave'] ?? '';
-            error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
-            $cat_code = strtoupper(trim($cat_code_raw));
-            $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
-            error_log("Category code after processing: '{$cat_code}'");
-            if ($cat_code === '') {
-                error_log("ERROR: cat_code vacío después de procesar clave '{$cat_code_raw}'");
+
+            // ====== Camino PDO (cuando $conn/mysqli no existe en prod) ======
+            if (!$this->pdo) return false;
+
+            // Best-effort: asegurar tabla/columnas/índice necesarios para que el UPSERT funcione
+            try {
+                $this->pdo->exec(
+                    "CREATE TABLE IF NOT EXISTS `inventory_config` (\n" .
+                    "  `id` INT NOT NULL AUTO_INCREMENT,\n" .
+                    "  `branch_id` INT NOT NULL,\n" .
+                    "  `acquisition_type_id` INT NULL,\n" .
+                    "  `equipment_category_id` INT NULL,\n" .
+                    "  `prefix` VARCHAR(64) NOT NULL,\n" .
+                    "  `current_number` INT NOT NULL DEFAULT 0,\n" .
+                    "  PRIMARY KEY (`id`),\n" .
+                    "  UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)\n" .
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                );
+            } catch (Throwable $e) {
+                // ignorar
+            }
+            try { $this->pdo->exec("ALTER TABLE `inventory_config` ADD COLUMN `acquisition_type_id` INT NULL AFTER `branch_id`"); } catch (Throwable $e) {}
+            try { $this->pdo->exec("ALTER TABLE `inventory_config` ADD COLUMN `equipment_category_id` INT NULL AFTER `acquisition_type_id`"); } catch (Throwable $e) {}
+            try { $this->pdo->exec("ALTER TABLE `inventory_config` ADD UNIQUE KEY `uniq_inventory_cfg` (`branch_id`,`acquisition_type_id`,`equipment_category_id`)"); } catch (Throwable $e) {}
+
+            $stmt = $this->pdo->prepare("SELECT clave, description FROM equipment_categories WHERE id = ? LIMIT 1");
+            $stmt->execute([$equipment_category_id]);
+            $cat_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$cat_row) {
+                error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada (PDO)");
                 return false;
             }
 
+            $cat_code_raw = $cat_row['clave'] ?? '';
+            $cat_code = strtoupper(trim((string)$cat_code_raw));
+            $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
+            if ($cat_code === '') {
+                $desc_raw = (string)($cat_row['description'] ?? '');
+                $desc = strtoupper(trim($desc_raw));
+                $desc = substr(preg_replace('/[^A-Z0-9]/', '', $desc), 0, 3);
+                if ($desc !== '') {
+                    $cat_code = $desc;
+                } else {
+                    $cat_code = str_pad((string)(((int)$equipment_category_id) % 1000), 3, '0', STR_PAD_LEFT);
+                }
+            }
+
             $prefix = $branch_code . $acq_code . $cat_code;
-            $prefix_esc = $this->db->real_escape_string($prefix);
             $b = (int)$branch_id;
             $a = (int)$acquisition_type_id;
             $c = (int)$equipment_category_id;
 
-            // Usar UPSERT para incrementar atómicamente
-            $ok = @$this->db->query(
-                "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
-                "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', LAST_INSERT_ID(1))\n" .
-                "ON DUPLICATE KEY UPDATE\n" .
-                "prefix = VALUES(prefix),\n" .
-                "current_number = LAST_INSERT_ID(current_number + 1)"
-            );
+            try {
+                $this->pdo->beginTransaction();
 
-            $n = $ok ? (int)$this->db->insert_id : 0;
-            if ($n <= 0) {
-                // Fallback sin índice único
-                $sel = $this->db->query("SELECT id, current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
-                if ($sel && $sel->num_rows > 0) {
-                    $r = $sel->fetch_assoc();
-                    $n = ((int)($r['current_number'] ?? 0)) + 1;
-                    $this->db->query("UPDATE inventory_config SET prefix = '{$prefix_esc}', current_number = {$n} WHERE id = " . (int)$r['id']);
-                } else {
-                    $this->db->query("INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)");
-                    $n = 1;
+                $up = $this->pdo->prepare(
+                    "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
+                    "VALUES (?, ?, ?, ?, 1)\n" .
+                    "ON DUPLICATE KEY UPDATE\n" .
+                    "  prefix = VALUES(prefix),\n" .
+                    "  current_number = LAST_INSERT_ID(current_number + 1)"
+                );
+                $up->execute([$b, $a, $c, $prefix]);
+                $n = (int)$this->pdo->query('SELECT LAST_INSERT_ID()')->fetchColumn();
+
+                // Si por alguna razón no hay índice, intentar fallback con bloqueo
+                if ($n <= 0) {
+                    $sel = $this->pdo->prepare(
+                        "SELECT id, current_number FROM inventory_config WHERE branch_id = ? AND acquisition_type_id = ? AND equipment_category_id = ? LIMIT 1 FOR UPDATE"
+                    );
+                    $sel->execute([$b, $a, $c]);
+                    $row = $sel->fetch(PDO::FETCH_ASSOC);
+                    if ($row) {
+                        $n = ((int)($row['current_number'] ?? 0)) + 1;
+                        $upd = $this->pdo->prepare("UPDATE inventory_config SET prefix = ?, current_number = ? WHERE id = ?");
+                        $upd->execute([$prefix, $n, (int)$row['id']]);
+                    } else {
+                        $ins = $this->pdo->prepare(
+                            "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES (?, ?, ?, ?, 1)"
+                        );
+                        $ins->execute([$b, $a, $c, $prefix]);
+                        $n = 1;
+                    }
                 }
-            }
 
-            $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
-            return $prefix . $seq;
+                $this->pdo->commit();
+                $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
+                return $prefix . $seq;
+            } catch (Throwable $e) {
+                if ($this->pdo && $this->pdo->inTransaction()) {
+                    try { $this->pdo->rollBack(); } catch (Throwable $e2) {}
+                }
+                error_log('GET_NEXT_INVENTORY_NUMBER PDO ERROR: ' . $e->getMessage());
+                return false;
+            }
         } catch (Throwable $e) {
             error_log("GET_NEXT_INVENTORY_NUMBER ERROR: " . $e->getMessage());
             return false;
