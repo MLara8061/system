@@ -46,32 +46,35 @@ $row = $qry->fetch_assoc();
                     $hasImage = (!empty($relUploadPath) && is_string($fullUploadPath) && file_exists($fullUploadPath));
                     ?>
                     <?php if ($hasImage): ?>
-                        <div class="position-relative d-inline-block">
+                        <div class="position-relative d-inline-block inventory-image-wrapper">
                             <img src="<?= $baseUrl . '/' . $relUploadPath ?>" 
-                                 class="img-fluid rounded" 
+                                 class="img-fluid rounded inventory-image" 
                                  style="max-height: 180px;" 
                                  id="current-inv-img">
+                            <!-- Botón eliminar imagen -->
                             <button type="button" 
-                                    class="btn btn-danger btn-sm position-absolute" 
-                                    style="top: 5px; right: 5px; z-index: 10; padding: 2px 6px;" 
-                                    id="remove-inv-image">
+                                    class="inventory-delete-btn" 
+                                    id="remove-inv-image"
+                                    title="Eliminar imagen">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                        <br><small class="text-muted">Haz clic para eliminar</small>
                     <?php else: ?>
                         <div class="bg-light border rounded d-flex align-items-center justify-content-center" 
                              style="height:180px;" id="empty-inv-image">
                             <i class="fas fa-box fa-3x text-muted"></i>
                         </div>
-                        <br><small class="text-muted">Sin imagen</small>
                     <?php endif; ?>
                 </div>
-                <div class="mt-2" id="upload-inv-container" 
+                <div class="mt-3" id="upload-inv-container" 
                      style="display: <?= $hasImage ? 'none' : 'block' ?>;">
+                    <!-- Botón cámara moderno -->
+                    <label for="image-input" class="inventory-camera-btn">
+                        <i class="fas fa-camera"></i>
+                    </label>
                     <input type="file" name="image_path" id="image-input" 
-                           class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg">
-                    <small class="text-muted d-block mt-1">Formatos: JPG, PNG (máx. 5MB)</small>
+                           class="d-none" accept="image/jpeg,image/png,image/jpg">
+                    <small class="text-muted d-block mt-2">Haz clic para añadir imagen</small>
                     <img id="preview-inv-img" src="" alt="" 
                          class="img-fluid rounded mt-2" 
                          style="display:none; max-height: 120px;">
@@ -145,12 +148,107 @@ $row = $qry->fetch_assoc();
 <style>
     #image-preview img { 
         max-width: 100%; 
-        border: 2px dashed #ddd; 
         border-radius: 8px; 
     }
-    #image-input { font-size: 0.85rem; }
     .form-control { font-size: 0.9rem; }
     .btn { min-width: 120px; }
+
+    /* === ESTILOS MODERNOS PARA IMAGEN DE INVENTARIO === */
+    .inventory-image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .inventory-image {
+        max-height: 180px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    /* Botón cámara */
+    .inventory-camera-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 0;
+    }
+
+    .inventory-camera-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    .inventory-camera-btn:active {
+        transform: scale(0.95);
+    }
+
+    .inventory-camera-btn i {
+        font-size: 18px;
+    }
+
+    /* Botón eliminar */
+    .inventory-delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 10;
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .inventory-delete-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 25px rgba(245, 87, 108, 0.6);
+    }
+
+    .inventory-delete-btn:active {
+        transform: scale(0.95);
+    }
+
+    .inventory-delete-btn i {
+        font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .inventory-camera-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .inventory-camera-btn i {
+            font-size: 16px;
+        }
+
+        .inventory-delete-btn {
+            width: 26px;
+            height: 26px;
+        }
+
+        .inventory-delete-btn i {
+            font-size: 10px;
+        }
+    }
 </style>
 
 <script>

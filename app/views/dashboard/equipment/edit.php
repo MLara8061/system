@@ -140,20 +140,19 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                 <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
                     <div class="text-center w-100 position-relative" style="min-height: 420px;">
                         <?php if (!empty($eq['image']) && file_exists($eq['image'])): ?>
-                            <div class="position-relative d-inline-block">
+                            <div class="position-relative d-inline-block equipment-image-wrapper">
                                 <img src="<?= $eq['image'] ?>" 
-                                     class="img-fluid rounded shadow" 
+                                     class="img-fluid rounded shadow equipment-image" 
                                      style="max-height: 380px; object-fit: contain;" 
                                      id="equipment-preview">
+                                <!-- Botón eliminar imagen -->
                                 <button type="button" 
-                                    class="btn btn-danger btn-sm position-absolute equipment-image-remove-btn" 
-                                    style="top: 10px; right: 10px; z-index: 10;" 
-                                    id="remove-equipment-image">
+                                    class="equipment-delete-btn" 
+                                    id="remove-equipment-image"
+                                    title="Eliminar imagen">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
-                            <br>
-                            <small class="text-muted">Haz clic para eliminar</small>
                         <?php else: ?>
                             <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
                                  style="height: 380px; border: 3px dashed #ccc;" id="empty-equipment-image">
@@ -163,10 +162,14 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                         
                         <div id="upload-equipment-container" class="mt-3"
                              style="display: <?= (!empty($eq['image']) && file_exists($eq['image'])) ? 'none' : 'block' ?>;">
+                            <!-- Botón cámara para añadir imagen -->
+                            <label for="equipment_image" class="equipment-camera-btn">
+                                <i class="fas fa-camera"></i>
+                            </label>
                             <input type="file" name="equipment_image" id="equipment_image" 
-                                   class="form-control" accept="image/jpeg,image/png,image/jpg" 
+                                   class="d-none" accept="image/jpeg,image/png,image/jpg" 
                                    form="manage_equipment" onchange="previewEquipmentImg(this)">
-                            <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                            <small class="text-muted d-block mt-2">Haz clic en el botón para añadir imagen</small>
                             <img id="equipment-preview-new" src="" alt="" 
                                  class="img-fluid rounded shadow mt-2"
                                  style="display:none; max-height: 200px;">
@@ -663,30 +666,134 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
     .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badge { font-size: 1.1rem; }
 
-    /* Botón eliminar imagen: evita que se estire en móvil */
-    .equipment-image-remove-btn {
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        min-width: 0;
+    /* === ESTILOS MODERNOS PARA IMAGEN DE EQUIPO === */
+    .equipment-image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .equipment-image {
+        max-height: 380px;
+        object-fit: contain;
+        border-radius: 12px;
+    }
+
+    /* Botón cámara (añadir imagen) */
+    .equipment-camera-btn {
+        position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        line-height: 1;
-        white-space: nowrap;
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 20px;
+        margin-bottom: 10px;
     }
-    .equipment-image-remove-btn i {
-        font-size: 0.9rem;
+
+    .equipment-camera-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
     }
+
+    .equipment-camera-btn:active {
+        transform: scale(0.95);
+    }
+
+    .equipment-camera-btn i {
+        font-size: 20px;
+    }
+
+    /* Botón eliminar imagen */
+    .equipment-delete-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .equipment-delete-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 25px rgba(245, 87, 108, 0.6);
+    }
+
+    .equipment-delete-btn:active {
+        transform: scale(0.95);
+    }
+
+    .equipment-delete-btn i {
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .equipment-image {
+            max-height: 300px;
+        }
+
+        .equipment-camera-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+
+        .equipment-camera-btn i {
+            font-size: 18px;
+        }
+
+        .equipment-delete-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .equipment-delete-btn i {
+            font-size: 12px;
+        }
+    }
+
     @media (max-width: 576px) {
-        .equipment-image-remove-btn {
+        .equipment-image {
+            max-height: 250px;
+        }
+
+        .equipment-camera-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .equipment-camera-btn i {
+            font-size: 16px;
+        }
+
+        .equipment-delete-btn {
             width: 28px;
             height: 28px;
-            top: 5px !important;
-            right: 5px !important;
+            top: 5px;
+            right: 5px;
         }
-        .equipment-image-remove-btn i {
-            font-size: 0.7rem;
+
+        .equipment-delete-btn i {
+            font-size: 10px;
         }
     }
 </style>

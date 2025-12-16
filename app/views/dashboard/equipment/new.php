@@ -37,11 +37,18 @@ try {
                 <div class="col-lg-5 bg-light d-flex align-items-center justify-content-center p-4">
                     <div class="text-center w-100">
                         <div class="bg-white border-dashed rounded d-flex align-items-center justify-content-center" 
-                             style="height: 380px; border: 3px dashed #ccc;">
+                             style="height: 380px; border: 3px dashed #ccc;" id="empty-equipment-image">
                             <i class="fas fa-camera fa-3x text-muted"></i>
                         </div>
-                        <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
-                        <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
+                        <!-- Botón cámara moderno -->
+                        <label for="equipment_image" class="equipment-camera-btn mt-3">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" name="equipment_image" id="equipment_image" class="d-none" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
+                        <small class="text-muted d-block mt-2">Haz clic en el botón para añadir imagen</small>
+                        <img id="equipment-preview-new" src="" alt="" 
+                             class="img-fluid rounded shadow mt-2"
+                             style="display:none; max-height: 200px;">
                     </div>
                 </div>
 
@@ -399,13 +406,71 @@ try {
     .form-control, .custom-select { border-radius: 10px; }
     .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badge { font-size: 1.1rem; }
+
+    /* === ESTILOS MODERNOS PARA IMAGEN DE EQUIPO === */
+    /* Botón cámara (añadir imagen) */
+    .equipment-camera-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 20px;
+        margin-bottom: 0;
+    }
+
+    .equipment-camera-btn:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    .equipment-camera-btn:active {
+        transform: scale(0.95);
+    }
+
+    .equipment-camera-btn i {
+        font-size: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .equipment-camera-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 18px;
+        }
+
+        .equipment-camera-btn i {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .equipment-camera-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .equipment-camera-btn i {
+            font-size: 16px;
+        }
+    }
 </style>
 
 <script>
     $('.solonumeros').on('input', function(){ this.value = this.value.replace(/[^0-9]/g,''); });
     $('.alfanumerico').on('input', function(){ this.value = this.value.replace(/[^a-zA-Z0-9]/g,''); });
 
-    // Validar formato de imagen
+    // Validar formato de imagen y previsualizar
     $('#equipment_image').on('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -424,6 +489,14 @@ try {
                 $(this).val('');
                 return false;
             }
+
+            // Previsualizar imagen
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                $('#equipment-preview-new').attr('src', event.target.result).show();
+                $('#empty-equipment-image').hide();
+            };
+            reader.readAsDataURL(file);
         }
     });
 
