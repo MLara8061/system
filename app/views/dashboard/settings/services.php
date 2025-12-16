@@ -63,7 +63,10 @@
 						Object.keys(data).map((k)=>{
 						let tr = $("<tr></tr>");
 							tr.append('<td class="text-center">'+(i++)+'</td>')
-							tr.append('<td><img src="'+data[k].img_path+'" class="img-thumbnail img-service" /></td>')
+							// Usar imagen por defecto si no existe
+							let imgSrc = data[k].img_path && data[k].img_path.trim() !== '' ? data[k].img_path : 'uploads/default.png';
+							let imgTag = '<img src="'+imgSrc+'" class="img-thumbnail img-service" onerror="this.src=\'uploads/default.png\'" />';
+							tr.append('<td>'+imgTag+'</td>')
 							tr.append('<td><b>'+data[k].category+'</b></td>')
 							tr.append('<td><b>'+data[k].service+'</b></td>')
 							tr.append('<td><span class="truncate">'+data[k].description+'</span></td>')
