@@ -7,7 +7,7 @@ error_log('Config loaded. conn exists: ' . (isset($conn) ? 'YES' : 'NO'));
 <?php
 // Obtener sucursales
 try {
-    $branches = $conn->query("SELECT id, name FROM branches WHERE active = 1 ORDER BY name ASC");
+    $branches = $conn->query("SELECT id, name FROM branches ORDER BY name ASC");
     error_log('Branches query success. Rows: ' . $branches->num_rows);
 } catch (Exception $e) {
     error_log('ERROR loading branches: ' . $e->getMessage());
