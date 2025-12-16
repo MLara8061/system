@@ -442,6 +442,7 @@ try {
                 end_load();
             }
         });
+        });
     });
 </script>
 
