@@ -1141,10 +1141,20 @@ class Action {
             if (!$acq_code) return false;
 
             $cq = $this->db->query("SELECT clave FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
-            if (!$cq || $cq->num_rows === 0) return false;
-            $cat_code = strtoupper(trim(($cq->fetch_assoc()['clave'] ?? '')));
+            if (!$cq || $cq->num_rows === 0) {
+                error_log("ERROR: equipment_category_id {$equipment_category_id} no encontrada");
+                return false;
+            }
+            $cat_row = $cq->fetch_assoc();
+            $cat_code_raw = $cat_row['clave'] ?? '';
+            error_log("Category ID {$equipment_category_id} - clave raw: '{$cat_code_raw}'");
+            $cat_code = strtoupper(trim($cat_code_raw));
             $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
-            if ($cat_code === '') return false;
+            error_log("Category code after processing: '{$cat_code}'");
+            if ($cat_code === '') {
+                error_log("ERROR: cat_code vacío después de procesar clave '{$cat_code_raw}'");
+                return false;
+            }
 
             $prefix = $branch_code . $acq_code . $cat_code;
             $prefix_esc = $this->db->real_escape_string($prefix);
