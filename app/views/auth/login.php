@@ -52,6 +52,27 @@ if (isset($_SESSION['login_id']))
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fondo con imagen existente + overlay (sin colores hardcodeados: usa variables Bootstrap) */
+        .auth-wrap.auth-bg {
+            background-image: url('/assets/img/boxed-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .auth-backdrop {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            /* Overlay + gradiente sutil con tokens de Bootstrap */
+            background: linear-gradient(
+                180deg,
+                rgba(var(--bs-dark-rgb), 0.45),
+                rgba(var(--bs-dark-rgb), 0.25)
+            );
         }
 
         .auth-box {
@@ -64,6 +85,24 @@ if (isset($_SESSION['login_id']))
             margin-bottom: 1.25rem;
         }
 
+        .auth-logo {
+            width: 54px;
+            height: 54px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(var(--bs-white-rgb), 0.9);
+            box-shadow: var(--bs-box-shadow-sm);
+            margin-bottom: 0.75rem;
+        }
+
+        .auth-logo img {
+            width: 28px;
+            height: 28px;
+            display: block;
+        }
+
         .auth-brand .title {
             font-weight: 600;
             margin-bottom: 0.25rem;
@@ -74,11 +113,26 @@ if (isset($_SESSION['login_id']))
         }
 
         .auth-card {
-            border-radius: 12px;
+            border-radius: 16px;
         }
 
         .auth-card .card-body {
             padding: 1.5rem;
+        }
+
+        .auth-card .card-header {
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        /* Inputs “Stripe-like”: limpios y con foco claro */
+        .floating-field .form-control {
+            border-radius: 12px;
+            padding-right: 2.75rem;
+        }
+
+        .floating-field .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.15);
         }
 
         .auth-actions {
@@ -112,8 +166,9 @@ if (isset($_SESSION['login_id']))
             position: absolute;
             right: 0.75rem;
             top: 50%;
-            transform: translateY(-25%);
+            transform: translateY(-50%);
             opacity: .65;
+            line-height: 1;
         }
 
         /* Microinteracción: shake en error */
@@ -130,16 +185,25 @@ if (isset($_SESSION['login_id']))
     </style>
 </head>
 <body>
-    <div class="auth-wrap bg-light">
-        <div class="auth-box">
+    <div class="auth-wrap auth-bg">
+        <div class="auth-backdrop"></div>
+        <div class="auth-box position-relative">
             <div class="auth-brand">
+                <div class="auth-logo">
+                    <img src="/assets/img/favicon.svg" alt="Logo">
+                </div>
                 <div class="title h4 text-dark">Sistema de Activos</div>
                 <div class="subtitle text-muted">Accede para continuar</div>
             </div>
 
-            <div class="card auth-card shadow-sm" id="auth-card">
+            <div class="card auth-card shadow" id="auth-card">
+                <div class="card-header bg-primary bg-gradient text-white border-0 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="font-weight-bold">Iniciar sesión</div>
+                        <div class="small opacity-75">Acceso seguro</div>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <div class="h5 mb-3 text-dark">Iniciar sesión</div>
 
                     <form id="login-form" novalidate>
                         <div id="login-alert-slot"></div>
