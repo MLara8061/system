@@ -51,12 +51,85 @@ if(isset($_GET['id'])){
 		box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 	}
 	
-	/* Image preview */
-	#cimg {
-		max-width: 200px;
-		max-height: 200px;
-		object-fit: contain;
-		border-radius: 8px;
+	/* Service Image Container - Estilo Avatar */
+	.service-img-container {
+		position: relative;
+		display: inline-block;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	
+	.service-img-container:hover .service-image {
+		transform: scale(1.02);
+		box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+	}
+	
+	.service-image {
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	}
+
+	/* Botón Cámara */
+	.service-camera-btn {
+		position: absolute;
+		bottom: 5px;
+		right: 5px;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		border: 3px solid #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+		z-index: 2;
+		margin: 0;
+	}
+	
+	.service-camera-btn:hover {
+		transform: scale(1.1) rotate(5deg);
+		box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+		background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+	}
+	
+	.service-camera-btn i {
+		color: #fff;
+		font-size: 1rem;
+		margin: 0;
+	}
+
+	/* Botón Eliminar */
+	.service-delete-btn {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+		border: 3px solid #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
+		z-index: 2;
+		padding: 0;
+	}
+	
+	.service-delete-btn:hover {
+		transform: scale(1.15) rotate(-5deg);
+		box-shadow: 0 6px 16px rgba(238, 90, 111, 0.6);
+		background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+	}
+	
+	.service-delete-btn i {
+		color: #fff;
+		font-size: 0.8rem;
+		margin: 0;
 	}
 	
 	/* Modal Footer Styles */
