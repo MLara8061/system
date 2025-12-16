@@ -45,14 +45,14 @@ try {
                         <!-- NOMBRE + INVENTARIO -->
                         <div class="row align-items-center mb-3">
                             <div class="col-md-8">
-                                <input type="text" name="nombre" class="form-control" required
+                                <input type="text" name="name" class="form-control" required
                                     placeholder="Nombre del Accesorio">
                             </div>
                             <div class="col-md-4">
                                 <span class="badge badge-primary font-weight-bold p-2" id="inventory_badge" style="font-size: 1.1rem;">
                                     Seleccionar sucursal
                                 </span>
-                                <input type="hidden" name="numero_inventario" id="numero_inventario" value="">
+                                <input type="hidden" name="inventory_number" id="numero_inventario" value="">
                                 <input type="hidden" name="equipment_category_id" id="equipment_category_id" value="<?= (int)$accessories_category_id ?>">
                             </div>
                         </div>
@@ -103,11 +103,11 @@ try {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Marca</label>
-                                <input type="text" name="marca" class="form-control" placeholder="Marca">
+                                <input type="text" name="brand" class="form-control" placeholder="Marca">
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Modelo</label>
-                                <input type="text" name="modelo" class="form-control" placeholder="Modelo">
+                                <input type="text" name="model" class="form-control" placeholder="Modelo">
                             </div>
                         </div>
 
@@ -115,11 +115,11 @@ try {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Serie</label>
-                                <input type="text" name="serie" class="form-control" placeholder="Serie">
+                                <input type="text" name="serial" class="form-control" placeholder="Serie">
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Fecha Adquisición</label>
-                                <input type="date" name="fecha_adquisicion" class="form-control" required
+                                <input type="date" name="acquisition_date" class="form-control" required
                                     value="<?= date('Y-m-d') ?>">
                             </div>
                         </div>
@@ -140,11 +140,11 @@ try {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Costo (MXN)</label>
-                                <input type="number" step="0.01" name="costo" class="form-control" required>
+                                <input type="number" step="0.01" name="cost" class="form-control" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Tipo Adquisición</label>
-                                <select name="acquisition_type" class="custom-select select2" required>
+                                <select name="acquisition_type_id" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
                                     $acq = $conn->query("SELECT id, name FROM acquisition_type ORDER BY name");
@@ -174,7 +174,7 @@ try {
                                 <h6 class="mb-0 text-dark">Observaciones</h6>
                             </div>
                             <div class="card-body">
-                                <textarea name="observaciones" class="form-control" rows="3"></textarea>
+                                <textarea name="observations" class="form-control" rows="3"></textarea>
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@ try {
 
         function refresh_inventory_number(){
             var branch_id = $('#branch_id').val();
-            var acquisition_type_id = $('[name="acquisition_type"]').val();
+            var acquisition_type_id = $('[name="acquisition_type_id"]').val();
             var equipment_category_id = $('#equipment_category_id').val();
 
             if(!branch_id){
@@ -304,7 +304,7 @@ try {
         }
 
         $('#branch_id').on('change', refresh_inventory_number);
-        $('[name="acquisition_type"]').on('change', refresh_inventory_number);
+        $('[name="acquisition_type_id"]').on('change', refresh_inventory_number);
     });
 
     $('#manage_accessory').submit(function(e) {

@@ -2,6 +2,11 @@
 define('ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
 
+// Validar sesión
+if (!isset($_SESSION['login_id'])) {
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Acceso denegado. Por favor, inicie sesión.</h3>');
+}
+
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');
 }

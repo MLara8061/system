@@ -163,6 +163,9 @@ if (ENVIRONMENT === 'local') {
 
 define('DB_CONFIG', $cfg);
 
+// === INICIAR SESIÓN (NECESARIO PARA PDFs Y VISTAS) ===
+require_once CONFIG_PATH . 'session.php';
+
 // === CARGAR CONEXIÓN ===
 require_once CONFIG_PATH . 'db_connect.php';
 
