@@ -1374,7 +1374,9 @@ class Action {
             @imagegif($dst, $path);
         }
 
+        // @phpstan-ignore-next-line - imagedestroy deprecated PHP 8+ but still functional
         if ($dst && $dst !== $src) @imagedestroy($dst);
+        // @phpstan-ignore-next-line - imagedestroy deprecated PHP 8+ but still functional
         if ($src) @imagedestroy($src);
     }
 
@@ -1427,7 +1429,9 @@ class Action {
             @imagewebp($dst, $thumbWebpPath, 75);
         }
 
+        // @phpstan-ignore-next-line - imagedestroy deprecated PHP 8+ but still functional
         if ($dst) @imagedestroy($dst);
+        // @phpstan-ignore-next-line - imagedestroy deprecated PHP 8+ but still functional
         if ($src) @imagedestroy($src);
     }
 
