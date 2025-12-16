@@ -245,13 +245,13 @@ if(isset($_GET['id'])){
 	
 	<hr>
 	<div class="row">
-		<div class="col-12 text-right">
-			<button type="submit" class="btn btn-primary">
-				<i class="fas fa-save"></i> Guardar
-			</button>
+		<div class="col-12 d-flex justify-content-between">
 			<a href="index.php?page=service_list" class="btn btn-secondary">
 				<i class="fas fa-times"></i> Cancelar
 			</a>
+			<button type="submit" class="btn btn-primary">
+				<i class="fas fa-save"></i> Guardar
+			</button>
 		</div>
 	</div>
 	</form>
@@ -322,10 +322,12 @@ if(isset($_GET['id'])){
 				$('.err_msg').remove();
 			}
 			
-			// Show loading state on modal submit button
-			const submitBtn = $('#uni_modal .modal-footer #submit');
+			// Show loading state - funciona tanto en modal como en página
+			const submitBtn = $(this).find('button[type="submit"]').length ? $(this).find('button[type="submit"]') : $('#uni_modal .modal-footer #submit');
 			const originalText = submitBtn.html();
 			submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...');
+			
+			console.log('Form data being sent:', new FormData($(this)[0]));
 			
 			$.ajax({
 				url: "public/ajax/action.php?action=save_service",
