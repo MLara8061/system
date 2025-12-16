@@ -215,10 +215,10 @@
                     <p>Lista Categorías</p>
                   </a></li>
                 <li class="nav-item"><a href="index.php?page=manage_services" class="nav-link nav-manage_services tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Crear Tciket</p>
+                    <p>Nuevo Servicio</p>
                   </a></li>
                 <li class="nav-item"><a href="index.php?page=service_list" class="nav-link nav-service_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
-                    <p>Todos los Tickets</p>
+                    <p>Todos los Servicios</p>
                   </a></li>
               </ul>
             </li>
