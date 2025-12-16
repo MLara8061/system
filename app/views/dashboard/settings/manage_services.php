@@ -133,10 +133,12 @@ if(isset($_GET['id'])){
 		margin: 0;
 	}
 	
-	/* Modal Footer Styles */
+	/* Modal Footer Styles - Updated 2024-12-16 */
 	.modal-footer {
 		border-top: 1px solid #f0f0f0;
 		padding: 1.5rem 2rem;
+		display: flex !important;
+		justify-content: space-between !important;
 	}
 	
 	/* Fix Select2 rendering */
