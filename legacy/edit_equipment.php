@@ -179,6 +179,7 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                     <form id="manage_equipment" enctype="multipart/form-data">
                         <input type="hidden" name="id" value="<?= $equipment_id ?>">
                         <input type="hidden" name="delete_image" value="0" id="delete_image_flag">
+                        <input type="hidden" name="number_inventory" id="number_inventory" value="<?= htmlspecialchars((string)($eq['number_inventory'] ?? '')) ?>">
 
                         <!-- SUCURSAL (alineado con Nuevo Equipo) -->
                         <div class="mb-3">
@@ -204,7 +205,7 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                             </div>
                             <div class="col-md-4">
                                 <span class="badge badge-primary font-weight-bold p-2" style="font-size: 1.1rem;">
-                                    #<?= $eq['number_inventory'] ?>
+                                    <span id="inventory_badge">#<?= htmlspecialchars((string)($eq['number_inventory'] ?? '')) ?></span>
                                 </span>
                             </div>
                         </div>
@@ -318,12 +319,44 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                                 <select name="acquisition_type" class="custom-select select2" required>
                                     <option value="">Seleccionar</option>
                                     <?php
-                                    $types = $conn->query("SELECT id,name FROM acquisition_type ORDER BY name ASC");
-                                    while ($row = $types->fetch_assoc()): ?>
-                                        <option value="<?= $row['id'] ?>" <?= $eq['acquisition_type'] == $row['id'] ? 'selected' : '' ?>>
-                                            <?= ucwords($row['name']) ?>
-                                        </option>
-                                    <?php endwhile; ?>
+                                    $selected_acq_id = (int)($eq['acquisition_type'] ?? 0);
+                                    $hasCode = false;
+                                    $hasActive = false;
+                                    try {
+                                        $c = @$conn->query("SHOW COLUMNS FROM acquisition_type LIKE 'code'");
+                                        $hasCode = ($c && $c->num_rows > 0);
+                                    } catch (Throwable $e) {
+                                        $hasCode = false;
+                                    }
+                                    try {
+                                        $c = @$conn->query("SHOW COLUMNS FROM acquisition_type LIKE 'active'");
+                                        $hasActive = ($c && $c->num_rows > 0);
+                                    } catch (Throwable $e) {
+                                        $hasActive = false;
+                                    }
+
+                                    $cols = $hasCode ? 'id, name, code' : 'id, name';
+                                    if ($hasActive) {
+                                        $where = ($selected_acq_id > 0) ? "WHERE active = 1 OR id = {$selected_acq_id}" : 'WHERE active = 1';
+                                    } else {
+                                        $where = '';
+                                    }
+                                    $order = $hasCode ? 'ORDER BY code ASC, name ASC' : 'ORDER BY name ASC';
+
+                                    $types = @$conn->query("SELECT {$cols} FROM acquisition_type {$where} {$order}");
+                                    if ($types) {
+                                        while ($row = $types->fetch_assoc()):
+                                            $id = (int)($row['id'] ?? 0);
+                                            $name = (string)($row['name'] ?? '');
+                                            $code = strtoupper(trim((string)($row['code'] ?? '')));
+                                            $label = ($hasCode && $code !== '') ? ($code . ' - ' . $name) : $name;
+                                            ?>
+                                            <option value="<?= $id ?>" <?= $selected_acq_id === $id ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars(ucwords($label)) ?>
+                                            </option>
+                                        <?php endwhile;
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -679,6 +712,59 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
             dropdownAutoWidth: true,
             maximumInputLength: 0
         });
+
+        // Generar número de inventario cuando cambie sucursal/tipo/categoría (alineado con Nuevo Equipo)
+        function refresh_inventory_number(){
+            var branch_id = $('#branch_id').val();
+            var acquisition_type_id = $('[name="acquisition_type"]').val();
+            var equipment_category_id = $('#equipment_category_id').val();
+
+            if(!branch_id){
+                $('#inventory_badge').text('Seleccionar sucursal');
+                $('#number_inventory').val('');
+                return;
+            }
+            if(!acquisition_type_id || !equipment_category_id){
+                $('#inventory_badge').text('Seleccionar tipo y categoría');
+                $('#number_inventory').val('');
+                return;
+            }
+
+            $.ajax({
+                url: 'public/ajax/action.php?action=get_next_inventory_number',
+                method: 'POST',
+                data: {
+                    branch_id: branch_id,
+                    acquisition_type_id: acquisition_type_id,
+                    equipment_category_id: equipment_category_id
+                },
+                dataType: 'json',
+                success: function(data){
+                    if(data && data.success && data.number){
+                        $('#inventory_badge').text('#' + data.number);
+                        $('#number_inventory').val(data.number);
+                    } else {
+                        var msg = (data && data.error) ? data.error : 'Error al generar número de inventario';
+                        $('#inventory_badge').text('Error');
+                        $('#number_inventory').val('');
+                        alert_toast(msg, 'error');
+                    }
+                },
+                error: function(xhr){
+                    var msg = 'Error de conexión';
+                    try {
+                        if (xhr && xhr.responseText) msg = String(xhr.responseText).trim() || msg;
+                    } catch (e) {}
+                    $('#inventory_badge').text('Error');
+                    $('#number_inventory').val('');
+                    alert_toast(msg, 'error');
+                }
+            });
+        }
+
+        $('#branch_id').on('change', refresh_inventory_number);
+        $('[name="acquisition_type"]').on('change', refresh_inventory_number);
+        $('#equipment_category_id').on('change', refresh_inventory_number);
         
         // CASCADA 1: Cargar ubicaciones cuando se selecciona un departamento
         // Usar 'select2:select' en lugar de 'change' para mejor compatibilidad con Select2

@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Obtener credenciales
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
+$remember_me = $_POST['remember_me'] ?? null;
+$rememberRequested = ($remember_me === '1' || $remember_me === 1 || $remember_me === true || $remember_me === 'true' || $remember_me === 'on');
 
 if (empty($username) || empty($password)) {
     die('2');
@@ -61,6 +63,13 @@ if (!$password_valid) {
     die('3'); // Contraseña incorrecta
 }
 
+// Regenerar ID de sesión tras login exitoso (mitiga session fixation)
+if (function_exists('regenerate_session_id')) {
+    regenerate_session_id();
+} else {
+    @session_regenerate_id(true);
+}
+
 // Establecer sesión
 foreach ($user as $key => $value) {
     if ($key != 'password' && !is_numeric($key)) {
@@ -73,6 +82,8 @@ foreach ($user as $key => $value) {
 }
 
 $_SESSION['login_avatar'] = $user['avatar'] ?? 'default-avatar.png';
+$_SESSION['remember_me'] = $rememberRequested ? 1 : 0;
+$_SESSION['last_activity'] = time();
 
 // Log activity
 try {

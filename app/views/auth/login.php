@@ -84,6 +84,49 @@ if (isset($_SESSION['login_id']))
         .auth-actions {
             margin-top: 1rem;
         }
+
+        /* Floating labels (sin colores nuevos; usa tipografía/colores del tema) */
+        .floating-field {
+            position: relative;
+        }
+        .floating-field .form-control {
+            padding-top: 1.1rem;
+            padding-bottom: 0.65rem;
+        }
+        .floating-field label {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            margin: 0;
+            pointer-events: none;
+            transition: transform 120ms ease, opacity 120ms ease;
+            transform-origin: left top;
+            opacity: .85;
+        }
+        .floating-field .form-control:focus + label,
+        .floating-field .form-control:not(:placeholder-shown) + label {
+            transform: translateY(-0.55rem) scale(0.85);
+            opacity: .7;
+        }
+        .floating-field .field-icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-25%);
+            opacity: .65;
+        }
+
+        /* Microinteracción: shake en error */
+        @keyframes shakeX {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake {
+            animation: shakeX 320ms ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -94,26 +137,39 @@ if (isset($_SESSION['login_id']))
                 <div class="subtitle text-muted">Accede para continuar</div>
             </div>
 
-            <div class="card auth-card shadow-sm">
+            <div class="card auth-card shadow-sm" id="auth-card">
                 <div class="card-body">
                     <div class="h5 mb-3 text-dark">Iniciar sesión</div>
 
                     <form id="login-form" novalidate>
                         <div id="login-alert-slot"></div>
 
-                        <div class="form-group mb-3">
-                            <label for="username" class="small font-weight-bold mb-1">Usuario</label>
-                            <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username">
+                        <div class="floating-field mb-3">
+                            <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username" placeholder=" ">
+                            <label for="username" class="small">Usuario</label>
+                            <span class="field-icon"><i class="fa-regular fa-user"></i></span>
+                            <small class="invalid-feedback" id="username-error">El usuario es requerido.</small>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label for="password" class="small font-weight-bold mb-1">Contraseña</label>
-                            <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                        <div class="floating-field mb-2">
+                            <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password" placeholder=" ">
+                            <label for="password" class="small">Contraseña</label>
+                            <span class="field-icon"><i class="fa-solid fa-lock"></i></span>
+                            <small class="invalid-feedback" id="password-error">La contraseña es requerida.</small>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="custom-control custom-checkbox">
+                                <input class="custom-control-input" type="checkbox" id="remember_me" name="remember_me" value="1">
+                                <label class="custom-control-label" for="remember_me">Recordarme</label>
+                            </div>
+                            <a href="#" class="small" id="forgot-link">¿Olvidaste la contraseña?</a>
                         </div>
 
                         <div class="auth-actions">
                             <button type="submit" class="btn btn-primary btn-block">
-                                <span class="btn-text">Acceder</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btn-spinner"></span>
+                                <span class="btn-text" id="btn-text">Acceder</span>
                             </button>
                         </div>
                     </form>
@@ -127,25 +183,88 @@ if (isset($_SESSION['login_id']))
     </div>
 
     <script>
-        // Login con AJAX y UX mejorada
+        // Login con AJAX + validación en tiempo real + microinteracciones
         const form = document.getElementById('login-form');
+        const card = document.getElementById('auth-card');
+        const slot = document.getElementById('login-alert-slot');
+        const usernameEl = document.getElementById('username');
+        const passwordEl = document.getElementById('password');
+        const forgotLink = document.getElementById('forgot-link');
+
+        const btn = form.querySelector('button[type="submit"]');
+        const btnText = document.getElementById('btn-text');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const originalText = btnText.textContent;
+
+        function clearAlerts(){
+            slot.innerHTML = '';
+        }
+
+        function showAlert(type, message){
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} py-2`;
+            alert.textContent = message;
+            slot.appendChild(alert);
+        }
+
+        function shake(){
+            card.classList.remove('shake');
+            // reflow
+            void card.offsetWidth;
+            card.classList.add('shake');
+        }
+
+        function setLoading(isLoading){
+            btn.disabled = isLoading;
+            if (isLoading){
+                btnSpinner.classList.remove('d-none');
+                btnText.textContent = 'Validando...';
+            } else {
+                btnSpinner.classList.add('d-none');
+                if (btnText.textContent === 'Validando...') btnText.textContent = originalText;
+            }
+        }
+
+        function validateUsername(){
+            const value = (usernameEl.value || '').trim();
+            const ok = value.length >= 2;
+            usernameEl.classList.toggle('is-invalid', !ok);
+            usernameEl.setAttribute('aria-invalid', ok ? 'false' : 'true');
+            return ok;
+        }
+
+        function validatePassword(){
+            const value = (passwordEl.value || '');
+            const ok = value.length >= 1;
+            passwordEl.classList.toggle('is-invalid', !ok);
+            passwordEl.setAttribute('aria-invalid', ok ? 'false' : 'true');
+            return ok;
+        }
+
+        usernameEl.addEventListener('input', validateUsername);
+        passwordEl.addEventListener('input', validatePassword);
+
+        forgotLink.addEventListener('click', function(e){
+            e.preventDefault();
+            clearAlerts();
+            showAlert('info', 'Si olvidaste tu contraseña, contacta al administrador del sistema para restablecerla.');
+        });
+
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const btn = this.querySelector('button[type="submit"]');
-            const btnText = btn.querySelector('.btn-text');
-            const originalText = btnText.textContent;
-            
-            // Deshabilitar botón y cambiar texto
-            btn.disabled = true;
-            btnText.textContent = 'Validando...';
 
+            clearAlerts();
             btn.classList.remove('btn-success');
             btn.classList.add('btn-primary');
 
-            // Eliminar alertas previas
-            const slot = document.getElementById('login-alert-slot');
-            slot.innerHTML = '';
+            const okUser = validateUsername();
+            const okPass = validatePassword();
+            if (!okUser || !okPass){
+                shake();
+                return;
+            }
+
+            setLoading(true);
 
             try {
                 const response = await fetch('../../../public/ajax/login.php', {
@@ -159,8 +278,6 @@ if (isset($_SESSION['login_id']))
                 }
                 
                 const result = await response.text();
-                console.log('Login response:', result.trim());
-                console.log('Response status:', response.status);
                 
                 if (result.trim() === '1') {
                     // Login exitoso
@@ -173,34 +290,23 @@ if (isset($_SESSION['login_id']))
                     }, 500);
                 } else {
                     // Login fallido
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-danger py-2';
-                    
-                    // Mensajes más específicos
                     if (result.trim() === '2') {
-                        alert.textContent = 'Usuario no encontrado';
+                        showAlert('danger', 'Usuario no encontrado');
                     } else if (result.trim() === '3') {
-                        alert.textContent = 'Contraseña incorrecta';
+                        showAlert('danger', 'Contraseña incorrecta');
                     } else if (result.includes('error') || result.includes('Error')) {
-                        alert.textContent = 'Error del servidor. Intenta más tarde.';
-                        console.error('Server error:', result);
+                        showAlert('danger', 'Error del servidor. Intenta más tarde.');
                     } else {
-                        alert.textContent = 'Usuario o contraseña incorrectos';
+                        showAlert('danger', 'Usuario o contraseña incorrectos');
                     }
 
-                    slot.appendChild(alert);
+                    shake();
                 }
             } catch (error) {
-                console.error('Error:', error);
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger py-2';
-                alert.textContent = 'Error de conexión. Intenta nuevamente.';
-                document.getElementById('login-alert-slot').appendChild(alert);
+                showAlert('danger', 'Error de conexión. Intenta nuevamente.');
+                shake();
             } finally {
-                btn.disabled = false;
-                if (btnText.textContent === 'Validando...') {
-                    btnText.textContent = originalText;
-                }
+                setLoading(false);
             }
         });
     </script>

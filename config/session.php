@@ -12,14 +12,28 @@ define('SESSION_HARDENED', true);
 
 // Asegurar que la sesión no estaba iniciada
 if (session_status() === PHP_SESSION_NONE) {
+
+    // "Recordarme": si viene desde login, extender duración de sesión
+    $rememberRequested = false;
+    if (isset($_POST['remember_me'])) {
+        $v = $_POST['remember_me'];
+        $rememberRequested = ($v === '1' || $v === 1 || $v === true || $v === 'true' || $v === 'on');
+    }
+
+    $defaultTtl = 1800; // 30 minutos
+    $rememberTtl = 60 * 60 * 24 * 30; // 30 días
+    $cookieLifetime = $rememberRequested ? $rememberTtl : $defaultTtl;
     
     // === CONFIGURACIÓN DE COOKIES SEGURAS ===
     $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
               (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
               php_uname('s') === 'Linux' && getenv('ENVIRONMENT') === 'production';
     
+    // Alinear gc_maxlifetime con el TTL de la cookie para evitar expiraciones inconsistentes
+    @ini_set('session.gc_maxlifetime', (string)$cookieLifetime);
+
     session_set_cookie_params([
-        'lifetime' => 1800,  // 30 minutos
+        'lifetime' => $cookieLifetime,
         'path' => '/',
         'domain' => $_SERVER['HTTP_HOST'] ?? '',
         'secure' => $secure,  // Solo HTTPS en producción
@@ -54,13 +68,17 @@ function validate_session() {
         return false;
     }
     
-    // Verificar timeout (30 minutos)
+    // Verificar timeout
+    $defaultTtl = 1800; // 30 minutos
+    $rememberTtl = 60 * 60 * 24 * 30; // 30 días
+    $ttl = !empty($_SESSION['remember_me']) ? $rememberTtl : $defaultTtl;
+
     if (!isset($_SESSION['last_activity'])) {
         $_SESSION['last_activity'] = time();
         return true;
     }
     
-    if (time() - $_SESSION['last_activity'] > 1800) {
+    if (time() - $_SESSION['last_activity'] > $ttl) {
         // Sesión expirada
         session_destroy();
         return false;
