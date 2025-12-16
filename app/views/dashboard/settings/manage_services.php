@@ -69,7 +69,7 @@ if(isset($_GET['id'])){
 		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 	}
 
-	/* Botón Cámara */
+	/* Botï¿½n Cï¿½mara */
 	.service-camera-btn {
 		position: absolute;
 		bottom: 5px;
@@ -101,7 +101,7 @@ if(isset($_GET['id'])){
 		margin: 0;
 	}
 
-	/* Botón Eliminar */
+	/* Botï¿½n Eliminar */
 	.service-delete-btn {
 		position: absolute;
 		top: 0;
@@ -177,9 +177,9 @@ if(isset($_GET['id'])){
 		<input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] :'' ?>">
 		
 		<div class="form-group">
-			<label for="category_id">Categoría</label>
+			<label for="category_id">Categorï¿½a</label>
 			<select class="custom-select select2" name="category_id" id="category_id" required>
-				<option value="">Selecciona una categoría</option>
+				<option value="">Selecciona una categorï¿½a</option>
 				<?php 
 				$category = $conn->query("SELECT * FROM `services_category` order by `category` asc ");
 				while($row = $category->fetch_assoc()):
@@ -191,23 +191,30 @@ if(isset($_GET['id'])){
 		
 		<div class="form-group">
 			<label for="service">Nombre del Servicio</label>
-			<input type="text" class="form-control" name="service" id="service" value="<?php echo isset($service) ? $service : "" ?>" placeholder="Ej. Reparación de equipos" required>
+			<input type="text" class="form-control" name="service" id="service" value="<?php echo isset($service) ? $service : "" ?>" placeholder="Ej. ReparaciÃ³n de equipos" required>
 		</div>
 		
 		<div class="form-group">
-			<label for="description">Descripción</label>
+			<label for="description">DescripciÃ³n</label>
 			<textarea class="form-control" rows="4" name="description" id="description" placeholder="Describe el servicio..." required><?php echo isset($description) ? $description : "" ?></textarea>
 		</div>
 		
 		<div class="form-group">
-		<label for="customFile">Imagen del Servicio</label>
-		<div class="custom-file">
-			<input type="file" class="custom-file-input" id="customFile" name="img"  accept="image/png,image/jpeg,image/jpg,image/webp">
-			<label class="custom-file-label" for="customFile">Elegir archivo (PNG, JPG, WebP)</label>
+		<label for="service-img-upload">Imagen del Servicio</label>
+		<div class="service-img-container position-relative d-inline-block">
+			<img id="service-img-preview" 
+				 src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : 'uploads/default.png' ?>" 
+				 alt="Imagen del Servicio" 
+				 class="img-fluid rounded-circle">
+			<label for="service-img-upload" class="service-camera-btn" title="Cambiar imagen">
+				<i class="fas fa-camera"></i>
+			</label>
+			<button type="button" class="service-delete-btn" id="delete-service-img-btn" title="Eliminar imagen" 
+					style="<?php echo (!isset($img_path) || empty($img_path) || !file_exists($img_path)) ? 'display: none;' : '' ?>">
+				<i class="fas fa-times"></i>
+			</button>
 		</div>
-	</div>
-	<div class="form-group d-flex justify-content-center">
-		<img src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : '' ?>" alt="Imagen" id="cimg" class="img-fluid img-thumbnail" style="max-width: 200px; max-height: 200px;">
+		<input type="file" id="service-img-upload" name="img" class="d-none" accept="image/png,image/jpeg,image/jpg,image/webp">
 		
 	</form>
 </div>
@@ -218,7 +225,7 @@ if(isset($_GET['id'])){
 			$('.select2').select2({
 				dropdownParent: $('#uni_modal'),
 				theme: 'bootstrap4',
-				placeholder: 'Selecciona una categoría',
+				placeholder: 'Selecciona una categorÃ­a',
 				width: '100%'
 			});
 		}, 100);
@@ -230,11 +237,11 @@ if(isset($_GET['id'])){
 				
 				// Validar tipo de archivo
 				if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
-					alert_toast('Por favor selecciona una imagen válida (JPG, PNG, WebP)', 'warning');
+					alert_toast('Por favor selecciona una imagen vï¿½lida (JPG, PNG, WebP)', 'warning');
 					return;
 				}
 				
-				// Validar tamaño (5MB máx)
+				// Validar tamaï¿½o (5MB mï¿½x)
 				if (file.size > 5 * 1024 * 1024) {
 					alert_toast('La imagen debe ser menor a 5MB', 'warning');
 					return;
@@ -244,7 +251,7 @@ if(isset($_GET['id'])){
 				reader.onload = function(e) {
 					$('#service-img-preview').attr('src', e.target.result);
 					
-					// Mostrar botón eliminar si no existe
+					// Mostrar botï¿½n eliminar si no existe
 					if ($('#delete-service-img-btn').length === 0) {
 						$('.service-img-container').append(
 							'<button type="button" class="service-delete-btn" id="delete-service-img-btn" title="Eliminar imagen">' +
