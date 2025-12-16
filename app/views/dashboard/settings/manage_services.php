@@ -89,10 +89,12 @@ if(isset($_GET['id'])){
 				<img src="<?php echo htmlspecialchars($__img_src, ENT_QUOTES, 'UTF-8'); ?>" alt="" id="cimg" class="img-fluid img-thumbnail" onerror="this.onerror=null;this.src='<?php echo htmlspecialchars($__default_img, ENT_QUOTES, 'UTF-8'); ?>';">
 			</div>
 
+			<?php if (empty($__IN_UNI_MODAL)): ?>
 			<div class="col-lg-12 d-flex justify-content-end btn-container-mobile" id="service-form-actions">
 				<button class="btn btn-secondary" type="button" id="btn-cancel-service">Cancelar</button>
 				<button class="btn btn-primary ml-2" type="submit">Guardar</button>
 			</div>
+			<?php endif; ?>
 			
 		
 	</form>
@@ -110,17 +112,9 @@ if(isset($_GET['id'])){
 	}
 	$(document).ready(function(){
 		// Usar el footer estándar de #uni_modal (Cancelar/Guardar). El botón Guardar dispara submit().
-		var inModal = $('#manage-service').closest('#uni_modal, #uni_modal_right, #confirm_modal').length > 0;
-		if (inModal) {
-			// En modal, evitamos botones duplicados: se usan los del footer del modal.
-			$('#service-form-actions').hide();
-		}
+		var inModal = <?php echo !empty($__IN_UNI_MODAL) ? 'true' : 'false'; ?>;
 
 		$('#btn-cancel-service').on('click', function(){
-			if (inModal) {
-				$('#uni_modal').modal('hide');
-				return;
-			}
 			window.location.href = 'index.php?page=service_list';
 		});
 

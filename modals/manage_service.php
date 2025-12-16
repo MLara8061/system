@@ -16,4 +16,6 @@ if (function_exists('validate_session') && !validate_session()) {
 
 header('Content-Type: text/html; charset=utf-8');
 
+$__IN_UNI_MODAL = true;
+
 require ROOT . '/app/views/dashboard/settings/manage_services.php';
