@@ -118,8 +118,8 @@ include ROOT . '/app/views/layouts/header.php';
             <div class="modal-body">
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-primary" id='submit' onclick="$('#uni_modal form').submit()">Guardar</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary submit" id='submit' onclick="$('#uni_modal form').submit()">Guardar</button>
             </div>
           </div>
         </div>

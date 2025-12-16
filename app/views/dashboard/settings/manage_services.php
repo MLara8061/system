@@ -165,7 +165,8 @@ if(isset($_GET['id'])){
 	}
 	
 	/* Estilos para botones del modal (submit = guardar, secundario = cancelar) */
-	#uni_modal .modal-footer .submit {
+	#uni_modal .modal-footer .submit,
+	#uni_modal .modal-footer .btn-primary {
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		border: none;
 		padding: 0.875rem 2.5rem;
@@ -179,12 +180,14 @@ if(isset($_GET['id'])){
 		order: 2;
 	}
 	
-	#uni_modal .modal-footer .submit:hover {
+	#uni_modal .modal-footer .submit:hover,
+	#uni_modal .modal-footer .btn-primary:hover {
 		transform: translateY(-2px);
 		box-shadow: 0 6px 20px rgba(102,126,234,0.4);
 	}
 	
-	#uni_modal .modal-footer .submit:active {
+	#uni_modal .modal-footer .submit:active,
+	#uni_modal .modal-footer .btn-primary:active {
 		transform: translateY(0);
 	}
 	
@@ -262,7 +265,7 @@ if(isset($_GET['id'])){
 				<div class="image-drop-zone" id="service-drop-zone">
 					<i class="fas fa-cloud-upload-alt drop-icon"></i>
 					<div class="drop-text">Arrastra y suelta una imagen aquí</div>
-					<div class="drop-subtext">o haz clic para seleccionar (PNG, JPG - Máx. 2MB)</div>
+					<div class="drop-subtext">o haz clic para seleccionar (PNG, JPG - Max. 2MB)</div>
 					<input type="file" id="service-img-input" name="img" accept="image/png,image/jpeg,image/jpg">
 				</div>
 				<div class="image-preview-container" id="service-preview-container">
