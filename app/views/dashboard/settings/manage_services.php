@@ -69,7 +69,7 @@ if(isset($_GET['id'])){
 		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 	}
 
-	/* Bot�n C�mara */
+	/* Botón Cámara */
 	.service-camera-btn {
 		position: absolute;
 		bottom: 5px;
@@ -101,7 +101,7 @@ if(isset($_GET['id'])){
 		margin: 0;
 	}
 
-	/* Bot�n Eliminar */
+	/* Botón Eliminar */
 	.service-delete-btn {
 		position: absolute;
 		top: 0;
@@ -205,7 +205,8 @@ if(isset($_GET['id'])){
 			<img id="service-img-preview" 
 				 src="<?php echo (isset($img_path) && !empty($img_path) && file_exists($img_path)) ? $img_path : 'uploads/default.png' ?>" 
 				 alt="Imagen del Servicio" 
-				 class="img-fluid rounded-circle">
+				 class="img-fluid rounded-circle"
+				 style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #e8ecef;">
 			<label for="service-img-upload" class="service-camera-btn" title="Cambiar imagen">
 				<i class="fas fa-camera"></i>
 			</label>
