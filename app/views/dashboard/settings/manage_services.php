@@ -1,4 +1,5 @@
 ﻿<?php 
+// Version: 2024-12-16-v4 - Avatar style image upload
 if (!defined('ROOT')) {
     define('ROOT', realpath(__DIR__ . '/../../../../'));
 }
