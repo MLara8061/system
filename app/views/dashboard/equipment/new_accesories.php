@@ -379,7 +379,6 @@ try {
                 }
             });
         });
-    });ventory_number);
     });
 
     $('#manage_accessory').submit(function(e) {
@@ -441,7 +440,6 @@ try {
             complete: function(){
                 end_load();
             }
-        });
         });
     });
 </script>
