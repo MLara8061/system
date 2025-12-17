@@ -18,7 +18,7 @@ git add -A
 if ($LASTEXITCODE -eq 0) {
     git commit -m $CommitMessage
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  ⚠️  Sin cambios para commitear (ya está actualizado)" -ForegroundColor Gray
+        Write-Host "  (sin cambios para commitear; ya esta actualizado)" -ForegroundColor Gray
     }
 }
 
@@ -26,42 +26,42 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host "`n[2/4] Pushing a GitHub..." -ForegroundColor Yellow
 git push origin main
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "  ❌ Error en git push. Abortando." -ForegroundColor Red
+    Write-Host "  Error en git push. Abortando." -ForegroundColor Red
     exit 1
 }
-Write-Host "  ✅ Push exitoso" -ForegroundColor Green
+Write-Host "  Push exitoso" -ForegroundColor Green
 
 # 3. Pull en producción
-Write-Host "`n[3/4] Actualizando producción (git pull)..." -ForegroundColor Yellow
-$pullCmd = "cd $REMOTE_PATH && git pull origin main 2>&1"
+Write-Host "`n[3/4] Actualizando produccion (git pull)..." -ForegroundColor Yellow
+$pullCmd = "cd $REMOTE_PATH; git pull origin main 2>&1"
 $result = ssh -i $SSH_KEY -p $SSH_PORT $SSH_HOST $pullCmd
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ✅ Producción actualizada" -ForegroundColor Green
+    Write-Host "  Produccion actualizada" -ForegroundColor Green
     Write-Host $result -ForegroundColor Gray
 } else {
-    Write-Host "  ❌ Error en git pull:" -ForegroundColor Red
+    Write-Host "  Error en git pull:" -ForegroundColor Red
     Write-Host $result -ForegroundColor Red
     
     # Intentar resolver conflictos
-    Write-Host "`n  🔧 Intentando resolver conflictos..." -ForegroundColor Yellow
-    $cleanCmd = "cd $REMOTE_PATH && git reset --hard origin/main && git clean -fd"
+    Write-Host "`n  Intentando resolver conflictos..." -ForegroundColor Yellow
+    $cleanCmd = "cd $REMOTE_PATH; git reset --hard origin/main; git clean -fd"
     ssh -i $SSH_KEY -p $SSH_PORT $SSH_HOST $cleanCmd
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "  ✅ Conflictos resueltos, producción en sync" -ForegroundColor Green
+        Write-Host "  Conflictos resueltos, produccion en sync" -ForegroundColor Green
     } else {
-        Write-Host "  ❌ No se pudo resolver. Revisar manualmente." -ForegroundColor Red
+        Write-Host "  No se pudo resolver. Revisar manualmente." -ForegroundColor Red
         exit 1
     }
 }
 
 # 4. Verificar estado
-Write-Host "`n[4/4] Verificando estado de producción..." -ForegroundColor Yellow
-$statusCmd = "cd $REMOTE_PATH && git log --oneline -1 && echo '---' && git status --short"
+Write-Host "`n[4/4] Verificando estado de produccion..." -ForegroundColor Yellow
+$statusCmd = "cd $REMOTE_PATH; git log --oneline -1; echo '---'; git status --short"
 $status = ssh -i $SSH_KEY -p $SSH_PORT $SSH_HOST $statusCmd
 Write-Host $status -ForegroundColor Gray
 
-Write-Host "`n✅ DESPLIEGUE COMPLETADO" -ForegroundColor Green
+Write-Host "`nDESPLIEGUE COMPLETADO" -ForegroundColor Green
 Write-Host "🌐 URL: https://indigo-porcupine-764368.hostingersite.com" -ForegroundColor Cyan
-Write-Host "`n⚠️  IMPORTANTE: Recargar con Ctrl+Shift+R para evitar caché del navegador" -ForegroundColor Yellow
+Write-Host "`nIMPORTANTE: Recargar con Ctrl+Shift+R para evitar cache del navegador" -ForegroundColor Yellow
