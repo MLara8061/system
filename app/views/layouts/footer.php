@@ -7,6 +7,8 @@
 <!-- Summernote -->
 <script src="assets/plugins/summernote/summernote-bs4.min.js"></script>
 
+<!-- ticket-failsafe:v4 2025-12-17 -->
+
 <script>
 (function($){
     var loaderSelector = '#page-loading-indicator';
