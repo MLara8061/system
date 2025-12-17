@@ -113,6 +113,17 @@
 			width: "100%"
 		})
 
+		// Editar Ticket en modal (global): evita 403 por acceso directo a /app/
+		$(document)
+			.off('click.editTicketModalGlobal', '.edit_ticket_modal')
+			.on('click.editTicketModalGlobal', '.edit_ticket_modal', function(e){
+				e.preventDefault();
+				var id = $(this).data('id');
+				id = parseInt(id, 10) || 0;
+				if (!id) return;
+				uni_modal('Editar Ticket', 'public/ajax/ticket_edit_modal.php?id=' + encodeURIComponent(String(id)), 'modal-lg');
+			});
+
         var $loader = ensureLoader();
         var hideLoader = function() {
             if (!$loader.hasClass(hiddenClass)) {

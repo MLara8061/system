@@ -231,15 +231,6 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 </div>
 
 <script>
-$(function(){
-	$(document).off('click.editTicketModalView', '.edit_ticket_modal').on('click.editTicketModalView', '.edit_ticket_modal', function(){
-		var id = $(this).data('id');
-		uni_modal('Editar Ticket', 'app/views/dashboard/tickets/edit_modal.php?id=' + id, 'modal-lg');
-	});
-});
-</script>
-
-<script>
 	$(function() {
 		$('.summernote2').summernote({
 			height: 150,

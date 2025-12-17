@@ -174,15 +174,6 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	</div>
 </div>
 
-<script>
-$(function(){
-	$(document).off('click.editTicketModalList', '.edit_ticket_modal').on('click.editTicketModalList', '.edit_ticket_modal', function(){
-		var id = $(this).data('id');
-		uni_modal('Editar Ticket', 'app/views/dashboard/tickets/edit_modal.php?id=' + id, 'modal-lg');
-	});
-});
-</script>
-
 <style>
 .truncate {
 	max-width: 300px;
