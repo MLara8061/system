@@ -53,8 +53,9 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				</script>
 
 				<!-- Acciones inferiores: visibles siempre, incluso con layout-footer-fixed -->
-				<div class="ticket-actions-bottom bg-light border-top" data-ticket-actions-bottom="1" style="position: fixed; left: 0; right: 0; bottom: 56px; z-index: 2000; padding: .75rem 1rem;">
-					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
+				<div class="ticket-actions-bottom" data-ticket-actions-bottom="1" style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; pointer-events: none;">
+					<div class="ticket-actions-bottom-inner bg-light border-top" style="padding: .75rem 1rem; pointer-events: auto;">
+						<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
 						<?php if (!$is_edit): ?>
 							<button class="btn btn-secondary" type="reset" form="manage_ticket">
 								<i class="fas fa-redo"></i> Limpiar
@@ -66,8 +67,37 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						<button class="btn btn-primary" type="submit" form="manage_ticket">
 							<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
 						</button>
+						</div>
 					</div>
 				</div>
+				<script>
+					(function(){
+						try {
+							var bar = document.querySelector('[data-ticket-actions-bottom="1"]');
+							if (!bar) return;
+							var inner = bar.querySelector('.ticket-actions-bottom-inner');
+							var footer = document.querySelector('.main-footer');
+							var footerH = footer ? (footer.getBoundingClientRect().height || 0) : 0;
+							bar.style.bottom = footerH + 'px';
+
+							var cw = document.querySelector('.content-wrapper');
+							if (cw && inner) {
+								var ml = parseFloat(getComputedStyle(cw).marginLeft) || 0;
+								inner.style.marginLeft = ml + 'px';
+								inner.style.marginRight = '0';
+							}
+
+							var wrap = document.querySelector('.ticket-form-wrap');
+							if (wrap) {
+								var barH = bar.getBoundingClientRect ? (bar.getBoundingClientRect().height || 56) : 56;
+								var extra = footerH + barH + 16;
+								wrap.style.paddingBottom = extra + 'px';
+							}
+						} catch (e) {
+							// No-op
+						}
+					})();
+				</script>
 				<div class="card-body">
 					<?php if ($display_equipment_name): ?>
 					<div class="alert alert-info border border-info">
@@ -214,18 +244,6 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 	padding-bottom: calc(var(--ticket-fixed-footer-offset, 0px) + 5.5rem);
 }
 
-.ticket-actions-bottom {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	padding: .75rem 1rem;
-	z-index: 2000;
-}
-
-body.layout-footer-fixed .ticket-actions-bottom {
-	bottom: 56px;
-}
 
 @media (max-width: 768px) {
 	.card-body {
