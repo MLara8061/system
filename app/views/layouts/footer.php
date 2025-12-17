@@ -141,6 +141,16 @@
 			]
 		})
 
+		// Pre-cargar HTML en el editor (edición de ticket) sin romper el DOM
+		try {
+			if (typeof window.__ticket_description_html === 'string' && $('.summernote').length) {
+				$('.summernote').summernote('code', window.__ticket_description_html);
+				delete window.__ticket_description_html;
+			}
+		} catch (e) {
+			// No-op
+		}
+
 	})
 })(jQuery);
 </script>

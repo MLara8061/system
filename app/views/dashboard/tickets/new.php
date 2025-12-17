@@ -117,7 +117,10 @@ if ($equipment_name && $inventory) {
 						<div class="col-md-12">
 							<div class="form-group">
 								<label class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
-								<textarea name="description" id="" cols="30" rows="10" class="form-control summernote"><?php echo isset($description) ? $description : '' ?></textarea>
+								<textarea name="description" id="" cols="30" rows="10" class="form-control summernote"></textarea>
+								<script>
+									window.__ticket_description_html = <?php echo json_encode(isset($description) ? (string)$description : ''); ?>;
+								</script>
 							</div>
 						</div>
 					</div>
