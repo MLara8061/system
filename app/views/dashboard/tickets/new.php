@@ -48,6 +48,15 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
 			</div>
 			<div class="card-body">
+				<div class="d-flex justify-content-end mb-3">
+					<button class="btn btn-primary btn-sm" type="submit" form="manage_ticket">
+						<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+					</button>
+					<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary btn-sm ml-2">
+						<i class="fas fa-times"></i> Cancelar
+					</a>
+				</div>
+
 				<?php if ($display_equipment_name): ?>
 				<div class="alert alert-info">
 					<i class="fas fa-info-circle me-2"></i>
@@ -128,13 +137,41 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 								<select class="custom-select custom-select-sm select2" name="service_id" id="service_id" required>
 									<option value="">Seleccione un servicio</option>
 									<?php 
-									$servicesRes = $conn->query("SELECT s.*,c.category, c.clave FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
-									if ($servicesRes):
-									while($row = $servicesRes->fetch_assoc()):
+									$serviceOptions = [];
+									$servicesRes = @$conn->query("SELECT s.id, s.service, c.category, c.clave FROM `services` s INNER JOIN `services_category` c ON c.id = s.category_id ORDER BY s.`service` ASC");
+									if ($servicesRes) {
+										while ($row = $servicesRes->fetch_assoc()) {
+											$serviceOptions[] = [
+												'id' => (int)($row['id'] ?? 0),
+												'label' => '[' . ($row['clave'] ?? '') . ' - ' . ($row['category'] ?? '') . '] - ' . ($row['service'] ?? '') . ' Servicio',
+										];
+										}
+									}
+
+									// Fallback: si no existe services_category o no hay filas
+									if (count($serviceOptions) === 0) {
+										$fallbackRes = @$conn->query("SELECT id, service FROM `services` ORDER BY `service` ASC");
+										if ($fallbackRes) {
+											while ($row = $fallbackRes->fetch_assoc()) {
+												$serviceOptions[] = [
+													'id' => (int)($row['id'] ?? 0),
+													'label' => (string)($row['service'] ?? ''),
+												];
+										}
+									}
+									}
+
+									if (count($serviceOptions) > 0):
+										foreach ($serviceOptions as $opt):
+											$optId = (int)($opt['id'] ?? 0);
+											$optLabel = (string)($opt['label'] ?? '');
 									?>
-										<option value="<?php echo $row['id'] ?>" <?php echo isset($service_id) && $service_id == $row['id'] ? "selected" : "" ?>>[<?php echo $row['clave'] ?> - <?php echo $row['category'] ?>] - <?php echo $row['service'] ?> Servicio</option>
-									<?php endwhile; else: ?>
-										<option value="" disabled>No se pudieron cargar servicios</option>
+										<option value="<?php echo $optId; ?>" <?php echo (isset($service_id) && (int)$service_id === $optId) ? 'selected' : ''; ?>><?php echo htmlspecialchars($optLabel, ENT_QUOTES, 'UTF-8'); ?></option>
+									<?php
+										endforeach;
+									else:
+									?>
+										<option value="" disabled>No hay servicios configurados</option>
 									<?php endif; ?>
 								</select>
 							</div>
@@ -164,7 +201,7 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 									<i class="fas fa-redo"></i> Limpiar
 								</button>
 							<?php endif; ?>
-							<a href="./index.php?page=ticket_list" class="btn btn-default">
+							<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-default">
 								<i class="fas fa-times"></i> Cancelar
 							</a>
 						</div>
