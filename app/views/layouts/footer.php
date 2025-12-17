@@ -170,6 +170,55 @@
 				if (resp) {
 					$('#uni_modal .modal-title').html($title)
 					$('#uni_modal .modal-body').html(resp)
+
+					// Inicializar plugins dentro del modal (Select2/Summernote)
+					try {
+						var $modal = $('#uni_modal');
+						// Select2 en modal debe usar dropdownParent para evitar z-index issues
+						if ($.fn && typeof $.fn.select2 === 'function') {
+							$modal.find('.select2').each(function(){
+								var $el = $(this);
+								if ($el.data('select2')) return;
+								$el.select2({
+									placeholder: 'Selecciona aquí',
+									width: '100%',
+									dropdownParent: $modal
+								});
+							});
+						}
+
+						if ($.fn && typeof $.fn.summernote === 'function') {
+							$modal.find('.summernote').each(function(){
+								var $el = $(this);
+								if ($el.next('.note-editor').length) return;
+								$el.summernote({
+									height: 300,
+									toolbar: [
+										['style', ['style']],
+										['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear']],
+										['fontname', ['fontname']],
+										['fontsize', ['fontsize']],
+										['color', ['color']],
+										['para', ['ol', 'ul', 'paragraph', 'height']],
+										['table', ['table']],
+										['view', ['undo', 'redo', 'fullscreen', 'codeview', 'help']]
+									]
+								});
+
+								// Cargar HTML inicial (modo modal) desde data-initial-html
+								var raw = $el.attr('data-initial-html');
+								if (raw && typeof raw === 'string') {
+									try {
+										var html = JSON.parse(raw);
+										$el.summernote('code', html);
+									} catch (e) {}
+								}
+							});
+						}
+					} catch (e) {
+						// No-op
+					}
+
 					if ($size != '') {
 						$('#uni_modal .modal-dialog').addClass($size)
 					} else {
@@ -186,6 +235,41 @@
 			}
 		})
 	}
+
+	// Submit delegado: edición de ticket dentro del modal
+	$(document).off('submit.ticketModal', '#uni_modal form#manage_ticket').on('submit.ticketModal', '#uni_modal form#manage_ticket', function(e){
+		e.preventDefault();
+		try {
+			$('input').removeClass('border-danger');
+			start_load();
+			$.ajax({
+				url: 'public/ajax/action.php?action=save_ticket',
+				data: new FormData(this),
+				cache: false,
+				contentType: false,
+				processData: false,
+				method: 'POST',
+				type: 'POST',
+				success: function(resp){
+					end_load();
+					if (resp == 1) {
+						alert_toast('Cambios guardados correctamente', 'success');
+						$('#uni_modal').modal('hide');
+						setTimeout(function(){ location.reload(); }, 300);
+					} else {
+						alert_toast('Error al guardar el ticket', 'error');
+					}
+				},
+				error: function(xhr, status, error){
+					end_load();
+					console.error('Error AJAX:', error);
+					alert_toast('Error de conexión al guardar el ticket', 'error');
+				}
+			});
+		} catch (err) {
+			end_load();
+		}
+	});
 	window._conf = function($msg = '', $func = '', $params = []) {
 		$('#confirm_modal #confirm').attr('onclick', $func + "(" + $params.join(',') + ")")
 		$('#confirm_modal .modal-body').html($msg)

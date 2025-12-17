@@ -80,7 +80,7 @@
 											<a class="dropdown-item" href="./index.php?page=view_ticket&id=<?php echo $row['id'] ?>">
 												<i class="fas fa-eye text-info"></i> Ver
 											</a>
-											<a class="dropdown-item" href="./index.php?page=edit_ticket&id=<?php echo $row['id'] ?>">
+											<a class="dropdown-item edit_ticket_modal" href="javascript:void(0)" data-id="<?php echo (int)$row['id']; ?>">
 												<i class="fas fa-edit text-primary"></i> Editar
 											</a>
 											<div class="dropdown-divider"></div>

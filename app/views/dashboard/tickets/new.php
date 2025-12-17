@@ -1,7 +1,12 @@
 ﻿<?php
 if (!isset($conn)) {
-	require_once 'config/config.php';
+	$root = defined('ROOT') ? ROOT : realpath(__DIR__ . '/../../../..');
+	if (!defined('ROOT')) define('ROOT', $root);
+	require_once ROOT . '/config/config.php';
+	require_once ROOT . '/config/db_connect.php';
 }
+
+$in_modal = isset($in_modal) ? (bool)$in_modal : false;
 
 // Modo edición: cuando este archivo es incluido desde edit.php, ya vienen variables ($id, $reporter_name, etc.)
 $is_edit = isset($id) && (int)$id > 0;
@@ -191,17 +196,20 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						<div class="col-md-12">
 							<div class="form-group">
 								<label for="description" class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
-								<textarea name="description" id="description" cols="30" rows="10" class="form-control summernote"></textarea>
+								<textarea name="description" id="description" cols="30" rows="10" class="form-control summernote" data-initial-html="<?php echo htmlspecialchars(json_encode(isset($description) ? (string)$description : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>"></textarea>
+								<?php if (!$in_modal): ?>
 								<script>
 									// Pre-cargar descripción de forma segura (evita cortes del DOM por </script> o </textarea>)
 									window.__ticket_description_html = <?php echo json_encode(isset($description) ? (string)$description : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 								</script>
+								<?php endif; ?>
 							</div>
 						</div>
 					</div>
 
 				</div>
 
+				<?php if (!$in_modal): ?>
 				<div class="card-footer bg-light border-top">
 					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
 						<?php if (!$is_edit): ?>
@@ -217,6 +225,7 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						</button>
 					</div>
 				</div>
+				<?php endif; ?>
 			</form>
 		</div>
 	</div>
@@ -263,7 +272,8 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 		document.documentElement.style.setProperty('--ticket-fixed-footer-offset', h + 'px');
 	});
 
-	$('#manage_ticket').submit(function(e) {
+	if (!<?php echo $in_modal ? 'true' : 'false'; ?>) {
+		$('#manage_ticket').off('submit.ticket').on('submit.ticket', function(e) {
 		e.preventDefault()
 		$('input').removeClass("border-danger")
 		start_load()
@@ -293,5 +303,6 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				alert_toast('Error de conexión al guardar el ticket', "error");
 			}
 		})
-	})
+		});
+	}
 </script>

@@ -153,7 +153,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 											<a class="dropdown-item" href="./index.php?page=view_ticket&id=<?php echo $row['id'] ?>">
 												<i class="fas fa-eye text-info"></i> Ver
 											</a>
-											<a class="dropdown-item" href="./index.php?page=edit_ticket&id=<?php echo $row['id'] ?>">
+											<a class="dropdown-item edit_ticket_modal" href="javascript:void(0)" data-id="<?php echo (int)$row['id']; ?>">
 												<i class="fas fa-edit text-primary"></i> Editar
 											</a>
 											<div class="dropdown-divider"></div>
@@ -173,6 +173,15 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	</div>
 	</div>
 </div>
+
+<script>
+$(function(){
+	$(document).off('click.editTicketModalList', '.edit_ticket_modal').on('click.editTicketModalList', '.edit_ticket_modal', function(){
+		var id = $(this).data('id');
+		uni_modal('Editar Ticket', 'app/views/dashboard/tickets/edit_modal.php?id=' + id, 'modal-lg');
+	});
+});
+</script>
 
 <style>
 .truncate {

@@ -143,7 +143,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 						</div>
 						
 						<div class="mt-3">
-							<a href="./index.php?page=edit_ticket&id=<?php echo $id ?>" class="btn btn-primary btn-sm">
+							<a href="javascript:void(0)" class="btn btn-primary btn-sm edit_ticket_modal" data-id="<?php echo (int)$id; ?>">
 								<i class="fas fa-edit"></i> Editar Ticket
 							</a>
 							<a href="./index.php?page=ticket_list" class="btn btn-secondary btn-sm">
@@ -229,6 +229,15 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 		</div>
 	</div>
 </div>
+
+<script>
+$(function(){
+	$(document).off('click.editTicketModalView', '.edit_ticket_modal').on('click.editTicketModalView', '.edit_ticket_modal', function(){
+		var id = $(this).data('id');
+		uni_modal('Editar Ticket', 'app/views/dashboard/tickets/edit_modal.php?id=' + id, 'modal-lg');
+	});
+});
+</script>
 
 <script>
 	$(function() {
