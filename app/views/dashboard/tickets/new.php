@@ -41,7 +41,7 @@ $submit_label = $is_edit ? 'Guardar cambios' : 'Guardar Ticket';
 $success_toast = $is_edit ? 'Cambios guardados correctamente' : 'Datos guardados correctamente';
 $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list';
 ?>
-<div class="container-fluid ticket-form-wrap">
+<div class="container-fluid ticket-form-wrap" style="padding-bottom: 7rem;">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header bg-light text-primary border-bottom">
@@ -53,7 +53,7 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				</script>
 
 				<!-- Acciones inferiores: visibles siempre, incluso con layout-footer-fixed -->
-				<div class="ticket-actions-bottom bg-light border-top">
+				<div class="ticket-actions-bottom bg-light border-top" data-ticket-actions-bottom="1" style="position: fixed; left: 0; right: 0; bottom: 56px; z-index: 2000; padding: .75rem 1rem;">
 					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
 						<?php if (!$is_edit): ?>
 							<button class="btn btn-secondary" type="reset" form="manage_ticket">
