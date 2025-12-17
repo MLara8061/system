@@ -141,6 +141,41 @@
 			]
 		})
 
+		// Fail-safe: si el formulario de ticket no trae botones (HTML truncado/plantilla vieja), inyectarlos.
+		try {
+			var $form = $('#manage_ticket');
+			if ($form.length && !$form.closest('#uni_modal, #uni_modal_right').length) {
+				var hasSubmit = $form.find('button[type="submit"]').length > 0;
+				if (!hasSubmit) {
+					var idVal = parseInt(($form.find('input[name="id"]').val() || '0'), 10) || 0;
+					var isEdit = idVal > 0;
+					var cancelHref = isEdit ? ('index.php?page=view_ticket&id=' + idVal) : 'index.php?page=ticket_list';
+					var submitLabel = isEdit ? 'Guardar cambios' : 'Guardar Ticket';
+
+					var $actions = $('<div class="bg-light border-top ticket-actions mt-3 pt-3" style="position: sticky; z-index: 1020;"></div>');
+					var $row = $('<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;"></div>');
+					if (!isEdit) {
+						$row.append('<button class="btn btn-secondary" type="reset"><i class="fas fa-redo"></i> Limpiar</button>');
+					}
+					$row.append('<a href="./' + cancelHref + '" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>');
+					$row.append('<button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> ' + submitLabel + '</button>');
+					$actions.append($row);
+
+					// Offset por footer fijo (AdminLTE layout-footer-fixed)
+					var $footer = $('.main-footer');
+					var h = ($footer.length ? ($footer.outerHeight() || 0) : 0);
+					$actions.css('bottom', h + 'px');
+
+					// Insertar al final del formulario (preferir dentro del card-body si existe)
+					var $cardBody = $form.find('.card-body').last();
+					if ($cardBody.length) $cardBody.append($actions);
+					else $form.append($actions);
+				}
+			}
+		} catch (e) {
+			// No-op
+		}
+
 		// Pre-cargar HTML en el editor (edición de ticket) sin romper el DOM
 		try {
 			if (typeof window.__ticket_description_html === 'string' && $('.summernote').length) {
