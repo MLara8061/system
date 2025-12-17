@@ -44,8 +44,8 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 <div class="container-fluid">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
-			<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
+			<div class="card-header bg-light text-primary border-bottom">
+				<h4 class="mb-0 font-weight-bold"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
 			</div>
 			<div class="card-body">
 				<?php if ($display_equipment_name): ?>
@@ -182,20 +182,18 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 					</div>
 
 					<hr>
-					<div class="row">
-						<div class="col-lg-12 text-right text-center text-md-right">
-							<?php if (!$is_edit): ?>
-								<button class="btn btn-secondary" type="reset">
-									<i class="fas fa-redo"></i> Limpiar
-								</button>
-							<?php endif; ?>
-							<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary">
-								<i class="fas fa-times"></i> Cancelar
-							</a>
-							<button class="btn btn-primary" type="submit">
-								<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
+						<?php if (!$is_edit): ?>
+							<button class="btn btn-secondary" type="reset">
+								<i class="fas fa-redo"></i> Limpiar
 							</button>
-						</div>
+						<?php endif; ?>
+						<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary">
+							<i class="fas fa-times"></i> Cancelar
+						</a>
+						<button class="btn btn-primary" type="submit">
+							<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+						</button>
 					</div>
 				</form>
 			</div>

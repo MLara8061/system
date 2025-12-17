@@ -80,8 +80,8 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	<div class="row">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
-			<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets de Soporte Técnico</h4>
+			<div class="card-header bg-light text-primary border-bottom">
+				<h4 class="mb-0 font-weight-bold"><i class="fas fa-ticket-alt"></i> Tickets de Soporte Técnico</h4>
 			</div>
 			<div class="card-body">
 				<div class="d-flex justify-content-end mb-3">
@@ -101,7 +101,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 						<col width="12%">
 						<col width="10%">
 					</colgroup>
-					<thead style="background-color: #f8f9fa;">
+					<thead class="thead-light text-primary">
 						<tr>
 							<th class="text-center">#</th>
 							<th>Fecha Creación</th>

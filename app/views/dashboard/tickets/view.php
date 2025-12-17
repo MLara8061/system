@@ -65,7 +65,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 		<!-- Ticket Details -->
 		<div class="col-md-8">
 			<div class="card shadow-sm">
-				<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+				<div class="card-header bg-light text-primary border-bottom">
 					<h4 class="mb-0">
 						<i class="fas fa-ticket-alt"></i> Detalles del Ticket
 						<?php if ($is_public_ticket): ?>
@@ -158,7 +158,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 		<!-- Comments Section -->
 		<div class="col-md-4">
 			<div class="card shadow-sm">
-				<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+				<div class="card-header bg-light text-primary border-bottom">
 					<h4 class="mb-0"><i class="fas fa-comments"></i> Comentarios</h4>
 				</div>
 				<div class="card-body p-0 py-2" style="max-height: 600px; overflow-y: auto;">
