@@ -13,6 +13,69 @@
     var hiddenClass = 'is-hidden';
     var loaderTemplate = '<div id="page-loading-indicator"><div class="spinner" aria-hidden="true"></div></div>';
 
+	function injectTicketActionsFailSafe() {
+		try {
+			var $form = $('#manage_ticket');
+			if (!$form.length) return;
+			if ($form.closest('#uni_modal, #uni_modal_right').length) return;
+
+			// Evitar duplicados: si ya existe una barra visible o ya inyectamos la nuestra
+			if (document.getElementById('ticket-actions-failsafe')) return;
+			var $existingActions = $form.find('.ticket-actions:visible');
+			if ($existingActions.length) return;
+
+			var $submits = $form.find('button[type="submit"], input[type="submit"]');
+			var visibleSubmits = $submits.filter(':visible').length;
+
+			var footerH = (function(){
+				var $footer = $('.main-footer');
+				return ($footer.length ? ($footer.outerHeight() || 0) : 0);
+			})();
+
+			var submitIsInViewport = (function(){
+				var el = $submits.get(0);
+				if (!el || !el.getBoundingClientRect) return false;
+				var rect = el.getBoundingClientRect();
+				var viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
+				if (!viewportH) return false;
+				var bottomLimit = viewportH - footerH - 8;
+				return rect.top < bottomLimit && rect.bottom <= bottomLimit;
+			})();
+
+			var needsFailSafe = (visibleSubmits === 0 || !submitIsInViewport);
+			if (!needsFailSafe) return;
+
+			var idVal = parseInt(($form.find('input[name="id"]').val() || '0'), 10) || 0;
+			var isEdit = idVal > 0;
+			var cancelHref = isEdit ? ('index.php?page=view_ticket&id=' + idVal) : 'index.php?page=ticket_list';
+			var submitLabel = isEdit ? 'Guardar cambios' : 'Guardar Ticket';
+
+			var $actions = $('<div id="ticket-actions-failsafe" class="bg-light border-top ticket-actions" style="position: fixed; left: 0; right: 0; z-index: 2000; padding: .75rem 1rem;"></div>');
+			var $inner = $('<div class="container-fluid"></div>');
+			var $row = $('<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;"></div>');
+			if (!isEdit) {
+				$row.append('<button class="btn btn-secondary" type="reset" form="manage_ticket"><i class="fas fa-redo"></i> Limpiar</button>');
+			}
+			$row.append('<a href="./' + cancelHref + '" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>');
+			$row.append('<button class="btn btn-primary" type="submit" form="manage_ticket"><i class="fas fa-save"></i> ' + submitLabel + '</button>');
+			$inner.append($row);
+			$actions.append($inner);
+
+			$actions.css('bottom', footerH + 'px');
+			var extraPad = (footerH + ($actions.outerHeight() || 56) + 12);
+			$('.content-wrapper').css('padding-bottom', extraPad + 'px');
+			$('body').append($actions);
+		} catch (e) {
+			// No-op
+		}
+	}
+
+	// Fallback: si algo rompe jQuery plugins, intenta igualmente cuando el DOM esté listo.
+	// (Esto depende de jQuery, pero se ejecuta antes de inicializar plugins.)
+	$(function() {
+		injectTicketActionsFailSafe();
+	});
+
     function ensureLoader() {
         var $loader = $(loaderSelector);
         if (!$loader.length) {
@@ -127,75 +190,29 @@
 	// }
 	
 	$(function() {
-		$('.summernote').summernote({
-			height: 300,
-			toolbar: [
-				['style', ['style']],
-				['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear']],
-				['fontname', ['fontname']],
-				['fontsize', ['fontsize']],
-				['color', ['color']],
-				['para', ['ol', 'ul', 'paragraph', 'height']],
-				['table', ['table']],
-				['view', ['undo', 'redo', 'fullscreen', 'codeview', 'help']]
-			]
-		})
-
-		// Fail-safe: si el formulario de ticket no trae botones (HTML truncado/plantilla vieja), inyectarlos.
+		// Inicialización de Summernote: si falla, no debe cortar el resto del JS.
 		try {
-			var $form = $('#manage_ticket');
-			if ($form.length && !$form.closest('#uni_modal, #uni_modal_right').length) {
-				var $existingActions = $form.find('.ticket-actions');
-				var $submits = $form.find('button[type="submit"], input[type="submit"]');
-				var visibleSubmits = $submits.filter(':visible').length;
-
-				var footerH = (function(){
-					var $footer = $('.main-footer');
-					return ($footer.length ? ($footer.outerHeight() || 0) : 0);
-				})();
-
-				var submitIsInViewport = (function(){
-					var el = $submits.get(0);
-					if (!el || !el.getBoundingClientRect) return false;
-					var rect = el.getBoundingClientRect();
-					var viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
-					if (!viewportH) return false;
-					var bottomLimit = viewportH - footerH - 8;
-					return rect.top < bottomLimit && rect.bottom <= bottomLimit;
-				})();
-
-				var needsFailSafe = ($existingActions.length === 0) && (visibleSubmits === 0 || !submitIsInViewport);
-				if (needsFailSafe) {
-					var idVal = parseInt(($form.find('input[name="id"]').val() || '0'), 10) || 0;
-					var isEdit = idVal > 0;
-					var cancelHref = isEdit ? ('index.php?page=view_ticket&id=' + idVal) : 'index.php?page=ticket_list';
-					var submitLabel = isEdit ? 'Guardar cambios' : 'Guardar Ticket';
-
-					var $actions = $('<div class="bg-light border-top ticket-actions" style="position: fixed; left: 0; right: 0; z-index: 1030; padding: .75rem 1rem;"></div>');
-					var $inner = $('<div class="container-fluid"></div>');
-					var $row = $('<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;"></div>');
-					if (!isEdit) {
-						$row.append('<button class="btn btn-secondary" type="reset" form="manage_ticket"><i class="fas fa-redo"></i> Limpiar</button>');
-					}
-					$row.append('<a href="./' + cancelHref + '" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>');
-					$row.append('<button class="btn btn-primary" type="submit" form="manage_ticket"><i class="fas fa-save"></i> ' + submitLabel + '</button>');
-					$inner.append($row);
-					$actions.append($inner);
-
-					// Offset por footer fijo (AdminLTE layout-footer-fixed)
-					$actions.css('bottom', footerH + 'px');
-
-					// Asegurar que el contenido no quede oculto debajo de la barra
-					var extraPad = (footerH + ($actions.outerHeight() || 56) + 12);
-					$('.content-wrapper').css('padding-bottom', extraPad + 'px');
-
-					// Insertar una sola vez en el body para que funcione aunque el card tenga overflow
-					$('body').append($actions);
-				}
+			if ($.fn && typeof $.fn.summernote === 'function') {
+				$('.summernote').summernote({
+					height: 300,
+					toolbar: [
+						['style', ['style']],
+						['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear']],
+						['fontname', ['fontname']],
+						['fontsize', ['fontsize']],
+						['color', ['color']],
+						['para', ['ol', 'ul', 'paragraph', 'height']],
+						['table', ['table']],
+						['view', ['undo', 'redo', 'fullscreen', 'codeview', 'help']]
+					]
+				});
 			}
 		} catch (e) {
 			// No-op
 		}
+
+		// Re-intento del fail-safe (por si el DOM cambia tras init de plugins)
+		injectTicketActionsFailSafe();
 
 		// Pre-cargar HTML en el editor (edición de ticket) sin romper el DOM
 		try {
@@ -209,6 +226,59 @@
 
 	})
 })(jQuery);
+</script>
+
+<script>
+// Segundo fail-safe (vanilla JS): si por cualquier razón jQuery falla antes, igual intenta renderizar.
+(function(){
+	try {
+		if (document.getElementById('ticket-actions-failsafe')) return;
+		var form = document.getElementById('manage_ticket');
+		if (!form) return;
+		if (form.closest('#uni_modal, #uni_modal_right')) return;
+
+		var existingVisible = form.querySelector('.ticket-actions');
+		// Si ya existe algo, no duplicar (aunque esté oculto, preferimos no pelear con la UI existente en vanilla)
+		if (existingVisible) return;
+
+		var footer = document.querySelector('.main-footer');
+		var footerH = footer ? (footer.getBoundingClientRect().height || 0) : 0;
+
+		var idInput = form.querySelector('input[name="id"]');
+		var idVal = idInput ? parseInt((idInput.value || '0'), 10) || 0 : 0;
+		var isEdit = idVal > 0;
+		var cancelHref = isEdit ? ('index.php?page=view_ticket&id=' + idVal) : 'index.php?page=ticket_list';
+		var submitLabel = isEdit ? 'Guardar cambios' : 'Guardar Ticket';
+
+		var actions = document.createElement('div');
+		actions.id = 'ticket-actions-failsafe';
+		actions.className = 'bg-light border-top ticket-actions';
+		actions.style.position = 'fixed';
+		actions.style.left = '0';
+		actions.style.right = '0';
+		actions.style.bottom = footerH + 'px';
+		actions.style.zIndex = '2000';
+		actions.style.padding = '.75rem 1rem';
+
+		actions.innerHTML =
+			'<div class="container-fluid">' +
+				'<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">' +
+					(isEdit ? '' : '<button class="btn btn-secondary" type="reset" form="manage_ticket"><i class="fas fa-redo"></i> Limpiar</button>') +
+					'<a href="./' + cancelHref + '" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>' +
+					'<button class="btn btn-primary" type="submit" form="manage_ticket"><i class="fas fa-save"></i> ' + submitLabel + '</button>' +
+				'</div>' +
+			'</div>';
+
+		document.body.appendChild(actions);
+		var contentWrapper = document.querySelector('.content-wrapper');
+		if (contentWrapper) {
+			var extraPad = footerH + 56 + 12;
+			contentWrapper.style.paddingBottom = extraPad + 'px';
+		}
+	} catch (e) {
+		// No-op
+	}
+})();
 </script>
 
 <!-- Bootstrap Bundle (incluye Popper) -->
