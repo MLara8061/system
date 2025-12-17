@@ -47,7 +47,7 @@ if(isset($_GET['id'])){
 		<div class="form-group">
 				<label for="" class="control-label">Imagen de Servicio</label>
 				<div class="custom-file">
-	              <input type="file" class="custom-file-input rounded-circle" id="customFile" name="img" onchange="displayImg(this,$(this))">
+	              <input type="file" class="custom-file-input rounded-circle" id="customFile" name="img" accept="image/jpeg,image/png,image/jpg,image/webp" onchange="displayImg(this,$(this))">
 	              <label class="custom-file-label" for="customFile">Escoger archivo</label>
 	            </div>
 			</div>

@@ -27,7 +27,7 @@ try {
                              style="height: 380px; border: 3px dashed #ccc;">
                             <i class="fas fa-camera fa-3x text-muted"></i>
                         </div>
-                        <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
+                        <input type="file" name="equipment_image" id="equipment_image" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg,image/webp" form="manage_equipment">
                         <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                     </div>
                 </div>
@@ -356,10 +356,10 @@ try {
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val(''); // Limpiar input
                 return false;
             }

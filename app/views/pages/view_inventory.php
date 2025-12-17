@@ -73,7 +73,7 @@ $row = $qry->fetch_assoc();
                         <i class="fas fa-camera"></i>
                     </label>
                     <input type="file" name="image_path" id="image-input" 
-                           class="d-none" accept="image/jpeg,image/png,image/jpg">
+                           class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp">
                     <small class="text-muted d-block mt-2">Haz clic para añadir imagen</small>
                     <img id="preview-inv-img" src="" alt="" 
                          class="img-fluid rounded mt-2" 
@@ -259,10 +259,10 @@ $row = $qry->fetch_assoc();
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val('');
                 $('#preview-inv-img').hide();
                 return false;

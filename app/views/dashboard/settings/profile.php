@@ -39,7 +39,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
                         </button>
                         <?php endif; ?>
                     </div>
-                    <input type="file" id="avatar-upload" accept="image/jpeg,image/png,image/jpg" class="d-none">
+                    <input type="file" id="avatar-upload" accept="image/jpeg,image/png,image/jpg,image/webp" class="d-none">
                     <p class="text-muted mt-3 mb-0" style="font-size: 0.875rem;">Haz clic en <i class="fas fa-camera text-primary"></i> para cambiar</p>
                 </div>
 
@@ -278,10 +278,10 @@ $(document).ready(function() {
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val('');
                 return false;
             }

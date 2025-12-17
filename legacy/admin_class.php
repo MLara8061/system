@@ -276,10 +276,10 @@ class Action {
 
             if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] != 0) return '';
 
-            $fname = 'avatar_' . $id . '_' . time() . '.jpg';
-            $path = 'assets/avatars/' . $fname;
-
-            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $path)) {
+            $base = 'avatar_' . $id . '_' . time();
+            $saved = $this->save_uploaded_image_optimized($_FILES['avatar'], 'assets/avatars', $base, 5 * 1024 * 1024, 512, true);
+            if (!empty($saved['ok'])) {
+                $fname = $saved['filename'];
                 // Obtener avatar anterior
                 $old_avatar = null;
                 if ($this->pdo) {
@@ -294,7 +294,7 @@ class Action {
                 
                 // Eliminar avatar anterior si existe
                 if ($old_avatar && $old_avatar != 'default-avatar.png' && file_exists('assets/avatars/' . $old_avatar)) {
-                    unlink('assets/avatars/' . $old_avatar);
+                    @unlink('assets/avatars/' . $old_avatar);
                 }
 
                 // Actualizar avatar en BD
@@ -367,9 +367,14 @@ class Action {
     function save_page_img() {
         extract($_POST);
         if ($_FILES['img']['tmp_name'] != '') {
-            $fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-            $move = move_uploaded_file($_FILES['img']['tmp_name'], 'assets/uploads/'.$fname);
-            if ($move) {
+            $nameBase = pathinfo((string)($_FILES['img']['name'] ?? ''), PATHINFO_FILENAME);
+            $nameBase = preg_replace('/[^a-zA-Z0-9._-]/', '', (string)$nameBase);
+            if (empty($nameBase)) $nameBase = 'img';
+            $rand = function_exists('random_bytes') ? bin2hex(random_bytes(3)) : substr(md5(uniqid('', true)), 0, 6);
+            $base = strtotime(date('y-m-d H:i')) . '_' . $nameBase . '_' . $rand;
+            $saved = $this->save_uploaded_image_optimized($_FILES['img'], 'assets/uploads', $base, 5 * 1024 * 1024, 1600, true);
+            if (!empty($saved['ok'])) {
+                $fname = $saved['filename'];
                 $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,5))=='https'?'https':'http';
                 $hostName = $_SERVER['HTTP_HOST'];
                 $path = explode('/', $_SERVER['PHP_SELF']);
@@ -1711,7 +1716,7 @@ class Action {
         if (!function_exists('getimagesize')) return;
 
         $ext = strtolower((string)$ext);
-        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) return;
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) return;
 
         $info = @getimagesize($path);
         if (!$info || empty($info[0]) || empty($info[1])) return;
@@ -1732,6 +1737,8 @@ class Action {
             $src = @imagecreatefrompng($path);
         } elseif ($ext === 'gif' && function_exists('imagecreatefromgif')) {
             $src = @imagecreatefromgif($path);
+        } elseif ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+            $src = @imagecreatefromwebp($path);
         }
         if (!$src) return;
 
@@ -1745,7 +1752,7 @@ class Action {
         $dst = $src;
         if ($ratio < 1.0 && function_exists('imagecreatetruecolor') && function_exists('imagecopyresampled')) {
             $dst = imagecreatetruecolor($newW, $newH);
-            if ($ext === 'png' || $ext === 'gif') {
+            if ($ext === 'png' || $ext === 'gif' || $ext === 'webp') {
                 if (function_exists('imagealphablending')) imagealphablending($dst, false);
                 if (function_exists('imagesavealpha')) imagesavealpha($dst, true);
                 $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
@@ -1760,6 +1767,8 @@ class Action {
             @imagepng($dst, $path, 6);
         } elseif ($ext === 'gif') {
             @imagegif($dst, $path);
+        } elseif ($ext === 'webp' && function_exists('imagewebp')) {
+            @imagewebp($dst, $path, 82);
         }
 
         // @phpstan-ignore-next-line - imagedestroy deprecated PHP 8+ but still functional
@@ -1783,6 +1792,7 @@ class Action {
         if ($type === IMAGETYPE_JPEG && function_exists('imagecreatefromjpeg')) $src = @imagecreatefromjpeg($srcPath);
         if ($type === IMAGETYPE_PNG && function_exists('imagecreatefrompng')) $src = @imagecreatefrompng($srcPath);
         if ($type === IMAGETYPE_GIF && function_exists('imagecreatefromgif')) $src = @imagecreatefromgif($srcPath);
+        if (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp')) $src = @imagecreatefromwebp($srcPath);
         if (!$src) return;
 
         // cover crop
@@ -1832,6 +1842,180 @@ class Action {
         $webp = 'uploads/thumbs/' . $base . '.webp';
         if (file_exists($jpg)) @unlink($jpg);
         if (file_exists($webp)) @unlink($webp);
+    }
+
+    private function save_uploaded_image_optimized($file, $destDirRel, $baseName, $maxBytes = 5242880, $maxDim = 1600, $preferWebp = true) {
+        // Retorna: ['ok'=>bool,'filename'=>string,'path'=>string,'error'=>string]
+        $result = ['ok' => false, 'filename' => '', 'path' => '', 'error' => ''];
+
+        if (empty($file) || !is_array($file)) {
+            $result['error'] = 'Archivo inválido';
+            return $result;
+        }
+        if (empty($file['tmp_name']) || (int)($file['error'] ?? 0) !== 0) {
+            $result['error'] = 'Sin archivo';
+            return $result;
+        }
+
+        $tmp = (string)$file['tmp_name'];
+        if (!is_uploaded_file($tmp)) {
+            $result['error'] = 'Upload no válido';
+            return $result;
+        }
+        $size = (int)($file['size'] ?? 0);
+        if ($maxBytes > 0 && $size > $maxBytes) {
+            $result['error'] = 'Archivo demasiado grande';
+            return $result;
+        }
+
+        $destDirRel = trim((string)$destDirRel, '/\\');
+        $destDirFs = defined('ROOT') ? rtrim(ROOT, '/\\') . '/' . $destDirRel : $destDirRel;
+        if (!is_dir($destDirFs)) {
+            @mkdir($destDirFs, 0777, true);
+            @chmod($destDirFs, 0777);
+        }
+
+        if (!function_exists('getimagesize')) {
+            $ext = strtolower((string)pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                $result['error'] = 'Formato no permitido';
+                return $result;
+            }
+            if ($ext === 'jpeg') $ext = 'jpg';
+            $filename = $baseName . '.' . $ext;
+            $target = rtrim($destDirFs, '/\\') . '/' . $filename;
+            if (move_uploaded_file($tmp, $target)) {
+                $result['ok'] = true;
+                $result['filename'] = $filename;
+                $result['path'] = $destDirRel . '/' . $filename;
+                return $result;
+            }
+            $result['error'] = 'No se pudo guardar';
+            return $result;
+        }
+
+        $info = @getimagesize($tmp);
+        if (!$info || empty($info[2])) {
+            $result['error'] = 'No es una imagen válida';
+            return $result;
+        }
+
+        $type = (int)$info[2];
+        $srcW = (int)($info[0] ?? 0);
+        $srcH = (int)($info[1] ?? 0);
+
+        $inExt = '';
+        if ($type === IMAGETYPE_JPEG) $inExt = 'jpg';
+        if ($type === IMAGETYPE_PNG) $inExt = 'png';
+        if ($type === IMAGETYPE_GIF) $inExt = 'gif';
+        if (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP) $inExt = 'webp';
+        if ($inExt === '') {
+            $result['error'] = 'Formato no soportado';
+            return $result;
+        }
+
+        $canWebp = $preferWebp && function_exists('imagewebp') && $type !== IMAGETYPE_GIF;
+        $outExt = $canWebp ? 'webp' : $inExt;
+
+        $filename = $baseName . '.' . $outExt;
+        $target = rtrim($destDirFs, '/\\') . '/' . $filename;
+
+        // GIF: no re-encode para evitar perder animación
+        if ($type === IMAGETYPE_GIF && $outExt === 'gif') {
+            if (move_uploaded_file($tmp, $target)) {
+                $result['ok'] = true;
+                $result['filename'] = $filename;
+                $result['path'] = $destDirRel . '/' . $filename;
+                return $result;
+            }
+            $result['error'] = 'No se pudo guardar';
+            return $result;
+        }
+
+        $src = null;
+        if ($type === IMAGETYPE_JPEG && function_exists('imagecreatefromjpeg')) {
+            $src = @imagecreatefromjpeg($tmp);
+            if ($src && function_exists('exif_read_data')) {
+                $exif = @exif_read_data($tmp);
+                $orientation = (int)($exif['Orientation'] ?? 0);
+                if ($orientation === 3 && function_exists('imagerotate')) $src = imagerotate($src, 180, 0);
+                if ($orientation === 6 && function_exists('imagerotate')) $src = imagerotate($src, -90, 0);
+                if ($orientation === 8 && function_exists('imagerotate')) $src = imagerotate($src, 90, 0);
+            }
+        } elseif ($type === IMAGETYPE_PNG && function_exists('imagecreatefrompng')) {
+            $src = @imagecreatefrompng($tmp);
+        } elseif (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp')) {
+            $src = @imagecreatefromwebp($tmp);
+        }
+
+        if (!$src) {
+            // Fallback: mover con extensión de entrada
+            $fallbackName = $baseName . '.' . $inExt;
+            $fallbackTarget = rtrim($destDirFs, '/\\') . '/' . $fallbackName;
+            if (move_uploaded_file($tmp, $fallbackTarget)) {
+                $result['ok'] = true;
+                $result['filename'] = $fallbackName;
+                $result['path'] = $destDirRel . '/' . $fallbackName;
+                return $result;
+            }
+            $result['error'] = 'No se pudo procesar';
+            return $result;
+        }
+
+        $ratio = 1.0;
+        if ($maxDim > 0 && ($srcW > $maxDim || $srcH > $maxDim)) {
+            $ratio = min($maxDim / max(1, $srcW), $maxDim / max(1, $srcH));
+        }
+        $newW = max(1, (int)round($srcW * $ratio));
+        $newH = max(1, (int)round($srcH * $ratio));
+
+        $dst = $src;
+        if ($ratio < 1.0 && function_exists('imagecreatetruecolor') && function_exists('imagecopyresampled')) {
+            $dst = imagecreatetruecolor($newW, $newH);
+            // Preservar alpha para PNG/WebP
+            if ($type === IMAGETYPE_PNG || (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP) || $outExt === 'webp') {
+                if (function_exists('imagealphablending')) imagealphablending($dst, false);
+                if (function_exists('imagesavealpha')) imagesavealpha($dst, true);
+                $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+                imagefilledrectangle($dst, 0, 0, $newW, $newH, $transparent);
+            }
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $srcW, $srcH);
+        }
+
+        $saved = false;
+        if ($outExt === 'webp' && function_exists('imagewebp')) {
+            $saved = @imagewebp($dst, $target, 82);
+        } elseif ($outExt === 'jpg' && function_exists('imagejpeg')) {
+            $saved = @imagejpeg($dst, $target, 82);
+        } elseif ($outExt === 'png' && function_exists('imagepng')) {
+            $saved = @imagepng($dst, $target, 6);
+        }
+
+        // @phpstan-ignore-next-line
+        if ($dst && $dst !== $src) @imagedestroy($dst);
+        // @phpstan-ignore-next-line
+        if ($src) @imagedestroy($src);
+
+        if ($saved) {
+            @chmod($target, 0644);
+            $result['ok'] = true;
+            $result['filename'] = $filename;
+            $result['path'] = $destDirRel . '/' . $filename;
+            return $result;
+        }
+
+        // Último fallback: mover con extensión de entrada
+        $fallbackName = $baseName . '.' . $inExt;
+        $fallbackTarget = rtrim($destDirFs, '/\\') . '/' . $fallbackName;
+        if (move_uploaded_file($tmp, $fallbackTarget)) {
+            $result['ok'] = true;
+            $result['filename'] = $fallbackName;
+            $result['path'] = $destDirRel . '/' . $fallbackName;
+            return $result;
+        }
+
+        $result['error'] = 'No se pudo guardar';
+        return $result;
     }
 
     function save_equipment() {
@@ -2063,7 +2247,7 @@ class Action {
             if (!empty($_FILES['equipment_image']['tmp_name'])) {
                 $file = $_FILES['equipment_image'];
                 $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                $valid_ext = ['jpg','jpeg','png','gif'];
+                $valid_ext = ['jpg','jpeg','png','gif','webp'];
                 if (!in_array($ext, $valid_ext)) return 3;
                 if ($file['size'] > 5*1024*1024) return 4;
 
@@ -2901,8 +3085,20 @@ class Action {
         }
 
         if (isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != '') {
-            $fname = time().'_'.$_FILES['imagen']['name'];
-            move_uploaded_file($_FILES['imagen']['tmp_name'], 'uploads/'.$fname);
+            // Eliminar imagen anterior si se está reemplazando
+            if (!empty($id)) {
+                $old = $this->db->query("SELECT imagen FROM tools WHERE id = " . (int)$id)->fetch_assoc();
+                $oldImg = $old['imagen'] ?? '';
+                if (!empty($oldImg) && file_exists('uploads/' . $oldImg)) {
+                    @unlink('uploads/' . $oldImg);
+                }
+            }
+
+            $rand = function_exists('random_bytes') ? bin2hex(random_bytes(3)) : substr(md5(uniqid('', true)), 0, 6);
+            $base = 'tool_' . time() . '_' . $rand;
+            $saved = $this->save_uploaded_image_optimized($_FILES['imagen'], 'uploads', $base, 5 * 1024 * 1024, 1600, true);
+            if (empty($saved['ok'])) return 0;
+            $fname = $saved['filename'];
             $data .= empty($data) ? " `imagen` = '$fname' " : ", `imagen` = '$fname' ";
         }
 
@@ -3010,12 +3206,23 @@ class Action {
         }
 
         if (isset($_FILES['imagen']) && $_FILES['imagen']['tmp_name'] != '') {
-            $fname = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $_FILES['imagen']['name']);
-            if (move_uploaded_file($_FILES['imagen']['tmp_name'], 'uploads/' . $fname)) {
-                $data .= ", image = '$fname' ";
-            } else {
-                return 0;
+            // Eliminar imagen anterior si se está reemplazando
+            if (!empty($id)) {
+                $qryOld = $this->db->query("SELECT image FROM accessories WHERE id = " . (int)$id);
+                if ($qryOld && $qryOld->num_rows > 0) {
+                    $oldImg = $qryOld->fetch_assoc()['image'] ?? '';
+                    if (!empty($oldImg) && file_exists('uploads/' . $oldImg)) {
+                        @unlink('uploads/' . $oldImg);
+                    }
+                }
             }
+
+            $rand = function_exists('random_bytes') ? bin2hex(random_bytes(3)) : substr(md5(uniqid('', true)), 0, 6);
+            $base = 'acc_' . time() . '_' . $rand;
+            $saved = $this->save_uploaded_image_optimized($_FILES['imagen'], 'uploads', $base, 5 * 1024 * 1024, 1600, true);
+            if (empty($saved['ok'])) return 0;
+            $fname = $saved['filename'];
+            $data .= ", image = '$fname' ";
         }
 
         if (empty($id)) {
@@ -3083,11 +3290,23 @@ class Action {
             }
         }
 
-        if (isset($_FILES['image_path']) && $_FILES['image_path']['error'] == 0) {
-            $upload_dir = 'uploads/';
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $_FILES['image_path']['name']);
-            $filepath = $upload_dir . $filename;
-            if (move_uploaded_file($_FILES['image_path']['tmp_name'], $filepath)) {
+        if (isset($_FILES['image_path']) && $_FILES['image_path']['error'] == 0 && !empty($_FILES['image_path']['tmp_name'])) {
+            // Eliminar imagen anterior si se está reemplazando
+            if (!empty($id)) {
+                $qryOld = $this->db->query("SELECT image_path FROM inventory WHERE id = " . (int)$id);
+                if ($qryOld && $qryOld->num_rows > 0) {
+                    $oldImg = $qryOld->fetch_assoc()['image_path'] ?? '';
+                    if (!empty($oldImg) && file_exists('uploads/' . $oldImg)) {
+                        @unlink('uploads/' . $oldImg);
+                    }
+                }
+            }
+
+            $rand = function_exists('random_bytes') ? bin2hex(random_bytes(3)) : substr(md5(uniqid('', true)), 0, 6);
+            $base = 'inv_' . time() . '_' . $rand;
+            $saved = $this->save_uploaded_image_optimized($_FILES['image_path'], 'uploads', $base, 5 * 1024 * 1024, 1600, true);
+            if (!empty($saved['ok'])) {
+                $filename = $saved['filename'];
                 $data .= ", `image_path` = '$filename' ";
             }
         }
@@ -4054,44 +4273,9 @@ class Action {
                         }
                     }
 
-                    $tmp = $_FILES['img']['tmp_name'];
-                    $saved_ext = $extension;
-                    $target_path = null;
-                    $saved = false;
-
-                    // Convertir a webp solo si realmente se puede (GD)
-                    $can_webp = function_exists('imagewebp');
-                    if ($can_webp && in_array($extension, ['jpg', 'jpeg', 'png'], true)) {
-                        $src = null;
-                        if ($extension === 'jpg' || $extension === 'jpeg') {
-                            $src = @imagecreatefromjpeg($tmp);
-                        } elseif ($extension === 'png') {
-                            $src = @imagecreatefrompng($tmp);
-                            if ($src) {
-                                @imagepalettetotruecolor($src);
-                                @imagealphablending($src, true);
-                                @imagesavealpha($src, true);
-                            }
-                        }
-
-                        if ($src) {
-                            $saved_ext = 'webp';
-                            $target_path = $upload_dir . '/' . $base . '.webp';
-                            $saved = @imagewebp($src, $target_path, 82);
-                            @imagedestroy($src);
-                        }
-                    }
-
-                    // Fallback: guardar con extensión original
-                    if (!$saved) {
-                        $target_path = $upload_dir . '/' . $base . '.' . $extension;
-                        $saved = move_uploaded_file($tmp, $target_path);
-                        $saved_ext = $extension;
-                    }
-
-                    if ($saved && $target_path) {
-                        @chmod($target_path, 0644);
-                        $fname = $base . '.' . $saved_ext;
+                    $saved = $this->save_uploaded_image_optimized($_FILES['img'], $upload_dir_rel, $base, 5 * 1024 * 1024, 1200, true);
+                    if (!empty($saved['ok'])) {
+                        $fname = $saved['filename'];
                         $data = " img_path = '{$upload_dir_rel}/{$fname}' ";
                         $this->db->query("UPDATE `services` set {$data} where id = $id ");
                     }

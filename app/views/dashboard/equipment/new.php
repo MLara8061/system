@@ -44,7 +44,7 @@ try {
                         <label for="equipment_image" class="equipment-camera-btn mt-3">
                             <i class="fas fa-camera"></i>
                         </label>
-                        <input type="file" name="equipment_image" id="equipment_image" class="d-none" accept="image/jpeg,image/png,image/jpg" form="manage_equipment">
+                        <input type="file" name="equipment_image" id="equipment_image" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp" form="manage_equipment">
                         <small class="text-muted d-block mt-2">Haz clic en el botón para añadir imagen</small>
                         <img id="equipment-preview-new" src="" alt="" 
                              class="img-fluid rounded shadow mt-2"
@@ -510,10 +510,10 @@ try {
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val(''); // Limpiar input
                 return false;
             }

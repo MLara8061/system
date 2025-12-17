@@ -167,7 +167,7 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                                 <i class="fas fa-camera"></i>
                             </label>
                             <input type="file" name="equipment_image" id="equipment_image" 
-                                   class="d-none" accept="image/jpeg,image/png,image/jpg" 
+                                   class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp" 
                                    form="manage_equipment" onchange="previewEquipmentImg(this)">
                             <small class="text-muted d-block mt-2">Haz clic en el botón para añadir imagen</small>
                             <img id="equipment-preview-new" src="" alt="" 
@@ -819,10 +819,10 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val('');
                 $('#equipment-preview-new').hide();
                 return false;

@@ -41,7 +41,7 @@ $submit_label = $is_edit ? 'Guardar cambios' : 'Guardar Ticket';
 $success_toast = $is_edit ? 'Cambios guardados correctamente' : 'Datos guardados correctamente';
 $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list';
 ?>
-<div class="container-fluid">
+<div class="container-fluid pb-4">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header bg-light text-primary border-bottom">
@@ -50,7 +50,7 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 			<form action="" id="manage_ticket">
 				<div class="card-body">
 					<?php if ($display_equipment_name): ?>
-					<div class="alert alert-info border border-info text-info">
+					<div class="alert alert-info border border-info">
 						<i class="fas fa-info-circle mr-2"></i>
 						<strong>Reportando equipo:</strong> <?php echo htmlspecialchars($display_equipment_name, ENT_QUOTES, 'UTF-8'); ?> 
 						<?php if ($display_inventory): ?>
@@ -198,7 +198,6 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 					</div>
 				</div>
 			</form>
-			</div>
 		</div>
 	</div>
 </div>

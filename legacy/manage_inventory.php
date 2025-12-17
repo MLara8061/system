@@ -51,7 +51,7 @@ $siguiente_id = $row['Auto_increment'];
                                 style="height: 380px; border: 3px dashed #ccc;">
                                 <i class="fas fa-box fa-3x text-muted"></i>
                             </div>
-                            <input type="file" name="image_path" id="image_path" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg" onchange="displayImg(this)">
+                            <input type="file" name="image_path" id="image_path" class="form-control mt-3" accept="image/jpeg,image/png,image/jpg,image/webp" onchange="displayImg(this)">
                             <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                             <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-3"
                                 style="display:none; max-height: 200px;">
@@ -172,10 +172,10 @@ $siguiente_id = $row['Auto_increment'];
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;

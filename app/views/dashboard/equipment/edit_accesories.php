@@ -59,7 +59,7 @@ $acc = $qry->fetch_assoc();
 
                             <div id="upload-container" class="mt-3"
                                 style="display: <?= !empty($acc['image']) ? 'none' : 'block' ?>;">
-                                <input type="file" name="imagen" id="imagen" class="form-control" accept="image/jpeg,image/png,image/jpg"
+                                <input type="file" name="imagen" id="imagen" class="form-control" accept="image/jpeg,image/png,image/jpg,image/webp"
                                     onchange="displayImg(this)">
                                 <small class="text-muted d-block mt-1">Formatos permitidos: JPG, PNG (máx. 5MB)</small>
                                 <img id="preview-img" src="" alt="" class="img-fluid rounded shadow mt-2"
@@ -244,10 +244,10 @@ $acc = $qry->fetch_assoc();
         const file = e.target.files[0];
         if (file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validFormats = ['jpg', 'jpeg', 'png'];
+            const validFormats = ['jpg', 'jpeg', 'png', 'webp'];
             
             if (!validFormats.includes(ext)) {
-                alert_toast('Formato no permitido. Solo se aceptan archivos JPG y PNG', 'error');
+                alert_toast('Formato no permitido. Solo se aceptan archivos JPG, PNG y WebP', 'error');
                 $(this).val('');
                 $('#preview-img').hide();
                 return false;
