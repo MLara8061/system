@@ -48,15 +48,6 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
 			</div>
 			<div class="card-body">
-				<div class="d-flex justify-content-end mb-3">
-					<button class="btn btn-primary btn-sm" type="submit" form="manage_ticket">
-						<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
-					</button>
-					<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary btn-sm ml-2">
-						<i class="fas fa-times"></i> Cancelar
-					</a>
-				</div>
-
 				<?php if ($display_equipment_name): ?>
 				<div class="alert alert-info">
 					<i class="fas fa-info-circle me-2"></i>
@@ -193,17 +184,17 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 					<hr>
 					<div class="row">
 						<div class="col-lg-12 text-right text-center text-md-right">
-							<button class="btn btn-primary" type="submit">
-								<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
-							</button>
 							<?php if (!$is_edit): ?>
 								<button class="btn btn-secondary" type="reset">
 									<i class="fas fa-redo"></i> Limpiar
 								</button>
 							<?php endif; ?>
-							<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-default">
+							<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary">
 								<i class="fas fa-times"></i> Cancelar
 							</a>
+							<button class="btn btn-primary" type="submit">
+								<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+							</button>
 						</div>
 					</div>
 				</form>

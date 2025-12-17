@@ -99,18 +99,18 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 					<div class="container-fluid">
 						<div class="row">
 							<div class="col-md-6">
-								<label for="" class="control-label font-weight-bold">
+								<label class="control-label font-weight-bold">
 									<i class="fas fa-tag text-primary"></i> Asunto
 								</label>
 								<p class="ml-3 mb-3"><?php echo $subject ?></p>
 								
-								<label for="" class="control-label font-weight-bold">
+								<label class="control-label font-weight-bold">
 									<i class="fas fa-user text-primary"></i> Cliente
 								</label>
 								<p class="ml-3 mb-3"><?php echo $cname ?></p>
 							</div>
 							<div class="col-md-6">
-								<label for="" class="control-label font-weight-bold">
+								<label class="control-label font-weight-bold">
 									<i class="fas fa-info-circle text-primary"></i> Estado
 								</label>
 								<p class="ml-3 mb-3">
@@ -130,7 +130,7 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 									<?php endif; ?>
 								</p>
 								
-								<label for="" class="control-label font-weight-bold">
+								<label class="control-label font-weight-bold">
 									<i class="fas fa-building text-primary"></i> Departamento
 								</label>
 								<p class="ml-3 mb-3"><?php echo $dname ?></p>
@@ -215,10 +215,10 @@ $is_public_ticket = isset($is_public) && $is_public == 1;
 						<div class="form-group mb-2">
 							<input type="hidden" name="id" value="">
 							<input type="hidden" name="ticket_id" value="<?php echo $id ?>">
-							<label for="" class="control-label font-weight-bold">
+							<label for="ticket_comment" class="control-label font-weight-bold">
 								<i class="fas fa-comment-medical"></i> Nuevo Comentario
 							</label>
-							<textarea name="comment" id="" cols="30" rows="" class="form-control summernote2"></textarea>
+							<textarea name="comment" id="ticket_comment" cols="30" rows="" class="form-control summernote2"></textarea>
 						</div>
 						<button class="btn btn-primary btn-sm float-right">
 							<i class="fas fa-paper-plane"></i> Enviar
