@@ -41,7 +41,7 @@ $submit_label = $is_edit ? 'Guardar cambios' : 'Guardar Ticket';
 $success_toast = $is_edit ? 'Cambios guardados correctamente' : 'Datos guardados correctamente';
 $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list';
 ?>
-<div class="container-fluid pb-4">
+<div class="container-fluid ticket-form-wrap">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header bg-light text-primary border-bottom">
@@ -182,7 +182,7 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 					</div>
 
 				</div>
-				<div class="card-footer bg-light border-top">
+				<div class="card-footer bg-light border-top ticket-actions">
 					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
 						<?php if (!$is_edit): ?>
 							<button class="btn btn-secondary" type="reset">
@@ -203,6 +203,17 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 </div>
 
 <style>
+.ticket-form-wrap {
+	/* Evita que el footer fijo de AdminLTE tape el final del formulario */
+	padding-bottom: calc(var(--ticket-fixed-footer-offset, 0px) + 2.5rem);
+}
+
+.ticket-actions {
+	position: sticky;
+	bottom: var(--ticket-fixed-footer-offset, 0px);
+	z-index: 1020;
+}
+
 @media (max-width: 768px) {
 	.card-body {
 		padding: 1rem !important;
@@ -230,6 +241,13 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 </style>
 
 <script>
+	// Ajustar dinámicamente el offset del footer fijo (layout-footer-fixed)
+	$(function() {
+		var $footer = $('.main-footer');
+		var h = ($footer.length ? ($footer.outerHeight() || 0) : 0);
+		document.documentElement.style.setProperty('--ticket-fixed-footer-offset', h + 'px');
+	});
+
 	$('#manage_ticket').submit(function(e) {
 		e.preventDefault()
 		$('input').removeClass("border-danger")
