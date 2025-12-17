@@ -47,18 +47,18 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 			<div class="card-header bg-light text-primary border-bottom">
 				<h4 class="mb-0 font-weight-bold"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
 			</div>
-			<div class="card-body">
-				<?php if ($display_equipment_name): ?>
-				<div class="alert alert-info">
-					<i class="fas fa-info-circle me-2"></i>
-					<strong>Reportando equipo:</strong> <?php echo htmlspecialchars($display_equipment_name, ENT_QUOTES, 'UTF-8'); ?> 
-					<?php if ($display_inventory): ?>
-					- <strong>Inventario:</strong> #<?php echo htmlspecialchars($display_inventory, ENT_QUOTES, 'UTF-8'); ?>
+			<form action="" id="manage_ticket">
+				<div class="card-body">
+					<?php if ($display_equipment_name): ?>
+					<div class="alert alert-info border border-info text-info">
+						<i class="fas fa-info-circle mr-2"></i>
+						<strong>Reportando equipo:</strong> <?php echo htmlspecialchars($display_equipment_name, ENT_QUOTES, 'UTF-8'); ?> 
+						<?php if ($display_inventory): ?>
+						- <strong>Inventario:</strong> #<?php echo htmlspecialchars($display_inventory, ENT_QUOTES, 'UTF-8'); ?>
+						<?php endif; ?>
+					</div>
 					<?php endif; ?>
-				</div>
-				<?php endif; ?>
-				
-				<form action="" id="manage_ticket">
+					
 					<input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
 					<input type="hidden" name="equipment_id" value="<?php echo (int)$form_equipment_id; ?>">
 					
@@ -181,7 +181,8 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						</div>
 					</div>
 
-					<hr>
+				</div>
+				<div class="card-footer bg-light border-top">
 					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
 						<?php if (!$is_edit): ?>
 							<button class="btn btn-secondary" type="reset">
@@ -195,7 +196,8 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 							<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
 						</button>
 					</div>
-				</form>
+				</div>
+			</form>
 			</div>
 		</div>
 	</div>
