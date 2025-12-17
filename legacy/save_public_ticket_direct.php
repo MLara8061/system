@@ -3,7 +3,7 @@
 // NO usar admin_class.php que requiere sesión
 
 define('ACCESS', true);
-require_once 'config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 header('Content-Type: application/json');
 

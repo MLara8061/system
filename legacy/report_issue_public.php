@@ -1,12 +1,7 @@
 <?php
 // Página pública para reportar problemas con equipos
-// Iniciar sesión básica sin validación de usuario autenticado
-if (session_status() == PHP_SESSION_NONE) {
-    require_once 'config/session.php';
-}
-
 define('ACCESS', true);
-require_once 'config/config.php';
+require_once __DIR__ . '/../config/config.php';
 
 // Obtener ID del equipo
 if (!isset($_GET['equipment_id']) || !is_numeric($_GET['equipment_id'])) {
@@ -35,7 +30,7 @@ $equipment = $qry->fetch_assoc();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportar Falla - <?= htmlspecialchars($equipment['name']) ?></title>
-    <link rel="stylesheet" href="assets/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
@@ -184,7 +179,7 @@ $equipment = $qry->fetch_assoc();
         </div>
     </div>
 
-    <script src="assets/plugins/jquery/jquery.min.js"></script>
+    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/plugins/jquery/jquery.min.js"></script>
     <script>
         $('#reportForm').submit(function(e) {
             e.preventDefault();
@@ -193,7 +188,7 @@ $equipment = $qry->fetch_assoc();
             submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...');
             
             $.ajax({
-                url: 'save_public_ticket_direct.php',
+                url: '<?= rtrim(BASE_URL, '/') ?>/legacy/save_public_ticket_direct.php',
                 method: 'POST',
                 data: $(this).serialize(),
                 dataType: 'json',

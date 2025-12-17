@@ -419,7 +419,7 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
             <div class="px-4 pb-4">
                 <hr class="mb-4">
                 <div class="text-center">
-                    <a href="report_issue_public.php?equipment_id=<?php echo $equipment_id; ?>" 
+                    <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/report_issue_public.php?equipment_id=<?php echo (int)$equipment_id; ?>" 
                        class="btn btn-lg btn-danger px-5">
                         <i class="fas fa-exclamation-triangle me-2"></i> Reportar Falla
                     </a>
