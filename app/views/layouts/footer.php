@@ -145,31 +145,52 @@
 		try {
 			var $form = $('#manage_ticket');
 			if ($form.length && !$form.closest('#uni_modal, #uni_modal_right').length) {
-				var hasSubmit = $form.find('button[type="submit"]').length > 0;
-				if (!hasSubmit) {
+				var $existingActions = $form.find('.ticket-actions');
+				var $submits = $form.find('button[type="submit"], input[type="submit"]');
+				var visibleSubmits = $submits.filter(':visible').length;
+
+				var footerH = (function(){
+					var $footer = $('.main-footer');
+					return ($footer.length ? ($footer.outerHeight() || 0) : 0);
+				})();
+
+				var submitIsInViewport = (function(){
+					var el = $submits.get(0);
+					if (!el || !el.getBoundingClientRect) return false;
+					var rect = el.getBoundingClientRect();
+					var viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
+					if (!viewportH) return false;
+					var bottomLimit = viewportH - footerH - 8;
+					return rect.top < bottomLimit && rect.bottom <= bottomLimit;
+				})();
+
+				var needsFailSafe = ($existingActions.length === 0) && (visibleSubmits === 0 || !submitIsInViewport);
+				if (needsFailSafe) {
 					var idVal = parseInt(($form.find('input[name="id"]').val() || '0'), 10) || 0;
 					var isEdit = idVal > 0;
 					var cancelHref = isEdit ? ('index.php?page=view_ticket&id=' + idVal) : 'index.php?page=ticket_list';
 					var submitLabel = isEdit ? 'Guardar cambios' : 'Guardar Ticket';
 
-					var $actions = $('<div class="bg-light border-top ticket-actions mt-3 pt-3" style="position: sticky; z-index: 1020;"></div>');
+					var $actions = $('<div class="bg-light border-top ticket-actions" style="position: fixed; left: 0; right: 0; z-index: 1030; padding: .75rem 1rem;"></div>');
+					var $inner = $('<div class="container-fluid"></div>');
 					var $row = $('<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;"></div>');
 					if (!isEdit) {
-						$row.append('<button class="btn btn-secondary" type="reset"><i class="fas fa-redo"></i> Limpiar</button>');
+						$row.append('<button class="btn btn-secondary" type="reset" form="manage_ticket"><i class="fas fa-redo"></i> Limpiar</button>');
 					}
 					$row.append('<a href="./' + cancelHref + '" class="btn btn-secondary"><i class="fas fa-times"></i> Cancelar</a>');
-					$row.append('<button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> ' + submitLabel + '</button>');
-					$actions.append($row);
+					$row.append('<button class="btn btn-primary" type="submit" form="manage_ticket"><i class="fas fa-save"></i> ' + submitLabel + '</button>');
+					$inner.append($row);
+					$actions.append($inner);
 
 					// Offset por footer fijo (AdminLTE layout-footer-fixed)
-					var $footer = $('.main-footer');
-					var h = ($footer.length ? ($footer.outerHeight() || 0) : 0);
-					$actions.css('bottom', h + 'px');
+					$actions.css('bottom', footerH + 'px');
 
-					// Insertar al final del formulario (preferir dentro del card-body si existe)
-					var $cardBody = $form.find('.card-body').last();
-					if ($cardBody.length) $cardBody.append($actions);
-					else $form.append($actions);
+					// Asegurar que el contenido no quede oculto debajo de la barra
+					var extraPad = (footerH + ($actions.outerHeight() || 56) + 12);
+					$('.content-wrapper').css('padding-bottom', extraPad + 'px');
+
+					// Insertar una sola vez en el body para que funcione aunque el card tenga overflow
+					$('body').append($actions);
 				}
 			}
 		} catch (e) {
