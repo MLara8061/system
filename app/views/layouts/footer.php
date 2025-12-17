@@ -19,10 +19,10 @@
 			if (!$form.length) return;
 			if ($form.closest('#uni_modal, #uni_modal_right').length) return;
 
-			// Evitar duplicados: si ya existe una barra visible o ya inyectamos la nuestra
+			// Evitar duplicados: si ya inyectamos la nuestra
 			if (document.getElementById('ticket-actions-failsafe')) return;
-			var $existingActions = $form.find('.ticket-actions:visible');
-			if ($existingActions.length) return;
+
+			var $existingActions = $form.find('.ticket-actions').not('#ticket-actions-failsafe');
 
 			var $submits = $form.find('button[type="submit"], input[type="submit"]');
 			var visibleSubmits = $submits.filter(':visible').length;
@@ -42,7 +42,20 @@
 				return rect.top < bottomLimit && rect.bottom <= bottomLimit;
 			})();
 
-			var needsFailSafe = (visibleSubmits === 0 || !submitIsInViewport);
+			var actionsAreUsable = (function(){
+				var el = $existingActions.get(0);
+				if (!el || !el.getBoundingClientRect) return false;
+				// Si está oculto por CSS, no sirve.
+				if (!$(el).is(':visible')) return false;
+				var rect = el.getBoundingClientRect();
+				var viewportH = window.innerHeight || document.documentElement.clientHeight || 0;
+				if (!viewportH) return false;
+				var bottomLimit = viewportH - footerH - 8;
+				// Considerar usable solo si el bloque completo queda por encima del footer.
+				return rect.top < bottomLimit && rect.bottom <= bottomLimit;
+			})();
+
+			var needsFailSafe = (visibleSubmits === 0 || !submitIsInViewport || !actionsAreUsable);
 			if (!needsFailSafe) return;
 
 			var idVal = parseInt(($form.find('input[name="id"]').val() || '0'), 10) || 0;
@@ -65,6 +78,8 @@
 			var extraPad = (footerH + ($actions.outerHeight() || 56) + 12);
 			$('.content-wrapper').css('padding-bottom', extraPad + 'px');
 			$('body').append($actions);
+			document.body.setAttribute('data-ticket-failsafe-injected', '1');
+			window.__ticketFailsafeInjected = true;
 		} catch (e) {
 			// No-op
 		}
@@ -237,9 +252,7 @@
 		if (!form) return;
 		if (form.closest('#uni_modal, #uni_modal_right')) return;
 
-		var existingVisible = form.querySelector('.ticket-actions');
-		// Si ya existe algo, no duplicar (aunque esté oculto, preferimos no pelear con la UI existente en vanilla)
-		if (existingVisible) return;
+		// No bloquear por existencia de .ticket-actions: si está tapado por footer fijo, igual necesitamos la barra.
 
 		var footer = document.querySelector('.main-footer');
 		var footerH = footer ? (footer.getBoundingClientRect().height || 0) : 0;
@@ -270,6 +283,8 @@
 			'</div>';
 
 		document.body.appendChild(actions);
+		document.body.setAttribute('data-ticket-failsafe-injected', '1');
+		window.__ticketFailsafeInjected = true;
 		var contentWrapper = document.querySelector('.content-wrapper');
 		if (contentWrapper) {
 			var extraPad = footerH + 56 + 12;
