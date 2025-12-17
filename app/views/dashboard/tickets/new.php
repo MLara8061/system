@@ -63,11 +63,14 @@ if ($equipment_name && $inventory) {
 								<select name="customer_id" id="customer_id" class="custom-select custom-select-sm select2">
 									<option value="">Seleccione un cliente</option>
 									<?php
-									$department = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM customers order by concat(lastname,', ',firstname,' ',middlename) asc");
-									while ($row = $department->fetch_assoc()) :
+									$customersRes = $conn->query("SELECT *,concat(lastname,', ',firstname,' ',middlename) as name FROM customers order by concat(lastname,', ',firstname,' ',middlename) asc");
+									if ($customersRes):
+									while ($row = $customersRes->fetch_assoc()) :
 									?>
 										<option value="<?php echo $row['id'] ?>" <?php echo isset($customer_id) && $customer_id == $row['id'] ? "selected" : '' ?>><?php echo ucwords($row['name']) ?></option>
-									<?php endwhile; ?>
+									<?php endwhile; else: ?>
+										<option value="" disabled>No se pudieron cargar clientes</option>
+									<?php endif; ?>
 								</select>
 							</div>
 						</div>
@@ -79,11 +82,14 @@ if ($equipment_name && $inventory) {
 								<select name="department_id" id="department_id" class="custom-select custom-select-sm select2">
 									<option value="">Seleccione un departamento</option>
 									<?php
-									$department = $conn->query("SELECT * FROM departments order by name asc");
-									while ($row = $department->fetch_assoc()) :
+									$departmentsRes = $conn->query("SELECT * FROM departments order by name asc");
+									if ($departmentsRes):
+									while ($row = $departmentsRes->fetch_assoc()) :
 									?>
 										<option value="<?php echo $row['id'] ?>" <?php echo isset($department_id) && $department_id == $row['id'] ? "selected" : '' ?>><?php echo ucwords($row['name']) ?></option>
-									<?php endwhile; ?>
+									<?php endwhile; else: ?>
+										<option value="" disabled>No se pudieron cargar departamentos</option>
+									<?php endif; ?>
 								</select>
 							</div>
 						</div>
@@ -94,11 +100,14 @@ if ($equipment_name && $inventory) {
 								<select class="custom-select custom-select-sm select2" name="service_id" id="service_id" required>
 									<option value="">Seleccione un servicio</option>
 									<?php 
-									$service = $conn->query("SELECT s.*,c.category, c.clave FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
-									while($row = $service->fetch_assoc()):
+									$servicesRes = $conn->query("SELECT s.*,c.category, c.clave FROM `services` s inner join `services_category` c on c.id = s.category_id order by s.`service` asc");
+									if ($servicesRes):
+									while($row = $servicesRes->fetch_assoc()):
 									?>
 										<option value="<?php echo $row['id'] ?>" <?php echo isset($service_id) && $service_id == $row['id'] ? "selected" : "" ?>>[<?php echo $row['clave'] ?> - <?php echo $row['category'] ?>] - <?php echo $row['service'] ?> Servicio</option>
-									<?php endwhile; ?>
+									<?php endwhile; else: ?>
+										<option value="" disabled>No se pudieron cargar servicios</option>
+									<?php endif; ?>
 								</select>
 							</div>
 						</div>
