@@ -140,6 +140,45 @@ if ($label_ser === '') {
 }
 
 $has_label_data = ($label_suc !== '' || $label_prop !== '' || $label_cat !== '' || $label_ubi !== '' || $label_con !== '' || $label_ser !== '');
+
+// Normaliza rutas (uploads/...) a URL pública válida desde /legacy/*
+function public_asset_url($path) {
+    $path = trim((string)$path);
+    if ($path === '') return '';
+
+    // Ya es URL absoluta
+    if (preg_match('#^https?://#i', $path)) return $path;
+
+    $path = preg_replace('#^\./#', '', $path);
+
+    // Si viene como ruta con /uploads/ incrustado (o filesystem), tomar basename
+    if (strpos($path, '/uploads/') !== false) {
+        $path = 'uploads/' . basename($path);
+    }
+
+    $baseUrl = rtrim(BASE_URL, '/');
+    $parts = parse_url($baseUrl);
+    $scheme = $parts['scheme'] ?? ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http');
+    $host = $parts['host'] ?? ($_SERVER['HTTP_HOST'] ?? '');
+    $origin = $scheme . '://' . $host;
+    if (!empty($parts['port'])) {
+        $origin .= ':' . $parts['port'];
+    }
+    $basePath = rtrim((string)($parts['path'] ?? ''), '/');
+
+    // Si es root-relative, adjuntar subcarpeta del proyecto cuando aplique
+    if (isset($path[0]) && $path[0] === '/') {
+        if ($basePath !== '' && strpos($path, $basePath . '/') === 0) {
+            return $origin . $path;
+        }
+        return $origin . $basePath . $path;
+    }
+
+    // Relativo al proyecto
+    return $baseUrl . '/' . $path;
+}
+
+$publicImageUrl = public_asset_url($eq['image'] ?? '');
 ?>
 
 
@@ -287,8 +326,8 @@ $has_label_data = ($label_suc !== '' || $label_prop !== '' || $label_cat !== '' 
             <div class="row g-0 p-4">
                 <!-- IMAGEN -->
                 <div class="col-lg-5 d-flex align-items-center justify-content-center mb-4 mb-lg-0">
-                    <?php if (!empty($eq['image'])): ?>
-                        <img src="<?= $eq['image'] ?>" class="img-fluid rounded shadow" 
+                    <?php if (!empty($publicImageUrl)): ?>
+                        <img src="<?= htmlspecialchars($publicImageUrl) ?>" class="img-fluid rounded shadow" 
                              style="max-height: 350px; object-fit: contain;">
                     <?php else: ?>
                         <div class="bg-light border rounded d-flex align-items-center justify-content-center" 
