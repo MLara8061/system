@@ -1160,6 +1160,154 @@ class Action {
         return null;
     }
 
+    function preview_inventory_number($branch_id, $acquisition_type_id = null, $equipment_category_id = null) {
+        try {
+            $branch_id = (int)$branch_id;
+            $acquisition_type_id = $acquisition_type_id !== null ? (int)$acquisition_type_id : null;
+            $equipment_category_id = $equipment_category_id !== null ? (int)$equipment_category_id : null;
+            if ($branch_id <= 0) return false;
+
+            // Prefijo base desde branches.code (3 caracteres)
+            $branch_code = null;
+            if ($this->db) {
+                $bq = $this->db->query("SELECT code FROM branches WHERE id = {$branch_id} LIMIT 1");
+                if ($bq && $bq->num_rows > 0) {
+                    $branch_code = strtoupper(trim(($bq->fetch_assoc()['code'] ?? '')));
+                    $branch_code = substr(preg_replace('/[^A-Z0-9]/', '', $branch_code), 0, 3);
+                }
+            } elseif ($this->pdo) {
+                try {
+                    $stmt = $this->pdo->prepare("SELECT code FROM branches WHERE id = ? LIMIT 1");
+                    $stmt->execute([$branch_id]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row) {
+                        $branch_code = strtoupper(trim((string)($row['code'] ?? '')));
+                        $branch_code = substr(preg_replace('/[^A-Z0-9]/', '', $branch_code), 0, 3);
+                    }
+                } catch (Throwable $e) {
+                    $branch_code = null;
+                }
+            }
+            if (!$branch_code) $branch_code = 'INV';
+
+            $has_full_params = (!empty($acquisition_type_id) && !empty($equipment_category_id));
+            if (!$has_full_params) {
+                $prefix = $branch_code;
+                $next = 1;
+
+                if ($this->db && $this->table_exists_local('inventory_config')) {
+                    $res = $this->db->query("SELECT prefix, current_number FROM inventory_config WHERE branch_id = {$branch_id} LIMIT 1");
+                    if ($res && $res->num_rows > 0) {
+                        $row = $res->fetch_assoc();
+                        $prefix = !empty($row['prefix']) ? (string)$row['prefix'] : $prefix;
+                        $next = ((int)($row['current_number'] ?? 0)) + 1;
+                    }
+                } elseif ($this->pdo) {
+                    try {
+                        $stmt = $this->pdo->prepare("SELECT prefix, current_number FROM inventory_config WHERE branch_id = ? LIMIT 1");
+                        $stmt->execute([$branch_id]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($row) {
+                            $prefix = !empty($row['prefix']) ? (string)$row['prefix'] : $prefix;
+                            $next = ((int)($row['current_number'] ?? 0)) + 1;
+                        }
+                    } catch (Throwable $e) {
+                        // tabla no existe u otro error: usar 001
+                    }
+                }
+
+                return $prefix . '-' . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+            }
+
+            $acq_code = $this->derive_acquisition_code($acquisition_type_id);
+            if (!$acq_code) return false;
+
+            // Derivar código de categoría (sin mutar DB)
+            $cat_code = '';
+            if ($this->db) {
+                $has_clave = $this->column_exists_local('equipment_categories', 'clave');
+                $has_desc = $this->column_exists_local('equipment_categories', 'description');
+                $has_name = $this->column_exists_local('equipment_categories', 'name');
+                $desc_col = $has_desc ? 'description' : ($has_name ? 'name' : null);
+                $select_cols = $has_clave
+                    ? ("clave" . ($desc_col ? ", {$desc_col} AS description" : ""))
+                    : ($desc_col ? "{$desc_col} AS description" : "id");
+
+                $cq = $this->db->query("SELECT {$select_cols} FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+                if (!$cq || $cq->num_rows === 0) return false;
+                $cat_row = $cq->fetch_assoc();
+
+                $cat_code_raw = $has_clave ? ($cat_row['clave'] ?? '') : '';
+                $cat_code = strtoupper(trim((string)$cat_code_raw));
+                $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
+                if ($cat_code === '') {
+                    $desc_raw = (string)($cat_row['description'] ?? '');
+                    $desc = strtoupper(trim($desc_raw));
+                    $desc = substr(preg_replace('/[^A-Z0-9]/', '', $desc), 0, 3);
+                    $cat_code = $desc !== '' ? $desc : str_pad((string)($equipment_category_id % 1000), 3, '0', STR_PAD_LEFT);
+                }
+            } elseif ($this->pdo) {
+                // Detectar columnas para compatibilidad
+                $has_clave_pdo = false;
+                $has_desc_pdo = false;
+                $has_name_pdo = false;
+                try { $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'clave'"); $has_clave_pdo = $c && $c->fetch(PDO::FETCH_ASSOC); } catch (Throwable $e) {}
+                try { $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'description'"); $has_desc_pdo = $c && $c->fetch(PDO::FETCH_ASSOC); } catch (Throwable $e) {}
+                try { $c = $this->pdo->query("SHOW COLUMNS FROM equipment_categories LIKE 'name'"); $has_name_pdo = $c && $c->fetch(PDO::FETCH_ASSOC); } catch (Throwable $e) {}
+
+                $desc_col = $has_desc_pdo ? 'description' : ($has_name_pdo ? 'name' : null);
+                $select_cols = $has_clave_pdo
+                    ? ("clave" . ($desc_col ? ", {$desc_col} AS description" : ""))
+                    : ($desc_col ? "{$desc_col} AS description" : "id");
+
+                $stmt = $this->pdo->prepare("SELECT {$select_cols} FROM equipment_categories WHERE id = ? LIMIT 1");
+                $stmt->execute([(int)$equipment_category_id]);
+                $cat_row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$cat_row) return false;
+
+                $cat_code_raw = $has_clave_pdo ? ($cat_row['clave'] ?? '') : '';
+                $cat_code = strtoupper(trim((string)$cat_code_raw));
+                $cat_code = substr(preg_replace('/[^A-Z0-9]/', '', $cat_code), 0, 3);
+                if ($cat_code === '') {
+                    $desc_raw = (string)($cat_row['description'] ?? '');
+                    $desc = strtoupper(trim($desc_raw));
+                    $desc = substr(preg_replace('/[^A-Z0-9]/', '', $desc), 0, 3);
+                    $cat_code = $desc !== '' ? $desc : str_pad((string)($equipment_category_id % 1000), 3, '0', STR_PAD_LEFT);
+                }
+            }
+            if ($cat_code === '') return false;
+
+            $prefix = $branch_code . $acq_code . $cat_code;
+            $next = 1;
+
+            if ($this->db && $this->table_exists_local('inventory_config') && $this->column_exists_local('inventory_config', 'acquisition_type_id') && $this->column_exists_local('inventory_config', 'equipment_category_id')) {
+                $b = (int)$branch_id;
+                $a = (int)$acquisition_type_id;
+                $c = (int)$equipment_category_id;
+                $res = $this->db->query("SELECT current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
+                if ($res && $res->num_rows > 0) {
+                    $row = $res->fetch_assoc();
+                    $next = ((int)($row['current_number'] ?? 0)) + 1;
+                }
+            } elseif ($this->pdo) {
+                try {
+                    $stmt = $this->pdo->prepare("SELECT current_number FROM inventory_config WHERE branch_id = ? AND acquisition_type_id = ? AND equipment_category_id = ? LIMIT 1");
+                    $stmt->execute([(int)$branch_id, (int)$acquisition_type_id, (int)$equipment_category_id]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row) {
+                        $next = ((int)($row['current_number'] ?? 0)) + 1;
+                    }
+                } catch (Throwable $e) {
+                    // tabla/columnas no existen: usar 001
+                }
+            }
+
+            return $prefix . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
     function get_next_inventory_number($branch_id, $acquisition_type_id = null, $equipment_category_id = null) {
         try {
             $branch_id = (int)$branch_id;
@@ -1751,8 +1899,51 @@ class Action {
                 }
             }
 
-            // Generar number_inventory si no se proporciona y hay branch_id
-            if (empty($equipment_data['number_inventory']) && !empty($equipment_data['branch_id'])) {
+            // Generación de inventario:
+            // - NO confiar en el número enviado por el cliente (puede ser solo preview).
+            // - Para nuevos: siempre asignar el número definitivo en el guardado.
+            // - Para ediciones: regenerar solo si cambia sucursal/tipo/categoría o si viene vacío.
+            $must_generate = false;
+            if (!empty($equipment_data['branch_id'])) {
+                if ($new) {
+                    $must_generate = true;
+                } else {
+                    $must_generate = empty($equipment_data['number_inventory']);
+                    // Si hay ID, comparar con el registro actual para detectar cambios de combinación
+                    if (!$must_generate && $id > 0) {
+                        $current = null;
+                        if ($this->pdo) {
+                            try {
+                                $st = $this->pdo->prepare('SELECT branch_id, acquisition_type, equipment_category_id, number_inventory, inventario_anterior FROM equipments WHERE id = ? LIMIT 1');
+                                $st->execute([(int)$id]);
+                                $current = $st->fetch(PDO::FETCH_ASSOC);
+                            } catch (Throwable $e) {
+                                $current = null;
+                            }
+                        } elseif ($this->db) {
+                            $rq = $this->db->query('SELECT branch_id, acquisition_type, equipment_category_id, number_inventory, inventario_anterior FROM equipments WHERE id = ' . (int)$id . ' LIMIT 1');
+                            if ($rq && $rq->num_rows > 0) $current = $rq->fetch_assoc();
+                        }
+                        if ($current) {
+                            $old_branch = (int)($current['branch_id'] ?? 0);
+                            $old_acq = (int)($current['acquisition_type'] ?? 0);
+                            $old_cat = (int)($current['equipment_category_id'] ?? 0);
+                            $new_branch = (int)($equipment_data['branch_id'] ?? 0);
+                            $new_acq = (int)($equipment_data['acquisition_type'] ?? 0);
+                            $new_cat = (int)($equipment_data['equipment_category_id'] ?? 0);
+                            if ($old_branch !== $new_branch || $old_acq !== $new_acq || $old_cat !== $new_cat) {
+                                $must_generate = true;
+                                // Guardar inventario anterior si aún no está
+                                if (empty($equipment_data['inventario_anterior']) && empty($current['inventario_anterior']) && !empty($current['number_inventory'])) {
+                                    $equipment_data['inventario_anterior'] = (string)$current['number_inventory'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($must_generate) {
                 $generated_number = $this->get_next_inventory_number(
                     $equipment_data['branch_id'],
                     $equipment_data['acquisition_type'] ?? null,

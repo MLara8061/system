@@ -865,7 +865,7 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
             }
 
             $.ajax({
-                url: 'public/ajax/action.php?action=get_next_inventory_number',
+                url: 'public/ajax/action.php?action=preview_inventory_number',
                 method: 'POST',
                 data: {
                     branch_id: branch_id,

@@ -616,6 +616,71 @@ if ($action == 'get_next_inventory_number') {
     }
 }
 
+if ($action == 'preview_inventory_number') {
+    // Asegurar que no haya basura antes del JSON (warnings/notice/espacios)
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+
+    $branch_id = isset($_POST['branch_id']) ? (int)$_POST['branch_id'] : 0;
+    $acquisition_type_id = isset($_POST['acquisition_type_id']) ? (int)$_POST['acquisition_type_id'] : (isset($_POST['acquisition_type']) ? (int)$_POST['acquisition_type'] : 0);
+    $equipment_category_id = isset($_POST['equipment_category_id']) ? (int)$_POST['equipment_category_id'] : 0;
+
+    if ($branch_id <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Branch ID requerido']);
+        exit;
+    }
+
+    // Si no vienen adquisición/categoría, generar con el esquema simple por sucursal.
+    $has_full_params = ($acquisition_type_id > 0 && $equipment_category_id > 0);
+
+    try {
+        // Validaciones rápidas de existencia (evita fallos silenciosos)
+        if (isset($conn) && $conn) {
+            $chk = @$conn->query("SELECT id FROM branches WHERE id = {$branch_id} LIMIT 1");
+            if (!$chk || $chk->num_rows === 0) {
+                echo json_encode(['success' => false, 'error' => 'Sucursal inválida']);
+                exit;
+            }
+
+            if ($acquisition_type_id > 0) {
+                $chk = @$conn->query("SELECT id FROM acquisition_type WHERE id = {$acquisition_type_id} LIMIT 1");
+                if (!$chk || $chk->num_rows === 0) {
+                    echo json_encode(['success' => false, 'error' => 'Tipo de adquisición inválido']);
+                    exit;
+                }
+            }
+            if ($equipment_category_id > 0) {
+                $chk = @$conn->query("SELECT id FROM equipment_categories WHERE id = {$equipment_category_id} LIMIT 1");
+                if (!$chk || $chk->num_rows === 0) {
+                    echo json_encode(['success' => false, 'error' => 'Categoría inválida']);
+                    exit;
+                }
+            }
+        }
+
+        $number = $has_full_params
+            ? $crud->preview_inventory_number($branch_id, $acquisition_type_id, $equipment_category_id)
+            : $crud->preview_inventory_number($branch_id, null, null);
+
+        if (!$number) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'No se pudo previsualizar el número de inventario'
+            ]);
+            exit;
+        }
+
+        echo json_encode(['success' => true, 'number' => $number]);
+        exit;
+    } catch (Throwable $e) {
+        error_log('ACTION preview_inventory_number THROWABLE: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Error interno al previsualizar el número de inventario']);
+        exit;
+    }
+}
+
 if ($action == 'get_positions_by_department') {
     // Limpiar cualquier salida previa y establecer header JSON
     if (ob_get_level()) ob_end_clean();
