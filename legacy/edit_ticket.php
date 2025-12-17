@@ -7,5 +7,5 @@ foreach($row as $k => $v){
 	$$k = $v;
 }
 $id = isset($id) ? $id : $ticket_id;
-include 'new_ticket.php';
+include __DIR__ . '/new_ticket.php';
 ?>

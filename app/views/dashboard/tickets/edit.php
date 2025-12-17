@@ -26,5 +26,5 @@ foreach ($qry as $k => $v) {
 	$$k = $v;
 }
 
-include 'new.php';
+include __DIR__ . '/new.php';
 ?>
