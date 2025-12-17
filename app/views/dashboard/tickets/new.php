@@ -41,7 +41,7 @@ $submit_label = $is_edit ? 'Guardar cambios' : 'Guardar Ticket';
 $success_toast = $is_edit ? 'Cambios guardados correctamente' : 'Datos guardados correctamente';
 $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list';
 ?>
-<div class="container-fluid ticket-form-wrap" style="padding-bottom: 7rem;">
+<div class="container-fluid ticket-form-wrap" style="padding-bottom: calc(var(--ticket-fixed-footer-offset, 56px) + 3.5rem);">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header bg-light text-primary border-bottom">
@@ -51,51 +51,19 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 				<script>
 					window.__ticketFormLoaded = true;
 				</script>
-
-				<!-- Acciones inferiores: visibles siempre, incluso con layout-footer-fixed -->
-				<div class="ticket-actions-bottom" data-ticket-actions-bottom="1" style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; pointer-events: none;">
-					<div class="ticket-actions-bottom-inner bg-light border-top" style="padding: .75rem 1rem; pointer-events: auto;">
-						<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
-						<?php if (!$is_edit): ?>
-							<button class="btn btn-secondary" type="reset" form="manage_ticket">
-								<i class="fas fa-redo"></i> Limpiar
-							</button>
-						<?php endif; ?>
-						<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary">
-							<i class="fas fa-times"></i> Cancelar
-						</a>
-						<button class="btn btn-primary" type="submit" form="manage_ticket">
-							<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
-						</button>
-						</div>
-					</div>
-				</div>
 				<script>
+					// Calcular offset real del footer fijo para que no tape el final del formulario.
 					(function(){
-						try {
-							var bar = document.querySelector('[data-ticket-actions-bottom="1"]');
-							if (!bar) return;
-							var inner = bar.querySelector('.ticket-actions-bottom-inner');
-							var footer = document.querySelector('.main-footer');
-							var footerH = footer ? (footer.getBoundingClientRect().height || 0) : 0;
-							bar.style.bottom = footerH + 'px';
-
-							var cw = document.querySelector('.content-wrapper');
-							if (cw && inner) {
-								var ml = parseFloat(getComputedStyle(cw).marginLeft) || 0;
-								inner.style.marginLeft = ml + 'px';
-								inner.style.marginRight = '0';
-							}
-
-							var wrap = document.querySelector('.ticket-form-wrap');
-							if (wrap) {
-								var barH = bar.getBoundingClientRect ? (bar.getBoundingClientRect().height || 56) : 56;
-								var extra = footerH + barH + 16;
-								wrap.style.paddingBottom = extra + 'px';
-							}
-						} catch (e) {
-							// No-op
+						function setFooterOffset(){
+							try {
+								var footer = document.querySelector('.main-footer');
+								var h = footer ? (footer.getBoundingClientRect().height || 0) : 0;
+								document.documentElement.style.setProperty('--ticket-fixed-footer-offset', (h || 56) + 'px');
+							} catch (e) {}
 						}
+						setFooterOffset();
+						window.addEventListener('load', setFooterOffset);
+						window.addEventListener('resize', setFooterOffset);
 					})();
 				</script>
 				<div class="card-body">
@@ -232,6 +200,22 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						</div>
 					</div>
 
+				</div>
+
+				<div class="card-footer bg-light border-top">
+					<div class="d-flex justify-content-end align-items-center flex-wrap" style="gap: .5rem;">
+						<?php if (!$is_edit): ?>
+							<button class="btn btn-secondary" type="reset">
+								<i class="fas fa-redo"></i> Limpiar
+							</button>
+						<?php endif; ?>
+						<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary">
+							<i class="fas fa-times"></i> Cancelar
+						</a>
+						<button class="btn btn-primary" type="submit">
+							<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+						</button>
+					</div>
 				</div>
 			</form>
 		</div>
