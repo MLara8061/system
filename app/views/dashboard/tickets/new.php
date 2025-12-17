@@ -44,10 +44,21 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 <div class="container-fluid ticket-form-wrap">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
-			<div class="card-header bg-light text-primary border-bottom">
+			<div class="card-header bg-light text-primary border-bottom d-flex align-items-center justify-content-between flex-wrap" style="gap:.5rem;">
 				<h4 class="mb-0 font-weight-bold"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
+				<div class="d-flex align-items-center flex-wrap" style="gap:.5rem;">
+					<a href="./<?php echo htmlspecialchars($is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list', ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary btn-sm">
+						<i class="fas fa-times"></i> Cancelar
+					</a>
+					<button class="btn btn-primary btn-sm" type="submit" form="manage_ticket">
+						<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
+					</button>
+				</div>
 			</div>
 			<form action="" id="manage_ticket">
+				<script>
+					window.__ticketFormLoaded = true;
+				</script>
 				<div class="card-body">
 					<?php if ($display_equipment_name): ?>
 					<div class="alert alert-info border border-info">
