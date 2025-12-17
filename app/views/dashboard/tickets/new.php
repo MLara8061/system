@@ -173,10 +173,8 @@ $redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) 
 						<div class="col-md-12">
 							<div class="form-group">
 								<label for="description" class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
-								<textarea name="description" id="description" cols="30" rows="10" class="form-control summernote"></textarea>
-								<script>
-									window.__ticket_description_html = <?php echo json_encode(isset($description) ? (string)$description : ''); ?>;
-								</script>
+								<textarea name="description" id="description" cols="30" rows="10" class="form-control summernote"><?php echo isset($description) ? $description : '';
+								?></textarea>
 							</div>
 						</div>
 					</div>
