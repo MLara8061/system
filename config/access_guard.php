@@ -16,7 +16,10 @@ $current_file = basename($_SERVER['SCRIPT_FILENAME'] ?? '');
 
 if (!in_array($current_file, $public_files, true)) {
     if (!isset($_SESSION['login_id'])) {
-        header('Location: login.php');
+        if (!defined('BASE_URL')) {
+            require_once __DIR__ . '/config.php';
+        }
+        header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
         exit();
     }
 }

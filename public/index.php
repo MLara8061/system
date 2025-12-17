@@ -13,15 +13,18 @@ define('ALLOW_DIRECT_ACCESS', true);
 // Cargar sesión hardened
 require_once ROOT . '/config/session.php';
 
+// Cargar config para obtener BASE_URL (evita redirects relativos en subcarpetas)
+require_once ROOT . '/config/config.php';
+
 // Verificar sesión activa
 if (!isset($_SESSION['login_id'])) {
-    header('location: app/views/auth/login.php');
+  header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
     exit();
 }
 
 // Validar timeout de sesión (30 minutos inactividad)
 if (!validate_session()) {
-    header('location: logout.php?timeout=1');
+  header('location: ' . rtrim(BASE_URL, '/') . '/logout.php?timeout=1');
     exit();
 }
 

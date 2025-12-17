@@ -9,13 +9,14 @@ if (!defined('ALLOW_DIRECT_ACCESS')) {
     if (!defined('ROOT')) {
         define('ROOT', dirname(dirname(dirname(__DIR__))));
     }
+    require_once ROOT . '/config/config.php';
     require_once ROOT . '/config/session.php';
     if (!isset($_SESSION['login_id'])) {
-        header('Location: ' . ROOT . '/app/views/auth/login.php');
+        header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
         exit;
     }
     if (!validate_session()) {
-        header('Location: ' . ROOT . '/app/views/auth/logout.php?timeout=1');
+        header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/logout.php?timeout=1');
         exit;
     }
 }

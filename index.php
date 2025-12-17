@@ -27,7 +27,7 @@ require_once ROOT . '/config/session.php';
 
 // Validar sesión activa y timeout
 if (!isset($_SESSION['login_id'])) {
-  header('location: app/views/auth/login.php');
+  header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
   exit();
 }
 

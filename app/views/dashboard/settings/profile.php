@@ -1,7 +1,7 @@
 ﻿<?php 
 require_once 'config/config.php';
 if (!isset($_SESSION['login_id'])) {
-    header('Location: login.php');
+    header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
     exit;
 }
 $user_id = $_SESSION['login_id'];

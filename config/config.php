@@ -182,15 +182,39 @@ if ($base_url_env && $base_url_env !== '') {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $host = $_SERVER['HTTP_HOST'];
     
-    // Detectar si está en subcarpeta
-    $script_path = $_SERVER['SCRIPT_NAME'];
+    // Detectar si está en subcarpeta (raíz real del proyecto).
+    // IMPORTANTE: no usar dirname(SCRIPT_NAME) directo porque en scripts como
+    // /app/helpers/* o /legacy/* terminaría dando BASE_URL incorrecto.
+    $script_path = (string)$_SERVER['SCRIPT_NAME'];
     $project_dir = '';
-    
-    // Si el script está en una subcarpeta, extraer la ruta base
-    if (str_contains($script_path, '/system/')) {
-        $project_dir = '/system';
-    } elseif (dirname($script_path) !== '/' && dirname($script_path) !== '.') {
-        $project_dir = rtrim(dirname($script_path), '/');
+
+    // Directorios raíz conocidos del proyecto (web)
+    $known_roots = ['/app/', '/legacy/', '/public/', '/assets/', '/components/', '/config/', '/uploads/', '/css/', '/js/', '/lib/'];
+
+    $found_root = false;
+    foreach ($known_roots as $rootDir) {
+        $pos = strpos($script_path, $rootDir);
+        if ($pos === 0) {
+            // El proyecto está en el root del dominio
+            $project_dir = '';
+            $found_root = true;
+            break;
+        }
+        if ($pos !== false && $pos > 0) {
+            // El proyecto está en una subcarpeta (ej. /system/app/...)
+            $project_dir = rtrim(substr($script_path, 0, $pos), '/');
+            $found_root = true;
+            break;
+        }
+    }
+
+    // Fallback: si no detectamos ninguna carpeta conocida, usar dirname SOLO
+    // para casos como /system/index.php (o /miapp/index.php)
+    if (!$found_root) {
+        $dir = dirname($script_path);
+        if ($dir !== '/' && $dir !== '.') {
+            $project_dir = rtrim($dir, '/');
+        }
     }
     
     define('BASE_URL', $protocol . $host . $project_dir);

@@ -2,7 +2,8 @@
 $root = dirname(__DIR__, 2);
 require_once $root . '/config/session.php';
 if (!validate_session()) {
-  header('location: /app/views/auth/login.php');
+  require_once $root . '/config/config.php';
+  header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
   exit();
 }
 

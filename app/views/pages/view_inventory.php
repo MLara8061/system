@@ -16,7 +16,7 @@ if (!validate_session()) {
         echo '<div class="alert alert-warning mb-0">Sesión expirada. Recarga la página e inicia sesión nuevamente.</div>';
         exit;
     }
-    header('location: /app/views/auth/login.php');
+    header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
     exit;
 }
 ?>
