@@ -189,7 +189,7 @@ if ($base_url_env && $base_url_env !== '') {
     $project_dir = '';
 
     // Directorios raíz conocidos del proyecto (web)
-    $known_roots = ['/app/', '/legacy/', '/public/', '/assets/', '/components/', '/config/', '/uploads/', '/css/', '/js/', '/lib/'];
+    $known_roots = ['/app/', '/legacy/', '/public/', '/assets/', '/components/', '/config/', '/uploads/', '/css/', '/js/', '/lib/', '/modals/'];
 
     $found_root = false;
     foreach ($known_roots as $rootDir) {
