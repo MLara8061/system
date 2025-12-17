@@ -68,7 +68,7 @@ if (file_exists(__DIR__ . '/config/config.php')) {
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-download text-success"></i> Descargar Plantilla</h5>
                                 <p class="card-text text-muted">Descarga la plantilla de Excel con listas desplegables y validaciones.</p>
-                                <a href="generate_excel_template.php" class="btn btn-success btn-block">
+                                <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/generate_excel_template.php" class="btn btn-success btn-block">
                                     <i class="fas fa-file-excel"></i> Descargar Plantilla Excel
                                 </a>
                             </div>

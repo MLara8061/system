@@ -70,7 +70,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                 <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm" title="Agregar Equipo">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
+                <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
                 <a href="#" class="btn btn-tool btn-sm" title="Vista">

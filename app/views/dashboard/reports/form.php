@@ -199,7 +199,7 @@ if ($conn) {
             <div class="container-fluid">
 
                 <div class="report-form">
-                    <form action="generate_pdf.php" method="POST" id="reporteForm" target="_blank">
+                    <form action="<?= rtrim(BASE_URL, '/') ?>/legacy/generate_pdf.php" method="POST" id="reporteForm" target="_blank">
                         <input type="hidden" name="orden_mto" value="<?= $orden_mto ?>">
                         <input type="hidden" name="fecha_reporte" value="<?= $fecha_reporte ?>">
                         <input type="hidden" name="ingeniero_nombre" value="<?= $ingeniero_nombre ?>">

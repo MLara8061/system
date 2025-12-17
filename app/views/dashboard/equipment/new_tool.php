@@ -1,11 +1,40 @@
 ﻿<?php require_once 'config/config.php'; ?>
 
+<?php
+$login_type = (int)($_SESSION['login_type'] ?? 0);
+$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+$needs_branch_select = ($login_type === 1 && $active_bid === 0);
+
+$branches = [];
+if ($needs_branch_select && isset($conn) && $conn) {
+    $has_active = false;
+    $col = @$conn->query("SHOW COLUMNS FROM branches LIKE 'active'");
+    if ($col && $col->num_rows > 0) $has_active = true;
+
+    $sql = "SELECT id, code, name" . ($has_active ? ", active" : "") . " FROM branches";
+    if ($has_active) {
+        $sql .= " WHERE active = 1";
+    }
+    $sql .= " ORDER BY name ASC";
+
+    $res = @$conn->query($sql);
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $branches[] = $row;
+        }
+    }
+}
+?>
+
 <div class="container-fluid">
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-body p-0">
 
             <form id="manage-tool" enctype="multipart/form-data">
                 <input type="hidden" name="keep_image" value="1">
+                <?php if (!$needs_branch_select && $login_type === 1 && $active_bid > 0): ?>
+                    <input type="hidden" name="branch_id" value="<?= (int)$active_bid ?>">
+                <?php endif; ?>
 
                 <div class="row g-0">
                     <!-- IMAGEN A LA IZQUIERDA -->
@@ -24,6 +53,19 @@
 
                     <!-- DATOS A LA DERECHA -->
                     <div class="col-lg-7 p-5">
+
+                        <?php if ($needs_branch_select): ?>
+                            <div class="mb-3">
+                                <label class="font-weight-bold text-dark">Sucursal</label>
+                                <select name="branch_id" class="custom-select select2" required>
+                                    <option value="">Seleccionar sucursal</option>
+                                    <?php foreach ($branches as $b): ?>
+                                        <option value="<?= (int)($b['id'] ?? 0) ?>"><?= htmlspecialchars(trim((string)($b['code'] ?? '')) . ' - ' . trim((string)($b['name'] ?? ''))) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted d-block mt-1">Selecciona una sucursal para asignar la herramienta.</small>
+                            </div>
+                        <?php endif; ?>
 
                         <!-- NOMBRE -->
                         <div class="mb-3">

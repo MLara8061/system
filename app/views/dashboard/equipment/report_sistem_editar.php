@@ -27,7 +27,7 @@ while ($row = $qry_inv->fetch_array()) {
         </div>
         <div class="card-body p-5">
 
-            <form action="equipment_report_sistem_update.php" method="POST">
+            <form action="<?= rtrim(BASE_URL, '/') ?>/legacy/equipment_report_sistem_update.php" method="POST">
 
                 <!-- ID oculto -->
                 <input type="hidden" name="id" value="<?= $id ?>">

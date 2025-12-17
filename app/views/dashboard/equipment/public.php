@@ -395,7 +395,7 @@ if ($qry && $qry->num_rows > 0) $pos = $qry->fetch_assoc()['name'];
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="report_pdf.php?id=<?php echo $maint['id']; ?>" 
+                                    <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/report_pdf.php?id=<?php echo $maint['id']; ?>" 
                                        target="_blank" 
                                        class="btn btn-sm btn-primary"
                                        title="Ver reporte PDF">

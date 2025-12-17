@@ -393,7 +393,7 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-center">
-                                                    <a href="report_pdf.php?id=<?= (int)$maint['id'] ?>" target="_blank" class="btn btn-sm btn-info" title="Descargar Reporte PDF">
+                                                    <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/report_pdf.php?id=<?= (int)$maint['id'] ?>" target="_blank" class="btn btn-sm btn-info" title="Descargar Reporte PDF">
                                                         <i class="fas fa-file-pdf mr-1"></i>PDF
                                                     </a>
                                                 </td>
