@@ -241,6 +241,19 @@ if ($action == 'delete_department') {
 }
 
 // ===================================
+// 4.1 SUCURSALES
+// ===================================
+if ($action == 'save_branch') {
+    echo $crud->save_branch();
+    exit;
+}
+
+if ($action == 'delete_branch') {
+    echo $crud->delete_branch();
+    exit;
+}
+
+// ===================================
 // 5. TICKETS
 // ===================================
 if ($action == 'save_ticket') {

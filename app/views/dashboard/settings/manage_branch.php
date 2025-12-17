@@ -29,14 +29,14 @@ if (isset($_GET['id'])) {
 		<input type="hidden" name="id" value="<?php echo $branch_id ?>">
 
 		<div class="form-group">
-			<label for="" class="control-label">Código</label>
-			<input type="text" class="form-control form-control-sm" name="code" value="<?php echo htmlspecialchars($code) ?>" required>
+			<label for="branch_code" class="control-label">Código</label>
+			<input type="text" class="form-control form-control-sm" id="branch_code" name="code" value="<?php echo htmlspecialchars($code) ?>" required>
 			<small class="form-text text-muted">Ej: HAC</small>
 		</div>
 
 		<div class="form-group">
-			<label for="" class="control-label">Nombre</label>
-			<input type="text" class="form-control form-control-sm" name="name" value="<?php echo htmlspecialchars($name) ?>" required>
+			<label for="branch_name" class="control-label">Nombre</label>
+			<input type="text" class="form-control form-control-sm" id="branch_name" name="name" value="<?php echo htmlspecialchars($name) ?>" required>
 		</div>
 
 		<?php if ($has_active): ?>
