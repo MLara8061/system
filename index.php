@@ -25,6 +25,37 @@ require_once ROOT . '/config/config.php';
 // Cargar sesión hardened
 require_once ROOT . '/config/session.php';
 
+// Capturar errores fatales para evitar pantalla con loader infinito
+register_shutdown_function(function () {
+  $err = error_get_last();
+  if (!$err) return;
+
+  $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+  if (!in_array($err['type'] ?? 0, $fatalTypes, true)) return;
+
+  $message = (string)($err['message'] ?? 'Fatal error');
+  $file = (string)($err['file'] ?? '');
+  $line = (int)($err['line'] ?? 0);
+
+  $stamp = date('Y-m-d H:i:s');
+  $logLine = "[$stamp] {$message} in {$file}:{$line}\n";
+
+  // Log a archivo para diagnóstico (Hostinger)
+  $logPath = __DIR__ . '/logs/php_fatal.log';
+  @file_put_contents($logPath, $logLine, FILE_APPEND);
+
+  // Render mínimo (si aún hay salida posible)
+  if (!headers_sent()) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+  }
+  echo "\n<style>#page-loading-indicator{display:none!important}</style>";
+  echo "<div style='padding:16px;font-family:Arial,Helvetica,sans-serif'>";
+  echo "<h3 style='margin:0 0 8px 0;color:#b91c1c'>Error interno</h3>";
+  echo "<div style='color:#374151'>Se registró el detalle en <b>logs/php_fatal.log</b>. Recarga la página.</div>";
+  echo "</div>";
+});
+
 // Validar sesión activa y timeout
 if (!isset($_SESSION['login_id'])) {
   header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
