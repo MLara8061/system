@@ -3,55 +3,83 @@ if (!isset($conn)) {
 	require_once 'config/config.php';
 }
 
-// Capturar parámetros del equipo si vienen desde el QR
-$equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : '';
-$equipment_name = isset($_GET['equipment_name']) ? htmlspecialchars($_GET['equipment_name']) : '';
-$inventory = isset($_GET['inventory']) ? htmlspecialchars($_GET['inventory']) : '';
-$reporter_name = isset($_GET['reporter_name']) ? htmlspecialchars($_GET['reporter_name']) : '';
+// Modo edición: cuando este archivo es incluido desde edit.php, ya vienen variables ($id, $reporter_name, etc.)
+$is_edit = isset($id) && (int)$id > 0;
+
+// Capturar parámetros del equipo si vienen desde el QR (solo como valores de prellenado)
+$prefill_equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : 0;
+$prefill_equipment_name = isset($_GET['equipment_name']) ? (string)$_GET['equipment_name'] : '';
+$prefill_inventory = isset($_GET['inventory']) ? (string)$_GET['inventory'] : '';
+$prefill_reporter_name = isset($_GET['reporter_name']) ? (string)$_GET['reporter_name'] : '';
+
+// Respetar valores del ticket (si existen) y usar QR solo como fallback
+$form_equipment_id = $is_edit ? (int)($equipment_id ?? 0) : $prefill_equipment_id;
+$form_reporter_name = $is_edit ? (string)($reporter_name ?? '') : $prefill_reporter_name;
 
 // Pre-cargar el asunto si viene del equipo
 $default_subject = '';
-if ($equipment_name && $inventory) {
-    $default_subject = "Reporte de equipo: $equipment_name (Inv: $inventory)";
+$equipment_name_for_subject = trim((string)($prefill_equipment_name ?: ($equipment_name ?? '')));
+$inventory_for_subject = trim((string)($prefill_inventory ?: ($inventory ?? '')));
+if ($equipment_name_for_subject && $inventory_for_subject) {
+    $default_subject = "Reporte de equipo: {$equipment_name_for_subject} (Inv: {$inventory_for_subject})";
 }
+
+// Obtener nombre/inventario del equipo por ID (útil en edición o cuando solo viene equipment_id)
+$display_equipment_name = $equipment_name_for_subject;
+$display_inventory = $inventory_for_subject;
+if ($form_equipment_id > 0 && (!$display_equipment_name || !$display_inventory)) {
+	$eqRes = $conn->query("SELECT name, number_inventory FROM equipments WHERE id = " . (int)$form_equipment_id . " LIMIT 1");
+	if ($eqRes && $eqRes->num_rows > 0) {
+		$eqRow = $eqRes->fetch_assoc();
+		if (!$display_equipment_name && isset($eqRow['name'])) $display_equipment_name = (string)$eqRow['name'];
+		if (!$display_inventory && isset($eqRow['number_inventory'])) $display_inventory = (string)$eqRow['number_inventory'];
+	}
+}
+
+$page_title = $is_edit ? ('Editar Ticket #' . (int)$id) : 'Nuevo Ticket de Soporte';
+$submit_label = $is_edit ? 'Guardar cambios' : 'Guardar Ticket';
+$success_toast = $is_edit ? 'Cambios guardados correctamente' : 'Datos guardados correctamente';
+$redirect_after_save = $is_edit ? ('index.php?page=view_ticket&id=' . (int)$id) : 'index.php?page=ticket_list';
 ?>
 <div class="container-fluid">
 	<div class="col-lg-12">
 		<div class="card shadow-sm">
 			<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Nuevo Ticket de Soporte</h4>
+				<h4 class="mb-0"><i class="fas fa-ticket-alt"></i> <?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></h4>
 			</div>
 			<div class="card-body">
-				<?php if ($equipment_name): ?>
+				<?php if ($display_equipment_name): ?>
 				<div class="alert alert-info">
 					<i class="fas fa-info-circle me-2"></i>
-					<strong>Reportando equipo:</strong> <?php echo $equipment_name; ?> 
-					<?php if ($inventory): ?>
-					- <strong>Inventario:</strong> #<?php echo $inventory; ?>
+					<strong>Reportando equipo:</strong> <?php echo htmlspecialchars($display_equipment_name, ENT_QUOTES, 'UTF-8'); ?> 
+					<?php if ($display_inventory): ?>
+					- <strong>Inventario:</strong> #<?php echo htmlspecialchars($display_inventory, ENT_QUOTES, 'UTF-8'); ?>
 					<?php endif; ?>
 				</div>
 				<?php endif; ?>
 				
 				<form action="" id="manage_ticket">
 					<input type="hidden" name="id" value="<?php echo isset($id) ? $id : '' ?>">
-					<input type="hidden" name="equipment_id" value="<?php echo $equipment_id ?>">
+					<input type="hidden" name="equipment_id" value="<?php echo (int)$form_equipment_id; ?>">
 					
 					<div class="row">
 						<!-- NOMBRE DE QUIEN REPORTA -->
 						<div class="col-md-6">
 							<div class="form-group">
-								<label for="" class="control-label"><i class="fas fa-user-edit"></i> Nombre de quien reporta</label>
+								<label for="reporter_name" class="control-label"><i class="fas fa-user-edit"></i> Nombre de quien reporta</label>
 								<input type="text" name="reporter_name" class="form-control form-control-sm" required 
-								       value="<?php echo $reporter_name ?>" 
+								       id="reporter_name"
+								       value="<?php echo htmlspecialchars((string)$form_reporter_name, ENT_QUOTES, 'UTF-8'); ?>" 
 								       placeholder="Ingrese su nombre completo">
 							</div>
 						</div>
 
 						<div class="col-md-6">
 							<div class="form-group">
-								<label for="" class="control-label"><i class="fas fa-tag"></i> Asunto</label>
+								<label for="subject" class="control-label"><i class="fas fa-tag"></i> Asunto</label>
 								<input type="text" name="subject" class="form-control form-control-sm" required 
-								       value="<?php echo isset($subject) ? $subject : $default_subject ?>" 
+								       id="subject"
+								       value="<?php echo htmlspecialchars((string)(isset($subject) ? $subject : $default_subject), ENT_QUOTES, 'UTF-8'); ?>" 
 								       placeholder="Ingrese el asunto del ticket">
 							</div>
 						</div>
@@ -59,7 +87,7 @@ if ($equipment_name && $inventory) {
 						<?php if ($_SESSION['login_type'] != 3) : ?>
 						<div class="col-md-6">
 							<div class="form-group">
-								<label for="" class="control-label"><i class="fas fa-user"></i> Cliente</label>
+								<label for="customer_id" class="control-label"><i class="fas fa-user"></i> Cliente</label>
 								<select name="customer_id" id="customer_id" class="custom-select custom-select-sm select2">
 									<option value="">Seleccione un cliente</option>
 									<?php
@@ -78,7 +106,7 @@ if ($equipment_name && $inventory) {
 
 						<div class="col-md-6">
 							<div class="form-group">
-								<label for="" class="control-label"><i class="fas fa-building"></i> Departamento</label>
+								<label for="department_id" class="control-label"><i class="fas fa-building"></i> Departamento</label>
 								<select name="department_id" id="department_id" class="custom-select custom-select-sm select2">
 									<option value="">Seleccione un departamento</option>
 									<?php
@@ -116,8 +144,8 @@ if ($equipment_name && $inventory) {
 					<div class="row">
 						<div class="col-md-12">
 							<div class="form-group">
-								<label class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
-								<textarea name="description" id="" cols="30" rows="10" class="form-control summernote"></textarea>
+								<label for="description" class="control-label"><i class="fas fa-align-left"></i> Descripción</label>
+								<textarea name="description" id="description" cols="30" rows="10" class="form-control summernote"></textarea>
 								<script>
 									window.__ticket_description_html = <?php echo json_encode(isset($description) ? (string)$description : ''); ?>;
 								</script>
@@ -129,11 +157,13 @@ if ($equipment_name && $inventory) {
 					<div class="row">
 						<div class="col-lg-12 text-right text-center text-md-right">
 							<button class="btn btn-primary" type="submit">
-								<i class="fas fa-save"></i> Guardar Ticket
+								<i class="fas fa-save"></i> <?php echo htmlspecialchars($submit_label, ENT_QUOTES, 'UTF-8'); ?>
 							</button>
-							<button class="btn btn-secondary" type="reset">
-								<i class="fas fa-redo"></i> Limpiar
-							</button>
+							<?php if (!$is_edit): ?>
+								<button class="btn btn-secondary" type="reset">
+									<i class="fas fa-redo"></i> Limpiar
+								</button>
+							<?php endif; ?>
 							<a href="./index.php?page=ticket_list" class="btn btn-default">
 								<i class="fas fa-times"></i> Cancelar
 							</a>
@@ -189,9 +219,9 @@ if ($equipment_name && $inventory) {
 			success: function(resp) {
 				end_load()
 				if (resp == 1) {
-					alert_toast('Datos guardados correctamente', "success");
+					alert_toast(<?php echo json_encode($success_toast); ?>, "success");
 					setTimeout(function() {
-						location.replace('index.php?page=ticket_list')
+						location.replace(<?php echo json_encode($redirect_after_save); ?>)
 					}, 750)
 				} else {
 					alert_toast('Error al guardar el ticket', "error");
