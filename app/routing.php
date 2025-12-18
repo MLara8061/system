@@ -29,7 +29,6 @@ $ROUTE_MAP = [
     'equipment_unsubscribe' => 'app/views/dashboard/equipment/unsubscribe.php',
     'equipment_unsubscribe_report' => 'app/views/dashboard/equipment/unsubscribe_report.php',
     'equipment_report_sistem_editar' => 'app/views/dashboard/equipment/report_sistem_editar.php',
-    'equipment_report_pdf' => 'app/views/dashboard/equipment/report_pdf.php',
     'equipment_unsubscribe_pdf' => 'app/views/dashboard/equipment/unsubscribe_pdf.php',
     
     // Clientes

@@ -1,6 +1,10 @@
 <?php
-define('ACCESS', true);
-require_once 'config/config.php';
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/../..'));
+}
+if (!defined('ACCESS')) define('ACCESS', true);
+
+require_once ROOT . '/config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');
