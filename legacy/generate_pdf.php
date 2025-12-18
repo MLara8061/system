@@ -6,10 +6,14 @@ ini_set('display_errors', 1);
 // Configurar zona horaria de México
 date_default_timezone_set('America/Cancun');
 
-// Cargar sesión hardened
-require_once 'config/session.php';
-define('ACCESS', true);
-require_once 'config/config.php';
+// Resolver ROOT para que funcione tanto desde /legacy como desde index.php
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/..'));
+}
+if (!defined('ACCESS')) define('ACCESS', true);
+
+// Cargar configuración base (incluye sesión hardened + DB)
+require_once ROOT . '/config/config.php';
 
 // Validar sesión
 if (!isset($_SESSION['login_id'])) {
