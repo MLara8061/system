@@ -245,12 +245,36 @@ header('Content-Type: text/html; charset=utf-8');
         }
         .text-muted { color: #6c757d; }
 
+        .no-print {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+        }
+        .btn-print {
+            appearance: none;
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            background: #0d6efd;
+            color: #fff;
+        }
+        .btn-print:hover { filter: brightness(0.95); }
+
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
+
+<div class="no-print">
+    <button type="button" class="btn-print" onclick="printReport()">Imprimir / Guardar como PDF</button>
+</div>
+
 <div class="wrapper">
     <div class="header">
         <div>
@@ -328,5 +352,16 @@ header('Content-Type: text/html; charset=utf-8');
 
     <div class="footer">Generado por el sistema</div>
 </div>
+
+<script>
+    function printReport() {
+        alert("IMPORTANTE: Para que no aparezcan encabezados/pies del navegador:\n\n" +
+              "1) Presiona Ctrl+P\n" +
+              "2) Abre 'Más ajustes'\n" +
+              "3) Desactiva 'Encabezados y pies de página'\n\n" +
+              "Luego, imprime o guarda como PDF.");
+        window.print();
+    }
+</script>
 </body>
 </html>

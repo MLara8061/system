@@ -463,17 +463,47 @@ try {
         
         console.log('DataTable configurada:', table);
 
-        // Fix: en paginaciones altas algunos clicks en dropdown pueden ser absorbidos
-        // por DataTables (responsive/draw). Forzamos navegación al primer click.
-        $(document).on('click', '#list .dropdown-menu a.dropdown-item', function(e) {
-            var href = $(this).attr('href') || '';
-            if (href.indexOf('index.php') === -1) return;
-            e.preventDefault();
-            e.stopPropagation();
-            window.location.assign(href);
-        });
+        // Fix robusto: en paginaciones altas algunos clicks del dropdown pueden no llegar
+        // a jQuery (DataTables/Bootstrap absorben el evento). Interceptamos en CAPTURE.
+        // Además, evitamos múltiples bindings si esta vista se vuelve a cargar.
+        if (!window.__equipments_list_actions_capture_bound) {
+            window.__equipments_list_actions_capture_bound = true;
+            document.addEventListener('click', function(ev) {
+                try {
+                    var link = ev.target && ev.target.closest ? ev.target.closest('#list .dropdown-menu a.dropdown-item') : null;
+                    if (!link) return;
+                    var href = link.getAttribute('href') || '';
+                    if (!href || href.indexOf('index.php') === -1) return;
 
-        $(document).on('click', '.view-qr', function() {
+                    // Mantener comportamientos del navegador (abrir en nueva pestaña, etc.)
+                    if (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey || ev.button === 1) return;
+
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+
+                    window.location.assign(href);
+                } catch (e) {
+                    // fallback silencioso
+                }
+            }, true);
+        }
+
+        // Fallback (bubble): si por algún motivo el capture no aplica.
+        $(document)
+            .off('click.equipments_list', '#list .dropdown-menu a.dropdown-item')
+            .on('click.equipments_list', '#list .dropdown-menu a.dropdown-item', function(e) {
+                var href = $(this).attr('href') || '';
+                if (!href || href.indexOf('index.php') === -1) return;
+                if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.assign(href);
+            });
+
+        $(document)
+            .off('click.equipments_list', '.view-qr')
+            .on('click.equipments_list', '.view-qr', function() {
             const id = $(this).data('id');
             const $row = $(this).closest('tr');
 
@@ -499,7 +529,9 @@ try {
         });
 
         // === ELIMINAR EQUIPO ===
-        $(document).on('click', '.delete', function() {
+        $(document)
+            .off('click.equipments_list', '.delete')
+            .on('click.equipments_list', '.delete', function() {
             const id = $(this).data('id');
             confirm_toast(
                 '¿Estás seguro de eliminar este equipo? Esta acción no se puede deshacer.',
