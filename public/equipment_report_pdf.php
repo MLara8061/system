@@ -247,8 +247,9 @@ header('Content-Type: text/html; charset=utf-8');
 
         .no-print {
             position: fixed;
-            top: 12px;
-            right: 12px;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
         }
         .btn-print {
