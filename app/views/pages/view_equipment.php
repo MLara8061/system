@@ -415,7 +415,7 @@ $maintenance_query = $conn->query("SELECT * FROM maintenance_reports WHERE equip
                     <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/report_issue_public.php?equipment_id=<?= (int)$equipment_id ?>" class="btn btn-warning btn-lg px-4 mb-3 mb-md-0">
                         <i class="fas fa-exclamation-triangle mr-2"></i>Reportar Falla
                     </a>
-                    <a href="./index.php?page=equipment_report_pdf&id=<?= (int)$equipment_id ?>" class="btn btn-danger btn-lg px-4 mb-3 mb-md-0" target="_blank" rel="noopener">
+                    <a href="public/equipment_report_pdf.php?id=<?= (int)$equipment_id ?>" class="btn btn-danger btn-lg px-4 mb-3 mb-md-0" target="_blank" rel="noopener">
                         <i class="fas fa-file-pdf mr-2"></i>Reporte
                     </a>
                     <a href="index.php?page=equipment_list" class="btn btn-secondary btn-lg px-4">Volver</a>

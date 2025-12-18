@@ -146,7 +146,7 @@ try {
                 <a href="export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
-                <a href="#" class="btn btn-tool btn-sm" title="Vista">
+                <a href="javascript:void(0)" class="btn btn-tool btn-sm" title="Vista">
                     <i class="fas fa-bars"></i>
                 </a>
             </div>
@@ -462,6 +462,16 @@ try {
         });
         
         console.log('DataTable configurada:', table);
+
+        // Fix: en paginaciones altas algunos clicks en dropdown pueden ser absorbidos
+        // por DataTables (responsive/draw). Forzamos navegación al primer click.
+        $(document).on('click', '#list .dropdown-menu a.dropdown-item', function(e) {
+            var href = $(this).attr('href') || '';
+            if (href.indexOf('index.php') === -1) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.assign(href);
+        });
 
         $(document).on('click', '.view-qr', function() {
             const id = $(this).data('id');
