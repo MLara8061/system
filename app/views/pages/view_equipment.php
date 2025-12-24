@@ -1,33 +1,49 @@
 <?php
 define('ACCESS', true);
 require_once 'config/config.php';
+require_once 'app/helpers/permissions.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    echo "<script>alert('ID inválido'); window.location='index.php?page=equipment_list';</script>";
+    echo "<script>
+        notification.error('ID inválido', 3000);
+        setTimeout(function() { window.location='index.php?page=equipment_list'; }, 500);
+    </script>";
     exit;
 }
 $equipment_id = (int)$_GET['id'];
 
-$qry = $conn->query("SELECT * FROM equipments WHERE id = $equipment_id");
+$qry = $conn->query("SELECT e.*, ed.department_id FROM equipments e LEFT JOIN equipment_delivery ed ON e.id = ed.equipment_id WHERE e.id = $equipment_id");
 if (!$qry || $qry->num_rows === 0) {
-    echo "<script>alert('Equipo no encontrado'); window.location='index.php?page=equipment_list';</script>";
+    echo "<script>
+        notification.error('Equipo no encontrado', 3000);
+        setTimeout(function() { window.location='index.php?page=equipment_list'; }, 500);
+    </script>";
     exit;
 }
 $eq = $qry->fetch_assoc();
 
-// === MULTI-SUCURSAL: validar permiso para ver este equipo ===
-$login_type = (int)($_SESSION['login_type'] ?? 0);
-$active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
-$equipment_branch_id = (int)($eq['branch_id'] ?? 0);
-if ($equipment_branch_id <= 0) {
-    echo "<script>alert('El equipo no tiene sucursal asignada'); window.location='index.php?page=equipment_list';</script>";
-    exit;
-}
+// === VALIDACIÓN DE PERMISO DE DEPARTAMENTO ===
+if (isset($_SESSION['login_id']) && function_exists('can_view_all_departments')) {
+    $user_id = $_SESSION['login_id'];
+    $user_dept_query = "SELECT u.department_id, u.can_view_all_departments, r.is_admin 
+                         FROM users u 
+                         LEFT JOIN roles r ON u.role_id = r.id 
+                         WHERE u.id = $user_id";
+    $user_result = $conn->query($user_dept_query);
+    $user_info = $user_result ? $user_result->fetch_assoc() : null;
 
-// Admin con sucursal 0 (todas): sin filtro. Si no, debe coincidir.
-if ($login_type !== 1 || $active_bid > 0) {
-    if ($active_bid <= 0 || $equipment_branch_id !== $active_bid) {
-        echo "<script>alert('Sin permiso para esta sucursal'); window.location='index.php?page=equipment_list';</script>";
+    // Admin global: sin restricción
+    $is_admin = $user_info['is_admin'] ?? 0;
+    $can_view_all = $user_info['can_view_all_departments'] ?? 0;
+    $user_dept_id = $user_info['department_id'] ?? null;
+    $equipment_dept_id = $eq['department_id'] ?? null;
+
+    // Si el usuario NO es admin y NO puede ver todos los departamentos
+    if (!$is_admin && !$can_view_all && $equipment_dept_id && $equipment_dept_id != $user_dept_id) {
+        echo "<script>
+            notification.error('No tiene permiso para ver equipos de este departamento', 3000);
+            setTimeout(function() { window.location='index.php?page=equipment_list'; }, 500);
+        </script>";
         exit;
     }
 }

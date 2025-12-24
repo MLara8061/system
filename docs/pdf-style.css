@@ -1,0 +1,321 @@
+/* ============================================
+   DOCUMENTACIÓN TÉCNICA - ESTILO PDF
+   Colores: Azul claro fondo, Azul oscuro títulos
+   ============================================ */
+
+/* === CONFIGURACIÓN GENERAL === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #2c3e50;
+    background-color: #e8f4f8; /* Azul muy claro */
+    margin: 0;
+    padding: 40px;
+}
+
+/* === PÁGINA === */
+@page {
+    margin: 2cm;
+    size: A4;
+}
+
+/* === TÍTULOS PRINCIPALES === */
+h1 {
+    color: #003366; /* Azul oscuro */
+    font-size: 32px;
+    font-weight: bold;
+    border-bottom: 4px solid #0066cc;
+    padding-bottom: 10px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #e8f4f8 0%, #cce5ff 100%);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+h2 {
+    color: #004d99; /* Azul oscuro medio */
+    font-size: 26px;
+    font-weight: bold;
+    border-bottom: 3px solid #3399ff;
+    padding-bottom: 8px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    background-color: #d9ecff;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+h3 {
+    color: #4d4d4d; /* Gris oscuro */
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 12px;
+    border-left: 5px solid #0066cc;
+    padding-left: 15px;
+}
+
+h4 {
+    color: #666666; /* Gris medio */
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h5 {
+    color: #808080; /* Gris claro */
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
+
+/* === PÁRRAFOS Y TEXTO === */
+p {
+    color: #333333;
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+strong {
+    color: #003366;
+    font-weight: bold;
+}
+
+em {
+    color: #555555;
+    font-style: italic;
+}
+
+/* === CÓDIGO === */
+code {
+    background-color: #f0f7ff;
+    color: #004d99;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    border: 1px solid #b3d9ff;
+}
+
+pre {
+    background-color: #f5f9fc;
+    border: 2px solid #0066cc;
+    border-left: 5px solid #0066cc;
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+pre code {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    color: #003366;
+}
+
+/* === TABLAS === */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Cabeceras de tablas - Azul oscuro */
+thead {
+    background: linear-gradient(135deg, #003366 0%, #004d99 100%);
+}
+
+th {
+    color: #ffffff !important;
+    font-weight: bold;
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 15px;
+    border-bottom: 3px solid #0066cc;
+}
+
+/* Filas de datos */
+td {
+    color: #333333;
+    padding: 10px 15px;
+    border-bottom: 1px solid #cce5ff;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f0f7ff;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+tbody tr:hover {
+    background-color: #e0f0ff;
+}
+
+/* === LISTAS === */
+ul, ol {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+li {
+    color: #333333;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+ul li::marker {
+    color: #0066cc;
+    font-size: 18px;
+}
+
+ol li::marker {
+    color: #004d99;
+    font-weight: bold;
+}
+
+/* === BLOQUES DE CITAS === */
+blockquote {
+    border-left: 5px solid #3399ff;
+    background-color: #f0f7ff;
+    padding: 15px 20px;
+    margin: 20px 0;
+    font-style: italic;
+    color: #555555;
+    border-radius: 4px;
+}
+
+/* === LÍNEAS HORIZONTALES === */
+hr {
+    border: none;
+    border-top: 3px solid #0066cc;
+    margin: 30px 0;
+}
+
+/* === ENLACES === */
+a {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #003366;
+}
+
+/* === CAJAS DE INFORMACIÓN === */
+.info-box {
+    background-color: #e0f0ff;
+    border: 2px solid #0066cc;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+/* === ALERTAS === */
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+    border-left: 5px solid;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #28a745;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #dc3545;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-color: #17a2b8;
+}
+
+/* === BADGES Y ETIQUETAS === */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    color: white;
+}
+
+.badge-primary {
+    background-color: #0066cc;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+/* === AJUSTES DE IMPRESIÓN === */
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+    }
+    
+    h1 {
+        page-break-before: always;
+    }
+    
+    h1:first-of-type {
+        page-break-before: avoid;
+    }
+    
+    h1, h2, h3, h4, h5 {
+        page-break-after: avoid;
+    }
+    
+    table, pre, blockquote {
+        page-break-inside: avoid;
+    }
+    
+    img {
+        page-break-inside: avoid;
+        max-width: 100%;
+    }
+}
+
+/* === DIAGRAMAS Y CÓDIGO ASCII === */
+.ascii-diagram {
+    font-family: 'Courier New', monospace;
+    background-color: #f5f9fc;
+    padding: 20px;
+    border: 2px solid #0066cc;
+    border-radius: 6px;
+    white-space: pre;
+    overflow-x: auto;
+}

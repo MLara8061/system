@@ -4,7 +4,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 // Cargar sesión hardened
-require_once 'config/session.php';
+require_once __DIR__ . '/../config/session.php';
 
 // Validar sesión activa
 if (!isset($_SESSION['login_id'])) {

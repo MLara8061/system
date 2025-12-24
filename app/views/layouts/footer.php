@@ -1,11 +1,15 @@
+<?php $base = defined('BASE_URL') ? rtrim(BASE_URL, '/') : ''; ?>
+
+<!-- Sistema de notificaciones moderno -->
+<script src="<?php echo $base; ?>/assets/js/notification.js"></script>
 <!-- SweetAlert2 -->
-<script src="assets/plugins/sweetalert2/sweetalert2.min.js"></script>
+<script src="<?php echo $base; ?>/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
 <!-- Toastr -->
-<script src="assets/plugins/toastr/toastr.min.js"></script>
+<script src="<?php echo $base; ?>/assets/plugins/toastr/toastr.min.js"></script>
 <!-- Select2 -->
-<script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<script src="<?php echo $base; ?>/assets/plugins/select2/js/select2.full.min.js"></script>
 <!-- Summernote -->
-<script src="assets/plugins/summernote/summernote-bs4.min.js"></script>
+<script src="<?php echo $base; ?>/assets/plugins/summernote/summernote-bs4.min.js"></script>
 
 <!-- ticket-failsafe:v4 2025-12-17 -->
 

@@ -6,7 +6,7 @@ ini_set('log_errors', 1);
 
 // Iniciar sesión hardened
 if (session_status() == PHP_SESSION_NONE) {
-    require_once 'config/session.php';
+    require_once __DIR__ . '/../config/session.php';
 }
 
 // Verificar que sea POST
@@ -24,7 +24,7 @@ if (empty($username) || empty($password)) {
 
 // Conectar a BD
 try {
-    require_once 'config/config.php';
+    require_once __DIR__ . '/../config/config.php';
 } catch (Exception $e) {
     error_log("CONFIG ERROR: " . $e->getMessage());
     die('2');

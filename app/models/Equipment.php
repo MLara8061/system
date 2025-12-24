@@ -124,20 +124,47 @@ class Equipment extends DataStore {
      * @param array $filters ['status' => string, 'category_id' => int, 'location_id' => int]
      * @return array
      */
+    /**
+     * Listar equipos con filtros opcionales
+     * @param array $filters ['status' => string, 'category_id' => int, 'location_id' => int]
+     * @return array
+     */
     public function listWithFilters($filters = []) {
         $sql = "SELECT e.*, 
                        c.name as category_name,
                        s.company_name as supplier_name,
                        l.name as location_name,
+                       d.name as department_name,
                        u.firstname, u.lastname
                 FROM equipment e
                 LEFT JOIN categories c ON e.category_id = c.id
                 LEFT JOIN suppliers s ON e.supplier_id = s.id
                 LEFT JOIN locations l ON e.location_id = l.id
+                LEFT JOIN equipment_delivery ed ON e.id = ed.equipment_id
+                LEFT JOIN departments d ON ed.department_id = d.id
                 LEFT JOIN users u ON e.assigned_to = u.id
                 WHERE 1=1";
         
         $params = [];
+        
+        // Obtener información del usuario actual para validación de departamento
+        $user_id = $_SESSION['login_id'] ?? null;
+        
+        if ($user_id) {
+            $user_sql = "SELECT u.department_id, u.can_view_all_departments FROM users WHERE id = :user_id";
+            $user_stmt = $this->db->prepare($user_sql);
+            $user_stmt->execute([':user_id' => (int)$user_id]);
+            $user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Aplicar filtro de departamento si el usuario está restringido
+            $can_view_all = $user_info['can_view_all_departments'] ?? 0;
+            
+            if (!$can_view_all && $user_info['department_id']) {
+                // Usuario limitado a su departamento - filtrar por equipment_delivery.department_id
+                $sql .= " AND (ed.department_id = :user_dept_id OR ed.department_id IS NULL)";
+                $params[':user_dept_id'] = (int)$user_info['department_id'];
+            }
+        }
         
         if (!empty($filters['status'])) {
             $sql .= " AND e.status = :status";

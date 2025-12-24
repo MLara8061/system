@@ -7,10 +7,34 @@ $branch_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id') : '
 
 $mr_and = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'mr') : '';
 
+// Filtro por departamento del usuario
+$dept_join = '';
+$dept_filter = '';
+$user_dept_id = null;
+$can_view_all = 0;
+$is_admin = 0;
+
+if (isset($_SESSION['login_id'])) {
+    $uid = (int)$_SESSION['login_id'];
+    $user_q = $conn->query("SELECT u.department_id, u.can_view_all_departments, r.is_admin FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = {$uid} LIMIT 1");
+    if ($user_q && $user_q->num_rows > 0) {
+        $user_info = $user_q->fetch_assoc();
+        $user_dept_id = isset($user_info['department_id']) ? (int)$user_info['department_id'] : null;
+        $can_view_all = (int)($user_info['can_view_all_departments'] ?? 0);
+        $is_admin = (int)($user_info['is_admin'] ?? 0);
+
+        if (!$is_admin && !$can_view_all && $user_dept_id) {
+            $dept_join = "LEFT JOIN equipment_delivery ed ON e.id = ed.equipment_id";
+            $dept_filter = " AND (ed.department_id = {$user_dept_id} OR ed.department_id IS NULL)";
+        }
+    }
+}
+
 // Datos para las tarjetas - simplificado
 try {
     $total_equipos = 0;
-    $result = $conn->query("SELECT COUNT(*) as total FROM equipments {$branch_where}");
+    $branch_filter = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+    $result = $conn->query("SELECT COUNT(*) as total FROM equipments e {$dept_join} WHERE 1=1 {$branch_filter} {$dept_filter}");
     if ($result) {
         $row = $result->fetch_assoc();
         $total_equipos = $row['total'] ?? 0;
@@ -37,7 +61,8 @@ try {
     }
     if ($sum_column !== null) {
         try {
-            $result = $conn->query("SELECT IFNULL(SUM({$sum_column}), 0) as total FROM equipments {$branch_where}");
+            $branch_filter = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+            $result = $conn->query("SELECT IFNULL(SUM({$sum_column}), 0) as total FROM equipments e {$dept_join} WHERE 1=1 {$branch_filter} {$dept_filter}");
             if ($result) {
                 $row = $result->fetch_assoc();
                 $costo_total = $row['total'] ?? 0;
@@ -69,13 +94,17 @@ try {
     $with_revision = 0;
     $without_revision = 0;
     try {
-        $rev = $conn->query("SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 1" . (function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : ''));
+        $branch_filter = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+        $rev_sql = "SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id {$dept_join} WHERE u.id IS NULL AND e.revision = 1{$branch_filter}{$dept_filter}";
+        $rev = $conn->query($rev_sql);
         if ($rev) $with_revision = (int)($rev->fetch_assoc()['c'] ?? 0);
     } catch (Throwable $e) {
         $with_revision = 0;
     }
     try {
-        $nrev = $conn->query("SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.revision = 0" . (function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : ''));
+        $branch_filter = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+        $nrev_sql = "SELECT COUNT(*) as c FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id {$dept_join} WHERE u.id IS NULL AND e.revision = 0{$branch_filter}{$dept_filter}";
+        $nrev = $conn->query($nrev_sql);
         if ($nrev) $without_revision = (int)($nrev->fetch_assoc()['c'] ?? 0);
     } catch (Throwable $e) {
         $without_revision = 0;
@@ -143,7 +172,7 @@ try {
                 <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm" title="Agregar Equipo">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
+                <a href="<?php echo rtrim(BASE_URL, '/'); ?>/index.php?page=export_equipment" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
                 <a href="javascript:void(0)" class="btn btn-tool btn-sm" title="Vista">
@@ -171,15 +200,17 @@ try {
                 <tbody>
                     <?php
                     // Simple query to list equipment
-                    $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
+                    $branch_filter = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', 'e') : '';
+                    $where = "WHERE 1=1 {$branch_filter} {$dept_filter}";
                     $qry = $conn->query("
                         SELECT 
                             e.*,
                             IFNULL(s.empresa, 'Sin Proveedor') as supplier_name,
                             DATEDIFF(CURDATE(), e.date_created) AS antiguedad_dias
                         FROM equipments e 
+                        {$dept_join}
                         LEFT JOIN suppliers s ON e.supplier_id = s.id
-                        {$equip_where}
+                        {$where}
                         ORDER BY e.id DESC
                         LIMIT 500
                     ");

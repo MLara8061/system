@@ -169,6 +169,9 @@ require_once CONFIG_PATH . 'session.php';
 // === CARGAR CONEXIÓN ===
 require_once CONFIG_PATH . 'db_connect.php';
 
+// === CARGAR HELPER DE PERMISOS ===
+require_once ROOT_PATH . 'app/helpers/permissions.php';
+
 // === URL BASE DEL SITIO (DETECCIÓN AUTOMÁTICA) ===
 // El sistema detecta automáticamente el dominio y protocolo sin importar dónde esté alojado
 $base_url_env = getenv('BASE_URL');

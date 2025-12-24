@@ -67,6 +67,36 @@ if (!validate_session()) {
   header('location: app/views/auth/logout.php?timeout=1');
   exit();
 }
+
+// Páginas que no deben cargar el layout HTML (helpers/endpoints)
+$noLayoutPages = [
+    'generate_excel_template',
+    'generate_pdf',
+    'equipment_report_pdf',
+    'equipment_report_sistem_pdf',
+    'equipment_unsubscribe_pdf',
+    'equipment_unsubscribe_report',
+    'export_equipment',
+    'export_suppliers',
+    'manual_usuario_pdf',
+    'report_pdf',
+    'generate_qr'
+];
+
+$page = $_GET['page'] ?? 'home';
+
+// Si es una página sin layout, procesarla directamente
+if (in_array($page, $noLayoutPages)) {
+    require_once ROOT . '/app/routing.php';
+    $file = resolve_route($page);
+    
+    if ($file && file_exists($file)) {
+        include $file;
+        exit();
+    }
+}
+
+// Cargar el layout normal para todas las otras páginas
 include ROOT . '/app/views/layouts/header.php';
 ?>
 
@@ -97,10 +127,11 @@ include ROOT . '/app/views/layouts/header.php';
           <?php
           require_once ROOT . '/app/routing.php';
           
-          $page = $_GET['page'] ?? 'home';
-          
+          // $page ya fue definida arriba en la lógica de noLayoutPages
           // Resolver ruta
           $file = resolve_route($page);
+          
+          
           
           if ($file) {
               include $file;

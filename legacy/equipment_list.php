@@ -7,8 +7,31 @@ $branch_and_e = function_exists('branch_sql') ? branch_sql('AND', 'branch_id', '
 // Datos para las tarjetas
 $total_equipos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_and_e}")->fetch_assoc()['total'];
 $costo_total = $conn->query("SELECT SUM(e.amount) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL {$branch_and_e}")->fetch_assoc()['total'];
-$preventivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 1 {$branch_and_e}")->fetch_assoc()['total'];
-$correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id WHERE u.id IS NULL AND e.mandate_period_id = 2 {$branch_and_e}")->fetch_assoc()['total'];
+
+// Contar mantenimientos desde la tabla correcta (mantenimientos.tipo_mantenimiento)
+// No desde mandate_period_id que representa frecuencia, no tipo
+$branch_filter_m = str_replace('e.branch_id', 'e.branch_id', $branch_and_e); // Mantener filtro
+$preventivos = $conn->query("
+    SELECT COUNT(DISTINCT m.id) as total 
+    FROM mantenimientos m 
+    INNER JOIN equipments e ON m.equipo_id = e.id 
+    LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id 
+    WHERE u.id IS NULL 
+    AND LOWER(m.tipo_mantenimiento) = 'preventivo' 
+    AND m.estatus != 'cancelado'
+    {$branch_filter_m}
+")->fetch_assoc()['total'] ?? 0;
+
+$correctivos = $conn->query("
+    SELECT COUNT(DISTINCT m.id) as total 
+    FROM mantenimientos m 
+    INNER JOIN equipments e ON m.equipo_id = e.id 
+    LEFT JOIN equipment_unsubscribe u ON e.id = u.equipment_id 
+    WHERE u.id IS NULL 
+    AND LOWER(m.tipo_mantenimiento) = 'correctivo' 
+    AND m.estatus != 'cancelado'
+    {$branch_filter_m}
+")->fetch_assoc()['total'] ?? 0;
 ?>
 
 <!-- Tarjetas de resumen de Equipos -->
@@ -70,7 +93,7 @@ $correctivos = $conn->query("SELECT COUNT(*) as total FROM equipments e LEFT JOI
                 <a href="./index.php?page=new_equipment" class="btn btn-tool btn-sm" title="Agregar Equipo">
                     <i class="fas fa-plus"></i>
                 </a>
-                <a href="<?= rtrim(BASE_URL, '/') ?>/legacy/export_equipment.php" class="btn btn-tool btn-sm" title="Exportar">
+                <a href="<?= rtrim(BASE_URL, '/') ?>/index.php?page=export_equipment" class="btn btn-tool btn-sm" title="Exportar">
                     <i class="fas fa-download"></i>
                 </a>
                 <a href="#" class="btn btn-tool btn-sm" title="Vista">

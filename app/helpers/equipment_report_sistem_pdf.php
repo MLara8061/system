@@ -1,6 +1,6 @@
 <?php
 define('ACCESS', true);
-require_once 'config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');

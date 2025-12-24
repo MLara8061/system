@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <?php
-require_once 'config/session.php';
-require_once 'config/config.php'; 
+require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/config.php'; 
 if (isset($_SESSION['login_id']))
     header("location:index.php?page=home");
 ?>

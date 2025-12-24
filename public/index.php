@@ -73,6 +73,7 @@ include ROOT . '/app/views/layouts/header.php';
   <script src="/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
   <script src="/assets/plugins/select2/js/select2.full.min.js"></script>
   <script src="/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
+  <script src="/assets/js/notification.js"></script>
   <script src="/assets/plugins/toastr/toastr.min.js"></script>
   <script src="/assets/plugins/summernote/summernote-bs4.min.js"></script>
   <script src="/assets/dist/js/demo.js"></script>

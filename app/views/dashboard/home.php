@@ -33,12 +33,33 @@ $branch_and = $active_branch_id ? " AND branch_id = {$active_branch_id}" : '';
 $equip_alias_where = $active_branch_id ? " WHERE e.branch_id = {$active_branch_id}" : '';
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: branch_filter enabled (active_branch_id={$active_branch_id})\n", FILE_APPEND);
 
+// Filtro por departamento (usa equipment_delivery.department_id)
+$dept_join = '';
+$dept_filter = '';
+$user_dept_id = null;
+$can_view_all = 0;
+$is_admin = 0;
+if ($user_id) {
+  $udq = $conn->query("SELECT u.department_id, u.can_view_all_departments, r.is_admin FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = {$user_id} LIMIT 1");
+  if ($udq && $udq->num_rows > 0) {
+    $udata = $udq->fetch_assoc();
+    $user_dept_id = isset($udata['department_id']) ? (int)$udata['department_id'] : null;
+    $can_view_all = (int)($udata['can_view_all_departments'] ?? 0);
+    $is_admin = (int)($udata['is_admin'] ?? 0);
+    if (!$is_admin && !$can_view_all && $user_dept_id) {
+      $dept_join = " LEFT JOIN equipment_delivery ed ON e.id = ed.equipment_id ";
+      $dept_filter = " AND (ed.department_id = {$user_dept_id} OR ed.department_id IS NULL)";
+    }
+  }
+}
+
 $total_equipos = 0;
-// Simplificado: sin JOIN que causa timeout
-$result = $conn->query("SELECT COUNT(*) AS total FROM equipments{$branch_where}");
+$branch_condition = $active_branch_id ? " AND e.branch_id = {$active_branch_id}" : '';
+$sql_total = "SELECT COUNT(*) AS total FROM equipments e {$dept_join} WHERE 1=1 {$branch_condition} {$dept_filter}";
+$result = $conn->query($sql_total);
 if ($result && ($row = $result->fetch_assoc())) {
-    $total_equipos = (int)($row['total'] ?? 0);
-    file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_equipos={$total_equipos}\n", FILE_APPEND);
+  $total_equipos = (int)($row['total'] ?? 0);
+  file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_equipos={$total_equipos} (sql: {$sql_total})\n", FILE_APPEND);
 }
 
 // Query optimizada: solo COUNT sin JOINs
@@ -50,11 +71,11 @@ $total_herramientas = ($result_herramientas && $row = $result_herramientas->fetc
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: EPP={$total_epp}, Herramientas={$total_herramientas}\n", FILE_APPEND);
 
 $valor_total_equipos = 0;
-// Simplificado: sin JOIN que causa timeout
-$result = $conn->query("SELECT SUM(amount) AS total FROM equipments{$branch_where}");
+$sql_valor = "SELECT SUM(amount) AS total FROM equipments e {$dept_join} WHERE 1=1 {$branch_condition} {$dept_filter}";
+$result = $conn->query($sql_valor);
 if ($result && ($row = $result->fetch_assoc())) {
-    $valor_total_equipos = (float)($row['total'] ?? 0);
-    file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: valor_total_equipos={$valor_total_equipos}\n", FILE_APPEND);
+  $valor_total_equipos = (float)($row['total'] ?? 0);
+  file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: valor_total_equipos={$valor_total_equipos} (sql: {$sql_valor})\n", FILE_APPEND);
 }
 
 $valor_total_epp = 0;

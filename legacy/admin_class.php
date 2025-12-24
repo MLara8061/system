@@ -154,8 +154,15 @@ class Action {
             return 3;
         }
 
-        $role = (int)($role ?? 2);
-        if (!in_array($role, [1, 2])) $role = 2;
+        // Soportar tanto 'role' (legacy) como 'role_id' (nuevo sistema)
+        $role_id = (int)($role_id ?? $role ?? 2);
+        if ($role_id < 1) $role_id = 2; // Default: Usuario estándar
+        
+        // Department ID opcional (NULL = sin departamento asignado)
+        $department_id = !empty($department_id) ? (int)$department_id : null;
+        
+        // Flag de acceso multi-departamental (default 0)
+        $can_view_all_departments = isset($can_view_all_departments) && $can_view_all_departments == 1 ? 1 : 0;
 
         $original = '';
         if ($id > 0) {
@@ -179,17 +186,22 @@ class Action {
                 error_log("Contraseña requerida para nuevo usuario");
                 return 4;
             }
-            $sql = 'INSERT INTO users (firstname, middlename, lastname, username, role, password, date_created) VALUES (:firstname, :middlename, :lastname, :username, :role, :password, NOW())';
+            $sql = 'INSERT INTO users (firstname, middlename, lastname, username, role, role_id, department_id, can_view_all_departments, password, date_created) 
+                    VALUES (:firstname, :middlename, :lastname, :username, :role, :role_id, :department_id, :can_view_all_departments, :password, NOW())';
             $params = [
                 ':firstname' => $firstname,
                 ':middlename' => $middlename ?? '',
                 ':lastname' => $lastname,
                 ':username' => $username,
-                ':role' => $role,
+                ':role' => $role_id, // Mantener compatibilidad con campo legacy 'role'
+                ':role_id' => $role_id,
+                ':department_id' => $department_id,
+                ':can_view_all_departments' => $can_view_all_departments,
                 ':password' => password_hash($password, PASSWORD_DEFAULT)
             ];
         } else {
-            $base = 'UPDATE users SET firstname = :firstname, middlename = :middlename, lastname = :lastname, username = :username, role = :role';
+            $base = 'UPDATE users SET firstname = :firstname, middlename = :middlename, lastname = :lastname, 
+                     username = :username, role = :role, role_id = :role_id, department_id = :department_id, can_view_all_departments = :can_view_all_departments';
             if (!empty($password)) {
                 $base .= ', password = :password';
             }
@@ -199,7 +211,10 @@ class Action {
                 ':middlename' => $middlename ?? '',
                 ':lastname' => $lastname,
                 ':username' => $username,
-                ':role' => $role,
+                ':role' => $role_id, // Mantener compatibilidad
+                ':role_id' => $role_id,
+                ':department_id' => $department_id,
+                ':can_view_all_departments' => $can_view_all_departments,
                 ':id' => (int)$id
             ];
             if (!empty($password)) {
@@ -1439,25 +1454,18 @@ class Action {
                 $a = (int)$acquisition_type_id;
                 $c = (int)$equipment_category_id;
 
-                $ok = @$this->db->query(
-                    "INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number)\n" .
-                    "VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', LAST_INSERT_ID(1))\n" .
-                    "ON DUPLICATE KEY UPDATE\n" .
-                    "prefix = VALUES(prefix),\n" .
-                    "current_number = LAST_INSERT_ID(current_number + 1)"
-                );
-
-                $n = $ok ? (int)$this->db->insert_id : 0;
-                if ($n <= 0) {
-                    $sel = $this->db->query("SELECT id, current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
-                    if ($sel && $sel->num_rows > 0) {
-                        $r = $sel->fetch_assoc();
-                        $n = ((int)($r['current_number'] ?? 0)) + 1;
-                        $this->db->query("UPDATE inventory_config SET prefix = '{$prefix_esc}', current_number = {$n} WHERE id = " . (int)$r['id']);
-                    } else {
-                        $this->db->query("INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)");
-                        $n = 1;
-                    }
+                // Primero verificamos si existe el registro
+                $sel = $this->db->query("SELECT id, current_number FROM inventory_config WHERE branch_id = {$b} AND acquisition_type_id = {$a} AND equipment_category_id = {$c} LIMIT 1");
+                
+                if ($sel && $sel->num_rows > 0) {
+                    // Ya existe: incrementar current_number
+                    $r = $sel->fetch_assoc();
+                    $n = ((int)($r['current_number'] ?? 0)) + 1;
+                    $this->db->query("UPDATE inventory_config SET prefix = '{$prefix_esc}', current_number = {$n} WHERE id = " . (int)$r['id']);
+                } else {
+                    // No existe: crear nuevo con current_number = 1
+                    $this->db->query("INSERT INTO inventory_config (branch_id, acquisition_type_id, equipment_category_id, prefix, current_number) VALUES ({$b}, {$a}, {$c}, '{$prefix_esc}', 1)");
+                    $n = 1;
                 }
 
                 $seq = str_pad((string)$n, 3, '0', STR_PAD_LEFT);
@@ -2197,11 +2205,15 @@ class Action {
             }
             
             // Procesar uploads de documentos
+            $upload_base_dir = dirname(__DIR__) . '/uploads/';
+            if (!is_dir($upload_base_dir)) mkdir($upload_base_dir, 0775, true);
+            
             foreach ($_FILES as $k => $file) {
                 if (!empty($file['tmp_name']) && in_array($k, $doc_fields)) {
-                    $dest = 'uploads/' . $file['name'];
+                    $filename = time() . '_' . basename($file['name']);
+                    $dest = $upload_base_dir . $filename;
                     if (move_uploaded_file($file['tmp_name'], $dest)) {
-                        $doc_data[$k] = $dest;
+                        $doc_data[$k] = 'uploads/' . $filename;
                     }
                 }
             }
@@ -2242,8 +2254,11 @@ class Action {
             }
 
             // === IMAGEN ===
-            $upload_dir = "uploads/";
-            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            $upload_base_dir = dirname(__DIR__) . '/uploads/';
+            $thumbs_dir = $upload_base_dir . 'thumbs/';
+            if (!is_dir($upload_base_dir)) mkdir($upload_base_dir, 0775, true);
+            if (!is_dir($thumbs_dir)) mkdir($thumbs_dir, 0775, true);
+            
             if (!empty($_FILES['equipment_image']['tmp_name'])) {
                 $file = $_FILES['equipment_image'];
                 $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -2260,26 +2275,30 @@ class Action {
                     $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
                 }
                 
-                if ($old_img && file_exists($old_img)) {
-                    @unlink($old_img);
+                if ($old_img) {
+                    $old_img_full = dirname(__DIR__) . '/' . ltrim($old_img, '/');
+                    if (file_exists($old_img_full)) {
+                        @unlink($old_img_full);
+                    }
                     $this->delete_equipment_image_thumbs($old_img);
                 }
 
                 $filename = $id.'_'.time().'.'.$ext;
-                $dest = $upload_dir.$filename;
+                $dest = $upload_base_dir . $filename;
                 if (move_uploaded_file($file['tmp_name'], $dest)) {
                     // Optimiza imagen original y genera miniaturas para listados
                     $this->optimize_image_inplace($dest, $ext, 1600);
                     $base = pathinfo($dest, PATHINFO_FILENAME);
-                    $thumbJpg = 'uploads/thumbs/' . $base . '.jpg';
-                    $thumbWebp = 'uploads/thumbs/' . $base . '.webp';
+                    $thumbJpg = $thumbs_dir . $base . '.jpg';
+                    $thumbWebp = $thumbs_dir . $base . '.webp';
                     $this->create_image_thumb($dest, $thumbJpg, $thumbWebp, 96);
 
+                    $relative_path = 'uploads/' . $filename;
                     if ($this->pdo) {
                         $stmt = $this->pdo->prepare("UPDATE equipments SET image = ? WHERE id = ?");
-                        $stmt->execute([$dest, $id]);
+                        $stmt->execute([$relative_path, $id]);
                     } else {
-                        $this->db->query("UPDATE equipments SET image='$dest' WHERE id=$id");
+                        $this->db->query("UPDATE equipments SET image='$relative_path' WHERE id=$id");
                     }
                 }
             }
@@ -2293,8 +2312,11 @@ class Action {
                 } else {
                     $old_img = $this->db->query("SELECT image FROM equipments WHERE id = $id")->fetch_array()['image'] ?? '';
                 }
-                if ($old_img && file_exists($old_img)) unlink($old_img);
-                if ($old_img) $this->delete_equipment_image_thumbs($old_img);
+                if ($old_img) {
+                    $old_img_full = dirname(__DIR__) . '/' . ltrim($old_img, '/');
+                    if (file_exists($old_img_full)) unlink($old_img_full);
+                    $this->delete_equipment_image_thumbs($old_img);
+                }
                 
                 if ($this->pdo) {
                     $stmt = $this->pdo->prepare("UPDATE equipments SET image = NULL WHERE id = ?");

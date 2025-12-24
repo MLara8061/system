@@ -2,6 +2,15 @@
 define('ACCESS', true);
 require_once 'config/config.php';
 
+// Silencia errores en la salida y limpia cualquier buffer previo
+if (function_exists('ini_set')) {
+    ini_set('display_errors', '0');
+}
+while (ob_get_level()) {
+    ob_end_clean();
+}
+ob_start();
+
 // =======================
 //  CONSULTA PRINCIPAL
 // =======================
@@ -69,6 +78,6 @@ while($row = $qry->fetch_assoc()){
     echo "</tr>";
 }
 echo "</table>";
-
+ob_end_flush();
 exit;
 ?>

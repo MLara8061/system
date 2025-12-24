@@ -1,9 +1,9 @@
 <?php 
 // Incluir configuración y conexión a base de datos
-if (file_exists(__DIR__ . '/config/config.php')) {
-    require_once __DIR__ . '/config/config.php';
-} elseif (file_exists(__DIR__ . '/db_connect.php')) {
-    include __DIR__ . '/db_connect.php';
+if (file_exists(__DIR__ . '/../config/config.php')) {
+    require_once __DIR__ . '/../config/config.php';
+} elseif (file_exists(__DIR__ . '/../config/db_connect.php')) {
+    include __DIR__ . '/../config/db_connect.php';
 } else {
     die('Error: No se encuentra el archivo de configuración');
 }

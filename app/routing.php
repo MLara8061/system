@@ -16,6 +16,7 @@ $ROUTE_MAP = [
     'manage_user_modal' => 'app/views/dashboard/users/modal.php',
     
     // Equipos
+    'equipos' => 'app/views/dashboard/equipment/list.php',  // alias backwards compatible
     'equipment_list' => 'app/views/dashboard/equipment/list.php',
     'new_equipment' => 'app/views/dashboard/equipment/new.php',
     'edit_equipment' => 'app/views/dashboard/equipment/edit.php',
@@ -81,6 +82,10 @@ $ROUTE_MAP = [
     'manage_job_position' => 'app/views/dashboard/settings/manage_job_position.php',
     'branches' => 'app/views/dashboard/settings/branches.php',
     'manage_branch' => 'app/views/dashboard/settings/manage_branch.php',
+    
+    // Permisos y Roles
+    'permissions' => 'app/views/dashboard/permissions.php',
+    'role_permissions' => 'app/views/dashboard/permissions.php',
 
     // Tipos de Adquisición (catálogo para prefijo de inventario)
     'acquisition_types' => 'app/views/dashboard/settings/acquisition_types.php',
@@ -96,6 +101,8 @@ $ROUTE_MAP = [
     'upload_equipment' => 'app/views/dashboard/equipment/upload.php',
     'download_template' => 'app/helpers/download_template.php',
     'generate_excel_template' => 'app/helpers/generate_excel_template.php',
+    'export_equipment' => 'app/helpers/export_equipment.php',
+    'export_suppliers' => 'legacy/export_suppliers.php',
     
     // Otros
     // Calendario (alias nuevo: "calendario")

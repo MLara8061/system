@@ -1,6 +1,15 @@
 <?php
 define('ACCESS', true);
-require_once 'config/config.php';
+require_once __DIR__ . '/../../config/config.php';
+
+// Silencia errores en la salida y limpia cualquier buffer previo
+if (function_exists('ini_set')) {
+    ini_set('display_errors', '0');
+}
+while (ob_get_level()) {
+    ob_end_clean();
+}
+ob_start();
 
 // Nombre del archivo
 $filename = "proveedores_" . date('Y-m-d_His') . ".xls";
@@ -56,5 +65,6 @@ while ($row = $qry->fetch_assoc()) {
 }
 
 echo "</table>";
+ob_end_flush();
 exit;
 ?>

@@ -8,10 +8,24 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Cargar sesión hardened
-require_once __DIR__ . '/config/session.php';
+// Cargar autoloader PRIMERO (antes de cualquier output o header)
+// Usar ROOT si está definida, sino usar rutas relativas
+$root = defined('ROOT') ? ROOT : (__DIR__ . '/../');
 
-// Validar sesión y timeout
+// Cargar ZipStream stub ANTES del autoloader para evitar errores
+$zipStreamStubPath = $root . '/lib/ZipStream.php';
+if (file_exists($zipStreamStubPath)) {
+    require_once $zipStreamStubPath;
+}
+
+if (file_exists($root . '/vendor/autoload.php')) {
+    require $root . '/vendor/autoload.php';
+}
+
+// Cargar sesión hardened
+require_once $root . '/config/session.php';
+
+// Validar sesión y timeout - ANTES de cualquier output
 if (!isset($_SESSION['login_id'])) {
     http_response_code(403);
     die('Acceso no autorizado');
@@ -23,21 +37,14 @@ if (!validate_session()) {
 }
 
 // Incluir configuración y conexión a base de datos
-if (file_exists(__DIR__ . '/config/config.php')) {
-    require_once __DIR__ . '/config/config.php';
-} elseif (file_exists(__DIR__ . '/db_connect.php')) {
+if (file_exists($root . '/config/config.php')) {
+    require_once $root . '/config/config.php';
+} elseif (file_exists($root . '/config/db_connect.php')) {
     // Fallback para desarrollo local sin estructura config/
     define('ACCESS', true);
-    include __DIR__ . '/db_connect.php';
+    include $root . '/config/db_connect.php';
 } else {
     die('Error: No se encuentra el archivo de configuración');
-}
-
-// Cargar PHPSpreadsheet usando Composer autoloader si existe
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    require __DIR__ . '/vendor/autoload.php';
-} else {
-    die('Error: PHPSpreadsheet no está instalado. Ejecuta: https://tu-dominio.com/install_composer_packages.php');
 }
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -524,11 +531,11 @@ try {
 
     $writer = new Xlsx($spreadsheet);
     $writer->save('php://output');
-    exit;
+    exit(0);
 
 } catch (Exception $e) {
     error_log('Error en generate_excel_template.php: ' . $e->getMessage());
     http_response_code(500);
     die('Error al generar plantilla: ' . $e->getMessage() . '<br>Archivo: ' . $e->getFile() . '<br>Línea: ' . $e->getLine());
 }
-?>
+die();

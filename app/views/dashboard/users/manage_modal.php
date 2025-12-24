@@ -56,6 +56,36 @@ if ($is_edit) {
             </select>
         </div>
 
+        <!-- DEPARTAMENTO -->
+        <div class="form-group">
+            <label for="department_id"><strong>Departamento</strong></label>
+            <select name="department_id" id="department_id" class="form-control">
+                <option value="">Sin asignar</option>
+                <?php
+                $dept_stmt = $pdo->query('SELECT id, name FROM departments ORDER BY name ASC');
+                while ($dept = $dept_stmt->fetch()):
+                ?>
+                    <option value="<?= $dept['id'] ?>" <?= ($user['department_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($dept['name']) ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
+            <small class="text-muted">Area a la que pertenece el usuario</small>
+        </div>
+
+        <!-- ACCESO MULTI-DEPARTAMENTAL -->
+        <div class="form-group">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="can_view_all_departments" 
+                       name="can_view_all_departments" value="1"
+                       <?= ($user['can_view_all_departments'] ?? 0) == 1 ? 'checked' : '' ?>>
+                <label class="custom-control-label" for="can_view_all_departments">
+                    <strong>Puede ver todos los departamentos</strong>
+                </label>
+            </div>
+            <small class="text-muted">Si esta activo, vera informacion de todas las areas</small>
+        </div>
+
         <!-- CONTRASEÑA -->
         <div class="form-group">
             <label for="password"><strong>Contraseña</strong> 

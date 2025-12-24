@@ -20,7 +20,7 @@
         <i class="fas fa-user-cog mr-2"></i> Mi Cuenta
       </a>
       <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="./public/ajax/logout.php">
+      <a class="dropdown-item" href="public/ajax/logout.php">
         <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
       </a>
     </div>
@@ -31,7 +31,7 @@
       <ul class="nav nav-pills nav-sidebar flex-column nav-flat" data-widget="treeview" role="menu" data-accordion="false">
 
         <li class="nav-item">
-          <a href="./" class="nav-link nav-home">
+          <a href="index.php?page=home" class="nav-link nav-home">
             <i class="nav-icon fas fa-tachometer-alt"></i>
             <p>Dashboard</p>
           </a>
@@ -67,10 +67,10 @@
             <p>Proveedores <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item"><a href="./index.php?page=new_supplier" class="nav-link nav-new_supplier tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_supplier" class="nav-link nav-new_supplier tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Agregar</p>
               </a></li>
-            <li class="nav-item"><a href="./index.php?page=suppliers" class="nav-link nav-suppliers tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=suppliers" class="nav-link nav-suppliers tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos los proveedores</p>
               </a></li>
           </ul>
@@ -134,10 +134,10 @@
             <p>Tickets de Soporte <i class="right fas fa-angle-left"></i></p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item"><a href="./index.php?page=new_ticket" class="nav-link nav-new_ticket tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=new_ticket" class="nav-link nav-new_ticket tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Nuevo Ticket</p>
               </a></li>
-            <li class="nav-item"><a href="./index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
+            <li class="nav-item"><a href="index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos los Tickets</p>
               </a></li>
           </ul>
@@ -175,28 +175,28 @@
           <ul class="nav nav-treeview">
 
             <li class="nav-item">
-              <a href="./index.php?page=department_list" class="nav-link nav-department_list tree-item">
+              <a href="index.php?page=department_list" class="nav-link nav-department_list tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Departamentos</p>
               </a>
             </li>
 
             <li class="nav-item">
-              <a href="./index.php?page=branches" class="nav-link nav-branches tree-item">
+              <a href="index.php?page=branches" class="nav-link nav-branches tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Sucursales</p>
               </a>
             </li>
 
             <li class="nav-item">
-              <a href="./index.php?page=acquisition_types" class="nav-link nav-acquisition_types tree-item">
+              <a href="index.php?page=acquisition_types" class="nav-link nav-acquisition_types tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Tipo de Adquisición</p>
               </a>
             </li>
 
             <li class="nav-item">
-              <a href="./index.php?page=equipment_categories" class="nav-link nav-equipment_categories tree-item">
+              <a href="index.php?page=equipment_categories" class="nav-link nav-equipment_categories tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Categorías</p>
               </a>
@@ -269,6 +269,16 @@
                   </a></li>
               </ul>
             </li>
+
+            <!-- Roles y Permisos (Solo Admin) -->
+            <?php if ($_SESSION['login_type'] == 1): ?>
+            <li class="nav-item">
+              <a href="index.php?page=permissions" class="nav-link nav-permissions tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Roles y Permisos</p>
+              </a>
+            </li>
+            <?php endif; ?>
 
             <!-- Carga Masiva -->
             <li class="nav-item">

@@ -3,7 +3,7 @@
   <!--begin::Sidebar Brand-->
   <div class="sidebar-brand">
     <!--begin::Brand Link-->
-    <a href="./index.php" class="brand-link">
+    <a href="index.php" class="brand-link">
       <!--begin::Brand Image-->
       <img
         src="./assets/img/AdminLTELogo.png"
@@ -29,7 +29,7 @@
         data-accordion="false"
         id="navigation">
         <li class="nav-item">
-          <a href="./index.php" class="nav-link">
+          <a href="index.php?page=home" class="nav-link">
             <i class="nav-icon bi bi-speedometer"></i>
             <p>Dashboard</p>
           </a>
@@ -45,7 +45,7 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="index.php?page=equipos" class="nav-link">
+              <a href="index.php?page=equipment_list" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
                 <p>Todos los equipos</p>
               </a>
@@ -57,19 +57,19 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="equipos/informe.php" class="nav-link">
+              <a href="index.php?page=equipment_report_sistem_list" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
                 <p>Informe de equipos</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="equipos/reportes.php" class="nav-link">
+              <a href="index.php?page=equipment_report_revision_month" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
                 <p>Reportes de equipos</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="equipos/revisiones.php" class="nav-link">
+              <a href="index.php?page=equipment_new_revision" class="nav-link">
                 <i class="nav-icon bi bi-circle"></i>
                 <p>Revisiones mensuales</p>
               </a>

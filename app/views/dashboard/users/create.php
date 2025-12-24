@@ -48,12 +48,49 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
 
                 <!-- ROL -->
                 <div class="form-group">
-                    <label for="create-role" class="font-weight-bold"><strong>Rol</strong></label>
-                    <select name="role" id="create-role" class="form-control form-control-sm" required>
-                        <option value="">-- Seleccionar --</option>
-                        <option value="1" <?= ($user['role'] ?? '') == 1 ? 'selected' : '' ?>>Administrador</option>
-                        <option value="2" <?= ($user['role'] ?? '') == 2 ? 'selected' : '' ?>>Usuario</option>
+                    <label for="create-role" class="font-weight-bold">
+                        <strong>Rol</strong>
+                        <i class="fas fa-info-circle text-muted ml-1" data-toggle="tooltip" 
+                           title="Define qué acciones puede realizar el usuario en el sistema"></i>
+                    </label>
+                    <select name="role_id" id="create-role" class="form-control form-control-sm" required>
+                        <option value="">-- Seleccionar Rol --</option>
+                        <?php
+                        $roles = $conn->query("SELECT id, name, description FROM roles ORDER BY id");
+                        while ($role = $roles->fetch_assoc()):
+                        ?>
+                            <option value="<?= $role['id'] ?>" 
+                                    <?= ($user['role_id'] ?? $user['role'] ?? '') == $role['id'] ? 'selected' : '' ?>
+                                    data-description="<?= htmlspecialchars($role['description']) ?>">
+                                <?= htmlspecialchars($role['name']) ?>
+                            </option>
+                        <?php endwhile; ?>
                     </select>
+                    <small class="text-muted" id="role-description"></small>
+                </div>
+
+                <!-- DEPARTAMENTO -->
+                <div class="form-group">
+                    <label for="create-department" class="font-weight-bold">
+                        <strong>Departamento</strong>
+                        <i class="fas fa-info-circle text-muted ml-1" data-toggle="tooltip" 
+                           title="Restringe qué datos puede ver según su departamento"></i>
+                    </label>
+                    <select name="department_id" id="create-department" class="form-control form-control-sm">
+                        <option value="">-- Todos los departamentos --</option>
+                        <?php
+                        $departments = $conn->query("SELECT id, name FROM departments ORDER BY name");
+                        while ($dept = $departments->fetch_assoc()):
+                        ?>
+                            <option value="<?= $dept['id'] ?>" 
+                                    <?= ($user['department_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($dept['name']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                    <small class="text-muted">
+                        Dejar en blanco si el usuario puede ver todos los departamentos (solo admins)
+                    </small>
                 </div>
 
                 <!-- CONTRASEÑA -->
@@ -98,6 +135,20 @@ $(document).ready(function() {
     const $form = $('#manage-user-form');
     const $username = $('#username');
     const $password = $('#password');
+    const $role = $('#create-role');
+    const $roleDescription = $('#role-description');
+
+    // Inicializar tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // Mostrar descripción del rol seleccionado
+    $role.on('change', function() {
+        const description = $(this).find(':selected').data('description');
+        $roleDescription.text(description || '');
+    });
+    
+    // Trigger inicial para mostrar descripción
+    $role.trigger('change');
     const isEdit = <?= $is_edit ? 'true' : 'false' ?>;
 
     // === VALIDAR USUARIO EN TIEMPO REAL ===
