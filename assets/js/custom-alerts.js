@@ -158,5 +158,4 @@
         document.body.style.overflow = 'hidden';
     };
     
-    console.log('✓ Sistema de alertas moderno cargado correctamente');
 })();

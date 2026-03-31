@@ -95,7 +95,7 @@ if(isset($_GET['id'])){
 			    contentType: false,
 			    processData: false,
 				error:err=>{
-					console.log(err);
+					console.error(err);
 					alert_toast("A ocurrido un error","error");
 					end_loader();
 				},

@@ -1,0 +1,11 @@
+# ========================================
+# PROTECCIÓN PARA CARPETA LEGACY
+# Bloquea acceso directo a todos los archivos
+# ========================================
+
+# Bloquear acceso a la carpeta completa
+Require all denied
+
+# Nota: Esta carpeta contiene código legado que está siendo migrado
+# Una vez completada la migración, esta carpeta debe ser eliminada
+# No se debe publicar acceso a estos archivos en producción

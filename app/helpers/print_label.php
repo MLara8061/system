@@ -1,10 +1,22 @@
 <?php
 $root = dirname(__DIR__, 2);
 require_once $root . '/config/session.php';
+require_once $root . '/app/helpers/permissions.php';
 if (!validate_session()) {
   require_once $root . '/config/config.php';
   header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
   exit();
+}
+
+$canPrint = function_exists('can')
+  ? (
+      can('view', 'equipments') || can('view', 'equipment') ||
+      can('export', 'equipments') || can('export', 'equipment')
+    )
+  : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canPrint && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+  http_response_code(403);
+  die('Sin permisos para imprimir etiqueta');
 }
 
 require_once $root . '/config/config.php';

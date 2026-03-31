@@ -8,10 +8,22 @@ if (!defined('ROOT')) {
 if (!defined('ACCESS')) define('ACCESS', true);
 
 require_once ROOT . '/config/config.php';
+require_once ROOT . '/app/helpers/permissions.php';
 
 if (!isset($_SESSION['login_id']) || !validate_session()) {
     header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
     exit;
+}
+
+$canExport = function_exists('can')
+    ? (
+        can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports') ||
+        can('view', 'equipments')   || can('view', 'equipment')   || can('view', 'reports')
+    )
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
 }
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

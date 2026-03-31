@@ -24,7 +24,10 @@ $DB_PASS = $cfg['pass'] ?? '';
 $DB_NAME = $cfg['name'] ?? '';
 $DB_CHARSET = getenv('DB_CHARSET') ?: 'utf8mb4';
 
-$pdo = null;
+// Asegurar que $pdo se define en scope global (puede cargarse desde dentro de una función)
+if (!isset($GLOBALS['pdo'])) {
+    $GLOBALS['pdo'] = null;
+}
 
 try {
     $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset={$DB_CHARSET}";
@@ -34,6 +37,7 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false,
     ];
     $pdo = new PDO($dsn, $DB_USER, $DB_PASS, $options);
+    $GLOBALS['pdo'] = $pdo;
 } catch (Throwable $e) {
     http_response_code(500);
     error_log('PDO Connection Error: ' . $e->getMessage());

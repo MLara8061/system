@@ -21,7 +21,7 @@ if (isset($_SESSION['login_id']))
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
     
     <style>
         * {
@@ -477,9 +477,6 @@ if (isset($_SESSION['login_id']))
                 }
                 
                 const result = await response.text();
-                console.log('Login response:', result.trim());
-                console.log('Response status:', response.status);
-                
                 if (result.trim() === '1') {
                     // Login exitoso
                     btnText.textContent = '¡Acceso concedido!';

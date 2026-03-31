@@ -369,7 +369,7 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
                               <?php echo $eq['number_inventory']; ?>
                             </a>
                           </td>
-                          <td><?php echo $eq['name']; ?></td>
+                          <td><?php echo htmlspecialchars($eq['name']) . (!empty($eq['number_inventory']) ? ' #' . htmlspecialchars($eq['number_inventory']) : ''); ?></td>
                           <td><small><?php echo $eq['supplier']; ?></small></td>
                           <td>$<?php echo number_format($eq['amount'], 2); ?></td>
                           <td>
@@ -736,9 +736,6 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     const serviceTypes = <?php echo json_encode($service_types); ?>;
     const serviceCounts = <?php echo json_encode($service_counts); ?>;
 
-    console.log('Service Types:', serviceTypes);
-    console.log('Service Counts:', serviceCounts);
-
     const serviceTypeChartOptions = {
         series: serviceCounts,
         chart: {
@@ -800,10 +797,6 @@ $total_valor_activos = $valor_total_equipos + $valor_total_epp + $valor_total_he
     const execCategories = <?php echo json_encode($exec_categories); ?>;
     const mpData = <?php echo json_encode($mp_data); ?>;
     const mcData = <?php echo json_encode($mc_data); ?>;
-
-    console.log('Exec Categories:', execCategories);
-    console.log('MP Data:', mpData);
-    console.log('MC Data:', mcData);
 
     const executionMonthlyOptions = {
         series: [

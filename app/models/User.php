@@ -10,7 +10,7 @@ require_once __DIR__ . '/DataStore.php';
 class User extends DataStore {
     
     public function __construct() {
-        parent::__construct('users');
+        parent::__construct('users', 'user');
     }
     
     /**

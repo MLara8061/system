@@ -53,7 +53,7 @@
   <link rel="stylesheet" href="<?php echo $base; ?>/assets/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="<?php echo $base; ?>/assets/dist/css/styles.css">
   <!-- Botones Responsive UX -->
-  <link rel="stylesheet" href="<?php echo $base; ?>/assets/css/button-responsive.css">
+  <link rel="stylesheet" href="<?php echo $base; ?>/assets/css/button-responsive.css?v=3">
   <!-- Sistema de Alertas Moderno -->
   <link rel="stylesheet" href="<?php echo $base; ?>/assets/css/custom-alerts.css">
   <script src="<?php echo $base; ?>/assets/plugins/jquery/jquery.min.js"></script>

@@ -38,6 +38,14 @@ $title = $is_edit ? 'Editar Usuario' : 'Nuevo Usuario';
                            value="<?= $user['lastname'] ?? '' ?>" required placeholder="Ej: Pérez">
                 </div>
 
+                <!-- CORREO ELECTRONICO -->
+                <div class="form-group">
+                    <label for="create-email" class="font-weight-bold"><strong>Correo Electronico</strong></label>
+                    <input type="email" name="email" id="create-email" class="form-control form-control-sm" 
+                           value="<?= htmlspecialchars($user['email'] ?? '') ?>" placeholder="usuario@ejemplo.com">
+                    <small class="text-muted">Requerido para recibir notificaciones</small>
+                </div>
+
                 <!-- USUARIO -->
                 <div class="form-group">
                     <label class="font-weight-bold"><strong>Usuario</strong></label>
@@ -158,6 +166,9 @@ $(document).ready(function() {
                     }, 1000);
                 } else if (resp == 2) {
                     alert_toast("El usuario ya existe", 'error');
+                    end_load();
+                } else if (resp == 5) {
+                    alert_toast("El correo electronico no es valido", 'error');
                     end_load();
                 } else {
                     alert_toast("Error al guardar", 'error');

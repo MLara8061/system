@@ -1,6 +1,6 @@
 <?php
-define('ACCESS', true);
-require_once 'config/config.php';
+if (!defined('ACCESS')) define('ACCESS', true);
+if (!defined('DB_CONFIG')) require_once __DIR__ . '/../../../../config/config.php';
 
 $responsibleLabels = [
     1 => 'Jefe de servicio',

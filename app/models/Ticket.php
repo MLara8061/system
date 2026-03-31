@@ -14,7 +14,7 @@ class Ticket extends DataStore {
      * Constructor - Inicializar con tabla 'tickets'
      */
     public function __construct() {
-        parent::__construct('tickets');
+        parent::__construct('tickets', 'ticket');
     }
     
     /**

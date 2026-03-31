@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . '/DataStore.php';
 
 class Category extends DataStore {
     public function __construct() {
-        parent::__construct('categories');
+        parent::__construct('categories', 'category');
     }
     
     public function save($data) {

@@ -1,4 +1,5 @@
 ﻿<?php require_once 'config/config.php'; ?>
+<?php require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php'; ?>
 
 <?php
 $login_type = (int)($_SESSION['login_type'] ?? 0);
@@ -129,6 +130,43 @@ $siguiente_id = $row['Auto_increment'];
                             </div>
                         </div>
 
+                        <!-- SUSTANCIA PELIGROSA -->
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-2">
+                                <span class="font-weight-bold text-dark">
+                                    <i class="fas fa-exclamation-triangle text-warning mr-2"></i>Sustancia Peligrosa
+                                </span>
+                                <div class="custom-control custom-switch mb-0">
+                                    <input type="hidden" name="is_hazardous" value="0">
+                                    <input type="checkbox" class="custom-control-input" id="is_hazardous" name="is_hazardous" value="1">
+                                    <label class="custom-control-label" for="is_hazardous"></label>
+                                </div>
+                            </div>
+                            <div class="card-body pt-0" id="hazard-details" style="display:none;">
+                                <div class="mb-3">
+                                    <label class="font-weight-bold text-dark">Clase de Peligro</label>
+                                    <select name="hazard_class" class="custom-select">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="inflamable">Inflamable</option>
+                                        <option value="corrosivo">Corrosivo</option>
+                                        <option value="toxico">Tóxico</option>
+                                        <option value="oxidante">Oxidante</option>
+                                        <option value="explosivo">Explosivo</option>
+                                        <option value="irritante">Irritante</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="font-weight-bold text-dark">Hoja de Seguridad (PDF/JPG/PNG)</label>
+                                    <input type="file" name="safety_data_sheet" class="form-control"
+                                           accept=".pdf,image/jpeg,image/png,image/jpg">
+                                    <small class="text-muted">Máx. 10 MB. Formatos: PDF, JPG, PNG</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?= CustomFieldRenderer::render('inventory', 0) ?>
+
                         <!-- BOTONES -->
                         <div class="text-center mt-4 btn-container-mobile">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
@@ -207,6 +245,17 @@ $siguiente_id = $row['Auto_increment'];
             placeholder: 'Seleccionar',
             allowClear: true
         });
+
+        // Toggle sección sustancia peligrosa
+        $('#is_hazardous').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#hazard-details').slideDown(200);
+            } else {
+                $('#hazard-details').slideUp(200);
+                $('select[name="hazard_class"]').val('');
+                $('input[name="safety_data_sheet"]').val('');
+            }
+        });
     });
 
     $('#manage_inventory').submit(function(e) {
@@ -230,12 +279,13 @@ $siguiente_id = $row['Auto_increment'];
             processData: false,
             method: 'POST',
             success: function(resp) {
-                resp = resp.trim();
-                if (resp === '1') {
+                var res = {};
+                try { res = JSON.parse(resp); } catch(e) {}
+                if (res.s === 1) {
                     alert_toast('Ítem guardado correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=insumos_list', 1500);
                 } else {
-                    alert_toast('Error: ' + resp, 'error');
+                    alert_toast('Error: ' + (res.msg || resp), 'error');
                 }
                 end_load();
             },

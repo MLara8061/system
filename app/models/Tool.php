@@ -5,6 +5,7 @@
 class Tool extends DataStore {
     protected $table = 'tools';
     protected $primaryKey = 'id';
+    protected $auditModule = 'tool';
     
     public function getByName($name) {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name = ? LIMIT 1");

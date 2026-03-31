@@ -72,7 +72,7 @@ if($id > 0){
 				data:$(this).serialize(),
 				dataType:'json',
 				error:err=>{
-					console.log(err);
+					console.error(err);
 					alert_toast("a ocurrido un error","error");
 					end_loader();
 				},

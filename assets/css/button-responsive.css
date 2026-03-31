@@ -181,9 +181,8 @@
         padding-right: 1rem !important;
     }
     
-    /* Botones en columna en mobile */
-    .text-center .btn,
-    .card-footer .btn {
+    /* Botones en columna en mobile - solo .text-center, no card-footer (demasiado agresivo) */
+    .text-center .btn {
         display: block !important;
         width: 100% !important;
         margin: 0.5rem 0 !important;
@@ -258,6 +257,17 @@ form .btn-success {
     form .btn-primary,
     form .btn-success {
         min-width: 100% !important;
+    }
+    /* Excepcion: compositor de tickets - boton compacto siempre */
+    .composer-actions .composer-send-btn,
+    .composer-actions .btn,
+    form .composer-send-btn {
+        min-width: auto !important;
+        width: auto !important;
+        display: inline-flex !important;
+        padding: 4px 14px !important;
+        font-size: 0.78rem !important;
+        margin: 0 !important;
     }
 }
 

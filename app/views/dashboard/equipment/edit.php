@@ -1,5 +1,6 @@
 <?php
 require_once 'config/config.php';
+require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php';
 require_once 'app/helpers/permissions.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -245,8 +246,14 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Serie</label>
-                                <input type="text" name="serie" class="form-control alfanumerico" 
-                                       required value="<?= $eq['serie'] ?>">
+                                <div class="input-group">
+                                    <input type="text" name="serie" id="serie" class="form-control alfanumerico" 
+                                           required value="<?= htmlspecialchars($eq['serie'] ?? '') ?>">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="serie-status"></span>
+                                    </div>
+                                </div>
+                                <small id="serie-msg" class="form-text"></small>
                             </div>
                             <div class="col-md-6">
                                 <label class="font-weight-bold text-dark">Fecha Ingreso</label>
@@ -392,6 +399,7 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
                                 </select>
                             </div>
                         </div>
+                        <?= CustomFieldRenderer::render('equipment', (int)$equipment_id) ?>
                     </form>
                 </div>
             </div>
@@ -1073,12 +1081,15 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
             processData: false,
             method: 'POST',
             success: function(resp){
-                resp = resp.trim();
-                if(resp === '1'){
+                var res = {};
+                try { res = JSON.parse(resp); } catch(e) {}
+                if(res.s === 1){
                     alert_toast('Equipo actualizado', 'success');
                     setTimeout(() => location.reload(), 1000);
+                } else if(res.status === 'error'){
+                    alert_toast(res.message || 'Error al guardar', 'error');
                 } else {
-                    alert_toast('Error: ' + resp, 'error');
+                    alert_toast('Error: ' + (res.msg || resp), 'error');
                 }
             },
             error: function(xhr){
@@ -1094,4 +1105,57 @@ $can_change_branch = ($login_type === 1 && $active_bid === 0);
             }
         });
     });
+
+    // Validación de serie única en tiempo real
+    (function(){
+        var timer = null;
+        var serieOk = true;
+        var equipId = <?= (int)$equipment_id ?>;
+        var originalSerie = <?= json_encode($eq['serie'] ?? '') ?>;
+        var $input = $('#serie');
+        var $status = $('#serie-status');
+        var $msg = $('#serie-msg');
+
+        function checkSerie() {
+            var val = $.trim($input.val());
+            if (val === '' || val === originalSerie) {
+                $input.removeClass('is-valid is-invalid');
+                $status.html('');
+                $msg.text('');
+                serieOk = true;
+                return;
+            }
+            $.get('public/ajax/action.php', { action: 'check_serie', serie: val, exclude_id: equipId }, function(r) {
+                if (r.available) {
+                    $input.removeClass('is-invalid').addClass('is-valid');
+                    $status.html('<i class="fas fa-check text-success"></i>');
+                    $msg.text('Disponible').removeClass('text-danger').addClass('text-success');
+                    serieOk = true;
+                } else {
+                    $input.removeClass('is-valid').addClass('is-invalid');
+                    $status.html('<i class="fas fa-times text-danger"></i>');
+                    $msg.text(r.message || 'Este numero de serie ya existe').removeClass('text-success').addClass('text-danger');
+                    serieOk = false;
+                }
+            }, 'json');
+        }
+
+        $input.on('input', function() {
+            clearTimeout(timer);
+            timer = setTimeout(checkSerie, 500);
+        }).on('blur', function() {
+            clearTimeout(timer);
+            checkSerie();
+        });
+
+        $('#manage_equipment').on('submit', function(e) {
+            if (!serieOk) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                alert_toast('El numero de serie ya existe en otro equipo', 'error');
+                $input.focus();
+                return false;
+            }
+        });
+    })();
 </script>

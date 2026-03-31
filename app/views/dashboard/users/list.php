@@ -87,6 +87,7 @@
                     <tr>
                         <th style="width: 60px;">Foto</th>
                         <th>Nombre Completo</th>
+                        <th>Correo</th>
                         <th>Rol</th>
                         <th>Usuario</th>
                         <th>Creado</th>
@@ -109,6 +110,7 @@
                                 <img src="<?= $avatar ?>" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #dee2e6;">
                             </td>
                             <td><?= ucwords($fullname) ?></td>
+                            <td><?= !empty($row['email']) ? htmlspecialchars($row['email']) : '<span class="text-muted">Sin correo</span>' ?></td>
                             <td class="text-center"><?= $role ?></td>
                             <td><code><?= $row['username'] ?></code></td>
                             <td>

@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . '/DataStore.php';
 
 class Location extends DataStore {
     public function __construct() {
-        parent::__construct('locations');
+        parent::__construct('locations', 'location');
     }
     
     public function save($data) {

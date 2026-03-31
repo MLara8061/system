@@ -31,7 +31,7 @@ $equipment = $qry->fetch_assoc();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportar Falla - <?= htmlspecialchars($equipment['name']) ?></title>
     <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="<?= rtrim(BASE_URL, '/') ?>/assets/plugins/fontawesome/css/all.min.css">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -160,6 +160,18 @@ $equipment = $qry->fetch_assoc();
                     <textarea name="description" class="form-control" rows="4" required placeholder="Describe detalladamente el problema que presenta el equipo..."></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label><i class="fas fa-camera"></i> Imagen del Problema (opcional)</label>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="issue_image" name="issue_image" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <label class="custom-file-label" for="issue_image">Seleccionar imagen...</label>
+                    </div>
+                    <small class="form-text text-muted">JPG, PNG, GIF o WebP. Máximo 5 MB. La imagen se adjuntará al ticket.</small>
+                    <div id="image-preview-wrap" style="display:none; margin-top:10px; text-align:center;">
+                        <img id="image-preview" src="" alt="Vista previa" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #dee2e6;">
+                    </div>
+                </div>
+
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-report">
                         <i class="fas fa-paper-plane mr-2"></i>Enviar Reporte
@@ -170,9 +182,14 @@ $equipment = $qry->fetch_assoc();
 
         <div class="success-message" id="successMessage">
             <i class="fas fa-check-circle"></i>
-            <h4 class="text-success">¡Reporte Enviado Exitosamente!</h4>
-            <p class="text-muted">Tu reporte ha sido registrado. El equipo de soporte se pondrá en contacto contigo pronto.</p>
-            <p><strong>Número de Ticket: <span id="ticketNumber"></span></strong></p>
+            <h4 class="text-success">Reporte Enviado Exitosamente</h4>
+            <p class="text-muted">Tu reporte ha sido registrado. El equipo de soporte se pondra en contacto contigo pronto.</p>
+            <p><strong>Numero de Ticket: <span id="ticketNumber"></span></strong></p>
+            <p id="trackingLinkContainer" style="display:none;">
+                <a href="#" id="trackingLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-search"></i> Consultar estado del ticket
+                </a>
+            </p>
             <button type="button" class="btn btn-secondary mt-3" onclick="location.reload()">
                 <i class="fas fa-plus mr-2"></i>Reportar Otra Falla
             </button>
@@ -181,20 +198,47 @@ $equipment = $qry->fetch_assoc();
 
     <script src="<?= rtrim(BASE_URL, '/') ?>/assets/plugins/jquery/jquery.min.js"></script>
     <script>
+        // Vista previa de imagen
+        $('#issue_image').on('change', function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#image-preview').attr('src', e.target.result);
+                    $('#image-preview-wrap').show();
+                };
+                reader.readAsDataURL(file);
+                var name = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
+                $(this).next('.custom-file-label').text(name);
+            } else {
+                $('#image-preview-wrap').hide();
+                $(this).next('.custom-file-label').text('Seleccionar imagen...');
+            }
+        });
+
         $('#reportForm').submit(function(e) {
             e.preventDefault();
             
-            const submitBtn = $(this).find('button[type="submit"]');
+            var submitBtn = $(this).find('button[type="submit"]');
             submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...');
             
+            var formData = new FormData(this);
+
             $.ajax({
                 url: '<?= rtrim(BASE_URL, '/') ?>/legacy/save_public_ticket_direct.php',
                 method: 'POST',
-                data: $(this).serialize(),
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(response) {
                     if (response.status === 1) {
                         $('#ticketNumber').text(response.ticket_number || 'N/A');
+                        if (response.tracking_url) {
+                            var baseUrl = window.location.href.replace(/report_issue_public\.php.*/, '');
+                            $('#trackingLink').attr('href', baseUrl + response.tracking_url);
+                            $('#trackingLinkContainer').show();
+                        }
                         $('#formContainer').fadeOut(300, function() {
                             $('#successMessage').fadeIn(300);
                         });

@@ -159,11 +159,13 @@
                             <option value="">Seleccionar equipo</option>
                             <?php
                             $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
-                            $eqs = $conn->query("SELECT id, name FROM equipments e {$equip_where} ORDER BY name ASC");
+                            $eqs = $conn->query("SELECT id, name, number_inventory FROM equipments e {$equip_where} ORDER BY name ASC");
                             while ($r = $eqs->fetch_assoc()):
+                                $display = htmlspecialchars($r['name']);
+                                if (!empty($r['number_inventory'])) $display .= ' #' . htmlspecialchars($r['number_inventory']);
                             ?>
                                 <option value="<?php echo $r['id']; ?>">
-                                    <?php echo htmlspecialchars($r['name']); ?>
+                                    <?php echo $display; ?>
                                 </option>
                             <?php endwhile; ?>
                         </select>

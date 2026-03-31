@@ -5,6 +5,7 @@
 class Service extends DataStore {
     protected $table = 'services';
     protected $primaryKey = 'id';
+    protected $auditModule = 'service';
     
     public function getByName($name) {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE name = ? LIMIT 1");

@@ -103,7 +103,7 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                 <tbody>
                     <?php
                     $qry = $conn->query("
-                        SELECT id, name, category, price, cost, stock, min_stock, max_stock, status, image_path, created_at
+                        SELECT id, name, category, price, cost, stock, min_stock, max_stock, status, image_path, created_at, is_hazardous
                         FROM inventory i 
                         {$branch_where}
                         ORDER BY name ASC
@@ -133,7 +133,13 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td><strong><?= ucwords($row['name']) ?></strong></td>
+                            <td><strong><?= ucwords($row['name']) ?></strong>
+                                <?php if (!empty($row['is_hazardous'])): ?>
+                                    <span class="badge badge-danger ml-1" title="Sustancia Peligrosa">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
                             <td><span class="text-muted"><?= ucwords($row['category'] ?? 'N/A') ?></span></td>
                             <td>$<?= number_format($row['price'], 2) ?></td>
                             <td>$<?= number_format($row['cost'], 2) ?></td>

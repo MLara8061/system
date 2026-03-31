@@ -15,23 +15,29 @@ if ($current_user_name === '') {
 }
 $current_user_name = $current_user_name ?: 'No registrado';
 
-// === DATOS FIJOS ===
+// === DATOS DE EMPRESA (dinámicos desde BD) ===
+$root_path = defined('ROOT') ? ROOT : realpath(__DIR__ . '/../../../..');
+require_once $root_path . '/app/helpers/company_config_helper.php';
+
+$_branch_id = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+$_company_cfg = get_company_config($conn, $_branch_id);
+
 $company_info = [
-    'company_name' => "Venta, Mantenimiento Preventivo y Correctivo de Equipo Médico",
-    'address_line_1' => "Murillo No.26 Lote 28 Mz-75 Smz-321",
-    'address_line_2' => "Fracc. Villas del Arte",
-    'city_state_zip' => "Benito Juarez Cancún, Quintana Roo C.P 77560",
-    'phone_number' => "TEL: (998) 214 86 73/ 998 214 91 91",
+    'company_name' => $_company_cfg['company_name'],
+    'address_line_1' => $_company_cfg['address_line_1'],
+    'address_line_2' => $_company_cfg['address_line_2'],
+    'city_state_zip' => $_company_cfg['city_state_zip'],
+    'phone_number' => $_company_cfg['phone_number'],
 ];
 
-$orden_mto = "HAC" . date('dmYHi');
+$orden_mto = generate_sequential_folio($conn, $_branch_id, 'report');
 $fecha_reporte = date('d/m/Y');
 // El nombre del ingeniero es el mismo usuario logueado que genera el reporte
 $ingeniero_nombre = $current_user_name;
 
 // === CONSULTAS ===
 $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
-$equipos_list = $conn->query("SELECT id, name FROM equipments e {$equip_where} ORDER BY name ASC");
+$equipos_list = $conn->query("SELECT id, name, number_inventory FROM equipments e {$equip_where} ORDER BY name ASC");
 $prefill_equipment_id = isset($_GET['equipment_id']) ? (int)$_GET['equipment_id'] : 0;
 
 $inventario_data = [];
@@ -53,7 +59,7 @@ if ($conn) {
 
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="./assets/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="assets/css/button-responsive.css">
@@ -213,6 +219,9 @@ if ($conn) {
                                 <div><?= htmlspecialchars($company_info['address_line_2']) ?></div>
                                 <div><?= htmlspecialchars($company_info['city_state_zip']) ?></div>
                                 <div><?= htmlspecialchars($company_info['phone_number']) ?></div>
+                                <?php if (!empty($_company_cfg['company_description'])): ?>
+                                <div><em><?= htmlspecialchars($_company_cfg['company_description']) ?></em></div>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-5 col-12 text-md-right text-left">
                                 <h4 class="text-secondary">ORDEN DE MANTTO</h4>
@@ -252,7 +261,7 @@ if ($conn) {
                                         <select class="form-control form-control-sm select2" id="equipo_id_select" name="equipo_id_select" required>
                                             <option value="">Buscar y seleccionar equipo...</option>
                                             <?php while ($row = $equipos_list->fetch_assoc()): ?>
-                                                <option value="<?= $row['id'] ?>" <?= $prefill_equipment_id === (int)$row['id'] ? 'selected' : '' ?>><?= htmlspecialchars($row['name']) ?></option>
+                                                <option value="<?= $row['id'] ?>" <?= $prefill_equipment_id === (int)$row['id'] ? 'selected' : '' ?>><?= htmlspecialchars($row['name']) . (!empty($row['number_inventory']) ? ' #' . htmlspecialchars($row['number_inventory']) : '') ?></option>
                                             <?php endwhile; ?>
                                         </select>
                                     </div>
@@ -409,6 +418,23 @@ if ($conn) {
                             </div>
                         </div>
 
+                        <!-- EVIDENCIA FOTOGRÁFICA -->
+                        <div class="section-header">EVIDENCIA FOTOGRÁFICA</div>
+
+                        <!-- Zona de subida -->
+                        <div id="photo-drop-zone" style="border:2px dashed #6c757d;border-radius:6px;padding:18px;text-align:center;cursor:pointer;background:#fafafa;" class="mb-3">
+                            <i class="fas fa-camera fa-2x text-secondary mb-2"></i>
+                            <p class="mb-1 text-secondary">Arrastra imágenes aquí o haz clic para seleccionar</p>
+                            <small class="text-muted">JPG / PNG — máx. 5 MB por foto — máx. 10 fotos</small>
+                            <input type="file" id="photo-file-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none;">
+                        </div>
+
+                        <!-- Miniaturas -->
+                        <div id="photo-preview-area" class="row" style="gap:0;"></div>
+
+                        <!-- Campo oculto con IDs de adjuntos -->
+                        <input type="hidden" name="report_attachment_ids" id="report_attachment_ids" value="[]">
+
                         <hr class="my-4">
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary btn-lg px-4">
@@ -550,6 +576,106 @@ $(document).ready(function() {
     if ($('#equipo_id_select').val()) {
         loadEquipmentDetails($('#equipo_id_select').val());
     }
+
+    // ===================================================
+    // EVIDENCIA FOTOGRÁFICA – subida AJAX temporal
+    // ===================================================
+    const ATTACH_ENDPOINT = 'public/ajax/report_attachment.php';
+    const MAX_PHOTOS      = 10;
+    let   attachmentIds   = [];
+
+    function syncHiddenField() {
+        $('#report_attachment_ids').val(JSON.stringify(attachmentIds));
+    }
+
+    function addThumbnail(id, filePath) {
+        const baseUrl = '<?= rtrim(BASE_URL, '/') ?>/';
+        const src     = baseUrl + filePath;
+        const card    = $(`
+            <div class="col-6 col-md-3 mb-3 photo-thumb" data-id="${id}">
+                <div style="position:relative;border:1px solid #dee2e6;border-radius:4px;overflow:hidden;height:110px;background:#000;">
+                    <img src="${src}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+                    <button type="button" class="btn-remove-photo" title="Eliminar"
+                        style="position:absolute;top:4px;right:4px;background:rgba(220,53,69,.85);color:#fff;border:none;border-radius:50%;width:24px;height:24px;line-height:24px;font-size:14px;cursor:pointer;padding:0;">
+                        &times;
+                    </button>
+                </div>
+            </div>
+        `);
+        $('#photo-preview-area').append(card);
+    }
+
+    function uploadFile(file) {
+        if (attachmentIds.length >= MAX_PHOTOS) {
+            alert('Límite de ' + MAX_PHOTOS + ' fotos alcanzado.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        $.ajax({
+            url: ATTACH_ENDPOINT + '?action=upload',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    attachmentIds.push(res.id);
+                    syncHiddenField();
+                    addThumbnail(res.id, res.file_path);
+                } else {
+                    alert('Error al subir foto: ' + res.message);
+                }
+            },
+            error: function () {
+                alert('Error de comunicación al subir la foto.');
+            }
+        });
+    }
+
+    // Click en zona → abrir selector
+    $('#photo-drop-zone').on('click', function () {
+        $('#photo-file-input').trigger('click');
+    });
+
+    // Selección via input file
+    $('#photo-file-input').on('change', function () {
+        $.each(this.files, function (i, f) { uploadFile(f); });
+        $(this).val('');   // resetear para permitir re-selección
+    });
+
+    // Drag & Drop
+    $('#photo-drop-zone').on('dragover dragenter', function (e) {
+        e.preventDefault();
+        $(this).css('background', '#e8f4fe');
+    }).on('dragleave dragexit', function () {
+        $(this).css('background', '#fafafa');
+    }).on('drop', function (e) {
+        e.preventDefault();
+        $(this).css('background', '#fafafa');
+        const files = e.originalEvent.dataTransfer.files;
+        $.each(files, function (i, f) { uploadFile(f); });
+    });
+
+    // Eliminar miniatura
+    $(document).on('click', '.btn-remove-photo', function () {
+        const card = $(this).closest('.photo-thumb');
+        const id   = parseInt(card.data('id'));
+
+        $.post(ATTACH_ENDPOINT + '?action=delete', { id: id }, function (res) {
+            if (res.success) {
+                attachmentIds = attachmentIds.filter(function (v) { return v !== id; });
+                syncHiddenField();
+                card.remove();
+            } else {
+                alert('No se pudo eliminar la foto.');
+            }
+        }, 'json').fail(function () {
+            alert('Error de comunicación al eliminar la foto.');
+        });
+    });
 });
 </script>
 

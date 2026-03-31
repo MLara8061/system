@@ -1,12 +1,24 @@
 <?php
 define('ACCESS', true);
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../config/session.php';
+require_once __DIR__ . '/permissions.php';
+require_once __DIR__ . '/company_config_helper.php';
 
 header('Content-Type: text/html; charset=UTF-8');
 
 // Validar sesión (es un PDF interno)
-if (!isset($_SESSION['login_id'])) {
-    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Acceso denegado.</h3>');
+if (!isset($_SESSION['login_id']) || !validate_session()) {
+    http_response_code(401);
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Sesion expirada.</h3>');
+}
+
+$canExport = function_exists('can')
+    ? (can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports'))
+    : true;
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('<h3 style="color:#c0392b;text-align:center;margin-top:40px;">Sin permisos para exportar.</h3>');
 }
 
 // Verificar que la conexión existe
@@ -248,6 +260,14 @@ $updatedAt = !empty($unsubscribe['updated_at']) ? date('d/m/Y H:i', strtotime($u
             border-bottom: 2px solid #2980b9;
             padding-bottom: 6px;
         }
+        .logo-company {
+            margin-bottom: 6px;
+        }
+        .logo-company img {
+            max-height: 48px;
+            max-width: 140px;
+            object-fit: contain;
+        }
         .header .titles h1 {
             font-size: 20px;
             color: #2980b9;
@@ -360,8 +380,26 @@ $updatedAt = !empty($unsubscribe['updated_at']) ? date('d/m/Y H:i', strtotime($u
 </head>
 <body>
     <div class="container">
+<?php
+$_unsub_cfg = get_company_config($conn, $equipmentBranchId);
+$_unsub_logo = get_company_logo_url($conn, $equipmentBranchId);
+?>
         <div class="header">
             <div class="titles">
+<?php if (!empty($_unsub_logo)): ?>
+                <div class="logo-company">
+                    <img src="<?= htmlspecialchars($_unsub_logo) ?>" alt="Logo">
+                </div>
+<?php endif; ?>
+<?php if (!empty($_unsub_cfg['company_name'])): ?>
+                <div style="font-size:11px; line-height:1.3; margin-bottom:6px; color:#555;">
+                    <strong><?= htmlspecialchars($_unsub_cfg['company_name']) ?></strong><br>
+                    <?= htmlspecialchars($_unsub_cfg['address_line_1']) ?>
+                    <?php if (!empty($_unsub_cfg['address_line_2'])): ?><br><?= htmlspecialchars($_unsub_cfg['address_line_2']) ?><?php endif; ?>
+                    <br><?= htmlspecialchars($_unsub_cfg['city_state_zip']) ?>
+                    <?php if (!empty($_unsub_cfg['phone_number'])): ?><br><?= htmlspecialchars($_unsub_cfg['phone_number']) ?><?php endif; ?>
+                </div>
+<?php endif; ?>
                 <h1>Formato de Baja de Equipo</h1>
                 <p>Registro de baja y dictamen técnico</p>
                 <?php if ($dateValue): ?>

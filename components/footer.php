@@ -5,7 +5,7 @@
         <!--begin::Copyright-->
         <strong>
           Copyright &copy; 2026&nbsp;
-          <a href="#" class="text-decoration-none">Amerimed</a>.
+          <a href="https://activoconvalor.com" class="text-decoration-none" target="_blank" rel="noopener">Activoconvalor</a>.
         </strong>
         All rights reserved.
         <!--end::Copyright-->

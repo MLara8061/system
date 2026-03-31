@@ -2,6 +2,19 @@
 define('ACCESS', true);
 require_once 'config/config.php';
 
+if (!isset($_SESSION['login_id'])) {
+    http_response_code(401);
+    die('Sesion expirada');
+}
+
+$canExport = function_exists('can')
+    ? (can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports'))
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
+}
+
 // Silencia errores en la salida y limpia cualquier buffer previo
 if (function_exists('ini_set')) {
     ini_set('display_errors', '0');

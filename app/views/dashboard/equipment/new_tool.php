@@ -1,4 +1,5 @@
 ﻿<?php require_once 'config/config.php'; ?>
+<?php require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php'; ?>
 
 <?php
 $login_type = (int)($_SESSION['login_type'] ?? 0);
@@ -134,6 +135,8 @@ if ($needs_branch_select && isset($conn) && $conn) {
                             </div>
                         </div>
 
+                        <?= CustomFieldRenderer::render('tool', 0) ?>
+
                         <!-- BOTONES -->
                         <div class="text-center btn-container-mobile">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
@@ -225,12 +228,13 @@ if ($needs_branch_select && isset($conn) && $conn) {
             method: 'POST',
             success: function(resp) {
                 end_load();
-                resp = resp.trim();
-                if (resp == 1) {
+                var res = {};
+                try { res = JSON.parse(resp); } catch(e) {}
+                if (res.s === 1) {
                     alert_toast('Herramienta guardada correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=tools_list', 1200);
                 } else {
-                    alert_toast('Error: ' + resp, 'error');
+                    alert_toast('Error: ' + (res.msg || resp), 'error');
                 }
             },
             error: function() {

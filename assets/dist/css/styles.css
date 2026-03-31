@@ -1,3 +1,9 @@
+/* Eliminar hueco blanco entre navbar fijo y contenido */
+.layout-navbar-fixed .wrapper .content-wrapper {
+  margin-top: 0;
+  padding-top: calc(3.5rem + 1px);
+}
+
 .toast{
   display: none;
   min-width: 20vw

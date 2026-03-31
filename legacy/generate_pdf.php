@@ -14,6 +14,7 @@ if (!defined('ACCESS')) define('ACCESS', true);
 
 // Cargar configuración base (incluye sesión hardened + DB)
 require_once ROOT . '/config/config.php';
+require_once ROOT . '/app/helpers/permissions.php';
 
 // Validar sesión
 if (!isset($_SESSION['login_id'])) {
@@ -22,6 +23,17 @@ if (!isset($_SESSION['login_id'])) {
 
 if (!validate_session()) {
     die("Sesión expirada");
+}
+
+$canGenerate = function_exists('can')
+    ? (
+        can('create', 'reports') || can('edit', 'reports') || can('view', 'reports') ||
+        can('export', 'reports') || can('create', 'maintenance_reports') || can('edit', 'maintenance_reports')
+    )
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canGenerate && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para generar reportes');
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -192,7 +204,28 @@ foreach ($parts_used as $part) {
     $stmt->close();
 }
 
+// === VINCULAR ADJUNTOS FOTOGRÁFICOS ===
+$raw_ids = $_POST['report_attachment_ids'] ?? '[]';
+$attachment_ids = json_decode($raw_ids, true);
+if (is_array($attachment_ids) && count($attachment_ids) > 0) {
+    require_once ROOT . '/config/db.php';
+    try {
+        $pdo_gen = get_pdo();
+        // Solo vincular los que aún están sin reporte (previene manipulación)
+        $placeholders = implode(',', array_fill(0, count($attachment_ids), '?'));
+        $upd = $pdo_gen->prepare(
+            "UPDATE report_attachments SET report_id = ?
+              WHERE id IN ($placeholders) AND report_id = 0"
+        );
+        $params = array_merge([$report_id], array_map('intval', $attachment_ids));
+        $upd->execute($params);
+    } catch (Exception $e) {
+        error_log('generate_pdf attachment link error: ' . $e->getMessage());
+    }
+}
+
 // === REDIRIGIR A PDF ===
-header("Location: report_pdf.php?id=" . $report_id);
+$base = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
+header("Location: {$base}/index.php?page=report_pdf&id=" . $report_id);
 exit;
 ?>

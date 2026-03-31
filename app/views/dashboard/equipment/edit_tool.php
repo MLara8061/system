@@ -1,4 +1,5 @@
 <?php require_once 'config/config.php'; ?>
+<?php require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
@@ -132,6 +133,8 @@ if (!$tool) {
                             </div>
                         </div>
 
+                        <?= CustomFieldRenderer::render('tool', (int)$tool['id']) ?>
+
                         <!-- BOTONES -->
                         <div class="text-center btn-container-mobile">
                             <button type="submit" class="btn btn-success btn-lg px-5">
@@ -236,12 +239,13 @@ if (!$tool) {
             method: 'POST',
             success: function(resp) {
                 end_load();
-                resp = resp.trim();
-                if (resp == 1) {
+                var res = {};
+                try { res = JSON.parse(resp); } catch(e) {}
+                if (res.s === 1) {
                     alert_toast('Herramienta actualizada correctamente', 'success');
                     setTimeout(() => location.href = 'index.php?page=tools_list', 1200);
                 } else {
-                    alert_toast('Error: ' + resp, 'error');
+                    alert_toast('Error: ' + (res.msg || resp), 'error');
                 }
             },
             error: function() {

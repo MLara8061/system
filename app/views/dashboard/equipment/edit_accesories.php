@@ -1,4 +1,5 @@
 <?php require_once 'config/config.php'; ?>
+<?php require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php'; ?>
 
 <?php
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -194,6 +195,8 @@ $acc = $qry->fetch_assoc();
                             </div>
                         </div>
 
+                        <?= CustomFieldRenderer::render('accessory', (int)$acc['id']) ?>
+
                         <!-- BOTONES -->
                         <div class="text-center">
                             <button type="submit" class="btn btn-success btn-lg px-5">
@@ -306,12 +309,13 @@ $acc = $qry->fetch_assoc();
                 processData: false,
                 method: 'POST',
                 success: function(resp) {
-                    resp = resp.trim();
-                    if (resp === '1') {
+                    var res = {};
+                    try { res = JSON.parse(resp); } catch(e) {}
+                    if (res.s === 1) {
                         alert_toast('Accesorio actualizado', 'success');
                         setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                     } else {
-                        alert_toast('Error: ' + resp, 'error');
+                        alert_toast('Error: ' + (res.msg || resp), 'error');
                     }
                     end_load();
                 },

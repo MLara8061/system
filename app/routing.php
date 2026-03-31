@@ -51,6 +51,7 @@ $ROUTE_MAP = [
     'ticket_list' => 'app/views/dashboard/tickets/list.php',
     'new_ticket' => 'app/views/dashboard/tickets/new.php',
     'edit_ticket' => 'app/views/dashboard/tickets/edit.php',
+    'tickets_report' => 'app/views/dashboard/reports/tickets_report.php',
     'view_ticket' => 'app/views/pages/view_ticket.php',
     
     // Herramientas
@@ -87,6 +88,9 @@ $ROUTE_MAP = [
     'permissions' => 'app/views/dashboard/permissions.php',
     'role_permissions' => 'app/views/dashboard/permissions.php',
 
+    // Configuración de Empresa (datos de membrete y folios)
+    'company_config' => 'app/views/dashboard/settings/company_config.php',
+
     // Tipos de Adquisición (catálogo para prefijo de inventario)
     'acquisition_types' => 'app/views/dashboard/settings/acquisition_types.php',
 
@@ -96,8 +100,11 @@ $ROUTE_MAP = [
     
     // Reportes
     'report_form' => 'app/views/dashboard/reports/form.php',
+    'sprint5_reports' => 'app/views/dashboard/reports/sprint5_reports.php',
+    'report_pdf' => 'legacy/report_pdf.php',
     'generate_pdf' => 'app/helpers/generate_pdf.php',
     'equipment_report_pdf' => 'app/helpers/equipment_report_pdf.php',
+    'fase2_cierre_pdf' => 'app/helpers/fase2_cierre_pdf.php',
     'upload_equipment' => 'app/views/dashboard/equipment/upload.php',
     'download_template' => 'app/helpers/download_template.php',
     'generate_excel_template' => 'app/helpers/generate_excel_template.php',
@@ -117,6 +124,21 @@ $ROUTE_MAP = [
     'insumos_list' => 'legacy/inventory_list.php',
     'view_inventory' => 'app/views/pages/view_inventory.php',
     'descargar_manual' => 'app/views/dashboard/descargar_manual.php',
+
+    // Auditoría
+    'audit_logs' => 'app/views/dashboard/settings/audit_logs.php',
+
+    // Periodos de mantenimiento
+    'maintenance_periods' => 'app/views/dashboard/settings/maintenance_periods.php',
+
+    // Campos personalizados
+    'custom_fields' => 'app/views/dashboard/settings/custom_fields.php',
+
+    // Sustancias peligrosas (E5.2)
+    'hazardous_materials' => 'app/views/dashboard/settings/hazardous_materials.php',
+
+    // Exportación calendario de mantenimiento
+    'export_maintenance_calendar' => 'app/helpers/export_maintenance_calendar.php',
 ];
 
 /**

@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . '/DataStore.php';
 
 class Supplier extends DataStore {
     public function __construct() {
-        parent::__construct('suppliers');
+        parent::__construct('suppliers', 'supplier');
     }
     
     public function save($data) {

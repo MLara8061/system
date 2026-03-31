@@ -241,9 +241,7 @@ $(document).ready(function() {
 
     // === BOTÓN GUARDAR (SUBMIT EXPLÍCITO) ===
     $(document).on('click', '#btn-save', function() {
-        console.log('Botón guardar clickeado');
         const $form = $('#manage-user-form');
-        console.log('Formulario encontrado:', $form.length);
         
         if ($form.length === 0) {
             alert_toast("Error: Formulario no encontrado", 'error');
@@ -259,8 +257,6 @@ $(document).ready(function() {
 
         // Obtener datos del formulario
         const formData = new FormData($form[0]);
-        console.log('Enviando formulario con datos:', Object.fromEntries(formData));
-
         start_load();
         $.ajax({
             url: 'public/ajax/action.php?action=save_user',
@@ -268,8 +264,6 @@ $(document).ready(function() {
             data: $form.serialize(),
             success: function(resp) {
                 end_load();
-                console.log('Respuesta del servidor:', resp);
-                
                 if (resp == 1) {
                     alert_toast("Usuario guardado", 'success');
                     setTimeout(() => {

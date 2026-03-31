@@ -192,8 +192,6 @@ $('#upload-excel-form').submit(function(e) {
         processData: false,
         contentType: false,
         success: function(resp) {
-            console.log('Respuesta del servidor:', resp);
-            
             try {
                 var data = JSON.parse(resp);
                 

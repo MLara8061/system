@@ -1,5 +1,6 @@
 ﻿<?php 
 require_once 'config/config.php'; 
+require_once ROOT_PATH . 'app/helpers/CustomFieldRenderer.php';
 ?>
 
 <?php
@@ -212,6 +213,8 @@ try {
                             </div>
                         </div>
 
+                        <?= CustomFieldRenderer::render('accessory', 0) ?>
+
                         <!-- BOTONES -->
                         <div class="text-center btn-container-mobile">
                             <button type="submit" class="btn btn-primary btn-lg px-5" id="btn-save-accessory">
@@ -296,13 +299,13 @@ try {
                 processData: false,
                 method: 'POST',
                 success: function(resp) {
-                    resp = String(resp).trim();
-                    
-                    if (resp == '1') {
+                    var res = {};
+                    try { res = JSON.parse(resp); } catch(e) {}
+                    if (res.s === 1) {
                         alert_toast('Accesorio guardado correctamente', 'success');
                         setTimeout(() => location.href = 'index.php?page=accessories_list', 1500);
                     } else {
-                        alert_toast('Error al guardar: ' + resp, 'error');
+                        alert_toast('Error al guardar: ' + (res.msg || resp), 'error');
                     }
                 },
                 error: function(xhr, status, error){

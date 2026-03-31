@@ -1,6 +1,23 @@
 <?php
-define('ACCESS', true);
-require_once __DIR__ . '/../../config/config.php';
+if (!defined('ROOT')) define('ROOT', realpath(__DIR__ . '/../..'));
+if (!defined('ACCESS')) define('ACCESS', true);
+
+require_once ROOT . '/config/session.php';
+require_once ROOT . '/config/config.php';
+require_once ROOT . '/app/helpers/permissions.php';
+
+if (!isset($_SESSION['login_id']) || !validate_session()) {
+    http_response_code(401);
+    die('Sesion expirada');
+}
+
+$canExport = function_exists('can')
+    ? (can('export', 'suppliers') || can('export', 'provider') || can('export', 'reports'))
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
+}
 
 // Silencia errores en la salida y limpia cualquier buffer previo
 if (function_exists('ini_set')) {

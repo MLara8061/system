@@ -44,7 +44,7 @@
 			url:"public/ajax/action.php?action=load_service_category",
 			dataType: "json",
 			error: err=>{
-				console.log(err)
+				console.error(err)
 				alert_toast("Ha ocurrido un error",'error');
 				end_loader();
 			},
@@ -105,7 +105,7 @@
 			data:{id:$id},
 			dataType:'json',
 			error:err=>{
-				console.log(err);
+				console.error(err);
 				alert_toast("Ha ocurrido un error","error");
 				end_loader();
 			},

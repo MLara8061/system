@@ -11,6 +11,7 @@ if (!defined('ALLOW_DIRECT_ACCESS')) {
     }
     require_once ROOT . '/config/config.php';
     require_once ROOT . '/config/session.php';
+    require_once ROOT . '/app/helpers/permissions.php';
     if (!isset($_SESSION['login_id'])) {
         header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
         exit;
@@ -18,6 +19,13 @@ if (!defined('ALLOW_DIRECT_ACCESS')) {
     if (!validate_session()) {
         header('Location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/logout.php?timeout=1');
         exit;
+    }
+    $canExport = function_exists('can')
+        ? (can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports'))
+        : ((int)($_SESSION['login_type'] ?? 0) === 1);
+    if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+        http_response_code(403);
+        die('Sin permisos para exportar');
     }
 }
 

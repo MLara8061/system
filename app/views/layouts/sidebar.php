@@ -118,6 +118,17 @@
             <li class="nav-item"><a href="index.php?page=insumos_list" class="nav-link nav-insumos_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos</p>
               </a></li>
+            <?php
+              $can_hazardous = ((int)($_SESSION['login_type'] ?? 0) === 1);
+              if (!$can_hazardous && function_exists('can')) {
+                $can_hazardous = can('view', 'hazardous_materials');
+              }
+            ?>
+            <?php if ($can_hazardous): ?>
+            <li class="nav-item"><a href="index.php?page=hazardous_materials" class="nav-link nav-hazardous_materials tree-item"><i class="fas fa-exclamation-triangle nav-icon text-danger"></i>
+                <p>Sustancias Peligrosas</p>
+              </a></li>
+            <?php endif; ?>
           </ul>
         </li>
 
@@ -140,6 +151,9 @@
             <li class="nav-item"><a href="index.php?page=ticket_list" class="nav-link nav-ticket_list tree-item"><i class="fas fa-angle-right nav-icon"></i>
                 <p>Todos los Tickets</p>
               </a></li>
+            <li class="nav-item"><a href="index.php?page=tickets_report" class="nav-link nav-tickets_report tree-item"><i class="fas fa-angle-right nav-icon"></i>
+                <p>Reporte de Tickets</p>
+              </a></li>
           </ul>
         </li>
         
@@ -147,6 +161,13 @@
           <a href="index.php?page=report_form" class="nav-link nav-reporte_form">
             <i class="fas fa-file-invoice nav-icon"></i>
             <p>Generar Reportes</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="index.php?page=sprint5_reports" class="nav-link nav-sprint5_reports">
+            <i class="fas fa-chart-line nav-icon"></i>
+            <p>Analítica Sprint 5</p>
           </a>
         </li>
         
@@ -158,6 +179,12 @@
         </li>
 
         <?php if ($_SESSION['login_type'] == 1): ?>
+          <li class="nav-item">
+            <a href="index.php?page=audit_logs" class="nav-link nav-audit_logs">
+              <i class="fas fa-shield-alt nav-icon"></i>
+              <p>Auditoria del Sistema</p>
+            </a>
+          </li>
           <li class="nav-item">
             <a href="index.php?page=activity_log" class="nav-link nav-activity_log">
               <i class="fas fa-history nav-icon"></i>
@@ -189,6 +216,13 @@
             </li>
 
             <li class="nav-item">
+              <a href="index.php?page=company_config" class="nav-link nav-company_config tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Datos de Empresa</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a href="index.php?page=acquisition_types" class="nav-link nav-acquisition_types tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Tipo de Adquisición</p>
@@ -199,6 +233,20 @@
               <a href="index.php?page=equipment_categories" class="nav-link nav-equipment_categories tree-item">
                 <i class="fas fa-angle-right nav-icon"></i>
                 <p>Categorías</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="index.php?page=maintenance_periods" class="nav-link nav-maintenance_periods tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Periodos de Mantenimiento</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="index.php?page=custom_fields" class="nav-link nav-custom_fields tree-item">
+                <i class="fas fa-angle-right nav-icon"></i>
+                <p>Campos Personalizados</p>
               </a>
             </li>
 

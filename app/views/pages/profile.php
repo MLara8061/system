@@ -125,7 +125,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
 </div>
 
 <!-- CROP CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<link rel="stylesheet" href="assets/plugins/cropperjs/css/cropper.min.css">
 <style>
     /* === AVATAR CONTAINER === */
     .avatar-container {
@@ -253,7 +253,7 @@ $avatar_path = !empty($user['avatar']) ? 'assets/avatars/'.$user['avatar'] : 'as
     }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script src="assets/plugins/cropperjs/js/cropper.min.js"></script>
 
 <script>
 $(document).ready(function() {

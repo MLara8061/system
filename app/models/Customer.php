@@ -15,7 +15,7 @@ class Customer extends DataStore {
      * Constructor - Inicializar con tabla 'customers'
      */
     public function __construct() {
-        parent::__construct('customers');
+        parent::__construct('customers', 'customer');
     }
     
     /**

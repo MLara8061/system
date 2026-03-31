@@ -34,6 +34,15 @@ if ($is_edit) {
             <input type="text" name="lastname" id="lastname" class="form-control" value="<?= $user['lastname'] ?? '' ?>" required>
         </div>
 
+        <!-- CORREO ELECTRONICO -->
+        <div class="form-group">
+            <label for="email"><strong>Correo Electronico</strong></label>
+            <input type="email" name="email" id="email" class="form-control" 
+                   value="<?= htmlspecialchars($user['email'] ?? '') ?>" 
+                   placeholder="usuario@ejemplo.com">
+            <small class="text-muted">Requerido para recibir notificaciones por correo</small>
+        </div>
+
         <!-- USUARIO CON VALIDACIÓN -->
         <div class="form-group">
             <label for="username"><strong>Usuario</strong></label>
@@ -162,6 +171,9 @@ $(document).ready(function() {
                     end_load();
                 } else if (resp == 4) {
                     alert_toast("La contraseña es requerida", 'error');
+                    end_load();
+                } else if (resp == 5) {
+                    alert_toast("El correo electronico no es valido", 'error');
                     end_load();
                 } else {
                     alert_toast("Error: " + resp, 'error');

@@ -5,6 +5,22 @@ if (!defined('ROOT')) {
 if (!defined('ACCESS')) define('ACCESS', true);
 
 require_once ROOT . '/config/config.php';
+require_once ROOT . '/config/session.php';
+require_once ROOT . '/app/helpers/permissions.php';
+require_once ROOT . '/app/helpers/company_config_helper.php';
+
+if (!isset($_SESSION['login_id']) || !validate_session()) {
+    http_response_code(401);
+    die('Sesion expirada');
+}
+
+$canExport = function_exists('can')
+    ? (can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports'))
+    : true;
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
+}
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');
@@ -99,6 +115,10 @@ if (!empty($equipment['image'])) {
 
 date_default_timezone_set('America/Mexico_City');
 $generatedAt = date('d/m/Y H:i');
+
+$equipmentBranchId = (int)($equipment['branch_id'] ?? 0);
+$companyCfg = get_company_config($conn, $equipmentBranchId);
+$companyLogoUrl = get_company_logo_url($conn, $equipmentBranchId);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -135,6 +155,21 @@ $generatedAt = date('d/m/Y H:i');
             border-bottom: 2px solid #0d6efd;
             padding-bottom: 8px;
             margin-bottom: 12px;
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-brand img {
+            max-height: 44px;
+            max-width: 120px;
+            object-fit: contain;
+        }
+        .header-brand .company {
+            font-size: 10px;
+            color: #555;
+            line-height: 1.2;
         }
         .header h1 {
             font-size: 18px;
@@ -217,6 +252,18 @@ $generatedAt = date('d/m/Y H:i');
 <div class="wrapper">
     <div class="header">
         <div>
+            <div class="header-brand">
+                <?php if (!empty($companyLogoUrl)): ?>
+                    <img src="<?= htmlspecialchars($companyLogoUrl) ?>" alt="Logo">
+                <?php endif; ?>
+                <?php if (!empty($companyCfg['company_name'])): ?>
+                    <div class="company">
+                        <strong><?= htmlspecialchars($companyCfg['company_name']) ?></strong>
+                        <?php if (!empty($companyCfg['city_state_zip'])): ?><br><?= htmlspecialchars($companyCfg['city_state_zip']) ?><?php endif; ?>
+                        <?php if (!empty($companyCfg['phone_number'])): ?><br><?= htmlspecialchars($companyCfg['phone_number']) ?><?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
             <h1>Ficha Técnica del Equipo</h1>
             <div class="text-muted">Inventario #<?= htmlspecialchars($equipment['number_inventory'] ?? '—') ?></div>
         </div>

@@ -53,7 +53,7 @@
 			url:"public/ajax/action.php?action=load_service",
 			dataType: "json",
 			error: err=>{
-				console.log(err)
+				console.error(err)
 				alert_toast("A ocurrido un error",'error');
 				end_loader();
 			},
@@ -120,7 +120,7 @@
 			data:{id:$id},
 			dataType:'json',
 			error:err=>{
-				console.log(err);
+				console.error(err);
 				alert_toast("A ocurrido un error","error");
 				end_loader();
 			},
@@ -135,7 +135,6 @@
 		})
 	}
 	$(document).ready(function(){
-		console.log('service_list.php loaded - version: 2024-12-16-v2');
 		load_data()
 		$('#new_data').click(function(){
 			uni_modal('<span class="fa fa-plus"></span> Crear Nuevo Servicio','modals/manage_service.php')

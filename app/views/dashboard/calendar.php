@@ -118,7 +118,34 @@ try {
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Calendario</h4>
-                    <div class="ml-auto">
+                    <div class="ml-auto d-flex align-items-center" style="gap:6px;">
+                        <!-- Exportar -->
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-download mr-1"></i> Exportar
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" id="export-dropdown">
+                                <h6 class="dropdown-header">Seleccionar rango</h6>
+                                <div class="px-3 py-2" style="min-width:260px;">
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-1">Desde</label>
+                                        <input type="date" id="export-from" class="form-control form-control-sm" value="<?= date('Y-m-01') ?>">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="small mb-1">Hasta</label>
+                                        <input type="date" id="export-to" class="form-control form-control-sm" value="<?= date('Y-m-t') ?>">
+                                    </div>
+                                    <div class="d-flex" style="gap:6px;">
+                                        <a href="#" id="btn-export-excel" class="btn btn-success btn-sm btn-block flex-fill">
+                                            <i class="fas fa-file-excel mr-1"></i> Excel
+                                        </a>
+                                        <a href="#" id="btn-export-pdf" class="btn btn-danger btn-sm btn-block flex-fill" target="_blank">
+                                            <i class="fas fa-file-pdf mr-1"></i> PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <button class="btn btn-success btn-sm" id="btn-new">
                             <i class="fas fa-plus"></i> Nuevo
                         </button>
@@ -274,11 +301,13 @@ try {
                             <option value="">Seleccionar equipo</option>
                             <?php
                             $equip_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id', 'e') : '';
-                            $eqs = $conn->query("SELECT id, name FROM equipments e {$equip_where} ORDER BY name ASC");
+                            $eqs = $conn->query("SELECT id, name, number_inventory FROM equipments e {$equip_where} ORDER BY name ASC");
                             while ($r = $eqs->fetch_assoc()):
+                                $display = htmlspecialchars($r['name']);
+                                if (!empty($r['number_inventory'])) $display .= ' #' . htmlspecialchars($r['number_inventory']);
                             ?>
                                 <option value="<?php echo $r['id']; ?>">
-                                    <?php echo htmlspecialchars($r['name']); ?>
+                                    <?php echo $display; ?>
                                 </option>
                             <?php endwhile; ?>
                         </select>
@@ -361,5 +390,33 @@ try {
         if (calendarEl && calendarEl._fullCalendar) {
             calendarEl._fullCalendar.destroy();
         }
+    });
+
+    // === EXPORTAR CALENDARIO ===
+    function buildExportUrl(format) {
+        var from = $('#export-from').val();
+        var to   = $('#export-to').val();
+        if (!from || !to) { alert('Selecciona el rango de fechas'); return null; }
+        if (from > to)    { alert('La fecha de inicio debe ser anterior a la de fin'); return null; }
+        return 'index.php?page=export_maintenance_calendar&format=' + format + '&from=' + from + '&to=' + to;
+    }
+
+    $('#btn-export-excel').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var url = buildExportUrl('excel');
+        if (url) window.location.href = url;
+    });
+
+    $('#btn-export-pdf').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var url = buildExportUrl('pdf');
+        if (url) window.open(url, '_blank');
+    });
+
+    // Evitar que el dropdown se cierre al interactuar con los inputs
+    $('#export-dropdown').on('click', function(e) {
+        e.stopPropagation();
     });
 </script>

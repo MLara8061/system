@@ -75,12 +75,12 @@ $noLayoutPages = [
     'equipment_report_pdf',
     'equipment_report_sistem_pdf',
     'equipment_unsubscribe_pdf',
-    'equipment_unsubscribe_report',
     'export_equipment',
     'export_suppliers',
     'manual_usuario_pdf',
     'report_pdf',
-    'generate_qr'
+    'generate_qr',
+    'export_maintenance_calendar',
 ];
 
 $page = $_GET['page'] ?? 'home';
@@ -110,17 +110,11 @@ include ROOT . '/app/views/layouts/header.php';
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-      <div class="toast" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true" style="display:none">
         <div class="toast-body text-white">
         </div>
       </div>
       <div id="toastsContainerTopRight" class="toasts-top-right fixed"></div>
-      <!-- Content Header (Page header) -->
-      <div class="content-header">
-       
-      </div>
-      <!-- /.content-header -->
-
       <!-- Main content -->
       <section class="content">
         <div class="container-fluid">
@@ -219,7 +213,7 @@ include ROOT . '/app/views/layouts/header.php';
 
     <!-- Main Footer -->
     <footer class="main-footer">
-      <strong>Copyright © 2026 All rights reserved <a href="#">Amerimed</a></strong>
+      <strong>Copyright © 2026 All rights reserved <a href="https://activoconvalor.com" target="_blank" rel="noopener">Activoconvalor</a></strong>
       <div class="float-right d-none d-sm-inline-block">
         <b>Powered by Arla</b>
       </div>

@@ -176,7 +176,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
     .dropdown-menu { min-width: 160px; }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/lib/qrcode.min.js"></script>
+<script src="assets/plugins/qrcodejs/qrcode.min.js"></script>
 
 <script>
 $(document).ready(function() {

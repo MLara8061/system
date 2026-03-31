@@ -7,9 +7,18 @@
 require_once __DIR__ . '/../../config/config.php';
 
 require_once __DIR__ . '/../../config/session.php';
+require_once __DIR__ . '/permissions.php';
 if (!validate_session()) {
     header('location: ' . rtrim(BASE_URL, '/') . '/app/views/auth/login.php');
     exit();
+}
+
+$canViewManual = function_exists('can')
+    ? (can('view', 'reports') || can('export', 'reports'))
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canViewManual && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para ver el manual');
 }
 
 // Configuración de encoding
@@ -603,7 +612,7 @@ $manual = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
     <?php if (isset($_GET['download']) && $_GET['download'] == '1'): ?>
     <script>
         window.onload = function() {
@@ -963,7 +972,7 @@ $manual = [
             <p>Sistema Integral de Gestión de Activos</p>
             <div class="version">
                 <p>Versión <?= htmlspecialchars($version) ?> | <?= htmlspecialchars($date) ?></p>
-                <p>© 2025 Amerimed Hospital | Powered by Arla</p>
+                <p>© 2025 Activoconvalor | Powered by Arla</p>
             </div>
         </div>
         
@@ -1277,7 +1286,7 @@ $manual = [
         <div class="footer">
             <p><strong><?= htmlspecialchars($title) ?></strong></p>
             <p>Versión <?= htmlspecialchars($version) ?> | <?= htmlspecialchars($date) ?></p>
-            <p>© 2025 Amerimed Hospital | Todos los derechos reservados | Powered by Arla</p>
+            <p>© 2025 Activoconvalor | Todos los derechos reservados | Powered by Arla</p>
             <p style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
                 Este documento es confidencial y está destinado únicamente para el personal autorizado de la organización.
             </p>

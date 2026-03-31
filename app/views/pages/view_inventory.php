@@ -140,6 +140,51 @@ $row = $qry->fetch_assoc();
                         ?>
                     </div>
                 </div>
+
+                <!-- SUSTANCIA PELIGROSA -->
+                <div class="card border-warning mt-3 mb-0">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="font-weight-bold">
+                            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>Sustancia Peligrosa
+                        </span>
+                        <div class="custom-control custom-switch mb-0">
+                            <input type="hidden" name="is_hazardous" value="0">
+                            <input type="checkbox" class="custom-control-input" id="edit_is_hazardous" name="is_hazardous" value="1"
+                                   <?= !empty($row['is_hazardous']) ? 'checked' : '' ?>>
+                            <label class="custom-control-label" for="edit_is_hazardous"></label>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0" id="edit-hazard-details"
+                         style="display:<?= !empty($row['is_hazardous']) ? 'block' : 'none' ?>;">
+                        <div class="form-group mb-2">
+                            <label><strong>Clase de Peligro</strong></label>
+                            <select name="hazard_class" class="form-control form-control-sm">
+                                <option value="">Seleccionar...</option>
+                                <?php
+                                $hazardClasses = ['inflamable' => 'Inflamable', 'corrosivo' => 'Corrosivo', 'toxico' => 'Tóxico',
+                                                  'oxidante' => 'Oxidante', 'explosivo' => 'Explosivo', 'irritante' => 'Irritante', 'otro' => 'Otro'];
+                                foreach ($hazardClasses as $val => $label):
+                                ?>
+                                    <option value="<?= $val ?>" <?= ($row['hazard_class'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php if (!empty($row['safety_data_sheet'])): ?>
+                        <div class="mb-2">
+                            <a href="<?= htmlspecialchars(rtrim(BASE_URL, '/') . '/' . $row['safety_data_sheet']) ?>"
+                               target="_blank" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-file-alt mr-1"></i> Ver Hoja de Seguridad
+                            </a>
+                        </div>
+                        <?php endif; ?>
+                        <div class="form-group mb-0">
+                            <label><strong>Reemplazar Hoja de Seguridad</strong></label>
+                            <input type="file" name="safety_data_sheet" class="form-control form-control-sm"
+                                   accept=".pdf,image/jpeg,image/png,image/jpg">
+                            <small class="text-muted">Máx. 10 MB. PDF, JPG, PNG</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
@@ -339,6 +384,17 @@ $row = $qry->fetch_assoc();
                 end_load();
             }
         });
+    });
+
+    // Toggle sección sustancia peligrosa
+    $('#edit_is_hazardous').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#edit-hazard-details').slideDown(200);
+        } else {
+            $('#edit-hazard-details').slideUp(200);
+            $('select[name="hazard_class"]').val('');
+            $('input[name="safety_data_sheet"]').val('');
+        }
     });
 });
 </script>

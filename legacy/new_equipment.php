@@ -416,7 +416,7 @@ try {
                     error: function(xhr){
                         var msg = 'Error al cargar ubicaciones';
                         try { if (xhr && xhr.responseText) msg += ': ' + String(xhr.responseText).trim(); } catch (e) {}
-                        console.log(xhr);
+                        console.error(xhr);
                         alert_toast(msg,'error');
                         $locationSelect.empty().append('<option value="">Error al cargar ubicaciones</option>');
                         $locationSelect.prop('disabled', true).trigger('change.select2');
@@ -458,7 +458,7 @@ try {
                     error: function(xhr){
                         var msg = 'Error al cargar cargos';
                         try { if (xhr && xhr.responseText) msg += ': ' + String(xhr.responseText).trim(); } catch (e) {}
-                        console.log(xhr);
+                        console.error(xhr);
                         alert_toast(msg,'error');
                         $responsiblePosition.empty().append('<option value="">Error al cargar cargos</option>');
                         $responsiblePosition.prop('disabled', true).trigger('change.select2');

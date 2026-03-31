@@ -82,15 +82,20 @@ if ($branch_name === '' && $active_bid > 0) {
       </a>
     </li>
 
-    <!-- Notifications (placeholder) -->
-    <li class="nav-item dropdown">
+    <!-- Notifications (E2.2 - dinámicas) -->
+    <li class="nav-item dropdown" id="notification-dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="far fa-bell"></i>
+        <span class="badge badge-warning navbar-badge" id="notif-count" style="display:none">0</span>
       </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">Notificaciones</span>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="max-height:400px;overflow-y:auto;">
+        <span class="dropdown-item dropdown-header" id="notif-header">Notificaciones</span>
         <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item dropdown-footer">Ver todas</a>
+        <div id="notif-list">
+          <div class="dropdown-item text-center text-muted small py-3">Sin notificaciones</div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a href="javascript:void(0)" class="dropdown-item dropdown-footer" id="notif-mark-all">Marcar todas como leídas</a>
       </div>
     </li>
 
@@ -151,25 +156,7 @@ if ($branch_name === '' && $active_bid > 0) {
   .user-menu .nav-link:hover { background-color: rgba(0,0,0,.05); border-radius: 8px; }
 </style>
 
-<script>
-  // Dejar que AdminLTE maneje el pushmenu nativamente
-  $(function(){
-    // Solo logs para depuración (opcional, puedes eliminar después)
-    const log = (...args) => { if (window.console) console.log('[Sidebar]', ...args); };
-    
-    // Observer para depurar cambios en clases del body
-    try {
-      const obs = new MutationObserver((muts) => {
-        muts.forEach(m => {
-          if (m.attributeName === 'class') {
-            log('body class changed ->', document.body.className);
-          }
-        });
-      });
-      obs.observe(document.body, { attributes: true });
-    } catch(_) {}
-  });
-</script>
+
 
 <?php if ($is_admin): ?>
 <script>
@@ -206,4 +193,76 @@ if ($branch_name === '' && $active_bid > 0) {
   });
 </script>
 <?php endif; ?>
+
+<!-- E2.2: Notificaciones in-app -->
+<script>
+$(function() {
+  function loadNotifications() {
+    $.getJSON('public/ajax/action.php?action=get_notifications', function(resp) {
+      if (!resp || resp.status !== 1) return;
+      var count = resp.count || 0;
+      var $badge = $('#notif-count');
+      var $list = $('#notif-list');
+      var $header = $('#notif-header');
+
+      if (count > 0) {
+        $badge.text(count).show();
+        $header.text(count + ' Notificaciones');
+      } else {
+        $badge.hide();
+        $header.text('Notificaciones');
+      }
+
+      $list.empty();
+      if (!resp.notifications || resp.notifications.length === 0) {
+        $list.html('<div class="dropdown-item text-center text-muted small py-3">Sin notificaciones</div>');
+        return;
+      }
+
+      resp.notifications.forEach(function(n) {
+        var icon = 'fas fa-bell';
+        var iconColor = 'text-primary';
+        if (n.type === 'ticket_status') { icon = 'fas fa-exchange-alt'; iconColor = 'text-info'; }
+        else if (n.type === 'ticket_comment') { icon = 'fas fa-comment'; iconColor = 'text-success'; }
+
+        var ago = timeAgo(n.created_at);
+        var html = '<a href="' + (n.link || '#') + '" class="dropdown-item notif-item" data-id="' + n.id + '">';
+        html += '<i class="' + icon + ' ' + iconColor + ' mr-2"></i> ';
+        html += '<span class="small">' + (n.message || n.title) + '</span>';
+        html += '<br><span class="text-muted" style="font-size:0.7rem;margin-left:1.5rem"><i class="far fa-clock mr-1"></i>' + ago + '</span>';
+        html += '</a><div class="dropdown-divider"></div>';
+        $list.append(html);
+      });
+    });
+  }
+
+  // Marcar individual al hacer clic
+  $(document).on('click', '.notif-item', function() {
+    var nid = $(this).data('id');
+    if (nid) $.post('public/ajax/action.php?action=mark_notification_read', { id: nid });
+  });
+
+  // Marcar todas
+  $('#notif-mark-all').on('click', function(e) {
+    e.preventDefault();
+    $.post('public/ajax/action.php?action=mark_all_notifications_read', function() {
+      loadNotifications();
+    });
+  });
+
+  function timeAgo(dateStr) {
+    var now = new Date();
+    var date = new Date(dateStr.replace(' ', 'T'));
+    var diff = Math.floor((now - date) / 1000);
+    if (diff < 60) return 'Hace un momento';
+    if (diff < 3600) return 'Hace ' + Math.floor(diff/60) + ' min';
+    if (diff < 86400) return 'Hace ' + Math.floor(diff/3600) + ' h';
+    return 'Hace ' + Math.floor(diff/86400) + ' d';
+  }
+
+  // Cargar al iniciar y cada 30s
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
+});
+</script>
 

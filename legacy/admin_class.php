@@ -13,6 +13,7 @@ if (!defined('APP_DEBUG')) {
 class Action {
     private $db; // mysqli legacy
     private $pdo; // PDO nuevo
+    public int $lastInsertId = 0; // Expuesto para que action.php devuelva el ID al cliente
 
     public function __construct() {
         // No iniciar buffer aquí, ya que ajax.php lo maneja
@@ -22,6 +23,46 @@ class Action {
         // Nueva conexión segura con PDO
         require_once __DIR__ . '/../config/db.php';
         $this->pdo = isset($pdo) ? $pdo : null;
+        // Cargar AuditLogger
+        $auditPath = __DIR__ . '/../app/helpers/AuditLogger.php';
+        if (file_exists($auditPath)) {
+            require_once $auditPath;
+        }
+        // Cargar NotificationService
+        $notifPath = __DIR__ . '/../app/helpers/NotificationService.php';
+        if (file_exists($notifPath)) {
+            require_once $notifPath;
+        }
+    }
+
+    /**
+     * Registrar accion de auditoria (wrapper seguro)
+     */
+    private function audit($module, $action, $table, $recordId = null, $oldValues = null, $newValues = null) {
+        try {
+            if (class_exists('AuditLogger')) {
+                AuditLogger::log($module, $action, $table, $recordId, $oldValues, $newValues);
+            }
+        } catch (\Throwable $e) {
+            error_log('AUDIT ERROR: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener datos de un registro antes de modificarlo (para auditoria)
+     */
+    private function getOldRecord($table, $id, $idCol = 'id') {
+        try {
+            if ($this->pdo) {
+                $stmt = $this->pdo->prepare("SELECT * FROM {$table} WHERE {$idCol} = ? LIMIT 1");
+                $stmt->execute([(int)$id]);
+                return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            } elseif ($this->db) {
+                $r = $this->db->query("SELECT * FROM `{$table}` WHERE `{$idCol}` = " . (int)$id . " LIMIT 1");
+                return ($r && $r->num_rows > 0) ? $r->fetch_assoc() : null;
+            }
+        } catch (\Throwable $e) { }
+        return null;
     }
 
     function __destruct() {
@@ -90,6 +131,7 @@ class Action {
                 // Log activity solo si login_id existe
                 if (isset($_SESSION['login_id'])) {
                     $this->log_activity("Inició sesión", 'users', $_SESSION['login_id']);
+                    $this->audit('users', 'login', 'users', $_SESSION['login_id'], null, ['username' => $username]);
                 }
                 
                 return 1;
@@ -104,6 +146,8 @@ class Action {
     }
 
     function logout() {
+        // Auditar antes de destruir sesion
+        $this->audit('users', 'logout', 'users', $_SESSION['login_id'] ?? 0, null, ['username' => $_SESSION['login_username'] ?? '']);
         // Limpiar variables de sesión
         $_SESSION = array();
         
@@ -181,19 +225,26 @@ class Action {
         }
 
         // Construir SQL con PDO
+        // Email opcional pero validado si se proporciona
+        $email = isset($email) && trim($email) !== '' ? trim($email) : null;
+        if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return 5; // Email invalido
+        }
+
         if ($id == 0) {
             if (empty($password)) {
                 error_log("Contraseña requerida para nuevo usuario");
                 return 4;
             }
-            $sql = 'INSERT INTO users (firstname, middlename, lastname, username, role, role_id, department_id, can_view_all_departments, password, date_created) 
-                    VALUES (:firstname, :middlename, :lastname, :username, :role, :role_id, :department_id, :can_view_all_departments, :password, NOW())';
+            $sql = 'INSERT INTO users (firstname, middlename, lastname, username, email, role, role_id, department_id, can_view_all_departments, password, date_created) 
+                    VALUES (:firstname, :middlename, :lastname, :username, :email, :role, :role_id, :department_id, :can_view_all_departments, :password, NOW())';
             $params = [
                 ':firstname' => $firstname,
                 ':middlename' => $middlename ?? '',
                 ':lastname' => $lastname,
                 ':username' => $username,
-                ':role' => $role_id, // Mantener compatibilidad con campo legacy 'role'
+                ':email' => $email,
+                ':role' => $role_id,
                 ':role_id' => $role_id,
                 ':department_id' => $department_id,
                 ':can_view_all_departments' => $can_view_all_departments,
@@ -201,7 +252,7 @@ class Action {
             ];
         } else {
             $base = 'UPDATE users SET firstname = :firstname, middlename = :middlename, lastname = :lastname, 
-                     username = :username, role = :role, role_id = :role_id, department_id = :department_id, can_view_all_departments = :can_view_all_departments';
+                     username = :username, email = :email, role = :role, role_id = :role_id, department_id = :department_id, can_view_all_departments = :can_view_all_departments';
             if (!empty($password)) {
                 $base .= ', password = :password';
             }
@@ -211,7 +262,8 @@ class Action {
                 ':middlename' => $middlename ?? '',
                 ':lastname' => $lastname,
                 ':username' => $username,
-                ':role' => $role_id, // Mantener compatibilidad
+                ':email' => $email,
+                ':role' => $role_id,
                 ':role_id' => $role_id,
                 ':department_id' => $department_id,
                 ':can_view_all_departments' => $can_view_all_departments,
@@ -221,6 +273,9 @@ class Action {
                 $params[':password'] = password_hash($password, PASSWORD_DEFAULT);
             }
         }
+
+        // Capturar datos anteriores para auditoría antes de ejecutar el UPDATE
+        $oldUserData = ($id > 0) ? $this->getOldRecord('users', $id) : null;
 
         $stmt = $this->pdo->prepare($sql);
         $save = $stmt->execute($params);
@@ -234,6 +289,8 @@ class Action {
             $new_id = $id == 0 ? (int)$this->pdo->lastInsertId() : (int)$id;
             $action = $id == 0 ? "Añadió usuario" : "Editó usuario ID: $new_id";
             $this->log_activity($action, 'users', $new_id);
+            $auditData = ['firstname' => $firstname, 'lastname' => $lastname, 'username' => $username, 'role_id' => $role_id, 'department_id' => $department_id];
+            $this->audit('users', $id == 0 ? 'create' : 'update', 'users', $new_id, $oldUserData, $auditData);
             error_log("Usuario guardado exitosamente: $new_id");
             return 1;
         }
@@ -246,6 +303,7 @@ class Action {
         try {
             $id = (int)$id;
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('users', $id);
             
             // Usar PDO si está disponible, sino mysqli legacy
             if ($this->pdo) {
@@ -258,6 +316,7 @@ class Action {
             
             if ($deleted) {
                 $this->log_activity("Eliminó usuario ID: $id", 'users', $id);
+                $this->audit('users', 'delete', 'users', $id, $oldData, null);
                 return 1;
             }
             return 0;
@@ -405,6 +464,8 @@ class Action {
             extract($_POST);
             $id = isset($id) ? (int)$id : 0;
             $email = trim($email ?? '');
+            $isNewCustomer = ($id == 0);
+            if (!$isNewCustomer) { $oldCustomerData = $this->getOldRecord('customers', $id); }
             
             if (empty($email)) return 0;
             
@@ -442,11 +503,14 @@ class Action {
                     $stmt = $this->pdo->prepare("UPDATE customers SET $fields WHERE id = ?");
                     $values = array_merge(array_values($data), [$id]);
                     $stmt->execute($values);
+                    $this->audit('customers', 'update', 'customers', $id, $oldCustomerData ?? null, $data);
                 } else {
                     $fields = implode(', ', array_keys($data));
                     $placeholders = implode(', ', array_fill(0, count($data), '?'));
                     $stmt = $this->pdo->prepare("INSERT INTO customers ($fields) VALUES ($placeholders)");
                     $stmt->execute(array_values($data));
+                    $newCustId = (int)$this->pdo->lastInsertId();
+                    $this->audit('customers', 'create', 'customers', $newCustId, null, $data);
                 }
                 return 1;
             } else {
@@ -476,11 +540,13 @@ class Action {
             extract($_POST);
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('customers', $id);
             
             if ($this->pdo) {
                 $stmt = $this->pdo->prepare("DELETE FROM customers WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 0;
+                if ($stmt->rowCount() > 0) { $this->audit('customers', 'delete', 'customers', $id, $oldData, null); return 1; }
+                return 0;
             } else {
                 return $this->db->query("DELETE FROM customers WHERE id = $id") ? 1 : 0;
             }
@@ -495,6 +561,8 @@ class Action {
             extract($_POST);
             $id = isset($id) ? (int)$id : 0;
             $email = trim($email ?? '');
+            $isNewStaff = ($id == 0);
+            if (!$isNewStaff) { $oldStaffData = $this->getOldRecord('staff', $id); }
             
             if (empty($email)) return 0;
             
@@ -532,11 +600,14 @@ class Action {
                     $stmt = $this->pdo->prepare("UPDATE staff SET $fields WHERE id = ?");
                     $values = array_merge(array_values($data), [$id]);
                     $stmt->execute($values);
+                    $this->audit('staff', 'update', 'staff', $id, $oldStaffData ?? null, $data);
                 } else {
                     $fields = implode(', ', array_keys($data));
                     $placeholders = implode(', ', array_fill(0, count($data), '?'));
                     $stmt = $this->pdo->prepare("INSERT INTO staff ($fields) VALUES ($placeholders)");
                     $stmt->execute(array_values($data));
+                    $newStaffId = (int)$this->pdo->lastInsertId();
+                    $this->audit('staff', 'create', 'staff', $newStaffId, null, $data);
                 }
                 return 1;
             } else {
@@ -566,11 +637,13 @@ class Action {
             extract($_POST);
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('staff', $id);
             
             if ($this->pdo) {
                 $stmt = $this->pdo->prepare("DELETE FROM staff WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 0;
+                if ($stmt->rowCount() > 0) { $this->audit('staff', 'delete', 'staff', $id, $oldData, null); return 1; }
+                return 0;
             } else {
                 return $this->db->query("DELETE FROM staff WHERE id = $id") ? 1 : 0;
             }
@@ -585,6 +658,7 @@ class Action {
         try {
             // No usar extract() para evitar conflictos
             $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $isNewDept = ($id == 0);
             $name = isset($_POST['name']) ? $this->db->real_escape_string($_POST['name']) : '';
             $locations = isset($_POST['locations']) ? $_POST['locations'] : [];
             $positions = isset($_POST['positions']) ? $_POST['positions'] : [];
@@ -599,6 +673,9 @@ class Action {
                 error_log("ERROR: Name is empty");
                 return 0;
             }
+
+            // Capturar datos anteriores para auditoría
+            $oldDeptData = !$isNewDept ? $this->getOldRecord('departments', $id) : null;
             
             // Verificar si el nombre ya existe
             $check_query = "SELECT * FROM departments WHERE name='$name' ".($id > 0 ? "AND id != $id" : '');
@@ -698,6 +775,7 @@ class Action {
             }
             
             error_log("DEBUG save_department: Returning success");
+            $this->audit('departments', $isNewDept ? 'create' : 'update', 'departments', $id, $oldDeptData ?? null, ['name' => $name, 'locations' => $locations, 'positions' => $positions]);
             return 1;
             
         } catch (Exception $e) {
@@ -709,10 +787,13 @@ class Action {
 
     function delete_department() {
         extract($_POST);
+        $oldData = $this->getOldRecord('departments', (int)$id);
         // Antes de eliminar, quitar las relaciones
         $this->db->query("UPDATE locations SET department_id = NULL WHERE department_id = $id");
         $this->db->query("UPDATE job_positions SET department_id = NULL WHERE department_id = $id");
-        return $this->db->query("DELETE FROM departments WHERE id = $id") ? 1 : 0;
+        $result = $this->db->query("DELETE FROM departments WHERE id = $id");
+        if ($result) { $this->audit('departments', 'delete', 'departments', (int)$id, $oldData, null); }
+        return $result ? 1 : 0;
     }
 
     // ================== SUCURSALES ==================
@@ -751,9 +832,11 @@ class Action {
             }
 
             if ($id > 0) {
+                $oldBranchData = $this->getOldRecord('branches', $id);
                 $set = "code='$code_esc', name='$name_esc'";
                 if ($has_active) $set .= ", active=$active_val";
                 $save = $this->db->query("UPDATE branches SET $set WHERE id = $id");
+                if ($save) { $this->audit('branches', 'update', 'branches', $id, $oldBranchData, ['code' => $code, 'name' => $name, 'active' => $active_val]); }
                 return $save ? 1 : 0;
             }
 
@@ -765,6 +848,7 @@ class Action {
             }
 
             $save = $this->db->query("INSERT INTO branches ($fields) VALUES ($values)");
+            if ($save) { $this->audit('branches', 'create', 'branches', $this->db->insert_id, null, ['code' => $code, 'name' => $name, 'active' => $active_val]); }
             return $save ? 1 : 0;
         } catch (Exception $e) {
             error_log("SAVE_BRANCH ERROR: " . $e->getMessage());
@@ -803,7 +887,9 @@ class Action {
                 }
             }
 
+            $oldBranchData = $this->getOldRecord('branches', $id);
             $del = $this->db->query("DELETE FROM branches WHERE id = $id");
+            if ($del) { $this->audit('branches', 'delete', 'branches', $id, $oldBranchData, null); }
             return $del ? 1 : 0;
         } catch (Exception $e) {
             error_log("DELETE_BRANCH ERROR: " . $e->getMessage());
@@ -814,27 +900,60 @@ class Action {
     // ================== TICKETS ==================
     function save_ticket() {
         extract($_POST);
+        $isNewTicket = empty($id);
+        if (!$isNewTicket) { $oldTicketData = $this->getOldRecord('tickets', (int)$id); }
         $data = "";
+        $auditTicket = [];
         foreach ($_POST as $k => $v) {
             if (!in_array($k, ['id']) && !is_numeric($k)) {
                 if ($k == 'description') $v = htmlentities(str_replace("'", "&#x2019;", $v));
                 $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+                $auditTicket[$k] = $v;
             }
         }
         if (!isset($customer_id)) $data .= ", customer_id={$_SESSION['login_id']} ";
         if ($_SESSION['login_type'] == 1) $data .= ", admin_id={$_SESSION['login_id']} ";
 
-        $save = empty($id)
+        $save = $isNewTicket
             ? $this->db->query("INSERT INTO tickets SET $data")
             : $this->db->query("UPDATE tickets SET $data WHERE id = $id");
+        if ($save) {
+            $ticketId = $isNewTicket ? $this->db->insert_id : (int)$id;
+            $this->audit('tickets', $isNewTicket ? 'create' : 'update', 'tickets', $ticketId, $oldTicketData ?? null, $auditTicket);
+        }
         return $save ? 1 : 0;
     }
 
     function update_ticket() {
         extract($_POST);
+        $oldTicketData = $this->getOldRecord('tickets', (int)$id);
+        $oldStatus = isset($oldTicketData['status']) ? (int)$oldTicketData['status'] : null;
         $data = " status=$status ";
         if ($_SESSION['login_type'] == 2) $data .= ", staff_id={$_SESSION['login_id']} ";
-        return $this->db->query("UPDATE tickets SET $data WHERE id = $id") ? 1 : 0;
+        $result = $this->db->query("UPDATE tickets SET $data WHERE id = $id");
+        if ($result) {
+            $this->audit('tickets', 'update', 'tickets', (int)$id, $oldTicketData, ['status' => $status]);
+            // E2.3: Registrar cambio de estado en historial
+            $comment_hist = isset($comment) ? $this->db->real_escape_string($comment) : '';
+            $changedBy = (int)$_SESSION['login_id'];
+            $this->db->query("INSERT INTO ticket_status_history (ticket_id, old_status, new_status, changed_by, comment) VALUES ({$id}, " . ($oldStatus !== null ? $oldStatus : 'NULL') . ", {$status}, {$changedBy}, '{$comment_hist}')");
+            // E2.2: Notificar cambio de estado (in-app)
+            if (class_exists('NotificationService')) {
+                NotificationService::notifyTicketStatusChange((int)$id, $oldStatus, (int)$status, $changedBy);
+            }
+            // Enviar email al reportante si es ticket público con email registrado
+            if (!empty($oldTicketData['is_public']) && !empty($oldTicketData['reporter_email'])) {
+                $this->sendPublicTicketStatusEmail($oldTicketData, (int)$status);
+            }
+            // Enviar email al tecnico asignado sobre el cambio de estado
+            $statusLabels = [0 => 'Abierto', 1 => 'En Proceso', 2 => 'Finalizado', 3 => 'Cerrado'];
+            $newLabel = $statusLabels[(int)$status] ?? 'Actualizado';
+            $ticketSubject = htmlspecialchars($oldTicketData['subject'] ?? 'Sin asunto', ENT_QUOTES);
+            $content = "<p>El ticket <strong>#{$id}</strong> — <em>{$ticketSubject}</em> cambio de estado a:</p>";
+            $content .= "<p style='font-size:18px;color:#007bff;font-weight:bold'>{$newLabel}</p>";
+            $this->sendTicketEmailToTechnician((int)$id, "Cambio de estado en ticket #{$id}", $this->buildTechnicianEmailBody('Cambio de Estado', $content, (int)$id), $changedBy);
+        }
+        return $result ? 1 : 0;
     }
 
     function delete_ticket() {
@@ -842,13 +961,17 @@ class Action {
             extract($_POST);
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('tickets', $id);
             
             if ($this->pdo) {
                 $stmt = $this->pdo->prepare("DELETE FROM tickets WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 0;
+                if ($stmt->rowCount() > 0) { $this->audit('tickets', 'delete', 'tickets', $id, $oldData, null); return 1; }
+                return 0;
             } else {
-                return $this->db->query("DELETE FROM tickets WHERE id = $id") ? 1 : 0;
+                $del = $this->db->query("DELETE FROM tickets WHERE id = $id");
+                if ($del) { $this->audit('tickets', 'delete', 'tickets', $id, $oldData, null); }
+                return $del ? 1 : 0;
             }
         } catch (Exception $e) {
             error_log("DELETE_TICKET ERROR: " . $e->getMessage());
@@ -880,24 +1003,21 @@ class Action {
             // Generar número de ticket
             $ticket_number = 'PUB-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
             
+            // Generar tracking token para seguimiento publico
+            $tracking_token = bin2hex(random_bytes(16));
+            
             // Crear el subject del ticket
             $subject = "Falla reportada: {$issue_type} - {$equipment['name']} (#{$equipment['number_inventory']})";
             
-            // Crear descripción completa
-            $full_description = "**REPORTE PÚBLICO VÍA QR**\n\n";
-            $full_description .= "**Equipo:** {$equipment['name']}\n";
-            $full_description .= "**N° Inventario:** {$equipment['number_inventory']}\n";
-            $full_description .= "**Tipo de Falla:** $issue_type\n\n";
-            $full_description .= "**Reportado por:** $reporter_name\n";
-            if ($reporter_email) $full_description .= "**Email:** $reporter_email\n";
-            if ($reporter_phone) $full_description .= "**Teléfono:** $reporter_phone\n";
-            $full_description .= "\n**Descripción:**\n$description";
+            // Solo guardar la descripcion libre del usuario (la metadata va en columnas dedicadas)
+            $full_description = $description;
             
             // Insertar ticket
             $sql = "INSERT INTO tickets SET 
                     subject = '$subject',
                     description = '" . htmlentities(str_replace("'", "&#x2019;", $full_description)) . "',
                     status = 0,
+                    priority = 'medium',
                     equipment_id = $equipment_id,
                     reporter_name = '$reporter_name',
                     reporter_email = '$reporter_email',
@@ -905,6 +1025,7 @@ class Action {
                     issue_type = '$issue_type',
                     ticket_number = '$ticket_number',
                     is_public = 1,
+                    tracking_token = '$tracking_token',
                     date_created = NOW()";
             
             $save = $this->db->query($sql);
@@ -915,11 +1036,13 @@ class Action {
             }
             
             $ticket_id = $this->db->insert_id;
-            
+            $this->audit('tickets', 'create', 'tickets', $ticket_id, null, ['subject' => $subject, 'equipment_id' => $equipment_id, 'is_public' => 1, 'ticket_number' => $ticket_number]);            
             return json_encode([
                 'status' => 1,
                 'ticket_id' => $ticket_id,
                 'ticket_number' => $ticket_number,
+                'tracking_token' => $tracking_token,
+                'tracking_url' => 'public/track.php?token=' . $tracking_token,
                 'message' => 'Ticket creado exitosamente'
             ]);
             
@@ -931,17 +1054,45 @@ class Action {
 
     function save_comment() {
         extract($_POST);
+        $isNewComment = empty($id);
         $data = "";
+        $auditComment = [];
         foreach ($_POST as $k => $v) {
-            if (!in_array($k, ['id']) && !is_numeric($k)) {
+            if (!in_array($k, ['id', 'is_internal']) && !is_numeric($k)) {
                 if ($k == 'comment') $v = htmlentities(str_replace("'", "&#x2019;", $v));
                 $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+                $auditComment[$k] = $v;
             }
         }
         $data .= ", user_type={$_SESSION['login_type']}, user_id={$_SESSION['login_id']} ";
-        $save = empty($id)
+        // E2.4: soporte para is_internal
+        $is_internal = isset($_POST['is_internal']) ? (int)$_POST['is_internal'] : 0;
+        $data .= ", is_internal={$is_internal} ";
+        $save = $isNewComment
             ? $this->db->query("INSERT INTO comments SET $data")
             : $this->db->query("UPDATE comments SET $data WHERE id = $id");
+        if ($save) {
+            $commentId = $isNewComment ? $this->db->insert_id : (int)$id;
+            $this->audit('comments', $isNewComment ? 'create' : 'update', 'comments', $commentId, null, $auditComment);
+            // E2.2: Notificar nuevo comentario (solo si no es nota interna)
+            if ($isNewComment && $is_internal == 0 && isset($ticket_id) && class_exists('NotificationService')) {
+                NotificationService::notifyTicketComment((int)$ticket_id, (int)$_SESSION['login_id']);
+            }
+            // Email al reportante externo si es ticket público con email registrado
+            if ($isNewComment && $is_internal == 0 && isset($ticket_id)) {
+                $ticketRow = $this->getOldRecord('tickets', (int)$ticket_id);
+                if (!empty($ticketRow['is_public']) && !empty($ticketRow['reporter_email'])) {
+                    $commentText = mb_substr(strip_tags(html_entity_decode($auditComment['comment'] ?? '')), 0, 300);
+                    $this->sendPublicTicketCommentEmail($ticketRow, $commentText);
+                }
+                // Email al tecnico asignado sobre el nuevo comentario
+                $commentPreview = htmlspecialchars(mb_substr(strip_tags(html_entity_decode($auditComment['comment'] ?? '')), 0, 300), ENT_QUOTES);
+                $ticketSubject  = htmlspecialchars(($ticketRow['subject'] ?? 'Sin asunto'), ENT_QUOTES);
+                $content  = "<p>Se agrego un nuevo comentario al ticket <strong>#{$ticket_id}</strong> — <em>{$ticketSubject}</em>:</p>";
+                $content .= "<blockquote style='border-left:4px solid #007bff;margin:15px 0;padding:10px 15px;background:#f0f7ff;color:#333'>{$commentPreview}</blockquote>";
+                $this->sendTicketEmailToTechnician((int)$ticket_id, "Nuevo comentario en ticket #{$ticket_id}", $this->buildTechnicianEmailBody('Nuevo Comentario', $content, (int)$ticket_id), (int)$_SESSION['login_id']);
+            }
+        }
         return $save ? 1 : 0;
     }
 
@@ -950,18 +1101,107 @@ class Action {
             extract($_POST);
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('comments', $id);
             
             if ($this->pdo) {
                 $stmt = $this->pdo->prepare("DELETE FROM comments WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 0;
+                if ($stmt->rowCount() > 0) { $this->audit('comments', 'delete', 'comments', $id, $oldData, null); return 1; }
+                return 0;
             } else {
-                return $this->db->query("DELETE FROM comments WHERE id = $id") ? 1 : 0;
+                $del = $this->db->query("DELETE FROM comments WHERE id = $id");
+                if ($del) { $this->audit('comments', 'delete', 'comments', $id, $oldData, null); }
+                return $del ? 1 : 0;
             }
         } catch (Exception $e) {
             error_log("DELETE_COMMENT ERROR: " . $e->getMessage());
             return 0;
         }
+    }
+
+    // ================== E2.1: ADJUNTOS DE TICKETS ==================
+    function upload_ticket_attachment() {
+        $ticket_id = (int)($_POST['ticket_id'] ?? 0);
+        if ($ticket_id <= 0) return json_encode(['status' => 0, 'msg' => 'Ticket inválido']);
+
+        if (!isset($_FILES['attachment']) || $_FILES['attachment']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 0, 'msg' => 'No se recibió archivo']);
+        }
+
+        $file = $_FILES['attachment'];
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+        $max_size = 5 * 1024 * 1024; // 5MB
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']);
+
+        if (!in_array($mime, $allowed_types)) {
+            return json_encode(['status' => 0, 'msg' => 'Tipo de archivo no permitido. Solo: JPG, PNG, GIF, WebP, PDF']);
+        }
+        if ($file['size'] > $max_size) {
+            return json_encode(['status' => 0, 'msg' => 'El archivo excede 5MB']);
+        }
+
+        $upload_dir = ROOT . '/uploads/tickets/' . $ticket_id;
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $safe_name = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', pathinfo($file['name'], PATHINFO_FILENAME));
+        $unique_name = $safe_name . '_' . uniqid() . '.' . $ext;
+        $dest = $upload_dir . '/' . $unique_name;
+        $relative_path = 'uploads/tickets/' . $ticket_id . '/' . $unique_name;
+
+        if (!move_uploaded_file($file['tmp_name'], $dest)) {
+            return json_encode(['status' => 0, 'msg' => 'Error al mover archivo']);
+        }
+
+        $original_name = $this->db->real_escape_string($file['name']);
+        $relative_path_esc = $this->db->real_escape_string($relative_path);
+        $mime_esc = $this->db->real_escape_string($mime);
+        $size = (int)$file['size'];
+        $user_id = (int)$_SESSION['login_id'];
+
+        $save = $this->db->query("INSERT INTO ticket_attachments (ticket_id, file_name, file_path, file_type, file_size, uploaded_by) 
+            VALUES ({$ticket_id}, '{$original_name}', '{$relative_path_esc}', '{$mime_esc}', {$size}, {$user_id})");
+
+        if ($save) {
+            $att_id = $this->db->insert_id;
+            $this->audit('ticket_attachments', 'create', 'ticket_attachments', $att_id, null, ['ticket_id' => $ticket_id, 'file_name' => $file['name']]);
+            return json_encode(['status' => 1, 'msg' => 'Archivo subido', 'id' => $att_id, 'file_name' => $file['name'], 'file_path' => $relative_path, 'file_type' => $mime, 'file_size' => $size]);
+        }
+        @unlink($dest);
+        return json_encode(['status' => 0, 'msg' => 'Error al guardar en base de datos']);
+    }
+
+    function delete_ticket_attachment() {
+        $att_id = (int)($_POST['id'] ?? 0);
+        if ($att_id <= 0) return json_encode(['status' => 0, 'msg' => 'ID inválido']);
+
+        $row = $this->db->query("SELECT * FROM ticket_attachments WHERE id = {$att_id}")->fetch_assoc();
+        if (!$row) return json_encode(['status' => 0, 'msg' => 'Adjunto no encontrado']);
+
+        $file_path = ROOT . '/' . $row['file_path'];
+        $this->db->query("DELETE FROM ticket_attachments WHERE id = {$att_id}");
+        if (file_exists($file_path)) @unlink($file_path);
+        $this->audit('ticket_attachments', 'delete', 'ticket_attachments', $att_id, $row, null);
+        return json_encode(['status' => 1, 'msg' => 'Adjunto eliminado']);
+    }
+
+    function get_ticket_attachments() {
+        $ticket_id = (int)($_GET['ticket_id'] ?? $_POST['ticket_id'] ?? 0);
+        if ($ticket_id <= 0) return json_encode([]);
+        $result = $this->db->query("SELECT ta.*, 
+            COALESCE(CONCAT(u.lastname, ', ', u.firstname), 'Usuario') as uploaded_by_name
+            FROM ticket_attachments ta
+            LEFT JOIN users u ON u.id = ta.uploaded_by
+            WHERE ta.ticket_id = {$ticket_id} ORDER BY ta.created_at ASC");
+        $attachments = [];
+        while ($row = $result->fetch_assoc()) {
+            $attachments[] = $row;
+        }
+        return json_encode($attachments);
     }
 
     // ================== INVENTARIO CON PREFIJOS ==================
@@ -1677,6 +1917,9 @@ class Action {
 
         $name_esc = $this->db->real_escape_string($name);
 
+        // Capturar datos anteriores para auditoría
+        $oldAcqData = ($id > 0) ? $this->getOldRecord('acquisition_type', $id) : null;
+
         if ($id > 0) {
             $sql = "UPDATE acquisition_type SET name = '{$name_esc}', code = '{$code_esc}' WHERE id = {$id}";
         } else {
@@ -1685,6 +1928,8 @@ class Action {
 
         $save = $this->db->query($sql);
         if ($save) {
+            $acqId = ($id > 0) ? $id : $this->db->insert_id;
+            $this->audit('acquisition_types', ($id > 0) ? 'update' : 'create', 'acquisition_type', $acqId, ($id > 0) ? $oldAcqData : null, ['code' => $code, 'name' => $name]);
             return json_encode(['status' => 'success']);
         }
         return json_encode(['status' => 'error']);
@@ -1694,6 +1939,7 @@ class Action {
         $this->ensure_acquisition_type_schema();
         $id = (int)($_POST['id'] ?? 0);
         if ($id <= 0) return json_encode(['status' => 'error']);
+        $oldData = $this->getOldRecord('acquisition_type', $id);
 
         // Evitar eliminar si está en uso (equipos o inventario_config)
         if ($this->db) {
@@ -1713,6 +1959,7 @@ class Action {
 
         $delete = $this->db ? $this->db->query("DELETE FROM acquisition_type WHERE id = {$id}") : false;
         if ($delete) {
+            $this->audit('acquisition_types', 'delete', 'acquisition_type', $id, $oldData, null);
             return json_encode(['status' => 'success']);
         }
         return json_encode(['status' => 'error', 'error' => $this->db ? $this->db->error : '']);
@@ -2054,6 +2301,7 @@ class Action {
             extract($_POST);
             $id = isset($id) ? (int)$id : 0;
             $new = empty($id);
+            $oldEquipData = !$new ? $this->getOldRecord('equipments', $id) : null;
 
             $this->ensure_equipment_delivery_fk();
             $this->ensure_equipment_delivery_position_fk();
@@ -2149,6 +2397,28 @@ class Action {
             }
 
             if (empty($equipment_data)) return 2;
+
+            // Validar serie única
+            $serie_val = trim((string)($equipment_data['serie'] ?? ''));
+            if ($serie_val !== '') {
+                try {
+                    $check_sql = "SELECT id FROM equipments WHERE serie = ? AND serie != ''";
+                    $check_params = [$serie_val];
+                    if (!$new && $id > 0) {
+                        $check_sql .= " AND id != ?";
+                        $check_params[] = $id;
+                    }
+                    if ($this->pdo) {
+                        $chk_stmt = $this->pdo->prepare($check_sql);
+                        $chk_stmt->execute($check_params);
+                        if ($chk_stmt->fetch(PDO::FETCH_ASSOC)) {
+                            return json_encode(['status' => 'error', 'message' => 'El numero de serie ya existe en otro equipo']);
+                        }
+                    }
+                } catch (Throwable $e) {
+                    // No bloquear si falla la validación
+                }
+            }
 
             // Insert o Update equipments con PDO
             if ($this->pdo) {
@@ -2379,6 +2649,8 @@ class Action {
                 }
             }
 
+            $this->lastInsertId = (int)$id;
+            $this->audit('equipment', $new ? 'create' : 'update', 'equipments', (int)$id, $oldEquipData, $equipment_data);
             return 1;
         } catch (Exception $e) {
             error_log("SAVE_EQUIPMENT ERROR: " . $e->getMessage());
@@ -2460,6 +2732,7 @@ class Action {
             if (empty($id) || !is_numeric($id)) return 2;
             
             $id = (int)$id;
+            $oldData = $this->getOldRecord('equipments', $id);
             $tables = [
                 'equipment_control_documents',
                 'equipment_reception',
@@ -2484,7 +2757,8 @@ class Action {
                 
                 $stmt = $this->pdo->prepare("DELETE FROM equipments WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 2;
+                if ($stmt->rowCount() > 0) { $this->audit('equipment', 'delete', 'equipments', $id, $oldData, null); return 1; }
+                return 2;
             } else {
                 // Fallback a mysqli
                 foreach ($tables as $table) {
@@ -2496,6 +2770,7 @@ class Action {
                 }
 
                 $delete = $this->db->query("DELETE FROM equipments WHERE id = $id");
+                if ($delete) { $this->audit('equipment', 'delete', 'equipments', $id, $oldData, null); }
                 return $delete ? 1 : 2;
             }
         } catch (Exception $e) {
@@ -2511,10 +2786,12 @@ class Action {
             return json_encode(['status' => 0, 'message' => 'Equipo inválido.']);
         }
 
-        $equipmentExists = $this->db->query("SELECT id FROM equipments WHERE id = {$equipmentId} LIMIT 1");
+        $equipmentExists = $this->db->query("SELECT id, branch_id FROM equipments WHERE id = {$equipmentId} LIMIT 1");
         if (!$equipmentExists || $equipmentExists->num_rows === 0) {
             return json_encode(['status' => 0, 'message' => 'No se encontró el equipo.']);
         }
+        $equipRow = $equipmentExists->fetch_assoc();
+        $equipBranchId = (int)($equipRow['branch_id'] ?? 0);
 
         $dateInput = $_POST['date'] ?? date('Y-m-d');
         $dateObj = DateTime::createFromFormat('Y-m-d', $dateInput) ?: DateTime::createFromFormat('Y-m-d H:i:s', $dateInput);
@@ -2601,7 +2878,15 @@ class Action {
         }
 
         if ($unsubscribeId && empty($folio)) {
-            $folio = sprintf('BAJ-%s-%04d', date('Y'), $unsubscribeId);
+            $this->audit('equipment', ($existing && $existing->num_rows > 0) ? 'update' : 'create', 'equipment_unsubscribe', $unsubscribeId, null, ['equipment_id' => $equipmentId, 'date' => $dateValue, 'description' => $description]);
+            // Generar folio con consecutivo mensual desde company_config
+            $helperPath = realpath(__DIR__ . '/../app/helpers/company_config_helper.php');
+            if ($helperPath && file_exists($helperPath)) {
+                require_once $helperPath;
+                $folio = generate_sequential_folio($this->db, $equipBranchId, 'unsubscribe');
+            } else {
+                $folio = sprintf('BAJA-%s-%02d-%03d', date('Y'), date('m'), $unsubscribeId);
+            }
             $folioEscaped = $this->db->real_escape_string($folio);
             $this->db->query("UPDATE equipment_unsubscribe SET folio = '{$folioEscaped}' WHERE id = {$unsubscribeId}");
         }
@@ -2624,6 +2909,7 @@ class Action {
         if ($this->db->query("SELECT id FROM equipments WHERE id = $id")->num_rows == 0) return 2;
 
         $save = $this->db->query("INSERT INTO equipment_revision SET $data");
+        if ($save) { $this->audit('equipment', 'create', 'equipment_revision', $this->db->insert_id, null, $_POST); }
         return $save ? 1 : 2;
     }
 
@@ -3134,7 +3420,14 @@ class Action {
             }
         }
 
-        return $this->db->query($sql) ? 1 : 0;
+        $oldToolData = !empty($_POST['id'] ?? '') ? $this->getOldRecord('tools', (int)$_POST['id']) : null;
+        $result = $this->db->query($sql);
+        if ($result) {
+            $toolId = empty($id) ? $this->db->insert_id : (int)$id;
+            $this->lastInsertId = $toolId;
+            $this->audit('tools', empty($id) ? 'create' : 'update', 'tools', $toolId, $oldToolData, $_POST);
+        }
+        return $result ? 1 : 0;
     }
 
     function delete_tool() {
@@ -3142,6 +3435,7 @@ class Action {
         $id = (int)$id;
         $login_type = (int)($_SESSION['login_type'] ?? 0);
         $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        $oldData = $this->getOldRecord('tools', $id);
 
         $sel = "SELECT imagen FROM tools WHERE id = $id";
         if ($login_type !== 1 && $active_bid > 0) {
@@ -3159,7 +3453,9 @@ class Action {
         if ($login_type !== 1 && $active_bid > 0) {
             $sql .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query($sql) ? 1 : 0;
+        $result = $this->db->query($sql);
+        if ($result) { $this->audit('tools', 'delete', 'tools', $id, $oldData, null); }
+        return $result ? 1 : 0;
     }
 
     // ================== ACCESORIOS ==================
@@ -3257,7 +3553,14 @@ class Action {
             }
         }
 
-        return $this->db->query($sql) ? 1 : 0;
+        $oldAccData = !empty($_POST['id'] ?? '') ? $this->getOldRecord('accessories', (int)$_POST['id']) : null;
+        $result = $this->db->query($sql);
+        if ($result) {
+            $accId = empty($id) ? $this->db->insert_id : (int)$id;
+            $this->lastInsertId = $accId;
+            $this->audit('accessories', empty($id) ? 'create' : 'update', 'accessories', $accId, $oldAccData, $_POST);
+        }
+        return $result ? 1 : 0;
     }
 
     function delete_accessory() {
@@ -3265,6 +3568,7 @@ class Action {
         $id = (int)$id;
         $login_type = (int)($_SESSION['login_type'] ?? 0);
         $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        $oldData = $this->getOldRecord('accessories', $id);
 
         $sel = "SELECT image FROM accessories WHERE id = $id";
         if ($login_type !== 1 && $active_bid > 0) {
@@ -3280,7 +3584,9 @@ class Action {
         if ($login_type !== 1 && $active_bid > 0) {
             $sql .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query($sql) ? 1 : 0;
+        $result = $this->db->query($sql);
+        if ($result) { $this->audit('accessories', 'delete', 'accessories', $id, $oldData, null); }
+        return $result ? 1 : 0;
     }
 
     // ================== INVENTARIO ==================
@@ -3303,13 +3609,17 @@ class Action {
 
         extract($_POST);
         $data = "";
-        $allowed = ['name', 'category', 'price', 'cost', 'stock', 'min_stock', 'max_stock', 'status', 'branch_id'];
+        $allowed = ['name', 'category', 'price', 'cost', 'stock', 'min_stock', 'max_stock', 'status', 'branch_id', 'is_hazardous', 'hazard_class'];
         
         foreach ($allowed as $field) {
             if (isset($_POST[$field])) {
                 $value = $this->db->real_escape_string($_POST[$field]);
                 $data .= empty($data) ? " `$field` = '$value' " : ", `$field` = '$value' ";
             }
+        }
+        // Si is_hazardous no viene (checkbox desmarcado), forzar a 0
+        if (!isset($_POST['is_hazardous'])) {
+            $data .= empty($data) ? " `is_hazardous` = '0' " : ", `is_hazardous` = '0' ";
         }
 
         if (isset($_FILES['image_path']) && $_FILES['image_path']['error'] == 0 && !empty($_FILES['image_path']['tmp_name'])) {
@@ -3333,6 +3643,25 @@ class Action {
             }
         }
 
+        // Hoja de seguridad (PDF/imagen)
+        if (isset($_FILES['safety_data_sheet']) && $_FILES['safety_data_sheet']['error'] == 0 && !empty($_FILES['safety_data_sheet']['tmp_name'])) {
+            $sds     = $_FILES['safety_data_sheet'];
+            $allowedMime = ['application/pdf', 'image/jpeg', 'image/png'];
+            $finfo   = new finfo(FILEINFO_MIME_TYPE);
+            $sdsReal = $finfo->file($sds['tmp_name']);
+            if (in_array($sdsReal, $allowedMime) && $sds['size'] <= 10 * 1024 * 1024) {
+                $ext     = strtolower(pathinfo($sds['name'], PATHINFO_EXTENSION));
+                $rand2   = function_exists('random_bytes') ? bin2hex(random_bytes(3)) : substr(md5(uniqid('', true)), 0, 6);
+                $sdsDir  = 'uploads/inventory_sds/';
+                if (!is_dir($sdsDir)) @mkdir($sdsDir, 0755, true);
+                $sdsFile = 'sds_' . time() . '_' . $rand2 . '.' . $ext;
+                if (move_uploaded_file($sds['tmp_name'], $sdsDir . $sdsFile)) {
+                    $sdsEsc  = $this->db->real_escape_string($sdsDir . $sdsFile);
+                    $data .= ", `safety_data_sheet` = '$sdsEsc' ";
+                }
+            }
+        }
+
         if (empty($id)) {
             $sql = "INSERT INTO inventory SET $data";
         } else {
@@ -3343,7 +3672,14 @@ class Action {
             }
         }
 
-        return $this->db->query($sql) ? 1 : 0;
+        $oldInvData = !$is_new_request ? $this->getOldRecord('inventory', (int)($id ?? 0)) : null;
+        $result = $this->db->query($sql);
+        if ($result) {
+            $invId = empty($id) ? $this->db->insert_id : (int)$id;
+            $this->lastInsertId = $invId;
+            $this->audit('inventory', empty($id) ? 'create' : 'update', 'inventory', $invId, $oldInvData, $_POST);
+        }
+        return $result ? 1 : 0;
     }
 
     function delete_inventory() {
@@ -3351,6 +3687,7 @@ class Action {
         $id = (int)$id;
         $login_type = (int)($_SESSION['login_type'] ?? 0);
         $active_bid = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+        $oldData = $this->getOldRecord('inventory', $id);
 
         $sel = "SELECT image_path FROM inventory WHERE id = $id";
         if ($login_type !== 1 && $active_bid > 0) {
@@ -3368,7 +3705,9 @@ class Action {
         if ($login_type !== 1 && $active_bid > 0) {
             $sql .= " AND branch_id = {$active_bid}";
         }
-        return $this->db->query($sql) ? 1 : 0;
+        $result = $this->db->query($sql);
+        if ($result) { $this->audit('inventory', 'delete', 'inventory', $id, $oldData, null); }
+        return $result ? 1 : 0;
     }
 
     // ================== MANTENIMIENTOS ==================
@@ -3568,7 +3907,12 @@ class Action {
             $sql = "UPDATE mantenimientos SET $setClause WHERE id=" . $id;
         }
 
-        return $this->db->query($sql) ? 1 : 0;
+        $result = $this->db->query($sql);
+        if ($result) {
+            $mntId = ($id <= 0) ? $this->db->insert_id : $id;
+            $this->audit('maintenance', ($id <= 0) ? 'create' : 'update', 'mantenimientos', $mntId, null, ['equipo_id' => $equipo_id, 'fecha_programada' => $fecha_programada, 'tipo_mantenimiento' => $tipo_mantenimiento]);
+        }
+        return $result ? 1 : 0;
     }
 
     function complete_maintenance() {
@@ -3584,25 +3928,40 @@ class Action {
             $sql .= " AND e.branch_id = {$active_bid}";
         }
 
-        return $this->db->query($sql) ? 1 : 0;
+        $result = $this->db->query($sql);
+        if ($result) { $this->audit('maintenance', 'update', 'mantenimientos', $id, null, ['estatus' => 'completado']); }
+        return $result ? 1 : 0;
     }
 
     // ================== UBICACIONES / PUESTOS ==================
     function save_equipment_location() {
         extract($_POST);
+        $isNewLoc = empty($id);
         $data = "";
+        $auditLoc = [];
         foreach ($_POST as $k => $v) {
-            if ($k != 'id') $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+            if ($k != 'id') {
+                $data .= empty($data) ? " $k='$v' " : ", $k='$v' ";
+                $auditLoc[$k] = $v;
+            }
         }
-        $save = empty($id)
+        $oldLocData = !$isNewLoc ? $this->getOldRecord('locations', (int)$id) : null;
+        $save = $isNewLoc
             ? $this->db->query("INSERT INTO locations SET $data")
             : $this->db->query("UPDATE locations SET $data WHERE id = $id");
-        return $save ? (empty($id) ? 1 : 2) : 0;
+        if ($save) {
+            $locId = $isNewLoc ? $this->db->insert_id : (int)$id;
+            $this->audit('locations', $isNewLoc ? 'create' : 'update', 'locations', $locId, $oldLocData, $auditLoc);
+        }
+        return $save ? ($isNewLoc ? 1 : 2) : 0;
     }
 
     function delete_equipment_location() {
         extract($_POST);
-        return $this->db->query("DELETE FROM locations WHERE id = $id") ? 1 : 0;
+        $oldData = $this->getOldRecord('locations', (int)$id);
+        $result = $this->db->query("DELETE FROM locations WHERE id = $id");
+        if ($result) { $this->audit('locations', 'delete', 'locations', (int)$id, $oldData, null); }
+        return $result ? 1 : 0;
     }
 
     function save_job_position() {
@@ -3632,6 +3991,7 @@ class Action {
                 
                 $id = $this->db->insert_id;
                 error_log("DEBUG: New job position ID = $id");
+                $this->audit('job_positions', 'create', 'job_positions', $id, null, ['name' => $name, 'location_id' => $location_id, 'department_id' => $department_id]);
                 
                 // Mantener compatibilidad con tabla antigua location_positions
                 if($location_id !== 'NULL') {
@@ -3645,12 +4005,14 @@ class Action {
                 // Actualizar puesto existente
                 $query = "UPDATE job_positions SET name='$name', location_id=$location_id, department_id=$department_id WHERE id=$id";
                 error_log("DEBUG: UPDATE query = $query");
+                $oldJobData = $this->getOldRecord('job_positions', $id);
                 $update = $this->db->query($query);
                 
                 if(!$update) {
                     error_log("ERROR save_job_position UPDATE: " . $this->db->error);
                     return 0;
                 }
+                $this->audit('job_positions', 'update', 'job_positions', $id, $oldJobData, ['name' => $name, 'location_id' => $location_id, 'department_id' => $department_id]);
                 
                 // Actualizar tabla antigua location_positions para compatibilidad
                 $check = $this->db->query("SELECT id FROM location_positions WHERE job_position_id=$id");
@@ -3679,8 +4041,11 @@ class Action {
     function delete_job_position() {
         extract($_POST);
         if (empty($id) || !is_numeric($id)) return 2;
+        $oldData = $this->getOldRecord('job_positions', (int)$id);
         $this->db->query("DELETE FROM location_positions WHERE job_position_id=$id");
-        return $this->db->query("DELETE FROM job_positions WHERE id=$id") ? 1 : 2;
+        $result = $this->db->query("DELETE FROM job_positions WHERE id=$id");
+        if ($result) { $this->audit('job_positions', 'delete', 'job_positions', (int)$id, $oldData, null); }
+        return $result ? 1 : 2;
     }
 
     // ================== PROVEEDORES ==================
@@ -3711,9 +4076,14 @@ class Action {
         foreach ($data as $key => $value) $set[] = "$key = '$value'";
         $set_clause = implode(', ', $set);
 
+        $oldSuppData = !empty($id) ? $this->getOldRecord('suppliers', (int)$id) : null;
         $save = empty($id)
             ? $this->db->query("INSERT INTO suppliers SET $set_clause")
             : $this->db->query("UPDATE suppliers SET $set_clause WHERE id = " . (int)$id);
+        if ($save) {
+            $suppId = empty($id) ? $this->db->insert_id : (int)$id;
+            $this->audit('suppliers', empty($id) ? 'create' : 'update', 'suppliers', $suppId, $oldSuppData, $data);
+        }
         return $save ? 1 : 0;
     }
 
@@ -3722,11 +4092,13 @@ class Action {
             extract($_POST);
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
+            $oldData = $this->getOldRecord('suppliers', $id);
             
             if ($this->pdo) {
                 $stmt = $this->pdo->prepare("DELETE FROM suppliers WHERE id = ?");
                 $stmt->execute([$id]);
-                return $stmt->rowCount() > 0 ? 1 : 0;
+                if ($stmt->rowCount() > 0) { $this->audit('suppliers', 'delete', 'suppliers', $id, $oldData, null); return 1; }
+                return 0;
             } else {
                 return $this->db->query("DELETE FROM suppliers WHERE id = $id") ? 1 : 0;
             }
@@ -3848,6 +4220,7 @@ class Action {
         }
         
         $report_id = $this->db->insert_id; 
+        $this->audit('maintenance', 'create', 'maintenance_reports', $report_id, null, $_POST);
         
         if (isset($refaccion_item_id) && is_array($refaccion_item_id)) {
             for ($i = 0; $i < count($refaccion_item_id); $i++) {
@@ -4213,8 +4586,11 @@ class Action {
         } else {
             $sql = "UPDATE `services_category` set $data where id = {$id}";
         }
+        $oldCatData = ($id > 0) ? $this->getOldRecord('services_category', $id) : null;
         $save = $this->db->query($sql);
         if ($save) {
+            $catId = ($id > 0) ? $id : $this->db->insert_id;
+            $this->audit('services', ($id > 0) ? 'update' : 'create', 'services_category', $catId, $oldCatData, $_POST);
             return json_encode(['status' => 'success']);
         } else {
             return json_encode(['status' => 'error', 'data' => $sql]);
@@ -4227,9 +4603,11 @@ class Action {
         if ($id <= 0) {
             return json_encode(['status' => 'error', 'error' => 'ID inválido']);
         }
+        $oldData = $this->getOldRecord('services_category', $id);
         $delete = $this->db->query("DELETE FROM `services_category` where id = {$id}");
         $delete2 = $this->db->query("DELETE FROM `services` where category_id = {$id}");
         if ($delete && $delete2) {
+            $this->audit('services', 'delete', 'services_category', $id, $oldData, null);
             return json_encode(['status' => 'success']);
         } else {
             return json_encode(['status' => 'error', 'error' => $this->db->error]);
@@ -4270,6 +4648,8 @@ class Action {
         }
         $save = $this->db->query($sql);
         if ($save) {
+            $svcId = !empty($id) ? $id : $this->db->insert_id;
+            $this->audit('services', empty($id) ? 'create' : 'update', 'services', $svcId, null, ['service' => $service ?? '']);
             $id = !empty($id) ? $id : $this->db->insert_id;
             $upload_dir_rel = 'uploads/services';
             $upload_dir = (defined('ROOT') ? rtrim(ROOT, '/\\') . '/' . $upload_dir_rel : $upload_dir_rel);
@@ -4312,8 +4692,10 @@ class Action {
     function delete_service()
     {
         extract($_POST);
+        $oldData = $this->getOldRecord('services', (int)$id);
         $delete = $this->db->query("DELETE FROM `services` where `id` ='$id' ");
         if ($delete) {
+            $this->audit('services', 'delete', 'services', (int)$id, $oldData, null);
             return json_encode(['status' => 'success']);
         } else {
             return json_encode(['status' => 'error', 'error' => $this->db->error]);
@@ -4426,6 +4808,8 @@ class Action {
 
         $save = $this->db->query($sql);
         if ($save) {
+            $catId = ($id > 0) ? $id : $this->db->insert_id;
+            $this->audit('equipment_categories', ($id > 0) ? 'update' : 'create', 'equipment_categories', $catId, null, ['clave' => $clave, 'description' => $description]);
             return json_encode(['status' => 'success']);
         }
         return json_encode(['status' => 'error']);
@@ -4436,11 +4820,131 @@ class Action {
         $this->ensure_equipment_categories_schema();
         $id = (int)($_POST['id'] ?? 0);
         if ($id <= 0) return json_encode(['status' => 'error']);
+        $oldData = $this->getOldRecord('equipment_categories', $id);
         $delete = $this->db->query("DELETE FROM equipment_categories WHERE id = {$id}");
         if ($delete) {
+            $this->audit('equipment_categories', 'delete', 'equipment_categories', $id, $oldData, null);
             return json_encode(['status' => 'success']);
         }
         return json_encode(['status' => 'error', 'error' => $this->db->error]);
+    }
+
+    // ================== EMAIL HELPERS PARA TICKETS ==================
+
+    /**
+     * Carga MailerService (PHPMailer SMTP) si no está disponible.
+     */
+    private function loadMailerService(): void {
+        if (!class_exists('MailerService')) {
+            $path = dirname(__DIR__) . '/app/helpers/MailerService.php';
+            if (file_exists($path)) require_once $path;
+        }
+    }
+
+    /**
+     * Envía email al reportante externo cuando el estado de su ticket cambia.
+     */
+    private function sendPublicTicketStatusEmail(array $ticket, int $newStatus): void {
+        $statusLabels = [0 => 'Abierto', 1 => 'En Proceso', 2 => 'Finalizado', 3 => 'Cerrado'];
+        $newLabel = $statusLabels[$newStatus] ?? 'Actualizado';
+        $to = filter_var($ticket['reporter_email'], FILTER_VALIDATE_EMAIL);
+        if (!$to) return;
+        $name      = htmlspecialchars($ticket['reporter_name'] ?? 'Estimado usuario', ENT_QUOTES);
+        $ticketN   = htmlspecialchars($ticket['ticket_number'] ?? $ticket['id'], ENT_QUOTES);
+        $subject   = $ticket['subject'] ?? 'Sin asunto';
+        $token     = $ticket['tracking_token'] ?? '';
+        $baseUrl   = rtrim(defined('BASE_URL') ? BASE_URL : (getenv('BASE_URL') ?: ''), '/');
+        $trackLink = htmlspecialchars($baseUrl . '/public/track.php?token=' . urlencode($token), ENT_QUOTES);
+        $mailSubject = "Actualización de Tu Ticket #{$ticketN}";
+        $body  = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f5f5f5;padding:20px'>";
+        $body .= "<div style='max-width:600px;margin:auto;background:#fff;border-radius:8px;padding:30px'>";
+        $body .= "<h2 style='color:#343a40'>Actualización de Tu Ticket</h2>";
+        $body .= "<p>Hola <strong>{$name}</strong>,</p>";
+        $body .= "<p>El estado de tu ticket <strong>#{$ticketN}</strong> — <em>" . htmlspecialchars($subject, ENT_QUOTES) . "</em> ha cambiado a:</p>";
+        $body .= "<p style='font-size:18px;color:#007bff;font-weight:bold'>{$newLabel}</p>";
+        if (!empty($token)) {
+            $body .= "<p style='margin-top:25px'><a href='{$trackLink}' style='background:#007bff;color:#fff;padding:12px 24px;border-radius:5px;text-decoration:none;font-size:15px'>Ver estado del ticket</a></p>";
+        }
+        $body .= "<hr style='margin-top:30px;border:none;border-top:1px solid #eee'>";
+        $body .= "<p style='font-size:12px;color:#999'>Este mensaje fue generado automáticamente.</p>";
+        $body .= "</div></body></html>";
+        $this->loadMailerService();
+        if (class_exists('MailerService')) {
+            MailerService::send($to, $ticket['reporter_name'] ?? '', $mailSubject, $body);
+        }
+    }
+
+    /**
+     * Envía email al reportante externo cuando se agrega un comentario público a su ticket.
+     */
+    private function sendPublicTicketCommentEmail(array $ticket, string $commentPreview): void {
+        $to = filter_var($ticket['reporter_email'], FILTER_VALIDATE_EMAIL);
+        if (!$to) return;
+        $name      = htmlspecialchars($ticket['reporter_name'] ?? 'Estimado usuario', ENT_QUOTES);
+        $ticketN   = htmlspecialchars($ticket['ticket_number'] ?? $ticket['id'], ENT_QUOTES);
+        $subject   = $ticket['subject'] ?? 'Sin asunto';
+        $token     = $ticket['tracking_token'] ?? '';
+        $baseUrl   = rtrim(defined('BASE_URL') ? BASE_URL : (getenv('BASE_URL') ?: ''), '/');
+        $trackLink = htmlspecialchars($baseUrl . '/public/track.php?token=' . urlencode($token), ENT_QUOTES);
+        $mailSubject = "Nueva respuesta en Tu Ticket #{$ticketN}";
+        $body  = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f5f5f5;padding:20px'>";
+        $body .= "<div style='max-width:600px;margin:auto;background:#fff;border-radius:8px;padding:30px'>";
+        $body .= "<h2 style='color:#343a40'>Nueva Respuesta en Tu Ticket</h2>";
+        $body .= "<p>Hola <strong>{$name}</strong>,</p>";
+        $body .= "<p>Se ha enviado una nueva respuesta en tu ticket <strong>#{$ticketN}</strong> — <em>" . htmlspecialchars($subject, ENT_QUOTES) . "</em>:</p>";
+        if (!empty($commentPreview)) {
+            $body .= "<blockquote style='border-left:4px solid #007bff;margin:15px 0;padding:10px 15px;background:#f0f7ff;color:#333'>" . htmlspecialchars($commentPreview, ENT_QUOTES) . "</blockquote>";
+        }
+        if (!empty($token)) {
+            $body .= "<p style='margin-top:25px'><a href='{$trackLink}' style='background:#007bff;color:#fff;padding:12px 24px;border-radius:5px;text-decoration:none;font-size:15px'>Ver ticket completo</a></p>";
+        }
+        $body .= "<hr style='margin-top:30px;border:none;border-top:1px solid #eee'>";
+        $body .= "<p style='font-size:12px;color:#999'>Este mensaje fue generado automáticamente.</p>";
+        $body .= "</div></body></html>";
+        $this->loadMailerService();
+        if (class_exists('MailerService')) {
+            MailerService::send($to, $ticket['reporter_name'] ?? '', $mailSubject, $body);
+        }
+    }
+
+    /**
+     * Envia email al tecnico asignado al ticket.
+     * $skipUserId: no enviar si el tecnico es quien genero la accion.
+     */
+    private function sendTicketEmailToTechnician(int $ticketId, string $subject, string $bodyHtml, int $skipUserId = 0): void {
+        try {
+            $q = $this->db->query("SELECT u.id, u.email, CONCAT(u.firstname,' ',u.lastname) AS name
+                FROM users u INNER JOIN tickets t ON t.assigned_to = u.id
+                WHERE t.id = {$ticketId} AND u.email IS NOT NULL AND u.email != '' LIMIT 1");
+            if (!$q) return;
+            $tech = $q->fetch_assoc();
+            if (!$tech || (int)$tech['id'] === $skipUserId) return;
+            $to = filter_var($tech['email'], FILTER_VALIDATE_EMAIL);
+            if (!$to) return;
+            $this->loadMailerService();
+            if (class_exists('MailerService')) {
+                MailerService::send($to, $tech['name'] ?? '', $subject, $bodyHtml);
+            }
+        } catch (\Throwable $e) {
+            error_log('sendTicketEmailToTechnician ERROR: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Genera el cuerpo HTML del email para notificaciones a tecnicos.
+     */
+    private function buildTechnicianEmailBody(string $heading, string $content, int $ticketId): string {
+        $baseUrl = rtrim(defined('BASE_URL') ? BASE_URL : (getenv('BASE_URL') ?: ''), '/');
+        $link = htmlspecialchars($baseUrl . '/index.php?page=view_ticket&id=' . $ticketId, ENT_QUOTES);
+        $body  = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f5f5f5;padding:20px'>";
+        $body .= "<div style='max-width:600px;margin:auto;background:#fff;border-radius:8px;padding:30px'>";
+        $body .= "<h2 style='color:#343a40'>{$heading}</h2>";
+        $body .= $content;
+        $body .= "<p style='margin-top:25px'><a href='{$link}' style='background:#007bff;color:#fff;padding:12px 24px;border-radius:5px;text-decoration:none;font-size:15px'>Ver ticket</a></p>";
+        $body .= "<hr style='margin-top:30px;border:none;border-top:1px solid #eee'>";
+        $body .= "<p style='font-size:12px;color:#999'>Este mensaje fue generado automaticamente.</p>";
+        $body .= "</div></body></html>";
+        return $body;
     }
 
 }

@@ -512,23 +512,8 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
   const mpData = <?php echo json_encode($mp_data); ?>;
   const mcData = <?php echo json_encode($mc_data); ?>;
   
-  console.log('DEBUG Charts Data:', {
-    salesCategories, salesCounts, salesSums,
-    pieLabels, pieValues,
-    serviceTypes, serviceCounts,
-    execCategories, mpData, mcData,
-    apexchartsLoaded: typeof ApexCharts !== 'undefined'
-  });
-
   // Esperar a que el DOM esté listo
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Ready, initializing charts...');
-    console.log('Chart divs found:', {
-      salesChart: !!document.querySelector('#sales-chart'),
-      pieChart: !!document.querySelector('#pie-chart'),
-      serviceTypeChart: !!document.querySelector('#service-type-chart'),
-      executionMonthlyChart: !!document.querySelector('#execution-monthly-chart')
-    });
     
   const sales_chart_options = {
     series: [
@@ -550,7 +535,6 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
     tooltip: { shared: true, intersect: false, x: { format: 'MMMM yyyy' }, y: [ val => `${val} equipos`, val => '$' + val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') ] },
   };
   if (document.querySelector('#sales-chart')) {
-    console.log('Rendering sales-chart...');
     new ApexCharts(document.querySelector('#sales-chart'), sales_chart_options).render();
   } else {
     console.error('sales-chart div not found!');
@@ -566,7 +550,6 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
     tooltip: { y: { formatter: val => val + ' equipos' } }
   };
   if (document.querySelector('#pie-chart')) {
-    console.log('Rendering pie-chart...');
     new ApexCharts(document.querySelector('#pie-chart'), pie_chart_options).render();
   } else {
     console.error('pie-chart div not found!');
@@ -583,7 +566,6 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
     tooltip: { y: { formatter: val => val + ' reportes' } }
   };
   if (document.querySelector('#service-type-chart')) {
-    console.log('Rendering service-type-chart...');
     new ApexCharts(document.querySelector('#service-type-chart'), serviceTypeChartOptions).render();
   } else {
     console.error('service-type-chart div not found!');
@@ -603,7 +585,6 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
     grid: { borderColor: '#f1f1f1' }
   };
   if (document.querySelector('#execution-monthly-chart')) {
-    console.log('Rendering execution-monthly-chart...');
     new ApexCharts(document.querySelector('#execution-monthly-chart'), executionMonthlyOptions).render();
   } else {
     console.error('execution-monthly-chart div not found!');

@@ -11,7 +11,7 @@ require_once __DIR__ . '/DataStore.php';
 class Equipment extends DataStore {
     
     public function __construct() {
-        parent::__construct('equipment');
+        parent::__construct('equipment', 'equipment');
     }
     
     /**

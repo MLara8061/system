@@ -36,6 +36,15 @@ if (!validate_session()) {
     die('Sesión expirada');
 }
 
+require_once $root . '/app/helpers/permissions.php';
+$canExport = function_exists('can')
+    ? (can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports'))
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
+}
+
 // Incluir configuración y conexión a base de datos
 if (file_exists($root . '/config/config.php')) {
     require_once $root . '/config/config.php';

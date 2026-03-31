@@ -64,8 +64,6 @@ $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_ass
 <script>
 // El formulario se carga dinámicamente, así que ejecutamos directamente
 (function() {
-    console.log("Inicializando validación de usuario");
-    
     const $form = $('#manage-user-form');
     if ($form.length === 0) {
         console.error("Formulario no encontrado!");
@@ -78,8 +76,6 @@ $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_ass
     const originalUsername = $username.val();
     const isEdit = parseInt($form.find('input[name="id"]').val()) > 0;
     let typingTimer;
-
-    console.log("Validación inicializada. isEdit:", isEdit);
 
     // Validación en tiempo real del username
     $username.off('input').on('input', function() {
@@ -99,7 +95,6 @@ $user = $is_edit ? $conn->query("SELECT * FROM users WHERE id = $id")->fetch_ass
                     id: $form.find('input[name="id"]').val() 
                 },
                 success: function(resp) {
-                    console.log('check_username respuesta:', resp);
                     if (resp == 1) {
                         $icon.addClass('fa-times-circle text-danger');
                         $feedback.text('No disponible').addClass('text-danger');

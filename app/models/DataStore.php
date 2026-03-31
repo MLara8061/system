@@ -7,10 +7,11 @@
  */
 
 class DataStore {
-    protected $db;     // Conexión PDO
-    protected $table;  // Tabla actual
+    protected $db;          // Conexión PDO
+    protected $table;       // Tabla actual
+    protected $auditModule; // Módulo para auditoría (null = sin auditar)
     
-    public function __construct($table = null) {
+    public function __construct($table = null, $auditModule = null) {
         // Usar conexión PDO si existe
         if (defined('ROOT')) {
             require_once ROOT . '/config/db.php';
@@ -25,6 +26,15 @@ class DataStore {
         }
         
         $this->table = $table;
+        $this->auditModule = $auditModule;
+
+        // Cargar AuditLogger
+        $auditPath = defined('ROOT')
+            ? ROOT . '/app/helpers/AuditLogger.php'
+            : dirname(__DIR__) . '/helpers/AuditLogger.php';
+        if (file_exists($auditPath)) {
+            require_once $auditPath;
+        }
     }
     
     /**
@@ -118,7 +128,14 @@ class DataStore {
             $values = array_values($data);
             $stmt->execute($values);
             
-            return $this->db->lastInsertId();
+            $newId = $this->db->lastInsertId();
+
+            // Auditoría automática
+            if ($this->auditModule && class_exists('AuditLogger')) {
+                AuditLogger::log($this->auditModule, 'create', $this->table, (int)$newId, null, $data);
+            }
+
+            return $newId;
         } catch (Exception $e) {
             error_log("INSERT ERROR: " . $e->getMessage());
             return false;
@@ -141,6 +158,12 @@ class DataStore {
      * @return bool
      */
     public function update($data, $id) {
+        // Capturar estado anterior para auditoría
+        $oldData = null;
+        if ($this->auditModule && class_exists('AuditLogger')) {
+            $oldData = $this->getById($id);
+        }
+
         $sets = implode(', ', array_map(function($key) {
             return "{$key} = ?";
         }, array_keys($data)));
@@ -153,7 +176,14 @@ class DataStore {
             $values = array_values($data);
             $values[] = (int)$id;
             
-            return $stmt->execute($values);
+            $result = $stmt->execute($values);
+
+            // Auditoría automática
+            if ($result && $this->auditModule && class_exists('AuditLogger')) {
+                AuditLogger::log($this->auditModule, 'update', $this->table, (int)$id, $oldData, $data);
+            }
+
+            return $result;
         } catch (Exception $e) {
             error_log("UPDATE ERROR: " . $e->getMessage());
             return false;
@@ -166,11 +196,24 @@ class DataStore {
      * @return bool
      */
     public function delete($id) {
+        // Capturar estado anterior para auditoría
+        $oldData = null;
+        if ($this->auditModule && class_exists('AuditLogger')) {
+            $oldData = $this->getById($id);
+        }
+
         $sql = "DELETE FROM {$this->table} WHERE id = :id";
         
         try {
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([':id' => (int)$id]);
+            $result = $stmt->execute([':id' => (int)$id]);
+
+            // Auditoría automática
+            if ($result && $this->auditModule && class_exists('AuditLogger')) {
+                AuditLogger::log($this->auditModule, 'delete', $this->table, (int)$id, $oldData, null);
+            }
+
+            return $result;
         } catch (Exception $e) {
             error_log("DELETE ERROR: " . $e->getMessage());
             return false;

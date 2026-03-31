@@ -39,7 +39,7 @@ if (isset($_SESSION['login_id']))
     <link rel="stylesheet" href="/css/adminlte.min.css">
     
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
     
     <style>
         html, body {

@@ -197,7 +197,10 @@ $correctivos = $conn->query("
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div>
-                                        <strong><?php echo $row['name'] ?></strong>
+                                        <strong><?php echo htmlspecialchars($row['name']); ?></strong>
+                                        <?php if (!empty($row['number_inventory'])): ?>
+                                            <span class="text-muted ml-1">#<?php echo htmlspecialchars($row['number_inventory']); ?></span>
+                                        <?php endif; ?>
                                         <br>
                                         <small class="text-muted">
                                             <i class="fas fa-calendar mr-1"></i>

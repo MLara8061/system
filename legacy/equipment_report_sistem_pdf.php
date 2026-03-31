@@ -1,9 +1,25 @@
 <?php
 define('ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../app/helpers/permissions.php';
+require_once __DIR__ . '/../app/helpers/company_config_helper.php';
 
-// Los PDFs son accesibles directamente mediante URL con ID válido
-// No requieren validación de sesión para permitir compartir e imprimir
+if (!isset($_SESSION['login_id']) || !validate_session()) {
+    http_response_code(401);
+    die('Sesion expirada');
+}
+
+$canExport = function_exists('can')
+    ? (
+        can('export', 'equipments') || can('export', 'equipment') || can('export', 'reports') ||
+        can('view', 'equipments')   || can('view', 'equipment')   || can('view', 'reports')
+    )
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('Sin permisos para exportar');
+}
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die('ID inválido');
@@ -14,6 +30,10 @@ $id = (int)$_GET['id'];
 $qry = $conn->query("SELECT * FROM equipment_report_sistem WHERE id = $id");
 if ($qry->num_rows == 0) die('Reporte no encontrado');
 $r = $qry->fetch_array();
+
+$branchId = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
+$companyLogoUrl = get_company_logo_url($conn, $branchId);
+$companyCfg = get_company_config($conn, $branchId);
 ?>
 
 <!DOCTYPE html>
@@ -61,6 +81,20 @@ $r = $qry->fetch_array();
             margin-bottom: 15px;
             border-bottom: 3px solid #007bff;
             padding-bottom: 8px;
+        }
+        .logo-wrap {
+            text-align: left;
+            margin-bottom: 8px;
+        }
+        .logo-wrap img {
+            max-height: 52px;
+            max-width: 160px;
+            object-fit: contain;
+        }
+        .company-meta {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 6px;
         }
         .header h1 {
             margin: 0;
@@ -152,6 +186,16 @@ $r = $qry->fetch_array();
 <div class="container">
 
     <div class="header">
+        <?php if (!empty($companyLogoUrl)): ?>
+            <div class="logo-wrap"><img src="<?= htmlspecialchars($companyLogoUrl) ?>" alt="Logo"></div>
+        <?php endif; ?>
+        <?php if (!empty($companyCfg['company_name'])): ?>
+            <div class="company-meta">
+                <strong><?= htmlspecialchars($companyCfg['company_name']) ?></strong>
+                <?php if (!empty($companyCfg['city_state_zip'])): ?> | <?= htmlspecialchars($companyCfg['city_state_zip']) ?><?php endif; ?>
+                <?php if (!empty($companyCfg['phone_number'])): ?> | <?= htmlspecialchars($companyCfg['phone_number']) ?><?php endif; ?>
+            </div>
+        <?php endif; ?>
         <h1>REPORTE DE SERVICIO TÉCNICO</h1>
         <div class="folio">Folio: <?= htmlspecialchars($r['orden_servicio']) ?></div>
     </div>
@@ -242,7 +286,7 @@ $r = $qry->fetch_array();
 <script>
     function printReport() {
         // Muestra una alerta con las instrucciones clave
-        alert("🚨 IMPORTANTE: Eliminar encabezados y pies de página:\n\n" +
+        alert("IMPORTANTE: Eliminar encabezados y pies de pagina:\n\n" +
               "1. En el diálogo de impresión (CTRL+P / CMD+P).\n" +
               "2. Busque la opción: 'Más ajustes' o 'Opciones'.\n" +
               "3. Desmarque la casilla: 'Encabezados y pies de página'.\n\n" +

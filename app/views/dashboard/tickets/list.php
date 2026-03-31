@@ -28,6 +28,12 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	$ticketSummary['en_proceso'] = (int)($row['en_proceso'] ?? 0);
 	$ticketSummary['finalizados'] = (int)($row['finalizados'] ?? 0);
 }
+
+// Mapas de prioridad y SLA
+$priorityLabels = ['low' => 'Baja', 'medium' => 'Media', 'high' => 'Alta', 'critical' => 'Critica'];
+$priorityClasses = ['low' => 'info', 'medium' => 'primary', 'high' => 'warning', 'critical' => 'danger'];
+$priorityIcons = ['low' => 'arrow-down', 'medium' => 'minus', 'high' => 'arrow-up', 'critical' => 'exclamation-triangle'];
+$slaHours = ['low' => 72, 'medium' => 48, 'high' => 24, 'critical' => 8];
 ?>
 <div class="container-fluid">
 	<div class="row mb-3">
@@ -93,34 +99,47 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 				<div class="table-responsive">
 				<table class="table table-hover table-bordered table-sm" id="list">
 					<colgroup>
-						<col width="5%">
-						<col width="12%">
-						<col width="18%">
-						<col width="18%">
-						<col width="25%">
-						<col width="12%">
+						<col width="4%">
+						<col width="9%">
+						<col width="13%">
+						<col width="16%">
+						<col width="8%">
+						<col width="6%">
 						<col width="10%">
+						<col width="10%">
+						<col width="8%">
 					</colgroup>
 					<thead class="thead-light text-primary">
 						<tr>
 							<th class="text-center">#</th>
-							<th>Fecha Creación</th>
+							<th>Fecha</th>
 							<th>Reportado por</th>
 							<th>Asunto</th>
-							<th>Descripción</th>
+							<th class="text-center">Prioridad</th>
+							<th class="text-center">SLA</th>
 							<th class="text-center">Estado</th>
-							<th class="text-center">Acción</th>
+							<th>Asignado a</th>
+							<th class="text-center">Accion</th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php
 						$i = 1;
-						$qry = $conn->query("SELECT t.* FROM tickets t $where order by unix_timestamp(t.date_created) desc");
+						$qry = $conn->query("SELECT t.*, COALESCE(CONCAT(ua.firstname,' ',ua.lastname),'') as assigned_name 
+							FROM tickets t LEFT JOIN users ua ON ua.id = t.assigned_to $where ORDER BY unix_timestamp(t.date_created) desc");
 						while ($row = $qry->fetch_assoc()) :
-							$trans = get_html_translation_table(HTML_ENTITIES, ENT_QUOTES);
-							unset($trans["\""], $trans["<"], $trans[">"], $trans["<h2"]);
-							$desc = strtr(html_entity_decode($row['description']), $trans);
-							$desc = str_replace(array("<li>", "</li>"), array("", ", "), $desc);
+							$pr = $row['priority'] ?? 'medium';
+							$prLabel = $priorityLabels[$pr] ?? 'Media';
+							$prClass = $priorityClasses[$pr] ?? 'primary';
+							$prIcon = $priorityIcons[$pr] ?? 'minus';
+							// SLA
+							$elapsed = time() - strtotime($row['date_created']);
+							$slaLimit = ($slaHours[$pr] ?? 48) * 3600;
+							$slaPct = $elapsed / max($slaLimit, 1);
+							if ($row['status'] >= 2) { $slaClass = 'success'; $slaIcon = 'check'; }
+							elseif ($slaPct < 0.5) { $slaClass = 'success'; $slaIcon = 'check'; }
+							elseif ($slaPct < 0.85) { $slaClass = 'warning'; $slaIcon = 'clock'; }
+							else { $slaClass = 'danger'; $slaIcon = 'exclamation-circle'; }
 						?>
 							<tr>
 								<td class="text-center"><?php echo $i++ ?></td>
@@ -128,11 +147,16 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 								<td>
 									<?php echo ucwords($row['reporter_name'] ?? 'N/A') ?>
 									<?php if (isset($row['is_public']) && $row['is_public'] == 1): ?>
-										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> Público</small>
+										<br><small class="badge badge-warning"><i class="fas fa-qrcode"></i> Publico</small>
 									<?php endif; ?>
 								</td>
-								<td><strong><?php echo $row['subject'] ?></strong></td>
-								<td class="truncate"><?php echo strip_tags($desc) ?></td>
+								<td><strong><?php echo htmlspecialchars($row['subject'] ?? '') ?></strong></td>
+								<td class="text-center">
+									<span class="badge badge-<?php echo $prClass; ?>"><i class="fas fa-<?php echo $prIcon; ?>"></i> <?php echo $prLabel; ?></span>
+								</td>
+								<td class="text-center">
+									<i class="fas fa-<?php echo $slaIcon; ?> text-<?php echo $slaClass; ?>" title="SLA"></i>
+								</td>
 								<td class="text-center">
 									<?php if ($row['status'] == 0) : ?>
 										<span class="badge badge-primary"><i class="fas fa-folder-open"></i> Abierto</span>
@@ -144,6 +168,7 @@ if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 										<span class="badge badge-secondary"><i class="fas fa-times-circle"></i> Cerrado</span>
 									<?php endif; ?>
 								</td>
+								<td><?php echo htmlspecialchars($row['assigned_name'] ?? ''); ?></td>
 								<td class="text-center">
 									<div class="btn-group">
 										<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">

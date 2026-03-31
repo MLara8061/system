@@ -2,6 +2,22 @@
 // report_pdf.php
 define('ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../app/helpers/permissions.php';
+require_once __DIR__ . '/../app/helpers/company_config_helper.php';
+
+if (!isset($_SESSION['login_id']) || !validate_session()) {
+    http_response_code(401);
+    die('<h3 style="color:red;text-align:center;margin:50px;">Sesion expirada</h3>');
+}
+
+$canExport = function_exists('can')
+    ? (can('export', 'reports') || can('view', 'reports') || can('export', 'maintenance_reports') || can('view', 'maintenance_reports'))
+    : ((int)($_SESSION['login_type'] ?? 0) === 1);
+if (!$canExport && (int)($_SESSION['login_type'] ?? 0) !== 1) {
+    http_response_code(403);
+    die('<h3 style="color:red;text-align:center;margin:50px;">Sin permisos para exportar</h3>');
+}
 
 $report_id = $_GET['id'] ?? 0;
 if (!$report_id || !is_numeric($report_id)) {
@@ -68,6 +84,21 @@ foreach ($parts as $p) {
 if (empty($parts_list)) {
     $parts_list = '<em style="margin-left: 20px;">Ninguna refacción utilizada</em>';
 }
+// === ADJUNTOS FOTOGRÁFICOS ===
+$evidence_photos = [];
+try {
+    require_once ROOT . '/config/db.php';
+    $pdo_pdf = get_pdo();
+    $att_stmt = $pdo_pdf->prepare(
+        "SELECT file_name, file_path FROM report_attachments
+          WHERE report_id = :rid
+          ORDER BY sort_order ASC, id ASC"
+    );
+    $att_stmt->execute([':rid' => $report_id]);
+    $evidence_photos = $att_stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    error_log('report_pdf evidence load error: ' . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -118,6 +149,16 @@ if (empty($parts_list)) {
         .membrete {
             flex: 1;
             padding-right: 10px;
+        }
+
+        .membrete-logo {
+            margin-bottom: 4px;
+        }
+
+        .membrete-logo img {
+            max-height: 44px;
+            max-width: 140px;
+            object-fit: contain;
         }
 
         .membrete .company {
@@ -238,6 +279,31 @@ if (empty($parts_list)) {
             body, .container { margin: 0; padding: 0; }
             .no-print { display: none; }
             .firma .linea { border-bottom: 1px solid #000; }
+            .evidence-img { max-width: 100%; }
+        }
+
+        /* EVIDENCIA FOTOGRÁFICA */
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .evidence-cell {
+            border: 1px solid #ddd;
+            padding: 4px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .evidence-img {
+            max-width: 100%;
+            max-height: 140px;
+            object-fit: cover;
+        }
+        .evidence-caption {
+            font-size: 8.5px;
+            color: #666;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -248,11 +314,24 @@ if (empty($parts_list)) {
     <!-- MEMBRETE + ORDEN + FECHA (EN UNA LÍNEA) -->
     <div class="header-row">
         <div class="membrete">
-            <div class="company">Venta, Mantenimiento Preventivo y Correctivo de Equipo Médico</div>
-            <div class="address">Murillo No.26 Lote 28 Mz-75 Smz-321</div>
-            <div class="address">Fracc. Villas del Arte</div>
-            <div class="address">Benito Juarez Cancún, Quintana Roo C.P 77560</div>
-            <div class="address">TEL: (998) 214 86 73/ 998 214 91 91</div>
+<?php
+$_pdf_branch_id = (int)($report_branch_id ?? 0);
+$_pdf_cfg = get_company_config($conn, $_pdf_branch_id);
+$_pdf_logo = get_company_logo_url($conn, $_pdf_branch_id);
+?>
+<?php if (!empty($_pdf_logo)): ?>
+            <div class="membrete-logo">
+                <img src="<?= htmlspecialchars($_pdf_logo) ?>" alt="Logo">
+            </div>
+<?php endif; ?>
+            <div class="company"><?= htmlspecialchars($_pdf_cfg['company_name']) ?></div>
+            <div class="address"><?= htmlspecialchars($_pdf_cfg['address_line_1']) ?></div>
+            <div class="address"><?= htmlspecialchars($_pdf_cfg['address_line_2']) ?></div>
+            <div class="address"><?= htmlspecialchars($_pdf_cfg['city_state_zip']) ?></div>
+            <div class="address"><?= htmlspecialchars($_pdf_cfg['phone_number']) ?></div>
+<?php if (!empty($_pdf_cfg['company_description'])): ?>
+            <div class="address" style="font-style:italic;"><?= htmlspecialchars($_pdf_cfg['company_description']) ?></div>
+<?php endif; ?>
         </div>
         <div class="order-info">
             <div>ORDEN: <?= htmlspecialchars($report['order_number']) ?></div>
@@ -364,6 +443,25 @@ if (empty($parts_list)) {
         <h2>STATUS FINAL</h2>
         <p style="margin:4px 0;"><strong><?= $report['final_status'] ?></strong></p>
     </div>
+
+    <!-- EVIDENCIA FOTOGRÁFICA -->
+    <?php if (!empty($evidence_photos)): ?>
+    <div class="section" style="page-break-before: auto;">
+        <h2>EVIDENCIA FOTOGRÁFICA</h2>
+        <div class="evidence-grid">
+            <?php
+            $base_url = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
+            foreach ($evidence_photos as $idx => $photo):
+                $img_src = $base_url . '/' . ltrim($photo['file_path'], '/');
+            ?>
+            <div class="evidence-cell">
+                <img src="<?= htmlspecialchars($img_src) ?>" class="evidence-img" alt="Foto <?= $idx + 1 ?>">
+                <div class="evidence-caption">Foto <?= $idx + 1 ?></div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- FIRMAS -->
     <div class="section firmas">

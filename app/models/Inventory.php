@@ -5,6 +5,7 @@
 class Inventory extends DataStore {
     protected $table = 'inventory';
     protected $primaryKey = 'id';
+    protected $auditModule = 'inventory';
     
     public function getWithRelations($id) {
         $stmt = $this->db->prepare("

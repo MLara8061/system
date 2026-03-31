@@ -13,7 +13,7 @@ class Department extends DataStore {
      * Constructor - Inicializar con tabla 'departments'
      */
     public function __construct() {
-        parent::__construct('departments');
+        parent::__construct('departments', 'department');
     }
     
     /**
