@@ -11,7 +11,7 @@ require_once ROOT . '/app/models/CustomField.php';
 
 class CustomFieldController {
 
-    private CustomField $model;
+    private $model;
 
     public function __construct() {
         $this->model = new CustomField();

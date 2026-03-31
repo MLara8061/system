@@ -21,6 +21,7 @@ require_once $root_path . '/app/helpers/company_config_helper.php';
 
 $_branch_id = function_exists('active_branch_id') ? (int)active_branch_id() : (int)($_SESSION['login_active_branch_id'] ?? 0);
 $_company_cfg = get_company_config($conn, $_branch_id);
+$_company_logo_url = get_company_logo_url($conn, $_branch_id);
 
 $company_info = [
     'company_name' => $_company_cfg['company_name'],
@@ -66,16 +67,60 @@ if ($conn) {
 
     <style>
         body { background-color: #f4f7f6; }
-        .report-form { max-width: 900px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .report-form { max-width: 980px; margin: 30px auto; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10); }
         .section-header { background-color: #f0f8ff; border-left: 5px solid #007bff; padding: 5px 15px; margin-top: 20px; margin-bottom: 10px; font-weight: bold; }
         .contact-info div { line-height: 1.2; }
         .stock_indicator { font-size: 0.85rem; }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 22px; padding: 18px 20px; border: 1px solid #dbe4f0; border-radius: 12px; background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%); }
+        .report-brand { display: flex; align-items: flex-start; gap: 16px; min-width: 0; flex: 1 1 auto; }
+        .report-brand-logo { width: 132px; min-width: 132px; height: 72px; border: 1px solid #d6e0ec; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 8px; }
+        .report-brand-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .report-brand-placeholder { font-size: 0.8rem; color: #7b8794; text-align: center; line-height: 1.3; }
+        .report-brand-copy { min-width: 0; }
+        .report-brand-copy .report-kicker { margin-bottom: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1f4f82; }
+        .report-brand-copy .report-company { font-size: 1.2rem; font-weight: 700; color: #16283d; line-height: 1.2; }
+        .report-brand-copy .report-meta { margin-top: 4px; color: #4b5b6b; }
+        .report-brand-copy .report-description { margin-top: 8px; font-style: italic; color: #5c6f82; }
+        .report-summary { min-width: 230px; max-width: 260px; padding-left: 18px; border-left: 1px solid #d6e0ec; text-align: right; }
+        .report-summary .summary-title { margin: 0; font-size: 1.9rem; font-weight: 300; letter-spacing: 0.04em; color: #5c6f82; }
+        .report-summary .summary-row { margin-top: 12px; color: #23384d; }
+        .report-summary .summary-label { display: block; margin-bottom: 4px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7c8f; }
+        .report-summary .summary-value { font-size: 1.05rem; font-weight: 700; }
+        .report-summary .summary-badge { display: inline-block; padding: 7px 12px; border-radius: 10px; background: #fff1f0; border: 1px solid #f2c1bf; color: #8f2d2a; }
 
         /* === RESPONSIVE MOBILE === */
         @media (max-width: 767.98px) {
             .report-form {
                 margin: 10px;
                 padding: 15px;
+            }
+
+            .report-header {
+                flex-direction: column;
+                gap: 18px;
+                padding: 16px;
+            }
+
+            .report-brand {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .report-brand-logo {
+                width: 100%;
+                min-width: 0;
+                height: 84px;
+            }
+
+            .report-summary {
+                min-width: 0;
+                max-width: none;
+                width: 100%;
+                padding-left: 0;
+                padding-top: 14px;
+                border-left: 0;
+                border-top: 1px solid #d6e0ec;
+                text-align: left;
             }
 
             /* Ocultar etiquetas col-form-label en mobile y mostrar arriba del input */
@@ -212,22 +257,37 @@ if ($conn) {
                         <input type="hidden" name="admin_name" value="<?= htmlspecialchars($current_user_name) ?>">
 
                         <!-- MEMBRETE -->
-                        <div class="row mb-4">
-                            <div class="col-md-7 col-12 contact-info mb-3 mb-md-0">
-                                <div><strong><?= htmlspecialchars($company_info['company_name']) ?></strong></div>
-                                <div><?= htmlspecialchars($company_info['address_line_1']) ?></div>
-                                <div><?= htmlspecialchars($company_info['address_line_2']) ?></div>
-                                <div><?= htmlspecialchars($company_info['city_state_zip']) ?></div>
-                                <div><?= htmlspecialchars($company_info['phone_number']) ?></div>
-                                <?php if (!empty($_company_cfg['company_description'])): ?>
-                                <div><em><?= htmlspecialchars($_company_cfg['company_description']) ?></em></div>
-                                <?php endif; ?>
+                        <div class="report-header">
+                            <div class="report-brand">
+                                <div class="report-brand-logo">
+                                    <?php if (!empty($_company_logo_url)): ?>
+                                        <img src="<?= htmlspecialchars($_company_logo_url) ?>" alt="Logo de la empresa">
+                                    <?php else: ?>
+                                        <div class="report-brand-placeholder">Espacio para logo<br>institucional</div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="report-brand-copy contact-info">
+                                    <div class="report-kicker">Generar Reportes</div>
+                                    <div class="report-company"><?= htmlspecialchars($company_info['company_name']) ?></div>
+                                    <div class="report-meta"><?= htmlspecialchars($company_info['address_line_1']) ?></div>
+                                    <div class="report-meta"><?= htmlspecialchars($company_info['address_line_2']) ?></div>
+                                    <div class="report-meta"><?= htmlspecialchars($company_info['city_state_zip']) ?></div>
+                                    <div class="report-meta"><?= htmlspecialchars($company_info['phone_number']) ?></div>
+                                    <?php if (!empty($_company_cfg['company_description'])): ?>
+                                        <div class="report-description"><?= htmlspecialchars($_company_cfg['company_description']) ?></div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <div class="col-md-5 col-12 text-md-right text-left">
-                                <h4 class="text-secondary">ORDEN DE MANTTO</h4>
-                                <div><strong>ORDEN:</strong> <span class="badge badge-danger" style="font-size:1rem;"><?= $orden_mto ?></span></div>
-                                <h4 class="text-secondary mt-2">FECHA</h4>
-                                <div><?= $fecha_reporte ?></div>
+                            <div class="report-summary">
+                                <h4 class="summary-title">Orden de Mantto</h4>
+                                <div class="summary-row">
+                                    <span class="summary-label">Orden</span>
+                                    <span class="summary-value summary-badge"><?= $orden_mto ?></span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Fecha</span>
+                                    <span class="summary-value"><?= $fecha_reporte ?></span>
+                                </div>
                             </div>
                         </div>
                         <hr>

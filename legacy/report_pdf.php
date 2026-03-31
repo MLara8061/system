@@ -141,46 +141,116 @@ try {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            gap: 14px;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border: 1px solid #dbe4f0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fbfdff 0%, #f0f6ff 100%);
             font-size: 9.5px;
             line-height: 1.2;
         }
 
         .membrete {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
             flex: 1;
+            min-width: 0;
             padding-right: 10px;
         }
 
         .membrete-logo {
-            margin-bottom: 4px;
+            width: 120px;
+            min-width: 120px;
+            height: 62px;
+            margin-bottom: 0;
+            border: 1px solid #d6e0ec;
+            border-radius: 10px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
         }
 
         .membrete-logo img {
-            max-height: 44px;
-            max-width: 140px;
+            max-height: 100%;
+            max-width: 100%;
             object-fit: contain;
+        }
+
+        .membrete-copy {
+            min-width: 0;
+        }
+
+        .membrete-kicker {
+            margin-bottom: 5px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #1f4f82;
         }
 
         .membrete .company {
             font-weight: bold;
-            font-size: 10px;
+            font-size: 12px;
+            color: #1a2f45;
         }
 
         .membrete .address {
             margin: 1px 0;
+            color: #415466;
+        }
+
+        .membrete .description {
+            margin-top: 5px;
+            font-style: italic;
+            color: #617487;
         }
 
         .order-info {
             text-align: right;
+            min-width: 235px;
+            padding-left: 14px;
+            border-left: 1px solid #d6e0ec;
             font-size: 11px;
             font-weight: bold;
-            color: #d35400;
+            color: #2f455a;
             line-height: 1.3;
+        }
+
+        .order-info .title-large {
+            font-size: 15px;
+            font-weight: 300;
+            letter-spacing: 0.04em;
+            color: #5c6f82;
+        }
+
+        .order-info .label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6b7c8f;
+        }
+
+        .order-info .value-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: #fff1f0;
+            border: 1px solid #f2c1bf;
+            color: #8f2d2a;
         }
 
         .order-info .fecha {
             font-weight: normal;
-            font-size: 10px;
+            font-size: 11px;
             color: #555;
         }
 
@@ -333,29 +403,38 @@ $_pdf_logo = get_company_logo_url($conn, $_pdf_branch_id);
             <div class="address" style="font-style:italic;"><?= htmlspecialchars($_pdf_cfg['company_description']) ?></div>
 <?php endif; ?>
         </div>
-        <div class="order-info">
-            <div>ORDEN: <?= htmlspecialchars($report['order_number']) ?></div>
-            <div class="fecha">FECHA: <?= htmlspecialchars($report['report_date']) ?></div>
-            <div class="fecha">HORA: <?= htmlspecialchars($report['report_time'] ?? date('H:i')) ?></div>
+        <div class="header-row">
+            <div class="membrete">
+                <?php $logoUrl = get_company_logo_url($conn, $report_branch_id); ?>
+                <?php $cfg = get_company_config($conn, $report_branch_id); ?>
+                <div class="membrete-logo">
+                    <?php if (!empty($logoUrl)): ?>
+                        <img src="<?= htmlspecialchars($logoUrl) ?>" alt="Logo">
+                    <?php else: ?>
+                        <span style="font-size:8px;color:#7b8794;text-align:center;display:block;">Logo<br>institucional</span>
+                    <?php endif; ?>
+                </div>
+                <div class="membrete-copy">
+                    <div class="membrete-kicker">Reporte de Sistemas</div>
+                    <div class="company"><?= htmlspecialchars($cfg['company_name']) ?></div>
+                    <div class="address"><?= htmlspecialchars($cfg['address_line_1']) ?></div>
+                    <div class="address"><?= htmlspecialchars($cfg['address_line_2']) ?></div>
+                    <div class="address"><?= htmlspecialchars($cfg['city_state_zip']) ?></div>
+                    <div class="address"><?= htmlspecialchars($cfg['phone_number']) ?></div>
+                    <?php if (!empty($cfg['company_description'])): ?>
+                        <div class="description"><?= htmlspecialchars($cfg['company_description']) ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="order-info">
+                <div class="title-large">Orden de Mantto</div>
+                <span class="label">Orden</span>
+                <span class="value-badge"><?= htmlspecialchars($report['order_number']) ?></span>
+                <span class="label">Fecha</span>
+                <span class="fecha"><?= htmlspecialchars($report['report_date']) ?></span>
+            </div>
         </div>
-    </div>
-
-    <!-- TÍTULO -->
-    <div class="title">REPORTE DE MANTENIMIENTO</div>
-
-    <!-- CLIENTE -->
-    <div class="section">
-        <h2>DATOS DEL CLIENTE</h2>
-        <table>
-            <tr><th>Nombre</th><td><?= htmlspecialchars($report['client_name']) ?></td></tr>
-            <tr><th>Teléfono</th><td><?= htmlspecialchars($report['client_phone']) ?></td></tr>
-            <tr><th>Domicilio</th><td><?= htmlspecialchars($report['client_address']) ?></td></tr>
-            <tr><th>Email</th><td><?= htmlspecialchars($report['client_email']) ?></td></tr>
-        </table>
-    </div>
-
-    <!-- EQUIPO -->
-    <div class="section">
         <h2>DATOS DEL EQUIPO</h2>
         <table>
             <tr><th>Nombre</th><td><?= htmlspecialchars($report['equipment_name']) ?></td></tr>

@@ -6,7 +6,7 @@ require_once dirname(__DIR__) . '/models/MaintenancePeriod.php';
 
 class MaintenancePeriodController {
 
-    private MaintenancePeriod $model;
+    private $model;
 
     public function __construct() {
         $this->model = new MaintenancePeriod();

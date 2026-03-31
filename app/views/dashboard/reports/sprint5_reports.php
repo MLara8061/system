@@ -3,6 +3,8 @@ require_once 'config/config.php';
 require_once 'config/access_guard.php';
 require_once 'app/helpers/permissions.php';
 
+$pageTitle = 'Analitica Operativa';
+
 $can_view = function_exists('can') ? can('view', 'reports') : true;
 if (!$can_view) {
     echo '<div class="alert alert-danger"><i class="fas fa-lock mr-2"></i>No tienes permiso para ver reportes.</div>';

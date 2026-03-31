@@ -167,7 +167,7 @@
         <li class="nav-item">
           <a href="index.php?page=sprint5_reports" class="nav-link nav-sprint5_reports">
             <i class="fas fa-chart-line nav-icon"></i>
-            <p>Analítica Sprint 5</p>
+            <p>Analítica Operativa</p>
           </a>
         </li>
         
