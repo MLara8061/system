@@ -1451,19 +1451,20 @@ if ($action == 'save_company_config') {
             $ext = ($mime === 'image/png') ? 'png' : 'jpg';
         }
 
-        $targetDir = 'uploads/logos/';
-        if (!is_dir($targetDir)) {
-            @mkdir($targetDir, 0755, true);
+        $targetDirFs = ROOT . '/uploads/logos/';
+        if (!is_dir($targetDirFs)) {
+            @mkdir($targetDirFs, 0755, true);
         }
         $filename = 'branch_' . $branch_id . '_' . time() . '_' . substr(md5(uniqid('', true)), 0, 6) . '.' . $ext;
-        $dest = $targetDir . $filename;
+        $relativeDest = 'uploads/logos/' . $filename;
+        $dest = $targetDirFs . $filename;
 
         if (!move_uploaded_file($logo['tmp_name'], $dest)) {
             echo json_encode(['status' => 0, 'message' => 'No se pudo guardar el logo.']);
             exit;
         }
 
-        $setValues[] = "`logo_path` = '" . $db->real_escape_string($dest) . "'";
+        $setValues[] = "`logo_path` = '" . $db->real_escape_string($relativeDest) . "'";
     }
 
     // Verificar si ya existe

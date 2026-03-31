@@ -7,6 +7,38 @@
 if (!defined('ACCESS')) exit('Acceso no permitido.');
 
 /**
+ * Resuelve una ruta relativa de asset a una URL pública válida.
+ * Soporta la ruta canónica y ubicaciones legacy donde pudo haberse guardado el logo.
+ */
+function resolve_company_asset_url(string $path): string {
+    $path = trim($path);
+    if ($path === '') {
+        return '';
+    }
+
+    if (strpos($path, 'http://') === 0 || strpos($path, 'https://') === 0) {
+        return $path;
+    }
+
+    $relative = ltrim(str_replace('\\', '/', $path), '/');
+    $baseUrl = rtrim(BASE_URL, '/');
+
+    $candidates = [
+        [ROOT_PATH . $relative, $baseUrl . '/' . $relative],
+        [ROOT_PATH . 'public/' . $relative, $baseUrl . '/public/' . $relative],
+        [ROOT_PATH . 'public/ajax/' . $relative, $baseUrl . '/public/ajax/' . $relative],
+    ];
+
+    foreach ($candidates as $candidate) {
+        if (file_exists($candidate[0])) {
+            return $candidate[1];
+        }
+    }
+
+    return $baseUrl . '/' . $relative;
+}
+
+/**
  * Obtiene la configuración de empresa para una sucursal.
  * Si no existe, devuelve valores por defecto vacíos.
  *
@@ -151,10 +183,7 @@ function get_company_logo_url(mysqli $conn, int $branch_id = 0): string {
     $path = trim((string)($cfg['logo_path'] ?? ''));
 
     if ($path !== '') {
-        if (strpos($path, 'http://') === 0 || strpos($path, 'https://') === 0) {
-            return $path;
-        }
-        return rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
+        return resolve_company_asset_url($path);
     }
 
     $res = @$conn->query("SELECT meta_value FROM system_info WHERE meta_field='logo' LIMIT 1");
@@ -163,8 +192,5 @@ function get_company_logo_url(mysqli $conn, int $branch_id = 0): string {
     if ($fallback === '') {
         return '';
     }
-    if (strpos($fallback, 'http://') === 0 || strpos($fallback, 'https://') === 0) {
-        return $fallback;
-    }
-    return rtrim(BASE_URL, '/') . '/' . ltrim($fallback, '/');
+    return resolve_company_asset_url($fallback);
 }

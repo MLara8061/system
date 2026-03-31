@@ -184,15 +184,6 @@ try {
             min-width: 0;
         }
 
-        .membrete-kicker {
-            margin-bottom: 5px;
-            font-size: 9px;
-            font-weight: bold;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #1f4f82;
-        }
-
         .membrete .company {
             font-weight: bold;
             font-size: 12px;
@@ -415,7 +406,6 @@ $_pdf_logo = get_company_logo_url($conn, $_pdf_branch_id);
                     <?php endif; ?>
                 </div>
                 <div class="membrete-copy">
-                    <div class="membrete-kicker">Reporte de Sistemas</div>
                     <div class="company"><?= htmlspecialchars($cfg['company_name']) ?></div>
                     <div class="address"><?= htmlspecialchars($cfg['address_line_1']) ?></div>
                     <div class="address"><?= htmlspecialchars($cfg['address_line_2']) ?></div>

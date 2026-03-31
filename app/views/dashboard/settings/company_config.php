@@ -20,6 +20,7 @@ if ($branch_id > 0) {
 }
 
 $config = get_company_config($conn, $branch_id);
+$logo_url = !empty($config['logo_path']) ? get_company_logo_url($conn, $branch_id) : '';
 ?>
 
 <div class="col-lg-12">
@@ -93,9 +94,9 @@ $config = get_company_config($conn, $branch_id);
                     <div class="col-md-12 mb-3">
                         <label class="font-weight-bold">Logo de la Organización</label>
                         <div class="border rounded p-3 bg-light">
-                            <?php if (!empty($config['logo_path'])): ?>
+                            <?php if (!empty($logo_url)): ?>
                                 <div class="mb-2">
-                                    <img src="<?= htmlspecialchars(rtrim(BASE_URL, '/') . '/' . ltrim((string)$config['logo_path'], '/')) ?>"
+                                    <img src="<?= htmlspecialchars($logo_url) ?>"
                                          alt="Logo actual" style="max-height:90px; object-fit:contain;">
                                 </div>
                             <?php endif; ?>

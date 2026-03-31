@@ -77,7 +77,6 @@ if ($conn) {
         .report-brand-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .report-brand-placeholder { font-size: 0.8rem; color: #7b8794; text-align: center; line-height: 1.3; }
         .report-brand-copy { min-width: 0; }
-        .report-brand-copy .report-kicker { margin-bottom: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1f4f82; }
         .report-brand-copy .report-company { font-size: 1.2rem; font-weight: 700; color: #16283d; line-height: 1.2; }
         .report-brand-copy .report-meta { margin-top: 4px; color: #4b5b6b; }
         .report-brand-copy .report-description { margin-top: 8px; font-style: italic; color: #5c6f82; }
@@ -267,7 +266,6 @@ if ($conn) {
                                     <?php endif; ?>
                                 </div>
                                 <div class="report-brand-copy contact-info">
-                                    <div class="report-kicker">Generar Reportes</div>
                                     <div class="report-company"><?= htmlspecialchars($company_info['company_name']) ?></div>
                                     <div class="report-meta"><?= htmlspecialchars($company_info['address_line_1']) ?></div>
                                     <div class="report-meta"><?= htmlspecialchars($company_info['address_line_2']) ?></div>
