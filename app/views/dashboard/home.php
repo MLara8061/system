@@ -87,33 +87,57 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: total_va
 // Período seleccionado para gráficas de servicio
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: before period logic\n", FILE_APPEND);
 $period = $_GET['period'] ?? '6m';
+$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
+$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
 $period_label = '';
 $months_count = 6;
-switch ($period) {
-    case '6m':
+
+// Si es período custom, validar fechas
+if ($period === 'custom' && $fecha_inicio && $fecha_fin) {
+    // Validar formato de fecha (YYYY-MM-DD)
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
+        $start_service = $fecha_inicio;
+        $end_service = $fecha_fin;
+        // Calcular cantidad de meses aprox para gráficos
+        $interval = date_diff(date_create($fecha_inicio), date_create($fecha_fin));
+        $months_count = max(1, (int)ceil($interval->days / 30));
+        $period_label = 'Del ' . date('d/m/Y', strtotime($fecha_inicio)) . ' al ' . date('d/m/Y', strtotime($fecha_fin));
+    } else {
+        // Si fechas inválidas, usar período por defecto
+        $period = '6m';
         $start_service = date('Y-m-01', strtotime('-5 months'));
+        $end_service = date('Y-m-d');
         $period_label = 'Últimos 6 meses';
         $months_count = 6;
-        break;
-    case '12m':
-        $start_service = date('Y-m-01', strtotime('-11 months'));
-        $period_label = 'Últimos 12 meses';
-        $months_count = 12;
-        break;
-    case 'year':
-        $start_service = date('Y-01-01');
-        $period_label = 'Este año (' . date('Y') . ')';
-        $months_count = (int)date('m');
-        break;
-    case 'all':
-        $start_service = '2000-01-01';
-        $period_label = 'Todos los registros';
-        $months_count = 24;
-        break;
-    default:
-        $start_service = date('Y-m-01', strtotime('-5 months'));
-        $period_label = 'Últimos 6 meses';
-        $months_count = 6;
+    }
+} else {
+    $end_service = date('Y-m-d');
+    switch ($period) {
+        case '6m':
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+            break;
+        case '12m':
+            $start_service = date('Y-m-01', strtotime('-11 months'));
+            $period_label = 'Últimos 12 meses';
+            $months_count = 12;
+            break;
+        case 'year':
+            $start_service = date('Y-01-01');
+            $period_label = 'Este año (' . date('Y') . ')';
+            $months_count = (int)date('m');
+            break;
+        case 'all':
+            $start_service = '2000-01-01';
+            $period_label = 'Todos los registros';
+            $months_count = 24;
+            break;
+        default:
+            $start_service = date('Y-m-01', strtotime('-5 months'));
+            $period_label = 'Últimos 6 meses';
+            $months_count = 6;
+    }
 }
 
 // maintenance_reports: datos reales (service_type, service_date, branch_id)
@@ -123,8 +147,8 @@ $mp_count = 0;
 $mc_count = 0;
 $service_types = ['MP', 'MC'];
 
-$mp_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MP' AND service_date >= '{$start_service}'{$branch_and}");
-$mc_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MC' AND service_date >= '{$start_service}'{$branch_and}");
+$mp_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MP' AND service_date >= '{$start_service}' AND service_date <= '{$end_service}'{$branch_and}");
+$mc_res = $conn->query("SELECT COUNT(*) AS count FROM maintenance_reports WHERE service_type='MC' AND service_date >= '{$start_service}' AND service_date <= '{$end_service}'{$branch_and}");
 
 if ($mp_res && ($row = $mp_res->fetch_assoc())) $mp_count = (int)($row['count'] ?? 0);
 if ($mc_res && ($row = $mc_res->fetch_assoc())) $mc_count = (int)($row['count'] ?? 0);
@@ -135,8 +159,20 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: maintena
 // Monthly execution: queries individuales (evita GROUP BY)
 file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: monthly execution (real)\n", FILE_APPEND);
 $exec_months = [];
-for ($i = $months_count - 1; $i >= 0; $i--) {
-  $exec_months[] = date('Y-m', strtotime("-{$i} months"));
+
+if ($period === 'custom' && isset($end_service)) {
+  // Para período custom, generar meses entre fecha inicio y fin
+  $current = strtotime($start_service);
+  $end_ts = strtotime($end_service);
+  while ($current <= $end_ts) {
+    $exec_months[] = date('Y-m', $current);
+    $current = strtotime('+1 month', $current);
+  }
+} else {
+  // Para períodos predefinidos, usar los últimos N meses
+  for ($i = $months_count - 1; $i >= 0; $i--) {
+    $exec_months[] = date('Y-m', strtotime("-{$i} months"));
+  }
 }
 
 $mp_data = [];
@@ -283,19 +319,29 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
           <i class="fas fa-filter mr-2"></i>
           <strong>Período de datos:</strong>
         </div>
-        <div class="d-flex flex-wrap align-items-center">
-          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === '6m' ? 'active' : '' ?>" onclick="changePeriod('6m')">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary <?= $period === '6m' ? 'active' : '' ?>" onclick="changePeriod('6m')">
             <i class="fas fa-calendar-alt"></i> 6 Meses
           </button>
-          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === '12m' ? 'active' : '' ?>" onclick="changePeriod('12m')">
+          <button type="button" class="btn btn-sm btn-outline-primary <?= $period === '12m' ? 'active' : '' ?>" onclick="changePeriod('12m')">
             <i class="fas fa-calendar"></i> 12 Meses
           </button>
-          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === 'year' ? 'active' : '' ?>" onclick="changePeriod('year')">
+          <button type="button" class="btn btn-sm btn-outline-primary <?= $period === 'year' ? 'active' : '' ?>" onclick="changePeriod('year')">
             <i class="fas fa-calendar-check"></i> Este Año
           </button>
-          <button type="button" class="btn btn-sm btn-outline-primary mr-2 mb-2 <?= $period === 'all' ? 'active' : '' ?>" onclick="changePeriod('all')">
+          <button type="button" class="btn btn-sm btn-outline-primary <?= $period === 'all' ? 'active' : '' ?>" onclick="changePeriod('all')">
             <i class="fas fa-infinity"></i> Todo
           </button>
+          <span class="mx-2 text-muted">|</span>
+          <div class="d-flex align-items-center gap-1">
+            <label for="fechaInicioFilter" class="mb-0 text-muted" style="font-size: 0.85rem;">Desde:</label>
+            <input type="date" id="fechaInicioFilter" class="form-control form-control-sm" style="width: 140px; margin: 0;" value="<?= htmlspecialchars($fecha_inicio ?? '') ?>" />
+            <label for="fechaFinFilter" class="mb-0 text-muted" style="font-size: 0.85rem;">Hasta:</label>
+            <input type="date" id="fechaFinFilter" class="form-control form-control-sm" style="width: 140px; margin: 0;" value="<?= htmlspecialchars($fecha_fin ?? '') ?>" />
+            <button type="button" class="btn btn-sm btn-primary" onclick="applyCustomPeriod()">
+              <i class="fas fa-search"></i> Filtrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -495,6 +541,30 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
   function changePeriod(period) {
     const url = new URL(window.location.href);
     url.searchParams.set('period', period);
+    url.searchParams.delete('fecha_inicio');
+    url.searchParams.delete('fecha_fin');
+    url.searchParams.set('page', 'home');
+    window.location.href = url.toString();
+  }
+
+  function applyCustomPeriod() {
+    const fechaInicio = document.getElementById('fechaInicioFilter').value;
+    const fechaFin = document.getElementById('fechaFinFilter').value;
+    
+    if (!fechaInicio || !fechaFin) {
+      alert('Por favor, selecciona ambas fechas');
+      return;
+    }
+
+    if (new Date(fechaInicio) > new Date(fechaFin)) {
+      alert('La fecha inicio debe ser menor a la fecha fin');
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', 'custom');
+    url.searchParams.set('fecha_inicio', fechaInicio);
+    url.searchParams.set('fecha_fin', fechaFin);
     url.searchParams.set('page', 'home');
     window.location.href = url.toString();
   }

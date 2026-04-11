@@ -10,10 +10,10 @@ $qry = $conn->query("SELECT * FROM equipments WHERE id = $id");
 if ($qry->num_rows == 0) die('<div class="alert alert-danger">Equipo no encontrado.</div>');
 $eq = $qry->fetch_array();
 
-// === GENERAR ORDEN DE SERVICIO ===
-$year = date('Y');
-$next = $conn->query("SELECT COALESCE(MAX(CAST(SUBSTRING(orden_servicio, 9) AS UNSIGNED)), 0) + 1 AS next FROM equipment_report_sistem WHERE orden_servicio LIKE 'OS-$year-%'")->fetch_array()['next'];
-$orden_servicio = "OS-$year-" . str_pad($next, 3, '0', STR_PAD_LEFT);
+// === PLACEHOLDER PARA ORDEN DE SERVICIO ===
+// LA ORDEN SE GENERA EN equipment_report_sistem_add.php AL GUARDAR
+// ESTO EVITA DUPLICADOS POR RECARGAS DE PÁGINA
+$orden_servicio = '';
 
 // === CARGAR INVENTARIO ===
 $inventory = [];
@@ -27,14 +27,14 @@ while ($row = $qry_inv->fetch_array()) {
     <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h4 class="mb-0 font-weight-bold text-dark">Reporte de Sistemas - Equipo #<?= $id ?></h4>
-            <div class="badge badge-primary fs-5 px-3 py-2">Folio: <?= $orden_servicio ?></div>
+            <div class="badge badge-info fs-5 px-3 py-2">Folio se asignará al guardar</div>
         </div>
         <div class="card-body p-5">
 
             <form action="equipment_report_sistem_add.php" method="POST">
 
                 <!-- === CAMPOS OCULTOS === -->
-                <input type="hidden" name="orden_servicio" value="<?= $orden_servicio ?>">
+                <!-- orden_servicio se genera en equipment_report_sistem_add.php -->
                 <input type="hidden" name="nombre" value="<?= htmlspecialchars($eq['name']) ?>">
                 <input type="hidden" name="numero_inv" value="<?= htmlspecialchars($eq['number_inventory']) ?>">
                 <input type="hidden" name="serie" value="<?= htmlspecialchars($eq['serie']) ?>">

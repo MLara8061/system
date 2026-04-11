@@ -51,13 +51,19 @@ $fields = array_keys($qry->fetch_assoc());
 $qry->data_seek(0); // Reiniciar el puntero después de fetch_assoc()
 
 // Título
-echo "<table border='1'>";
-echo "<tr><th colspan='" . count($fields) . "' style='background:#343a40;color:white;text-align:center;'>Listado de Proveedores</th></tr>";
+echo "<table border='1' style='border-collapse:collapse;'>";
+echo "<tr><th colspan='" . count($fields) . "' style='background:#343a40;color:white;text-align:center;width:100%;'>Listado de Proveedores</th></tr>";
 
-// Encabezados
+// Encabezados con ancho dinámico
 echo "<tr style='background-color:#007bff; color:white;'>";
 foreach ($fields as $field) {
-    echo "<th>" . strtoupper(str_replace('_', ' ', $field)) . "</th>";
+    // Ajustar ancho según tipo de campo
+    $width = 120; // default
+    if (in_array($field, ['correo', 'email', 'pagina_web', 'website', 'descripcion'])) $width = 180;
+    elseif (in_array($field, ['telefono', 'phone', 'fax'])) $width = 100;
+    elseif (in_array($field, ['id'])) $width = 50;
+    elseif (in_array($field, ['nombre', 'name', 'empresa', 'company'])) $width = 150;
+    echo "<th style='width:" . $width . "px; min-width:" . $width . "px;'>" . strtoupper(str_replace('_', ' ', $field)) . "</th>";
 }
 echo "</tr>";
 

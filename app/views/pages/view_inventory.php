@@ -171,10 +171,23 @@ $row = $qry->fetch_assoc();
                         </div>
                         <?php if (!empty($row['safety_data_sheet'])): ?>
                         <div class="mb-2">
-                            <a href="<?= htmlspecialchars(rtrim(BASE_URL, '/') . '/' . $row['safety_data_sheet']) ?>"
-                               target="_blank" class="btn btn-sm btn-outline-warning">
-                                <i class="fas fa-file-alt mr-1"></i> Ver Hoja de Seguridad
-                            </a>
+                            <?php
+                                $sds_path = ltrim($row['safety_data_sheet'], '/');
+                                $sds_url = rtrim(BASE_URL, '/') . '/' . $sds_path;
+                                $full_path = ROOT . '/' . $sds_path;
+                                $file_exists = file_exists($full_path);
+                            ?>
+                            <?php if ($file_exists): ?>
+                                <a href="<?= htmlspecialchars($sds_url) ?>"
+                                   target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning" title="Descargar o abrir hoja de seguridad">
+                                    <i class="fas fa-file-pdf mr-1"></i> Ver Hoja de Seguridad
+                                </a>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Archivo no disponible">
+                                    <i class="fas fa-file-pdf mr-1"></i> Hoja no disponible
+                                </button>
+                                <small class="text-muted d-block">Archivo no encontrado en servidor</small>
+                            <?php endif; ?>
                         </div>
                         <?php endif; ?>
                         <div class="form-group mb-0">

@@ -236,6 +236,24 @@ for ($i = 0; $i < count($headers); $i++) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 
+// === AJUSTE DE ANCHO MÍNIMO POR COLUMNA (PARA EVITAR COMPRESIÓN) ===
+$columnWidths = [
+    'A' => 15, // Ticket
+    'B' => 35, // Asunto
+    'C' => 20, // Departamento
+    'D' => 18, // Técnico
+    'E' => 12, // Estado
+    'F' => 18, // Creado
+    'G' => 18, // 1ra respuesta
+    'H' => 18, // Cierre
+    'I' => 15, // Horas 1ra resp
+    'J' => 12  // Horas cierre
+];
+
+foreach ($columnWidths as $col => $width) {
+    $sheet->getColumnDimension($col)->setWidth($width);
+}
+
 while (ob_get_level()) ob_end_clean();
 $filename = 'tickets_report_' . date('Ymd_His') . '.xlsx';
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

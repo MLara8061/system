@@ -1386,6 +1386,36 @@ if ($action == 'save_company_config') {
     }
 
     $db = $crud->getDb();
+    if (!($db instanceof mysqli)) {
+        echo json_encode(['status' => 0, 'message' => 'No se pudo inicializar la base de datos.']);
+        exit;
+    }
+
+    $normalizeCompanyAssetPath = static function ($path) {
+        $normalized = trim(str_replace('\\', '/', (string)$path));
+        return ltrim($normalized, '/');
+    };
+
+    $resolveCompanyAssetFsPath = static function ($path) use ($normalizeCompanyAssetPath) {
+        $relative = $normalizeCompanyAssetPath($path);
+        if ($relative === '') {
+            return '';
+        }
+
+        $candidates = [
+            ROOT . '/' . $relative,
+            ROOT . '/public/' . $relative,
+            ROOT . '/public/ajax/' . $relative,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return ROOT . '/' . $relative;
+    };
 
     // Verificar/crear tabla
     $tableCheck = $db->query("SHOW TABLES LIKE 'company_config'");
@@ -1430,9 +1460,40 @@ if ($action == 'save_company_config') {
         $setValues[] = "`{$field}` = '" . $db->real_escape_string($val) . "'";
     }
 
-    // Upload de logo (opcional)
-    if (isset($_FILES['logo_file']) && ($_FILES['logo_file']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+    $existingLogoPath = '';
+    $existingStmt = $db->prepare("SELECT id, logo_path FROM company_config WHERE branch_id = ? LIMIT 1");
+    if ($existingStmt) {
+        $existingStmt->bind_param('i', $branch_id);
+        $existingStmt->execute();
+        $existingResult = $existingStmt->get_result();
+        $existingRow = $existingResult ? $existingResult->fetch_assoc() : null;
+        $existingLogoPath = trim((string)($existingRow['logo_path'] ?? ''));
+        $existingStmt->close();
+    } else {
+        $existing = $db->query("SELECT id, logo_path FROM company_config WHERE branch_id = {$branch_id} LIMIT 1");
+        $existingRow = $existing ? $existing->fetch_assoc() : null;
+        $existingLogoPath = trim((string)($existingRow['logo_path'] ?? ''));
+    }
+
+    $removeLogo = isset($_POST['remove_logo']) && (string)$_POST['remove_logo'] === '1';
+    $newLogoPath = null;
+
+    if (isset($_FILES['logo_file']) && ($_FILES['logo_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
         $logo = $_FILES['logo_file'];
+        $uploadError = (int)($logo['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            $uploadErrors = [
+                UPLOAD_ERR_INI_SIZE => 'El logo excede el limite permitido por el servidor.',
+                UPLOAD_ERR_FORM_SIZE => 'El logo excede el limite permitido por el formulario.',
+                UPLOAD_ERR_PARTIAL => 'La carga del logo quedo incompleta.',
+                UPLOAD_ERR_NO_TMP_DIR => 'El servidor no tiene carpeta temporal para subir el logo.',
+                UPLOAD_ERR_CANT_WRITE => 'No se pudo escribir el logo en disco.',
+                UPLOAD_ERR_EXTENSION => 'La carga del logo fue bloqueada por una extension del servidor.',
+            ];
+            echo json_encode(['status' => 0, 'message' => $uploadErrors[$uploadError] ?? 'No se pudo procesar el logo enviado.']);
+            exit;
+        }
+
         if ((int)$logo['size'] > 2 * 1024 * 1024) {
             echo json_encode(['status' => 0, 'message' => 'El logo supera los 2 MB permitidos.']);
             exit;
@@ -1452,8 +1513,9 @@ if ($action == 'save_company_config') {
         }
 
         $targetDirFs = ROOT . '/uploads/logos/';
-        if (!is_dir($targetDirFs)) {
-            @mkdir($targetDirFs, 0755, true);
+        if (!is_dir($targetDirFs) && !@mkdir($targetDirFs, 0755, true) && !is_dir($targetDirFs)) {
+            echo json_encode(['status' => 0, 'message' => 'No se pudo crear la carpeta de logos.']);
+            exit;
         }
         $filename = 'branch_' . $branch_id . '_' . time() . '_' . substr(md5(uniqid('', true)), 0, 6) . '.' . $ext;
         $relativeDest = 'uploads/logos/' . $filename;
@@ -1464,7 +1526,13 @@ if ($action == 'save_company_config') {
             exit;
         }
 
-        $setValues[] = "`logo_path` = '" . $db->real_escape_string($relativeDest) . "'";
+        $newLogoPath = $relativeDest;
+    }
+
+    if ($newLogoPath !== null) {
+        $setValues[] = "`logo_path` = '" . $db->real_escape_string($newLogoPath) . "'";
+    } elseif ($removeLogo) {
+        $setValues[] = "`logo_path` = ''";
     }
 
     // Verificar si ya existe
@@ -1477,8 +1545,29 @@ if ($action == 'save_company_config') {
 
     $result = $db->query($sql);
     if ($result) {
+        $logoToDelete = '';
+        if ($newLogoPath !== null && $existingLogoPath !== '' && $existingLogoPath !== $newLogoPath) {
+            $logoToDelete = $existingLogoPath;
+        }
+        if ($removeLogo && $existingLogoPath !== '') {
+            $logoToDelete = $existingLogoPath;
+        }
+
+        if ($logoToDelete !== '') {
+            $logoToDeleteFs = $resolveCompanyAssetFsPath($logoToDelete);
+            if ($logoToDeleteFs !== '' && file_exists($logoToDeleteFs)) {
+                @unlink($logoToDeleteFs);
+            }
+        }
+
         echo json_encode(['status' => 1, 'message' => 'Guardado correctamente.']);
     } else {
+        if ($newLogoPath !== null) {
+            $uploadedLogoFs = $resolveCompanyAssetFsPath($newLogoPath);
+            if ($uploadedLogoFs !== '' && file_exists($uploadedLogoFs)) {
+                @unlink($uploadedLogoFs);
+            }
+        }
         error_log('save_company_config error: ' . $db->error);
         echo json_encode(['status' => 0, 'message' => 'Error al guardar.']);
     }

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `company_config` (
   `city_state_zip` VARCHAR(255) NOT NULL DEFAULT '',
   `phone_number` VARCHAR(255) NOT NULL DEFAULT '',
   `company_description` VARCHAR(500) NOT NULL DEFAULT '',
+  `logo_path` VARCHAR(500) NOT NULL DEFAULT '',
   `report_prefix` VARCHAR(20) NOT NULL DEFAULT 'O.T',
   `unsubscribe_prefix` VARCHAR(20) NOT NULL DEFAULT 'BAJA',
   `report_current_number` INT UNSIGNED NOT NULL DEFAULT 0,

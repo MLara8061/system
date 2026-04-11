@@ -191,6 +191,13 @@ foreach ($rows as $r) {
 for ($i = 0; $i < count($headers); $i++) {
     $col = chr(ord('A') + $i);
     $sheet->getColumnDimension($col)->setAutoSize(true);
+    // Establecer ancho mínimo para evitar compresión
+    $minWidth = 15;
+    if ($i == 0 || $i == 1) $minWidth = 20; // Equipo, Inventario
+    if ($i == 2) $minWidth = 18; // Departamento
+    if ($sheet->getColumnDimension($col)->getWidth() < $minWidth) {
+        $sheet->getColumnDimension($col)->setWidth($minWidth);
+    }
 }
 
 $filename = 'sprint5_' . strtolower(preg_replace('/[^a-z0-9_]+/i', '_', $type)) . '_' . date('Ymd_His') . '.xlsx';

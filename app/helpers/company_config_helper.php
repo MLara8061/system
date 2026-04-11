@@ -21,12 +21,20 @@ function resolve_company_asset_url(string $path): string {
     }
 
     $relative = ltrim(str_replace('\\', '/', $path), '/');
-    $baseUrl = rtrim(BASE_URL, '/');
+
+    // Preferir ruta relativa al sitio para evitar problemas de mixed-content/CSP.
+    $basePath = (string)parse_url((string)BASE_URL, PHP_URL_PATH);
+    $basePath = '/' . trim($basePath, '/');
+    if ($basePath === '/') {
+        $publicRelativeUrl = '/' . $relative;
+    } else {
+        $publicRelativeUrl = $basePath . '/' . $relative;
+    }
 
     $candidates = [
-        [ROOT_PATH . $relative, $baseUrl . '/' . $relative],
-        [ROOT_PATH . 'public/' . $relative, $baseUrl . '/public/' . $relative],
-        [ROOT_PATH . 'public/ajax/' . $relative, $baseUrl . '/public/ajax/' . $relative],
+        [ROOT_PATH . $relative, $publicRelativeUrl],
+        [ROOT_PATH . 'public/' . $relative, ($basePath === '/' ? '' : $basePath) . '/public/' . $relative],
+        [ROOT_PATH . 'public/ajax/' . $relative, ($basePath === '/' ? '' : $basePath) . '/public/ajax/' . $relative],
     ];
 
     foreach ($candidates as $candidate) {
@@ -35,7 +43,7 @@ function resolve_company_asset_url(string $path): string {
         }
     }
 
-    return $baseUrl . '/' . $relative;
+    return $publicRelativeUrl;
 }
 
 /**

@@ -230,7 +230,7 @@ function Deploy-Instance {
     # Subir paquete solo si no se ha subido a este servidor aún
     if (-not $UploadedServers.ContainsKey($serverKey)) {
         Write-Host "  [1] Subiendo paquete al servidor $sshIP..." -ForegroundColor Yellow
-        scp -o StrictHostKeyChecking=no -P $sshPort $PackageFile ${sshHost}:${homeDir}/$PackageFile 2>&1 | Out-Null
+        scp -o StrictHostKeyChecking=no -P $sshPort $PackageFile ${sshHost}:${homeDir}/$PackageFile *> $null
         if ($LASTEXITCODE -ne 0) {
             Write-Host "  ERROR al subir archivo a $sshIP" -ForegroundColor Red
             return $false
@@ -244,7 +244,7 @@ function Deploy-Instance {
     # Extraer en destino (sin sobreescribir .env)
     Write-Host "  [2] Extrayendo código..." -ForegroundColor Yellow
     $extractCmd = "mkdir -p $remote && cd $remote && tar -xzf ${homeDir}/$PackageFile --exclude='config/.env' && mkdir -p uploads logs cache && chmod 755 uploads logs cache 2>/dev/null"
-    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $extractCmd 2>&1 | Out-Null
+    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $extractCmd *> $null
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  ERROR al extraer en $remote" -ForegroundColor Red
         return $false
@@ -254,11 +254,11 @@ function Deploy-Instance {
     # Limpiar OPcache PHP (evita servir versiones cacheadas del bytecode)
     Write-Host "  [2b] Limpiando OPcache..." -ForegroundColor Yellow
     $opcacheCmd = 'php -r ''if(function_exists("opcache_reset")){opcache_reset();}'' 2>/dev/null; true'
-    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $opcacheCmd 2>&1 | Out-Null
+    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $opcacheCmd *> $null
     Write-Host "  OK OPcache limpiado" -ForegroundColor Green
     Write-Host "  [3] Configurando permisos..." -ForegroundColor Yellow
     $permsCmd = "cd $remote && chmod 600 config/.env 2>/dev/null; find . -type f -name '*.php' -exec chmod 644 {} + 2>/dev/null; find . -type d -exec chmod 755 {} + 2>/dev/null; chmod 600 config/.env 2>/dev/null"
-    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $permsCmd 2>&1 | Out-Null
+    ssh -o StrictHostKeyChecking=no -p $sshPort $sshHost $permsCmd *> $null
     Write-Host "  OK Permisos configurados" -ForegroundColor Green
 
     Write-Host "  LISTO -> $($Instance.URL)" -ForegroundColor Green
@@ -349,7 +349,7 @@ foreach ($serverKey in $uploadedServers.Keys) {
             break
         }
     }
-    ssh -o StrictHostKeyChecking=no -p $port $serverKey "rm -f /home/${user}/${package}" 2>&1 | Out-Null
+    ssh -o StrictHostKeyChecking=no -p $port $serverKey "rm -f /home/${user}/${package}" *> $null
 }
 Remove-Item $package -Force -ErrorAction SilentlyContinue
 Write-Host "OK Limpieza completada" -ForegroundColor Green

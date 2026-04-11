@@ -49,6 +49,12 @@ define('RA_MAX_FILES',    10);
 define('RA_MAX_BYTES',    5 * 1024 * 1024);   // 5 MB por foto
 define('RA_ALLOWED_MIME', ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 
+// Crear directorio si no existe (CRÍTICO para evitar errores de upload)
+if (!is_dir(RA_UPLOAD_DIR)) {
+    @mkdir(RA_UPLOAD_DIR, 0755, true);
+    @chmod(RA_UPLOAD_DIR, 0755);
+}
+
 // -----------------------------------------------------------------------
 try {
     $pdo = get_pdo();

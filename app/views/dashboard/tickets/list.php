@@ -22,11 +22,17 @@ $sumRes = $conn->query("SELECT
 	SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS finalizados
 FROM tickets t {$where}");
 
+// === AUDITORÍA: Debug si valores son 0 ===
 if ($sumRes && ($row = $sumRes->fetch_assoc())) {
 	$ticketSummary['total'] = (int)($row['total'] ?? 0);
 	$ticketSummary['abiertos'] = (int)($row['abiertos'] ?? 0);
 	$ticketSummary['en_proceso'] = (int)($row['en_proceso'] ?? 0);
 	$ticketSummary['finalizados'] = (int)($row['finalizados'] ?? 0);
+	
+	// LOG si valores son 0 (para investigación)
+	if ($ticketSummary['en_proceso'] == 0 && $ticketSummary['finalizados'] == 0) {
+		error_log('[TICKET_DASHBOARD] WARNING: en_proceso=0, finalizados=0. WHERE=' . $where . ', login_type=' . $_SESSION['login_type']);
+	}
 }
 
 // Mapas de prioridad y SLA

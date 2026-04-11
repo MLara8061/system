@@ -21,6 +21,7 @@ if ($branch_id > 0) {
 
 $config = get_company_config($conn, $branch_id);
 $logo_url = !empty($config['logo_path']) ? get_company_logo_url($conn, $branch_id) : '';
+$logo_name = !empty($config['logo_path']) ? basename((string)$config['logo_path']) : '';
 ?>
 
 <div class="col-lg-12">
@@ -94,13 +95,33 @@ $logo_url = !empty($config['logo_path']) ? get_company_logo_url($conn, $branch_i
                     <div class="col-md-12 mb-3">
                         <label class="font-weight-bold">Logo de la Organización</label>
                         <div class="border rounded p-3 bg-light">
-                            <?php if (!empty($logo_url)): ?>
-                                <div class="mb-2">
-                                    <img src="<?= htmlspecialchars($logo_url) ?>"
-                                         alt="Logo actual" style="max-height:90px; object-fit:contain;">
+                            <input type="hidden" name="remove_logo" id="remove_logo" value="0">
+                            <div id="current_logo_block" class="<?= !empty($logo_url) ? '' : 'd-none' ?> mb-3">
+                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between border rounded bg-white p-3">
+                                    <div>
+                                        <div class="text-muted small mb-2">Logo guardado actualmente</div>
+                                        <img id="current_logo_preview" src="<?= htmlspecialchars($logo_url) ?>"
+                                             alt="Logo actual" style="max-height:110px; max-width:100%; object-fit:contain;">
+                                        <div class="small text-muted mt-2" id="current_logo_name"><?= htmlspecialchars($logo_name) ?></div>
+                                    </div>
+                                    <div class="mt-3 mt-md-0 ml-md-3">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" id="remove_logo_btn">
+                                            Eliminar logo
+                                        </button>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
-                            <input type="file" name="logo_file" class="form-control" accept="image/jpeg,image/png,image/jpg">
+                            </div>
+
+                            <div id="new_logo_preview_block" class="d-none mb-3">
+                                <div class="border rounded bg-white p-3">
+                                    <div class="text-muted small mb-2">Vista previa del archivo seleccionado</div>
+                                    <img id="new_logo_preview" src="" alt="Vista previa del nuevo logo"
+                                         style="max-height:110px; max-width:100%; object-fit:contain;">
+                                    <div class="small text-muted mt-2" id="new_logo_name"></div>
+                                </div>
+                            </div>
+
+                            <input type="file" name="logo_file" id="logo_file" class="form-control" accept="image/jpeg,image/png,image/jpg">
                             <small class="text-muted d-block mt-1">JPG/PNG, máximo 2 MB. Recomendado 400x200 px.</small>
                         </div>
                     </div>
@@ -166,6 +187,24 @@ $logo_url = !empty($config['logo_path']) ? get_company_logo_url($conn, $branch_i
 
 <script>
 $(function() {
+    var hasCurrentLogo = <?= !empty($logo_url) ? 'true' : 'false' ?>;
+
+    function resetNewLogoPreview() {
+        $('#new_logo_preview').attr('src', '');
+        $('#new_logo_name').text('');
+        $('#new_logo_preview_block').addClass('d-none');
+    }
+
+    function setRemoveLogoState(shouldRemove) {
+        $('#remove_logo').val(shouldRemove ? '1' : '0');
+        if (hasCurrentLogo) {
+            $('#current_logo_block').toggleClass('d-none', shouldRemove);
+            $('#remove_logo_btn').text(shouldRemove ? 'Restaurar logo actual' : 'Eliminar logo');
+            $('#remove_logo_btn').toggleClass('btn-outline-danger', !shouldRemove);
+            $('#remove_logo_btn').toggleClass('btn-outline-secondary', shouldRemove);
+        }
+    }
+
     // Vista previa de folios al cambiar prefijo
     $('input[name="report_prefix"]').on('input', function() {
         var prefix = $(this).val() || 'O.T';
@@ -175,6 +214,38 @@ $(function() {
         var prefix = $(this).val() || 'BAJA';
         $('#preview_unsub').text(prefix + '-<?= date("Y") ?>-<?= date("m") ?>-001');
     });
+
+    $('#logo_file').on('change', function() {
+        var file = this.files && this.files[0] ? this.files[0] : null;
+        resetNewLogoPreview();
+
+        if (!file) {
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var src = (e && e.target && e.target.result) ? String(e.target.result) : '';
+            if (!src) {
+                return;
+            }
+            $('#new_logo_preview').attr('src', src);
+            $('#new_logo_name').text(file.name);
+            $('#new_logo_preview_block').removeClass('d-none');
+            $('#remove_logo').val('0');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    $('#remove_logo_btn').on('click', function() {
+        if (!hasCurrentLogo) {
+            return;
+        }
+        var shouldRemove = $('#remove_logo').val() !== '1';
+        setRemoveLogoState(shouldRemove);
+    });
+
+    setRemoveLogoState(false);
 
     // Guardar configuracion
     $('#company_config_form').submit(function(e) {

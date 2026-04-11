@@ -57,15 +57,20 @@ $fields = array_keys($qry->fetch_assoc());
 $qry->data_seek(0); // Volver al inicio de los resultados
 
 // =======================
-//  TABLA DE LISTADO
+//  TABLA DE LISTADO CON ANCHO DINÁMICO
 // =======================
 echo "<table border='1' style='border-collapse:collapse;'>";
-echo "<tr><th colspan='" . count($fields) . "' style='background:#007bff;color:white;text-align:center;'>Listado de Equipos</th></tr>";
+echo "<tr><th colspan='" . count($fields) . "' style='background:#007bff;color:white;text-align:center;width:100%;'>Listado de Equipos</th></tr>";
 
-// Encabezados
+// Encabezados con ancho dinámico
 echo "<tr style='background-color:#007bff;color:white;'>";
 foreach($fields as $field){
-    echo "<th>" . strtoupper(str_replace('_', ' ', $field)) . "</th>";
+    // Ajustar ancho según tipo de campo
+    $width = 120; // default
+    if (in_array($field, ['name', 'modelo', 'brand', 'description', 'characteristics'])) $width = 150;
+    elseif (in_array($field, ['id', 'number_inventory', 'serie'])) $width = 100;
+    elseif (in_array($field, ['amount'])) $width = 80;
+    echo "<th style='width:" . $width . "px; min-width:" . $width . "px;'>" . strtoupper(str_replace('_', ' ', $field)) . "</th>";
 }
 echo "</tr>";
 

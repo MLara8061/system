@@ -224,8 +224,11 @@ if (is_array($attachment_ids) && count($attachment_ids) > 0) {
     }
 }
 
-// === REDIRIGIR A PDF ===
+// === REDIRIGIR A DASHBOARD (EVITA DUPLICADOS) ===
+// Guardar ID para mensaje de confirmación
+$_SESSION['last_report_id'] = $report_id;
+$_SESSION['report_saved_success'] = true;
 $base = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
-header("Location: {$base}/index.php?page=report_pdf&id=" . $report_id);
+header("Location: {$base}/index.php?page=maintenance_reports&msg=saved&id=" . $report_id);
 exit;
 ?>

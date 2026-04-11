@@ -1,6 +1,12 @@
 <?php
 require_once 'config/config.php';
 
+// === GENERAR ORDEN DE SERVICIO (UNA SOLA VEZ AL GUARDAR) ===
+$year = date('Y');
+$nextResult = $conn->query("SELECT COALESCE(MAX(CAST(SUBSTRING(orden_servicio, 9) AS UNSIGNED)), 0) + 1 AS next FROM equipment_report_sistem WHERE orden_servicio LIKE 'OS-$year-%'");
+$next = $nextResult->fetch_array()['next'];
+$orden_servicio = "OS-$year-" . str_pad($next, 3, '0', STR_PAD_LEFT);
+
 // === RECIBIR TIPO DE SERVICIO ===
 $tipo_servicio = $_POST['tipo_servicio'] ?? '';
 
@@ -11,7 +17,7 @@ if (!in_array($tipo_servicio, $tipos_permitidos)) {
 }
 
 // === RESTO DE CAMPOS ===
-$orden_servicio = $_POST['orden_servicio'] ?? '';
+// $orden_servicio ya fue generada arriba (línea 7-9)
 $nombre = $_POST['nombre'] ?? '';
 $numero_inv = $_POST['numero_inv'] ?? '';
 $serie = $_POST['serie'] ?? '';

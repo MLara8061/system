@@ -23,11 +23,27 @@ if ($reasonRes) {
     $reasonRes->free();
 }
 
+// Filtros de fecha
+$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
+$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
+$date_filter = '';
+$filter_label = '';
+
+if ($fecha_inicio && $fecha_fin) {
+    // Validar formato de fecha
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
+        if (strtotime($fecha_inicio) <= strtotime($fecha_fin)) {
+            $date_filter = " AND eu.date >= '" . $conn->real_escape_string($fecha_inicio) . "' AND eu.date <= '" . $conn->real_escape_string($fecha_fin) . "'";
+            $filter_label = ' del ' . date('d/m/Y', strtotime($fecha_inicio)) . ' al ' . date('d/m/Y', strtotime($fecha_fin));
+        }
+    }
+}
+
 $sql = "SELECT eu.*, e.name AS equipment_name, e.number_inventory, e.brand, e.model,
                (SELECT COUNT(1) FROM maintenance_reports mr WHERE mr.equipment_id = eu.equipment_id) AS maintenance_total
         FROM equipment_unsubscribe eu
         INNER JOIN equipments e ON e.id = eu.equipment_id
-    " . branch_sql('WHERE', 'e.branch_id') . "
+    " . branch_sql('WHERE', 'e.branch_id') . " {$date_filter}
         ORDER BY eu.date DESC, eu.time DESC, eu.id DESC";
 $records = $conn->query($sql);
 $rows = [];
@@ -107,8 +123,25 @@ $equipos_unicos = count($uniqueEquip);
     <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
         <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between flex-wrap">
             <div class="mb-2 mb-md-0">
-                <h5 class="mb-0 text-dark">Reporte de equipos dados de baja</h5>
+                <h5 class="mb-0 text-dark">Reporte de equipos dados de baja<?php echo htmlspecialchars($filter_label); ?></h5>
                 <small class="text-muted">Resumen general de bajas registradas, folios y responsables.</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center flex-wrap" style="min-height: 40px;">
+                <label for="fechaInicioBajas" class="mb-0 text-muted" style="font-size: 0.85rem;">Desde:</label>
+                <input type="date" id="fechaInicioBajas" class="form-control form-control-sm" style="width: 130px;" value="<?= htmlspecialchars($fecha_inicio ?? '') ?>" />
+                <label for="fechaFinBajas" class="mb-0 text-muted" style="font-size: 0.85rem;">Hasta:</label>
+                <input type="date" id="fechaFinBajas" class="form-control form-control-sm" style="width: 130px;" value="<?= htmlspecialchars($fecha_fin ?? '') ?>" />
+                <button type="button" class="btn btn-sm btn-primary" onclick="applyBajasFilter()">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <?php if ($fecha_inicio || $fecha_fin): ?>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="clearBajasFilter()">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+                <?php endif; ?>
+                <button type="button" class="btn btn-sm btn-success" onclick="exportBajasEquiposExcel()">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
             </div>
         </div>
         <div class="card-body p-2 p-md-3">
@@ -204,6 +237,48 @@ $(function(){
         });
     }
 });
+
+function applyBajasFilter() {
+    const fechaInicio = document.getElementById('fechaInicioBajas').value;
+    const fechaFin = document.getElementById('fechaFinBajas').value;
+    
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor, selecciona ambas fechas');
+        return;
+    }
+
+    if (new Date(fechaInicio) > new Date(fechaFin)) {
+        alert('La fecha inicio debe ser menor a la fecha fin');
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('fecha_inicio', fechaInicio);
+    url.searchParams.set('fecha_fin', fechaFin);
+    window.location.href = url.toString();
+}
+
+function clearBajasFilter() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('fecha_inicio');
+    url.searchParams.delete('fecha_fin');
+    window.location.href = url.toString();
+}
+
+function exportBajasEquiposExcel() {
+    const fechaInicio = document.getElementById('fechaInicioBajas').value || '';
+    const fechaFin = document.getElementById('fechaFinBajas').value || '';
+    
+    let url = new URL(window.location.href);
+    url.pathname = url.pathname.replace(/\/[^/]*$/, '/'); // Remove current file
+    url.pathname += '../../helpers/export_equipment_bajas.php';
+    url.search = '?format=xlsx';
+    
+    if (fechaInicio) url.searchParams.append('fecha_inicio', fechaInicio);
+    if (fechaFin) url.searchParams.append('fecha_fin', fechaFin);
+    
+    window.location.href = url.toString();
+}
 </script>
 
 <style>
