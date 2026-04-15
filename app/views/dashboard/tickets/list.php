@@ -17,9 +17,9 @@ $ticketSummary = [
 
 $sumRes = $conn->query("SELECT
 	COUNT(*) AS total,
-	SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS abiertos,
-	SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS en_proceso,
-	SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS finalizados
+	SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) AS abiertos,
+	SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS en_proceso,
+	SUM(CASE WHEN status IN ('resolved', 'closed') THEN 1 ELSE 0 END) AS finalizados
 FROM tickets t {$where}");
 
 // === AUDITORÍA: Debug si valores son 0 ===
