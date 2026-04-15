@@ -731,7 +731,8 @@ $(document).ready(function() {
 
     // Click en zona → abrir selector
     $('#photo-drop-zone').on('click', function () {
-        $('#photo-file-input').trigger('click');
+        // Usar acceso directo al DOM en lugar de .trigger() para evitar loops infinitos
+        document.getElementById('photo-file-input').click();
     });
 
     // Selección via input file
