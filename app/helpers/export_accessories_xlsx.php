@@ -63,7 +63,7 @@ try {
         'Categoría',
         'Precio Unitario',
         'Cantidad',
-        'Proveedor ID',
+        'Proveedor',
         'Stock Mínimo',
         'Stock Máximo',
         'Fecha Creación'
@@ -106,11 +106,20 @@ try {
     // Add data rows
     $row = 2;
     while ($accessory = $query->fetch_assoc()) {
+        // Get supplier name
+        $supplier_name = 'N/A';
+        if ($accessory['supplier_id']) {
+            $supplier_query = $conn->query("SELECT empresa FROM suppliers WHERE id = {$accessory['supplier_id']}");
+            if ($supplier_query && $supplier_query->num_rows > 0) {
+                $supplier_name = $supplier_query->fetch_assoc()['empresa'];
+            }
+        }
+
         $sheet->setCellValue('A' . $row, $accessory['name'] ?? '');
         $sheet->setCellValue('B' . $row, $accessory['category'] ?? '');
         $sheet->setCellValue('C' . $row, $accessory['unit_price'] ?? 0);
         $sheet->setCellValue('D' . $row, $accessory['quantity'] ?? 0);
-        $sheet->setCellValue('E' . $row, $accessory['supplier_id'] ?? '');
+        $sheet->setCellValue('E' . $row, $supplier_name);
         $sheet->setCellValue('F' . $row, $accessory['stock_min'] ?? 0);
         $sheet->setCellValue('G' . $row, $accessory['stock_max'] ?? 0);
         $sheet->setCellValue('H' . $row, $accessory['created_at'] ?? '');

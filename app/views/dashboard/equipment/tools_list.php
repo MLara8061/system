@@ -207,7 +207,7 @@ $(document).ready(function() {
         html += '</table></body></html>';
 
         var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
-        var url = URL.createObjectObject(blob);
+        var url = URL.createObjectURL(blob);
         var link = document.createElement('a');
         link.href = url;
         link.download = 'herramientas_' + new Date().toISOString().slice(0, 10) + '.xls';
