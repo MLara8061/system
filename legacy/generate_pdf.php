@@ -46,6 +46,13 @@ $report_date = $_POST['fecha_reporte'] ?? '';
 $report_time = date('H:i'); // Hora de generación
 $engineer_name = $_POST['ingeniero_nombre'] ?? 'ING. AMALIA BACAB';
 
+// === GENERAR O.T. ÚNICA AL GUARDAR (no al cargar del formulario) ===
+$_branch_id = (int)($_SESSION['login_active_branch_id'] ?? 0);
+if ($order_number === '' || $order_number === 'PENDING') {
+    require_once 'app/helpers/company_config_helper.php';
+    $order_number = generate_sequential_folio($conn, $_branch_id, 'report');
+}
+
 $client_name = $_POST['cliente_nombre'] ?? '';
 $client_phone = $_POST['cliente_tel'] ?? '';
 $client_address = $_POST['cliente_domicilio'] ?? '';

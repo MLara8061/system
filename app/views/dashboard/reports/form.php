@@ -31,7 +31,9 @@ $company_info = [
     'phone_number' => $_company_cfg['phone_number'],
 ];
 
-$orden_mto = generate_sequential_folio($conn, $_branch_id, 'report');
+// NOTE: O.T. will be generated at save time, not at form load time
+// This prevents counter incrementing for unsaved forms
+$orden_mto = 'PENDING';
 $fecha_reporte = date('d/m/Y');
 // El nombre del ingeniero es el mismo usuario logueado que genera el reporte
 $ingeniero_nombre = $current_user_name;
@@ -280,7 +282,7 @@ if ($conn) {
                                 <h4 class="summary-title">Orden de Mantto</h4>
                                 <div class="summary-row">
                                     <span class="summary-label">Orden</span>
-                                    <span class="summary-value summary-badge"><?= $orden_mto ?></span>
+                                    <span class="summary-value summary-badge"><?= ($orden_mto === 'PENDING' ? 'Se genera al guardar.' : $orden_mto) ?></span>
                                 </div>
                                 <div class="summary-row">
                                     <span class="summary-label">Fecha</span>
