@@ -520,27 +520,11 @@ $(document).ready(function() {
     // === INICIALIZAR SOLO NUEVOS SELECTS ===
     function initNewSelect2() {
         $('.inventory_select:not(.select2-hidden-accessible)').each(function() {
-            // Destruir si ya está inicializado
-            if ($(this).hasClass('select2-hidden-accessible')) {
-                $(this).select2('destroy');
-            }
-            
-            // Inicializar Select2 SIN listeners (evitar loop infinito)
             $(this).select2({
                 language: "es",
                 width: '100%',
                 placeholder: "Seleccionar Item"
             });
-            
-            // Agregar listener DIRECTO a este elemento (NO event delegation)
-            $(this).off('change input').on('change', function(e) {
-                check_stock.call(this, e);
-            });
-        });
-        
-        // Listeners para cantidad DIRECTO (NO event delegation)
-        $('.refaccion_qty').off('change input').on('change input', function(e) {
-            check_stock.call(this, e);
         });
     }
 
@@ -662,13 +646,14 @@ $(document).ready(function() {
 
     // === INICIALIZAR AL CARGAR ===
     initNewSelect2();
-    // NO usar event delegation global - los listeners están en initNewSelect2()
+    
+    // SOLO validar cuando cambia CANTIDAD (qty), NO cuando cambia select
+    $(document).on('change input', '.refaccion_qty', check_stock);
     
     if ($('#equipo_id_select').val()) {
         loadEquipmentDetails($('#equipo_id_select').val());
     }
 
-    // ===================================================
     // EVIDENCIA FOTOGRÁFICA – subida AJAX temporal
     // ===================================================
     const ATTACH_ENDPOINT = 'public/ajax/report_attachment.php';
