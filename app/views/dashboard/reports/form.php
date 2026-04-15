@@ -528,9 +528,14 @@ $(document).ready(function() {
 
     // === VALIDACIÓN DE STOCK ===
     function check_stock(e) {
-        // Evitar recursión infinita - usar event.target no this (event delegation)
+        // DEFENSIVO: Validar que e.target existe
+        if (!e || !e.target) return;
+        
         const $target = $(e.target);
-        if ($target.data('checking')) return;
+        if ($target.length === 0) return;
+        
+        // Evitar recursión infinita
+        if ($target.data('checking') === true) return;
         $target.data('checking', true);
         
         try {
@@ -555,7 +560,7 @@ $(document).ready(function() {
                 indicator.removeClass('badge-danger badge-warning').addClass('badge-success').text(`Stock OK (${stock} disp.)`);
             }
         } finally {
-            $target.data('checking', false);
+            $target.removeData('checking');
         }
     }
 
@@ -640,10 +645,13 @@ $(document).ready(function() {
     // === INICIALIZAR AL CARGAR ===
     initNewSelect2();
     $(document).on('change input', '.refaccion_qty, .inventory_select', check_stock);
-    // Validar estado inicial del primeiro inventario sin trigger para evitar recursión
-    const initial_select = $('#inventory_select_1').closest('.refaccion_item').find('.inventory_select');
-    if (initial_select.find('option:selected').val()) {
-        check_stock.call(initial_select[0], { target: initial_select[0] });
+    
+    // Validar estado inicial sin trigger (SEGURO: verificar que elemento existe)
+    const initial_select = $('#inventory_select_1');
+    if (initial_select.length && initial_select.find('option:selected').val()) {
+        // Crear evento seguro
+        const evt = { target: initial_select[0] };
+        check_stock.call(initial_select[0], evt);
     }
 
     if ($('#equipo_id_select').val()) {
