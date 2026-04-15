@@ -528,12 +528,12 @@ $(document).ready(function() {
 
     // === VALIDACIÓN DE STOCK ===
     function check_stock(e) {
-        // Evitar recursión infinita si se dispara múltiples veces
-        if ($(this).data('checking')) return;
-        $(this).data('checking', true);
+        // Evitar recursión infinita - usar event.target no this (event delegation)
+        const $target = $(e.target);
+        if ($target.data('checking')) return;
+        $target.data('checking', true);
         
         try {
-            const $target = $(e.target || this);
             const row = $target.closest('.refaccion_item');
             if (row.length === 0) return;
             
@@ -555,7 +555,7 @@ $(document).ready(function() {
                 indicator.removeClass('badge-danger badge-warning').addClass('badge-success').text(`Stock OK (${stock} disp.)`);
             }
         } finally {
-            $(this).data('checking', false);
+            $target.data('checking', false);
         }
     }
 
