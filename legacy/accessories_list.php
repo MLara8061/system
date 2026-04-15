@@ -195,35 +195,10 @@ $(document).ready(function() {
 
     $('#export-excel').click(function(e) {
         e.preventDefault();
-        let table = $('#accessory-table').DataTable();
-        let data = table.rows({ search: 'applied' }).data();
-        let rows = [['Imagen','Nombre','Tipo','Marca','Modelo','Serie','Inventario','Área','Costo','Adquisición','Fecha','Status']];
-
-        data.each(function(row) {
-            let img = $(row[0]).find('img').length ? 'Sí' : 'No';
-            rows.push([
-                img,
-                $(row[1]).text(),
-                $(row[2]).text(),
-                $(row[3]).text(),
-                $(row[4]).text(),
-                $(row[5]).text(),
-                $(row[6]).text().replace('#', ''),
-                $(row[7]).text(),
-                $(row[8]).text().replace(/[$,]/g, ''),
-                $(row[9]).text(),
-                $(row[10]).text(),
-                $(row[11]).text()
-            ]);
-        });
-
-        let csv = rows.map(r => r.join('\t')).join('\n');
-        let blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-        let url = URL.createObjectURL(blob);
-        let link = document.createElement('a');
-        link.href = url;
-        link.download = 'accesorios_' + new Date().toISOString().slice(0,10) + '.csv';
-        link.click();
+        let baseUrl = window.location.origin + window.location.pathname.split('index.php')[0] + 'index.php';
+        let url = new URL(baseUrl);
+        url.searchParams.set('page', 'export_accessories_xlsx');
+        window.open(url.toString(), '_blank');
     });
 
     $(document).on('click', '.edit-accessory', function() {

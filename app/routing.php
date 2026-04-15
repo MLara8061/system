@@ -145,6 +145,9 @@ $ROUTE_MAP = [
 
     // Exportación de proveedores
     'export_suppliers_xlsx' => 'app/helpers/export_suppliers_xlsx.php',
+
+    // Exportación de accesorios
+    'export_accessories_xlsx' => 'app/helpers/export_accessories_xlsx.php',
 ];
 
 /**
