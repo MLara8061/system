@@ -139,6 +139,9 @@ $ROUTE_MAP = [
 
     // Exportación calendario de mantenimiento
     'export_maintenance_calendar' => 'app/helpers/export_maintenance_calendar.php',
+
+    // Exportación de bajas de equipos
+    'export_equipment_bajas' => 'app/helpers/export_equipment_bajas.php',
 ];
 
 /**

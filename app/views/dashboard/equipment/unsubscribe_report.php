@@ -269,15 +269,15 @@ function exportBajasEquiposExcel() {
     const fechaInicio = document.getElementById('fechaInicioBajas').value || '';
     const fechaFin = document.getElementById('fechaFinBajas').value || '';
     
-    let url = new URL(window.location.href);
-    url.pathname = url.pathname.replace(/\/[^/]*$/, '/'); // Remove current file
-    url.pathname += '../../helpers/export_equipment_bajas.php';
-    url.search = '?format=xlsx';
+    let baseUrl = window.location.origin + window.location.pathname.split('index.php')[0] + 'index.php';
+    let url = new URL(baseUrl);
+    url.searchParams.set('page', 'export_equipment_bajas');
+    url.searchParams.set('format', 'xlsx');
     
     if (fechaInicio) url.searchParams.append('fecha_inicio', fechaInicio);
     if (fechaFin) url.searchParams.append('fecha_fin', fechaFin);
     
-    window.location.href = url.toString();
+    window.open(url.toString(), '_blank');
 }
 </script>
 
