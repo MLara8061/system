@@ -405,7 +405,7 @@ try {
         e.preventDefault();
         e.stopPropagation();
         var url = buildExportUrl('excel');
-        if (url) window.location.href = url;
+        if (url) window.open(url, '_blank');
     });
 
     $('#btn-export-pdf').on('click', function(e) {

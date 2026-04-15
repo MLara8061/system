@@ -3805,11 +3805,19 @@ class Action {
                 }
 
                 $status = strtolower((string)($row['estatus'] ?? ''));
-                $color = '#dc3545';
+                $tipo = strtolower((string)($row['tipo_mantenimiento'] ?? 'preventivo'));
+                
+                // Diferencia de color por tipo de mantenimiento, ajustado por estado
                 if ($status === 'completado') {
-                    $color = '#6c757d';
-                } elseif ($status === 'en_proceso' || $status === 'en proceso') {
-                    $color = '#ffc107';
+                    $color = '#6c757d';  // Gris para completado (cualquier tipo)
+                } elseif ($tipo === 'preventivo') {
+                    $color = '#1565C0';  // Azul oscuro
+                } elseif ($tipo === 'correctivo') {
+                    $color = '#B71C1C';  // Rojo
+                } elseif ($tipo === 'predictivo') {
+                    $color = '#4A148C';  // Púrpura oscuro
+                } else {
+                    $color = '#dc3545';  // Rojo por defecto
                 }
 
                 $start = $row['fecha_programada'];
