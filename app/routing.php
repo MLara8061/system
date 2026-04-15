@@ -142,6 +142,9 @@ $ROUTE_MAP = [
 
     // Exportación de bajas de equipos
     'export_equipment_bajas' => 'app/helpers/export_equipment_bajas.php',
+
+    // Exportación de proveedores
+    'export_suppliers_xlsx' => 'app/helpers/export_suppliers_xlsx.php',
 ];
 
 /**

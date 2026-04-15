@@ -215,68 +215,13 @@ $sectores = $conn->query("SELECT COUNT(DISTINCT sector) as total FROM suppliers"
             }]
         });
 
-        // === EXPORTAR A CSV 100% FUNCIONAL Y DINÁMICO ===
+        // === EXPORTAR A XLSX ===
         $('#export_excel').click(function(e) {
             e.preventDefault();
-            let table = $('#list').DataTable();
-            let rows = [];
-
-            // === ENCABEZADOS ===
-            let headers = [];
-            $('#list thead th').each(function() {
-                let th = $(this).text().trim();
-                if (th && th !== 'Acciones') {
-                    headers.push(th);
-                }
-            });
-            rows.push(headers);
-
-            // === FILAS VISIBLES ===
-            table.rows({
-                search: 'applied',
-                page: 'current'
-            }).every(function() {
-                let data = this.data();
-                let row = [];
-
-                // Empresa + RFC
-                let empresa = $(data[0]).find('strong').text().trim();
-                let rfc = $(data[0]).find('small').text().trim();
-                row.push(rfc ? `${empresa} (${rfc})` : empresa);
-
-                // Representante + Correo
-                let rep = $(data[1]).find('strong').text().trim();
-                let correo = $(data[1]).find('small').text().trim();
-                row.push(correo ? `${rep} (${correo})` : rep);
-
-                // Contacto: Teléfono + Web
-                let contacto = '';
-                let telMatch = data[2].match(/fa-phone[^>]*>([^<]+)/);
-                let webMatch = data[2].match(/href="[^"]*">([^<]+)</);
-                if (telMatch) contacto += telMatch[1].trim();
-                if (webMatch) contacto += (contacto ? ', ' : '') + webMatch[1].trim();
-                row.push(contacto || '-');
-
-                // Sector
-                row.push($(data[3]).text().trim());
-
-                // Estado
-                row.push($(data[4]).text().trim());
-
-                rows.push(row);
-            });
-
-            // === GENERAR Y DESCARGAR CSV ===
-            let csv = rows.map(r => '"' + r.join('","') + '"').join('\n');
-            let blob = new Blob(['\ufeff' + csv], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            let link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'proveedores_' + new Date().toISOString().slice(0, 10) + '.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            let baseUrl = window.location.origin + window.location.pathname.split('index.php')[0] + 'index.php';
+            let url = new URL(baseUrl);
+            url.searchParams.set('page', 'export_suppliers_xlsx');
+            window.open(url.toString(), '_blank');
         });
 
         // === ELIMINAR PROVEEDOR ===
