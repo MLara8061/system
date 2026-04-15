@@ -1,6 +1,11 @@
 <?php
 date_default_timezone_set('America/Cancun');
-require_once 'config/config.php';
+
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/../..'));
+}
+
+require_once ROOT . '/config/config.php';
 
 // Verificar sesión
 if (!isset($_SESSION['login_id'])) {
@@ -14,7 +19,7 @@ if ($_SESSION['login_type'] == 3) {
     die('No permission');
 }
 
-require_once 'vendor/autoload.php';
+require_once ROOT . '/vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -31,24 +36,23 @@ try {
     $sheet->setTitle('Proveedores');
 
     // Get suppliers data
-    $branch_where = function_exists('branch_sql') ? branch_sql('WHERE', 'branch_id') : '';
+    $branch_where = '';
     $query = $conn->query("
         SELECT 
             id,
-            company_name,
-            contact_name,
-            email,
-            phone,
-            address,
-            city,
-            state,
-            postal_code,
-            country,
-            payment_method,
-            created_at
+            empresa,
+            representante,
+            correo,
+            telefono,
+            rfc,
+            sitio_web,
+            sector,
+            notas,
+            estado,
+            date_created
         FROM suppliers
-        {$branch_where}
-        ORDER BY company_name ASC
+        WHERE estado = 1
+        ORDER BY empresa ASC
     ");
 
     if (!$query) {
@@ -58,15 +62,13 @@ try {
     // Headers
     $headers = [
         'Empresa',
-        'Contacto',
-        'Email',
+        'RFC',
+        'Representante',
         'Teléfono',
-        'Dirección',
-        'Ciudad',
-        'Estado',
-        'C.P.',
-        'País',
-        'Método de Pago',
+        'Correo',
+        'Sitio Web',
+        'Sector',
+        'Notas',
         'Creado'
     ];
 
@@ -107,29 +109,27 @@ try {
     // Add data rows
     $row = 2;
     while ($supplier = $query->fetch_assoc()) {
-        $sheet->setCellValue('A' . $row, $supplier['company_name'] ?? '');
-        $sheet->setCellValue('B' . $row, $supplier['contact_name'] ?? '');
-        $sheet->setCellValue('C' . $row, $supplier['email'] ?? '');
-        $sheet->setCellValue('D' . $row, $supplier['phone'] ?? '');
-        $sheet->setCellValue('E' . $row, $supplier['address'] ?? '');
-        $sheet->setCellValue('F' . $row, $supplier['city'] ?? '');
-        $sheet->setCellValue('G' . $row, $supplier['state'] ?? '');
-        $sheet->setCellValue('H' . $row, $supplier['postal_code'] ?? '');
-        $sheet->setCellValue('I' . $row, $supplier['country'] ?? '');
-        $sheet->setCellValue('J' . $row, $supplier['payment_method'] ?? '');
-        $sheet->setCellValue('K' . $row, $supplier['created_at'] ?? '');
+        $sheet->setCellValue('A' . $row, $supplier['empresa'] ?? '');
+        $sheet->setCellValue('B' . $row, $supplier['rfc'] ?? '');
+        $sheet->setCellValue('C' . $row, $supplier['representante'] ?? '');
+        $sheet->setCellValue('D' . $row, $supplier['telefono'] ?? '');
+        $sheet->setCellValue('E' . $row, $supplier['correo'] ?? '');
+        $sheet->setCellValue('F' . $row, $supplier['sitio_web'] ?? '');
+        $sheet->setCellValue('G' . $row, $supplier['sector'] ?? '');
+        $sheet->setCellValue('H' . $row, $supplier['notas'] ?? '');
+        $sheet->setCellValue('I' . $row, $supplier['date_created'] ?? '');
         $row++;
     }
 
     // Set column widths
-    $columnWidths = [25, 20, 25, 15, 30, 15, 12, 10, 15, 18, 15];
+    $columnWidths = [25, 12, 20, 15, 25, 25, 15, 30, 15];
     for ($col = 1; $col <= count($columnWidths); $col++) {
         $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
         $sheet->getColumnDimension($colLetter)->setWidth($columnWidths[$col - 1]);
     }
 
     // Add borders to all cells
-    $dataRange = 'A1:K' . ($row - 1);
+    $dataRange = 'A1:I' . ($row - 1);
     $sheet->getStyle($dataRange)->applyFromArray([
         'borders' => [
             'allBorders' => [

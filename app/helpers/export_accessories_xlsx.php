@@ -1,6 +1,11 @@
 <?php
 date_default_timezone_set('America/Cancun');
-require_once 'config/config.php';
+
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/../..'));
+}
+
+require_once ROOT . '/config/config.php';
 
 // Verificar sesión
 if (!isset($_SESSION['login_id'])) {
@@ -14,7 +19,7 @@ if ($_SESSION['login_type'] == 3) {
     die('No permission');
 }
 
-require_once 'vendor/autoload.php';
+require_once ROOT . '/vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;

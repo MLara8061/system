@@ -5,7 +5,11 @@
  * Method: GET
  */
 
-require_once 'config/config.php';
+if (!defined('ROOT')) {
+    define('ROOT', realpath(__DIR__ . '/../..'));
+}
+
+require_once ROOT . '/config/config.php';
 
 // Validar sesión
 if (!isset($_SESSION['login_id'])) {
@@ -15,7 +19,7 @@ if (!isset($_SESSION['login_id'])) {
 }
 
 // Cargar PHPSpreadsheet
-require_once 'vendor/autoload.php';
+require_once ROOT . '/vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
