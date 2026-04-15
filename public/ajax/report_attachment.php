@@ -11,6 +11,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+// Log errors to a file we can access
+ini_set('error_log', dirname(dirname(dirname(__FILE__))) . '/logs/report_attachment.log');
+
 if (!defined('ROOT')) {
     define('ROOT', dirname(dirname(dirname(__FILE__))));
 }
@@ -217,7 +220,13 @@ try {
     }
 
 } catch (PDOException $e) {
-    error_log('REPORT_ATTACHMENT AJAX ERROR: ' . $e->getMessage());
+    $errorMsg = 'REPORT_ATTACHMENT AJAX ERROR: ' . $e->getMessage() . ' | Code: ' . $e->getCode() . ' | Line: ' . $e->getLine();
+    error_log($errorMsg);
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
+    echo json_encode(['success' => false, 'message' => 'Error interno del servidor', 'debug' => $errorMsg]);
+} catch (Exception $e) {
+    $errorMsg = 'REPORT_ATTACHMENT UNEXPEC ERROR: ' . $e->getMessage();
+    error_log($errorMsg);
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error inesperado', 'debug' => $errorMsg]);
 }
