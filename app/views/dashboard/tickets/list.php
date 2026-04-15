@@ -187,6 +187,11 @@ $slaHours = ['low' => 72, 'medium' => 48, 'high' => 24, 'critical' => 8];
 											<a class="dropdown-item" href="./index.php?page=edit_ticket&id=<?php echo (int)$row['id']; ?>">
 												<i class="fas fa-edit text-primary"></i> Editar
 											</a>
+											<?php if ($_SESSION['login_type'] != 3): ?>
+											<a class="dropdown-item" href="public/ajax/action.php?action=generate_ticket_pdf&ticket_id=<?php echo (int)$row['id']; ?>" target="_blank" title="Descargar como PDF">
+												<i class="fas fa-print text-success"></i> PDF
+											</a>
+											<?php endif; ?>
 											<div class="dropdown-divider"></div>
 											<a class="dropdown-item delete_ticket" href="javascript:void(0)" data-id="<?php echo $row['id'] ?>">
 												<i class="fas fa-trash text-danger"></i> Eliminar
