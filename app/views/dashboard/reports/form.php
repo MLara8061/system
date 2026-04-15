@@ -687,6 +687,11 @@ $(document).ready(function() {
             return;
         }
 
+        // Validar que sea un archivo válido
+        if (!file || typeof file.name === 'undefined') {
+            return;
+        }
+
         const formData = new FormData();
         formData.append('photo', file);
 
@@ -697,11 +702,16 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function (res) {
-                if (res.success) {
+                // Validar que la respuesta sea un objeto JSON válido
+                if (typeof res !== 'object' || !res) {
+                    return;
+                }
+                
+                if (res.success === true) {
                     attachmentIds.push(res.id);
                     syncHiddenField();
                     addThumbnail(res.id, res.file_path);
-                } else {
+                } else if (res.message) {
                     alert('Error al subir foto: ' + res.message);
                 }
             },
@@ -718,8 +728,19 @@ $(document).ready(function() {
 
     // Selección via input file
     $('#photo-file-input').on('change', function () {
-        $.each(this.files, function (i, f) { uploadFile(f); });
-        $(this).val('');   // resetear para permitir re-selección
+        const files = Array.from(this.files);  // Copiar archivos ANTES de resetear
+        if (files.length === 0) return;       // Ignorar si val('') triggeó este evento con archivos vacíos
+        
+        const $input = $(this);
+        $input.data('isProcessing', true);    // Bloquear múltiples procesamiento
+        
+        // Procesar archivos
+        files.forEach(function(f) { 
+            uploadFile(f); 
+        });
+        
+        // Resetear DESPUÉS de copiar
+        $input.val('').removeData('isProcessing');
     });
 
     // Drag & Drop
