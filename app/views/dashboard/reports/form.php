@@ -523,28 +523,39 @@ $(document).ready(function() {
             language: "es",
             width: '100%',
             placeholder: "Seleccionar Item"
-        }).on('change', check_stock);
+        });
     }
 
     // === VALIDACIÓN DE STOCK ===
-    function check_stock() {
-        const row = $(this).closest('.refaccion_item');
-        const selected = row.find('.inventory_select option:selected');
-        const qty = parseInt(row.find('.refaccion_qty').val()) || 0;
-        const stock = parseInt(selected.data('stock')) || 0;
-        const indicator = row.find('.stock_indicator');
+    function check_stock(e) {
+        // Evitar recursión infinita si se dispara múltiples veces
+        if ($(this).data('checking')) return;
+        $(this).data('checking', true);
+        
+        try {
+            const $target = $(e.target || this);
+            const row = $target.closest('.refaccion_item');
+            if (row.length === 0) return;
+            
+            const selected = row.find('.inventory_select option:selected');
+            const qty = parseInt(row.find('.refaccion_qty').val()) || 0;
+            const stock = parseInt(selected.data('stock')) || 0;
+            const indicator = row.find('.stock_indicator');
 
-        if (!selected.val()) {
-            indicator.removeClass('badge-danger badge-success badge-warning').addClass('badge-secondary').text('Stock: N/A');
-            return;
-        }
+            if (!selected.val()) {
+                indicator.removeClass('badge-danger badge-success badge-warning').addClass('badge-secondary').text('Stock: N/A');
+                return;
+            }
 
-        if (qty > stock) {
-            indicator.removeClass('badge-success badge-warning').addClass('badge-danger').text(`¡Falta Stock! (${stock} disp.)`);
-        } else if (qty <= 0) {
-            indicator.removeClass('badge-danger badge-success').addClass('badge-warning').text(`Cantidad inválida`);
-        } else {
-            indicator.removeClass('badge-danger badge-warning').addClass('badge-success').text(`Stock OK (${stock} disp.)`);
+            if (qty > stock) {
+                indicator.removeClass('badge-success badge-warning').addClass('badge-danger').text(`¡Falta Stock! (${stock} disp.)`);
+            } else if (qty <= 0) {
+                indicator.removeClass('badge-danger badge-success').addClass('badge-warning').text(`Cantidad inválida`);
+            } else {
+                indicator.removeClass('badge-danger badge-warning').addClass('badge-success').text(`Stock OK (${stock} disp.)`);
+            }
+        } finally {
+            $(this).data('checking', false);
         }
     }
 
@@ -566,11 +577,11 @@ $(document).ready(function() {
             select.append('<option value="<?= $row['id'] ?>" data-stock="<?= $row['stock'] ?>"><?= htmlspecialchars($row['name']) ?> (Stock: <?= $row['stock'] ?>)</option>');
         <?php endforeach; ?>
 
-        select.addClass('select2'); // ← AdminLTE lo detecta
+        select.addClass('select2');
 
         $('#refacciones_container').append(new_row);
         initNewSelect2();
-        select.trigger('change');
+        // NO dispara trigger('change') para evitar recursión - el event delegation maneja el cambio
     });
 
     // === ELIMINAR FILA ===
@@ -629,7 +640,11 @@ $(document).ready(function() {
     // === INICIALIZAR AL CARGAR ===
     initNewSelect2();
     $(document).on('change input', '.refaccion_qty, .inventory_select', check_stock);
-    $('#inventory_select_1').trigger('change');
+    // Validar estado inicial del primeiro inventario sin trigger para evitar recursión
+    const initial_select = $('#inventory_select_1').closest('.refaccion_item').find('.inventory_select');
+    if (initial_select.find('option:selected').val()) {
+        check_stock.call(initial_select[0], { target: initial_select[0] });
+    }
 
     if ($('#equipo_id_select').val()) {
         loadEquipmentDetails($('#equipo_id_select').val());
