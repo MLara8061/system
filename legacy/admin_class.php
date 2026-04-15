@@ -301,8 +301,22 @@ class Action {
     {
         extract($_POST);
         try {
+            // === VALIDACIÓN DE PERMISOS: solo ADMIN puede borrar usuarios ===
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            if ($login_type !== 1) {
+                error_log("SECURITY: User type {$login_type} attempted to delete user");
+                return 0;  // Permiso denegado
+            }
+            
             $id = (int)$id;
             if ($id <= 0) return 0;
+            
+            // Prevenir auto-eliminación
+            if ($id === (int)($_SESSION['login_id'] ?? 0)) {
+                error_log("SECURITY: User attempted to delete themselves");
+                return 0;
+            }
+            
             $oldData = $this->getOldRecord('users', $id);
             
             // Usar PDO si está disponible, sino mysqli legacy
@@ -538,6 +552,14 @@ class Action {
     function delete_customer() {
         try {
             extract($_POST);
+            
+            // === VALIDACIÓN DE PERMISOS ===
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            if ($login_type !== 1) {  // Solo ADMIN
+                error_log("SECURITY: User type {$login_type} attempted to delete customer");
+                return 0;
+            }
+            
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
             $oldData = $this->getOldRecord('customers', $id);
@@ -635,6 +657,14 @@ class Action {
     function delete_staff() {
         try {
             extract($_POST);
+            
+            // === VALIDACIÓN DE PERMISOS ===
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            if ($login_type !== 1) {  // Solo ADMIN
+                error_log("SECURITY: User type {$login_type} attempted to delete staff");
+                return 0;
+            }
+            
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
             $oldData = $this->getOldRecord('staff', $id);
@@ -2731,7 +2761,29 @@ class Action {
             extract($_POST);
             if (empty($id) || !is_numeric($id)) return 2;
             
+            // === VALIDACIÓN DE PERMISOS: Validar sucursal y tipo de usuario ===
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            $active_branch_id = (int)($_SESSION['login_active_branch_id'] ?? 0);
+            
+            // Clientes no pueden eliminar
+            if ($login_type === 3) {
+                error_log("SECURITY: Customer (type 3) attempted to delete equipment");
+                return 2;  // Permiso denegado
+            }
+            
             $id = (int)$id;
+            
+            // Verificar que el equipo pertenece a la sucursal del usuario
+            if ($login_type !== 1 && $active_branch_id > 0) {
+                $checkStmt = $this->pdo->prepare("SELECT branch_id FROM equipments WHERE id = ? LIMIT 1");
+                $checkStmt->execute([$id]);
+                $row = $checkStmt->fetch();
+                if (!$row || (int)$row['branch_id'] !== $active_branch_id) {
+                    error_log("SECURITY: User type {$login_type} attempted to delete equipment from different branch");
+                    return 2;  // Equipo no pertenece a su sucursal
+                }
+            }
+            
             $oldData = $this->getOldRecord('equipments', $id);
             $tables = [
                 'equipment_control_documents',
@@ -4098,6 +4150,17 @@ class Action {
     function delete_supplier() {
         try {
             extract($_POST);
+            
+            // === VALIDACIÓN DE PERMISOS ===
+            $login_type = (int)($_SESSION['login_type'] ?? 0);
+            $active_branch_id = (int)($_SESSION['login_active_branch_id'] ?? 0);
+            
+            // Solo ADMIN o staff de la sucursal
+            if ($login_type === 3) {  // Clientes no pueden
+                error_log("SECURITY: Customer attempted to delete supplier");
+                return 0;
+            }
+            
             $id = (int)($id ?? 0);
             if ($id <= 0) return 0;
             $oldData = $this->getOldRecord('suppliers', $id);
