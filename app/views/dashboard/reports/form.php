@@ -519,10 +519,28 @@ $(document).ready(function() {
 
     // === INICIALIZAR SOLO NUEVOS SELECTS ===
     function initNewSelect2() {
-        $('.inventory_select:not(.select2-hidden-accessible)').select2({
-            language: "es",
-            width: '100%',
-            placeholder: "Seleccionar Item"
+        $('.inventory_select:not(.select2-hidden-accessible)').each(function() {
+            // Destruir si ya está inicializado
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2('destroy');
+            }
+            
+            // Inicializar Select2 SIN listeners (evitar loop infinito)
+            $(this).select2({
+                language: "es",
+                width: '100%',
+                placeholder: "Seleccionar Item"
+            });
+            
+            // Agregar listener DIRECTO a este elemento (NO event delegation)
+            $(this).off('change input').on('change', function(e) {
+                check_stock.call(this, e);
+            });
+        });
+        
+        // Listeners para cantidad DIRECTO (NO event delegation)
+        $('.refaccion_qty').off('change input').on('change input', function(e) {
+            check_stock.call(this, e);
         });
     }
 
@@ -644,16 +662,8 @@ $(document).ready(function() {
 
     // === INICIALIZAR AL CARGAR ===
     initNewSelect2();
-    $(document).on('change input', '.refaccion_qty, .inventory_select', check_stock);
+    // NO usar event delegation global - los listeners están en initNewSelect2()
     
-    // Validar estado inicial sin trigger (SEGURO: verificar que elemento existe)
-    const initial_select = $('#inventory_select_1');
-    if (initial_select.length && initial_select.find('option:selected').val()) {
-        // Crear evento seguro
-        const evt = { target: initial_select[0] };
-        check_stock.call(initial_select[0], evt);
-    }
-
     if ($('#equipo_id_select').val()) {
         loadEquipmentDetails($('#equipo_id_select').val());
     }
