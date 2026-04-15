@@ -682,12 +682,13 @@ $(document).ready(function() {
     }
 
     function uploadFile(file) {
+        console.warn('uploadFile called with:', file.name);
+        
         if (attachmentIds.length >= MAX_PHOTOS) {
             alert('Límite de ' + MAX_PHOTOS + ' fotos alcanzado.');
             return;
         }
 
-        // Validar que sea un archivo válido
         if (!file || typeof file.name === 'undefined') {
             return;
         }
@@ -695,29 +696,35 @@ $(document).ready(function() {
         const formData = new FormData();
         formData.append('photo', file);
 
+        console.warn('Iniciando AJAX upload para:', file.name);
+        
         $.ajax({
             url: ATTACH_ENDPOINT + '?action=upload',
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            timeout: 30000,  // 30 segundos timeout
             success: function (res) {
-                // Validar que la respuesta sea un objeto JSON válido
+                console.warn('AJAX success response:', res);
+                
                 if (typeof res !== 'object' || !res) {
+                    console.error('Response is not a valid object');
                     return;
                 }
-                
+
                 if (res.success === true) {
                     attachmentIds.push(res.id);
                     syncHiddenField();
                     addThumbnail(res.id, res.file_path);
+                    console.warn('Foto agregada exitosamente');
                 } else if (res.message) {
                     alert('Error al subir foto: ' + res.message);
                 }
             },
-            error: function () {
-                alert('Error de comunicación al subir la foto.');
-            }
+            error: function (xhr, status, err) {
+                console.error('AJAX error:', status, err);
+                alert('Error de comunicación al subir la foto: ' + status);
         });
     }
 
