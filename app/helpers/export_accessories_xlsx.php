@@ -14,15 +14,17 @@ if ($_SESSION['login_type'] == 3) {
     die('No permission');
 }
 
+require_once 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Style;
+
 try {
-    require_once 'vendor/autoload.php';
-    use PhpOffice\PhpSpreadsheet\Spreadsheet;
-    use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-    use PhpOffice\PhpSpreadsheet\Style\Font;
-    use PhpOffice\PhpSpreadsheet\Style\Fill;
-    use PhpOffice\PhpSpreadsheet\Style\Alignment;
-    use PhpOffice\PhpSpreadsheet\Style\Border;
-    use PhpOffice\PhpSpreadsheet\Style\Style;
 
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
@@ -71,7 +73,7 @@ try {
     $headerFill->getStartColor()->setRGB('1565C0');
 
     $headerFont = new Font();
-    $headerFont->setColor('FFFFFF');
+    $headerFont->getColor()->setRGB('FFFFFF');
     $headerFont->setBold(true);
 
     $headerAlignment = new Alignment();
@@ -79,10 +81,21 @@ try {
     $headerAlignment->setVertical(Alignment::VERTICAL_CENTER);
 
     for ($col = 1; $col <= count($headers); $col++) {
-        $cell = $sheet->getCellByColumnAndRow($col, 1);
-        $cell->setFont($headerFont);
-        $cell->setFill($headerFill);
-        $cell->setAlignment($headerAlignment);
+        $cellAddress = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . '1';
+        $sheet->getStyle($cellAddress)->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['rgb' => '1565C0'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ]
+        ]);
     }
 
     // Add data rows
@@ -102,26 +115,20 @@ try {
     // Set column widths
     $columnWidths = [25, 18, 15, 12, 12, 12, 12, 15];
     for ($col = 1; $col <= count($columnWidths); $col++) {
-        $sheet->getColumnDimensionByColumn($col)->setWidth($columnWidths[$col - 1]);
+        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+        $sheet->getColumnDimension($colLetter)->setWidth($columnWidths[$col - 1]);
     }
 
     // Add borders to all cells
-    $border = new Border();
-    $border->setBottom(new \PhpOffice\PhpSpreadsheet\Style\BorderStyle(
-        \PhpOffice\PhpSpreadsheet\Style\BorderStyle::BORDER_THIN
-    ));
-    $border->setTop(new \PhpOffice\PhpSpreadsheet\Style\BorderStyle(
-        \PhpOffice\PhpSpreadsheet\Style\BorderStyle::BORDER_THIN
-    ));
-    $border->setLeft(new \PhpOffice\PhpSpreadsheet\Style\BorderStyle(
-        \PhpOffice\PhpSpreadsheet\Style\BorderStyle::BORDER_THIN
-    ));
-    $border->setRight(new \PhpOffice\PhpSpreadsheet\Style\BorderStyle(
-        \PhpOffice\PhpSpreadsheet\Style\BorderStyle::BORDER_THIN
-    ));
-
     $dataRange = 'A1:H' . ($row - 1);
-    $sheet->getStyle($dataRange)->setBorder($border);
+    $sheet->getStyle($dataRange)->applyFromArray([
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => Border::BORDER_THIN,
+                'color' => ['rgb' => '000000'],
+            ]
+        ]
+    ]);
 
     // Freeze header row
     $sheet->freezePane('A2');

@@ -15,13 +15,15 @@ if (!isset($_SESSION['login_id'])) {
 }
 
 // Cargar PHPSpreadsheet
+require_once 'vendor/autoload.php';
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-
-require_once 'vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 try {
     // Obtener datos del inventario
@@ -54,17 +56,31 @@ try {
     $headerFill->setFillType(Fill::FILL_SOLID);
     $headerFill->getStartColor()->setARGB('FF4472C4');
     
+    $headerFont = new Font();
+    $headerFont->setBold(true);
+    $headerFont->getColor()->setARGB('FFFFFFFF');
+    
     $headerAlignment = new Alignment();
     $headerAlignment->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $headerAlignment->setVertical(Alignment::VERTICAL_CENTER);
     $headerAlignment->setWrapText(true);
     
     foreach (range('A', 'J') as $col) {
-        $cell = $sheet->getCell("{$col}1");
-        $cell->getStyle()
-            ->setFill($headerFill)
-            ->setAlignment($headerAlignment)
-            ->getFont()->setBold(true)->setColor('FFFFFFFF');
+        $sheet->getStyle("{$col}1")->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'color' => ['argb' => 'FF4472C4'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ]
+        ]);
     }
     
     // Llenar datos
@@ -83,21 +99,34 @@ try {
         
         // Aplicar bordes y alineación
         $range = "A{$rowNum}:J{$rowNum}";
-        $sheet->getStyle($range)->getBorders()->getAllBorders()
-            ->setBorderStyle(Border::BORDER_THIN)
-            ->getColor()->setARGB('FFD3D3D3');
+        $sheet->getStyle($range)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'D3D3D3'],
+                ]
+            ]
+        ]);
         
         // Alinear números a la derecha
-        $sheet->getStyle("C{$rowNum}:H{$rowNum}")
-            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle("C{$rowNum}:H{$rowNum}")->applyFromArray([
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,
+            ]
+        ]);
         
         // Color peligrosos
         if ($row['is_hazardous']) {
-            $sheet->getStyle("I{$rowNum}")
-                ->getFill()->setFillType(Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFFF0000');
-            $sheet->getStyle("I{$rowNum}")
-                ->getFont()->setColor('FFFFFFFF')->setBold(true);
+            $sheet->getStyle("I{$rowNum}")->applyFromArray([
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'color' => ['argb' => 'FFFF0000'],
+                ],
+                'font' => [
+                    'color' => ['argb' => 'FFFFFFFF'],
+                    'bold' => true,
+                ]
+            ]);
         }
         
         $rowNum++;
