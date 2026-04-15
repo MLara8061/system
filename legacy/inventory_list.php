@@ -264,35 +264,10 @@ $(document).ready(function() {
         });
     };
 
-    // === EXPORTAR A EXCEL ===
+    // === EXPORTAR A EXCEL (XLSX) ===
     $('#export-excel').click(function(e) {
         e.preventDefault();
-        let data = [['Img','Nombre','Categoría','Precio','Costo','Stock','Mín','Máx','Valor Total','Status','Creado']];
-        table.rows({ search: 'applied' }).data().each(function(row) {
-            const img = $(row[0]).find('img').length ? 'Sí' : 'No';
-            const status = $(row[9]).text();
-            data.push([
-                img,
-                $(row[1]).text(),
-                $(row[2]).text(),
-                $(row[3]).text().replace(/[$,]/g, ''),
-                $(row[4]).text().replace(/[$,]/g, ''),
-                $(row[5]).text(),
-                $(row[6]).text(),
-                $(row[7]).text(),
-                $(row[8]).text().replace(/[$,]/g, ''),
-                status,
-                $(row[10]).text()
-            ]);
-        });
-
-        let csv = data.map(r => r.join('\t')).join('\n');
-        let blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-        let url = URL.createObjectURL(blob);
-        let link = document.createElement('a');
-        link.href = url;
-        link.download = 'inventario_' + new Date().toISOString().slice(0,10) + '.csv';
-        link.click();
+        window.location.href = 'public/ajax/export_inventory_xlsx.php';
     });
 });
 </script>
