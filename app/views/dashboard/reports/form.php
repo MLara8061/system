@@ -725,6 +725,7 @@ $(document).ready(function() {
             error: function (xhr, status, err) {
                 console.error('AJAX error:', status, err);
                 alert('Error de comunicación al subir la foto: ' + status);
+            }
         });
     }
 
