@@ -521,6 +521,20 @@ file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: starting
               $top_suppliers_data = [
                 ['supplier' => 'Sin datos', 'cnt' => 0, 'pct' => 0.0],
               ];
+            } else {
+              // Agregar "Otros proveedores" si no suma 100%
+              $total_top_cnt = array_sum(array_column($top_suppliers_data, 'cnt'));
+              $total_top_pct = array_sum(array_column($top_suppliers_data, 'pct'));
+              
+              if ($total_top_cnt < $total_equipos && $total_top_pct < 100.0) {
+                $other_cnt = $total_equipos - $total_top_cnt;
+                $other_pct = 100.0 - $total_top_pct;
+                $top_suppliers_data[] = [
+                  'supplier' => 'Otros proveedores',
+                  'cnt' => $other_cnt,
+                  'pct' => $other_pct,
+                ];
+              }
             }
           file_put_contents($traceFile, '[' . date('Y-m-d H:i:s') . "] HOME LOAD: top suppliers ready\n", FILE_APPEND);
           foreach ($top_suppliers_data as $sup): ?>
