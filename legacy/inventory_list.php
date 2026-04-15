@@ -141,14 +141,14 @@ $total_valor = $conn->query("SELECT COALESCE(SUM(cost * stock), 0) as total FROM
                                 <?php endif; ?>
                             </td>
                             <td><span class="text-muted"><?= ucwords($row['category'] ?? 'N/A') ?></span></td>
-                            <td>$<?= number_format($row['price'], 2) ?></td>
-                            <td>$<?= number_format($row['cost'], 2) ?></td>
+                            <td><span class="price-value">$<?= number_format($row['price'], 2) ?></span></td>
+                            <td><span class="price-value">$<?= number_format($row['cost'], 2) ?></span></td>
                             <td class="text-center <?= $row['stock'] == 0 ? 'text-danger font-weight-bold' : '' ?>">
                                 <?= $row['stock'] ?>
                             </td>
                             <td class="text-center"><?= $row['min_stock'] ?></td>
                             <td class="text-center"><?= $row['max_stock'] ?></td>
-                            <td>$<?= number_format($valor_total, 2) ?></td>
+                            <td><span class="price-value">$<?= number_format($valor_total, 2) ?></span></td>
                             <td class="text-center"><?= $stock_status ?></td>
                             <td><small><?= date('d/m/Y', strtotime($row['created_at'])) ?></small></td>
 

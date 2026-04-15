@@ -102,7 +102,7 @@ $total_valor = $conn->query("SELECT SUM(costo) as total FROM tools")->fetch_asso
                             </td>
                             <td><?php echo $row['nombre']; ?></td>
                             <td><?php echo $row['marca']; ?></td>
-                            <td>$<?php echo number_format($row['costo'], 2); ?></td>
+                            <td><span class="price-value">$<?php echo number_format($row['costo'], 2); ?></span></td>
                             <td><?php echo $row['empresa']; ?></td>
                             <td>
                                 <span class="badge <?php echo ($row['estatus'] == 'Activa') ? 'badge-success' : 'badge-secondary'; ?>">

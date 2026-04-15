@@ -126,7 +126,7 @@ $total_valor_acc = $conn->query("SELECT COALESCE(SUM(cost), 0) as total FROM acc
                             <td><?= $row['serial'] ?? '-' ?></td>
                             <td>#<?= $row['inventory_number'] ?></td>
                             <td><?= ucwords($row['area_name'] ?? 'Sin área') ?></td>
-                            <td>$<?= number_format($row['cost'], 2) ?></td>
+                            <td><span class="price-value">$<?= number_format($row['cost'], 2) ?></span></td>
                             <td><small><?= ucwords($row['acquisition_name'] ?? 'N/A') ?></small></td>
                             <td><small><?= date('d/m/Y', strtotime($row['acquisition_date'])) ?></small></td>
                             <td>
